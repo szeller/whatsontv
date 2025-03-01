@@ -40,7 +40,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/whatsontv.git"
+    "url": "https://github.com/szeller/whatsontv.git"
   },
   "dependencies": {
     "@slack/web-api": "^7.8.0",
