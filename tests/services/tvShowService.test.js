@@ -1,5 +1,6 @@
 import { normalizeNetworkName, normalizeShowData, fetchTvShows, TVMAZE_API, api } from '../../services/tvShowService.js';
 import MockAdapter from 'axios-mock-adapter';
+import { jest } from '@jest/globals';
 
 // Create mock using the exported api instance
 const mock = new MockAdapter(api);
@@ -11,7 +12,7 @@ describe('tvShowService', () => {
   });
 
   describe('fetchTvShows', () => {
-    const mockTvShow = {
+    const mockTvShow = normalizeShowData({
       airtime: '20:00',
       name: 'NCIS',
       season: 1,
@@ -21,11 +22,12 @@ describe('tvShowService', () => {
         type: 'Scripted',
         network: { name: 'CBS' },
         webChannel: null,
-        genres: ['Drama', 'Crime']
+        genres: ['Drama', 'Crime'],
+        language: 'English'
       }
-    };
+    });
 
-    const mockWebShow = {
+    const mockWebShow = normalizeShowData({
       airtime: '12:00',
       name: 'NCIS: Sydney',
       season: 2,
@@ -35,7 +37,26 @@ describe('tvShowService', () => {
         type: 'Scripted',
         network: null,
         webChannel: { name: 'Paramount+' },
-        genres: ['Drama', 'Crime']
+        genres: ['Drama', 'Crime'],
+        language: 'English'
+      }
+    });
+
+    const mockSpanishShow = {
+      airtime: '21:00',
+      name: 'La Casa de Papel',
+      season: 1,
+      number: 1,
+      show: {
+        id: 'mock-spanish-show',
+        name: 'La Casa de Papel',
+        type: 'Scripted',
+        network: { name: 'Antena 3' },
+        webChannel: null,
+        genres: ['Drama', 'Crime', 'Thriller'],
+        language: 'Spanish',
+        image: null,
+        summary: 'A Spanish crime drama series'
       }
     };
 
@@ -122,6 +143,64 @@ describe('tvShowService', () => {
       expect(result).toHaveLength(2);
     });
 
+    test('filters shows by language', async () => {
+      // Mock both endpoints to include Spanish and English shows
+      mock.onGet().reply((config) => {
+        if (config.url === TVMAZE_API.TV_SCHEDULE) {
+          return [200, [mockTvShow, mockSpanishShow]];
+        }
+        if (config.url === TVMAZE_API.WEB_SCHEDULE) {
+          return [200, [mockWebShow]];
+        }
+        return [404, {}];
+      });
+
+      const result = await fetchTvShows({
+        date: '2025-03-07',
+        languages: ['Spanish']
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].show.name).toBe('La Casa de Papel');
+      expect(result[0].show.language).toBe('Spanish');
+    });
+
+    test('handles missing language gracefully', async () => {
+      const showWithoutLanguage = normalizeShowData({
+        ...mockTvShow,
+        show: { 
+          ...mockTvShow.show,
+          id: 'mock-no-language',
+          language: null,
+          image: null,
+          summary: 'A show without language'
+        }
+      });
+
+      mock.onGet().reply((config) => {
+        if (config.url === TVMAZE_API.TV_SCHEDULE) {
+          return [200, [showWithoutLanguage]];
+        }
+        if (config.url === TVMAZE_API.WEB_SCHEDULE) {
+          return [200, []];
+        }
+        return [404, {}];
+      });
+
+      // Should not include shows with missing language when filtering by language
+      const resultWithFilter = await fetchTvShows({
+        date: '2025-03-07',
+        languages: ['English']
+      });
+      expect(resultWithFilter).toHaveLength(0);
+
+      // Should include shows with missing language when not filtering by language
+      const resultWithoutFilter = await fetchTvShows({
+        date: '2025-03-07'
+      });
+      expect(resultWithoutFilter).toHaveLength(1);
+    });
+
     test('handles API errors gracefully', async () => {
       // Mock both endpoints with errors
       mock.onGet().reply(500);
@@ -188,6 +267,17 @@ describe('tvShowService', () => {
   });
 
   describe('normalizeShowData', () => {
+    beforeEach(() => {
+      // Mock Date.now() to return a consistent value for generateId
+      jest.spyOn(Date, 'now').mockImplementation(() => 1234567890);
+      // Mock Math.random() to return a consistent value for generateId
+      jest.spyOn(Math, 'random').mockImplementation(() => 0.123456789);
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
     test('normalizes regular show data', () => {
       const input = {
         airtime: '20:00',
@@ -199,7 +289,10 @@ describe('tvShowService', () => {
           type: 'Scripted',
           network: { name: 'CBS' },
           webChannel: null,
-          genres: ['Drama']
+          genres: ['Drama'],
+          language: 'English',
+          image: null,
+          summary: 'A test show'
         }
       };
 
@@ -210,18 +303,22 @@ describe('tvShowService', () => {
         season: 1,
         number: 1,
         show: {
+          id: expect.any(String),
           name: 'Test Show',
           type: 'Scripted',
           network: { name: 'CBS' },
           webChannel: null,
-          genres: ['Drama']
+          genres: ['Drama'],
+          language: 'English',
+          image: null,
+          summary: 'A test show'
         }
       });
     });
 
-    test('normalizes web show data', () => {
+    test('normalizes web show data with _embedded structure', () => {
       const input = {
-        airtime: '',
+        airtime: '12:00',
         name: 'Test Web Show',
         season: 1,
         number: 1,
@@ -231,41 +328,116 @@ describe('tvShowService', () => {
             type: 'Scripted',
             network: null,
             webChannel: { name: 'Paramount+' },
-            genres: ['Drama']
+            genres: ['Drama'],
+            language: 'English',
+            image: null,
+            summary: 'A web show'
           }
         }
       };
 
       const result = normalizeShowData(input);
       expect(result).toEqual({
-        airtime: 'TBA',
+        airtime: '12:00',
         name: 'Test Web Show',
         season: 1,
         number: 1,
         show: {
+          id: expect.any(String),
           name: 'Test Web Show',
           type: 'Scripted',
           network: null,
           webChannel: { name: 'Paramount+' },
-          genres: ['Drama']
+          genres: ['Drama'],
+          language: 'English',
+          image: null,
+          summary: 'A web show'
+        }
+      });
+    });
+
+    test('normalizes direct show data', () => {
+      const input = {
+        name: 'Direct Show',
+        type: 'Reality',
+        network: { name: 'Discovery' },
+        webChannel: null,
+        genres: ['Reality'],
+        language: 'English',
+        image: null,
+        summary: 'A direct show'
+      };
+
+      const result = normalizeShowData(input);
+      expect(result).toEqual({
+        airtime: '',
+        name: 'Direct Show',
+        season: '',
+        number: '',
+        show: {
+          id: expect.any(String),
+          name: 'Direct Show',
+          type: 'Reality',
+          network: { name: 'Discovery' },
+          webChannel: null,
+          genres: ['Reality'],
+          language: 'English',
+          image: null,
+          summary: 'A direct show'
         }
       });
     });
 
     test('handles missing data', () => {
-      const input = {};
+      const input = {
+        show: {}
+      };
+
       const result = normalizeShowData(input);
       expect(result).toEqual({
-        airtime: 'TBA',
-        name: 'TBA',
-        season: 'TBA',
-        number: 'TBA',
+        airtime: '',
+        name: '',
+        season: '',
+        number: '',
         show: {
-          name: 'Unknown Show',
-          type: 'Unknown',
-          network: undefined,
-          webChannel: undefined,
-          genres: []
+          id: expect.any(String),
+          name: '',
+          type: '',
+          network: null,
+          webChannel: null,
+          genres: [],
+          language: '',
+          image: null,
+          summary: ''
+        }
+      });
+    });
+
+    test('handles null input', () => {
+      expect(normalizeShowData(null)).toBeNull();
+    });
+
+    test('handles missing show object', () => {
+      const input = {
+        airtime: '20:00',
+        name: 'Test Show'
+      };
+      const result = normalizeShowData(input);
+      expect(result).toEqual({
+        airtime: '20:00',
+        name: 'Test Show',
+        season: '',
+        number: '',
+        show: {
+          id: expect.any(String),
+          name: 'Test Show',
+          type: '',
+          network: null,
+          webChannel: null,
+          genres: [],
+          language: '',
+          image: null,
+          summary: ''
         }
       });
     });

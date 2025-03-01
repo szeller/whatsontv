@@ -9,6 +9,8 @@ const defaultConfig = {
     country: 'US',
     types: [],           // e.g., ['Reality', 'Scripted']
     networks: [],        // e.g., ['Discovery', 'CBS']
+    genres: [],          // e.g., ['Drama', 'Comedy']
+    languages: ['English'], // Default to English shows
     notificationTime: '9:00',  // 24-hour format
     slack: {
         enabled: true,

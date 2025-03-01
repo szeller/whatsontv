@@ -118,25 +118,40 @@ function isShowFromCountry(show, country) {
 }
 
 /**
- * Normalize show data structure between TV and web schedules
- * @param {Object} show - The show object from either API
+ * Generates a unique ID for a show
+ * @returns {string} - Unique ID
+ */
+function generateId() {
+    return Math.random().toString(36).substring(2) + Date.now().toString(36);
+}
+
+/**
+ * Normalizes show data to a consistent format
+ * @param {Object} show - Show data from TVMaze API
  * @returns {Object} - Normalized show object
  */
 function normalizeShowData(show) {
+    if (!show) return null;
+
     // Handle both regular schedule and web schedule data structures
     const showDetails = show._embedded?.show || show.show || show;
-    
+    if (!showDetails) return null;
+
     return {
-        airtime: show.airtime || 'TBA',
-        name: show.name || showDetails.name || 'TBA',
-        season: show.season || 'TBA',
-        number: show.number || 'TBA',
+        airtime: show.airtime || '',
+        name: showDetails.name || '',
+        season: show.season || '',
+        number: show.number || '',
         show: {
-            name: showDetails.name || 'Unknown Show',
-            type: showDetails.type || 'Unknown',
-            network: showDetails.network,
-            webChannel: showDetails.webChannel,
-            genres: showDetails.genres || []
+            id: showDetails.id || generateId(),
+            name: showDetails.name || '',
+            type: showDetails.type || '',
+            network: showDetails.network || null,
+            webChannel: showDetails.webChannel || null,
+            genres: showDetails.genres || [],
+            language: showDetails.language || '',
+            image: showDetails.image || null,
+            summary: showDetails.summary || ''
         }
     };
 }
@@ -192,14 +207,15 @@ async function fetchFromEndpoint(endpoint, { date, country }, includeCountry = t
 /**
  * Fetch TV shows from TVMaze API
  * @param {Object} options - Options for fetching shows
- * @param {string} options.date - The date to fetch shows for (YYYY-MM-DD)
- * @param {string} options.country - The country code (e.g., US, GB)
- * @param {string[]} [options.types] - Optional array of show types to filter by
- * @param {string[]} [options.networks] - Optional array of networks to filter by
- * @param {string[]} [options.genres] - Optional array of genres to filter by
- * @returns {Promise<Array>} - Combined array of shows
+ * @param {string} [options.date] - Date in YYYY-MM-DD format
+ * @param {string} [options.country='US'] - Two-letter country code
+ * @param {string[]} [options.types=[]] - Show types to include
+ * @param {string[]} [options.networks=[]] - Networks to include
+ * @param {string[]} [options.genres=[]] - Genres to include
+ * @param {string[]} [options.languages=[]] - Languages to include (e.g., 'English', 'Spanish')
+ * @returns {Promise<Array>} Array of TV shows matching the criteria
  */
-async function fetchTvShows({ date = getTodayDate(), country = 'US', types = [], networks = [], genres = [] } = {}) {
+async function fetchTvShows({ date = getTodayDate(), country = 'US', types = [], networks = [], genres = [], languages = [] } = {}) {
     try {
         // Fetch both regular and web schedules
         const [tvResponse, webResponse] = await Promise.all([
@@ -211,7 +227,7 @@ async function fetchTvShows({ date = getTodayDate(), country = 'US', types = [],
         const shows = [...tvResponse.data, ...webResponse.data].map(normalizeShowData);
 
         // Filter shows based on criteria
-        return shows.filter(show => {
+        const filteredShows = shows.filter(show => {
             // Filter by type if specified
             if (types.length > 0 && !types.includes(show.show.type)) {
                 return false;
@@ -238,8 +254,19 @@ async function fetchTvShows({ date = getTodayDate(), country = 'US', types = [],
                 if (!hasMatchingGenre) return false;
             }
 
+            // Filter by language if specified
+            if (languages.length > 0) {
+                const showLanguage = show.show.language || '';
+                const hasMatchingLanguage = languages.some(lang => 
+                    lang.toLowerCase() === showLanguage.toLowerCase()
+                );
+                if (!hasMatchingLanguage) return false;
+            }
+
             return true;
         });
+
+        return filteredShows;
     } catch (error) {
         return [];
     }

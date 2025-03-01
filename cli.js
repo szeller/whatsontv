@@ -44,6 +44,12 @@ const argv = yargs(hideBin(process.argv))
         type: 'array',
         default: config.genres || []
     })
+    .option('languages', {
+        alias: 'l',
+        description: 'Languages to filter by (e.g., English, Spanish)',
+        type: 'array',
+        default: config.languages || ['English']
+    })
     .option('time-sort', {
         alias: 's',
         type: 'boolean',
@@ -60,7 +66,8 @@ async function displayShows() {
             country: argv.country,
             types: argv.types,
             networks: argv.networks,
-            genres: argv.genres
+            genres: argv.genres,
+            languages: argv.languages
         });
 
         if (!shows || shows.length === 0) {
