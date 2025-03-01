@@ -2,18 +2,19 @@
   "name": "whatsontv",
   "version": "1.0.0",
   "description": "A CLI tool to notify about TV show schedules using TVMaze API",
-  "main": "dist/index.js",
+  "main": "dist/slack.js",
   "type": "module",
   "bin": {
     "whatsontv": "./dist/cli.js"
   },
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "node dist/cli.js",
     "dev": "tsc -w",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
     "test:coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
+    "slack": "node dist/slack.js",
     "shows": "node dist/cli.js"
   },
   "keywords": [
@@ -44,6 +45,7 @@
   "devDependencies": {
     "@babel/core": "^7.26.9",
     "@babel/preset-env": "^7.26.9",
+    "@jest/globals": "^29.7.0",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.11.24",
     "@types/node-schedule": "^2.1.6",
