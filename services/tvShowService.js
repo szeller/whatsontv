@@ -165,7 +165,7 @@ export async function fetchTvShows({ date = getTodayDate(), country = 'US', type
         // Fetch both regular and web schedules
         const [tvResponse, webResponse] = await Promise.all([
             axios.get(`${TVMAZE_API.TV_SCHEDULE}`, { params: { date, country } }),
-            axios.get(`${TVMAZE_API.WEB_SCHEDULE}`, { params: { date, country } })
+            axios.get(`${TVMAZE_API.WEB_SCHEDULE}`, { params: { date } })
         ]);
 
         // Combine and process shows
