@@ -7,9 +7,21 @@ import type { Show, TVMazeShow } from '../../types/tvmaze';
 const mock = new MockAdapter(api);
 
 describe('tvShowService', () => {
+  // Mock console.error before all tests
+  const originalConsoleError = console.error;
+  beforeAll(() => {
+    console.error = jest.fn();
+  });
+
+  // Restore console.error after all tests
+  afterAll(() => {
+    console.error = originalConsoleError;
+  });
+
   beforeEach(() => {
-    // Reset mock handlers
+    // Reset mock handlers and clear console.error mock
     mock.reset();
+    (console.error as jest.Mock).mockClear();
   });
 
   describe('fetchTvShows', () => {
@@ -208,6 +220,11 @@ describe('tvShowService', () => {
 
       const result = await fetchTvShows();
       expect(result).toHaveLength(0);
+      expect(console.error).toHaveBeenCalledTimes(2);
+      expect(console.error).toHaveBeenCalledWith(
+        expect.stringContaining('Error fetching from'),
+        expect.any(Error)
+      );
     });
 
     test('only uses country parameter with TV schedule endpoint', async () => {
