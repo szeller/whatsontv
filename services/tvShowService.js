@@ -201,8 +201,6 @@ async function fetchFromEndpoint(endpoint, { date, country }, includeCountry = t
  */
 async function fetchTvShows({ date = getTodayDate(), country = 'US', types = [], networks = [], genres = [] } = {}) {
     try {
-        console.log('Fetching shows with params:', { date, country });
-        
         // Fetch both regular and web schedules
         const [tvResponse, webResponse] = await Promise.all([
             api.get(TVMAZE_API.TV_SCHEDULE, { params: { date, country } }),
@@ -243,8 +241,6 @@ async function fetchTvShows({ date = getTodayDate(), country = 'US', types = [],
             return true;
         });
     } catch (error) {
-        console.error('Error fetching TV shows:', error.message);
-        console.error('Error details:', error.config);
         return [];
     }
 }
