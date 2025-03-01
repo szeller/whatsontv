@@ -1,0 +1,10 @@
+{
+    "country": "US",
+    "types": ["Reality", "Scripted"],
+    "networks": ["Discovery", "CBS", "Netflix"],
+    "notificationTime": "9:00",
+    "slack": {
+        "enabled": true,
+        "channel": "#tv-shows"
+    }
+}

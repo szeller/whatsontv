@@ -1,0 +1,32 @@
+{
+  "name": "windsurf-project",
+  "version": "1.0.0",
+  "description": "TV Show notifier with Slack integration and CLI interface",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "tvshows": "./cli.js"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "shows": "node cli.js"
+  },
+  "keywords": [
+    "tv",
+    "shows",
+    "slack",
+    "cli"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@slack/web-api": "^7.8.0",
+    "axios": "^1.7.9",
+    "boxen": "^8.0.1",
+    "chalk": "^5.4.1",
+    "commander": "^13.1.0",
+    "dotenv": "^16.4.7",
+    "node-schedule": "^2.1.1",
+    "yargs": "^17.7.2"
+  }
+}
