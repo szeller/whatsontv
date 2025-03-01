@@ -1,11 +1,11 @@
 {
-  "name": "tv-show-notifier",
+  "name": "whatsontv",
   "version": "1.0.0",
   "description": "A CLI tool to notify about TV show schedules",
   "main": "index.js",
   "type": "module",
   "bin": {
-    "tv-show-notifier": "./cli.js"
+    "whatsontv": "./cli.js"
   },
   "scripts": {
     "start": "node index.js",
