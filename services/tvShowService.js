@@ -112,10 +112,12 @@ function isShowFromCountry(show, country) {
  * @returns {Object} - Normalized show object
  */
 function normalizeShowData(show) {
+    // Handle both regular schedule and web schedule data structures
     const showDetails = show._embedded?.show || show.show || show;
+    
     return {
         airtime: show.airtime || 'TBA',
-        name: show.name || 'TBA',
+        name: show.name || showDetails.name || 'TBA',
         season: show.season || 'TBA',
         number: show.number || 'TBA',
         show: {
@@ -126,6 +128,32 @@ function normalizeShowData(show) {
             genres: showDetails.genres || []
         }
     };
+}
+
+/**
+ * Normalize network names to handle variations
+ * @param {string} network - Network name to normalize
+ * @returns {string} - Normalized network name
+ */
+function normalizeNetworkName(network) {
+    if (!network) return '';
+    
+    const name = network.toLowerCase();
+    
+    // Handle Paramount variations
+    if (name.includes('paramount')) {
+        if (name.includes('plus') || name.includes('+')) {
+            return 'Paramount+';
+        }
+        return 'Paramount Network';
+    }
+
+    // Handle CBS shows also appearing on Paramount+
+    if (name === 'cbs') {
+        return 'CBS';
+    }
+    
+    return network;
 }
 
 /**
@@ -174,9 +202,22 @@ export async function fetchTvShows({ date = getTodayDate(), country = 'US', type
         // Filter shows
         return shows.filter(show => {
             // Network/platform filter
-            const showNetwork = show.show.network?.name || show.show.webChannel?.name;
-            if (networks.length > 0 && !networks.some(n => showNetwork?.includes(n))) {
-                return false;
+            const showNetwork = show.show.network?.name;
+            const showWebChannel = show.show.webChannel?.name;
+            
+            if (networks.length > 0) {
+                const normalizedShowNetwork = normalizeNetworkName(showNetwork);
+                const normalizedShowWebChannel = normalizeNetworkName(showWebChannel);
+                
+                const matchingNetwork = networks.some(n => {
+                    const normalizedConfigNetwork = normalizeNetworkName(n);
+                    return normalizedShowNetwork.toLowerCase().includes(normalizedConfigNetwork.toLowerCase()) ||
+                           normalizedShowWebChannel.toLowerCase().includes(normalizedConfigNetwork.toLowerCase());
+                });
+                
+                if (!matchingNetwork) {
+                    return false;
+                }
             }
 
             // Type filter
