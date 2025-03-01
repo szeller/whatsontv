@@ -1,15 +1,31 @@
 {
-  "name": "windsurf-project",
+  "name": "tv-show-notifier",
   "version": "1.0.0",
-  "description": "TV Show notifier with Slack integration and CLI interface",
+  "description": "A CLI tool to notify about TV show schedules",
   "main": "index.js",
   "type": "module",
   "bin": {
-    "tvshows": "./cli.js"
+    "tv-show-notifier": "./cli.js"
   },
   "scripts": {
     "start": "node index.js",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
+    "test:coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
     "shows": "node cli.js"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "transform": {},
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    },
+    "collectCoverageFrom": [
+      "**/*.js",
+      "!**/node_modules/**",
+      "!**/coverage/**"
+    ],
+    "coverageDirectory": "coverage"
   },
   "keywords": [
     "tv",
@@ -28,5 +44,13 @@
     "dotenv": "^16.4.7",
     "node-schedule": "^2.1.1",
     "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.9",
+    "@babel/preset-env": "^7.26.9",
+    "axios-mock-adapter": "^2.1.0",
+    "babel-jest": "^29.7.0",
+    "jest": "^29.7.0",
+    "jest-environment-node": "^29.7.0"
   }
 }

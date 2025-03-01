@@ -1,9 +1,15 @@
+export const TVMAZE_API = {
+    BASE_URL: 'https://api.tvmaze.com',
+    TV_SCHEDULE: '/schedule',
+    WEB_SCHEDULE: '/schedule/web'
+};
+
 import axios from 'axios';
 
-const TVMAZE_API = {
-    TV_SCHEDULE: 'https://api.tvmaze.com/schedule',
-    WEB_SCHEDULE: 'https://api.tvmaze.com/schedule/web'
-};
+// Configure axios with base URL
+const api = axios.create({
+    baseURL: TVMAZE_API.BASE_URL
+});
 
 // List of streaming platforms and networks that are available in the US
 const US_AVAILABLE_PLATFORMS = [
@@ -34,21 +40,26 @@ function isShowOnDate(show, date) {
 }
 
 /**
- * Format the show's airtime
- * @param {string} time - The show's airtime
- * @returns {string}
+ * Format time to 12-hour format
+ * @param {string} time - Time in 24-hour format (HH:MM)
+ * @returns {string} - Time in 12-hour format
  */
-export function formatTime(time) {
+function formatTime(time) {
     if (!time) return 'TBA';
-    return time;
+    const [hours, minutes] = time.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 || 12;
+    return `${hour12}:${minutes} ${ampm}`;
 }
 
 /**
  * Get today's date in YYYY-MM-DD format
- * @returns {string}
+ * @returns {string} - Today's date
  */
-export function getTodayDate() {
-    return new Date().toISOString().split('T')[0];
+function getTodayDate() {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
 }
 
 /**
@@ -170,7 +181,7 @@ async function fetchFromEndpoint(endpoint, { date, country }, includeCountry = t
             params.country = country;
         }
 
-        const response = await axios.get(endpoint, { params });
+        const response = await api.get(endpoint, { params });
         return response.data;
     } catch (error) {
         console.error(`Warning: Failed to fetch from ${endpoint}: ${error.message}`);
@@ -188,52 +199,52 @@ async function fetchFromEndpoint(endpoint, { date, country }, includeCountry = t
  * @param {string[]} [options.genres] - Optional array of genres to filter by
  * @returns {Promise<Array>} - Combined array of shows
  */
-export async function fetchTvShows({ date = getTodayDate(), country = 'US', types = [], networks = [], genres = [] } = {}) {
+async function fetchTvShows({ date = getTodayDate(), country = 'US', types = [], networks = [], genres = [] } = {}) {
     try {
+        console.log('Fetching shows with params:', { date, country });
+        
         // Fetch both regular and web schedules
         const [tvResponse, webResponse] = await Promise.all([
-            axios.get(`${TVMAZE_API.TV_SCHEDULE}`, { params: { date, country } }),
-            axios.get(`${TVMAZE_API.WEB_SCHEDULE}`, { params: { date } })
+            api.get(TVMAZE_API.TV_SCHEDULE, { params: { date, country } }),
+            api.get(TVMAZE_API.WEB_SCHEDULE, { params: { date } })
         ]);
 
         // Combine and process shows
         const shows = [...tvResponse.data, ...webResponse.data].map(normalizeShowData);
 
-        // Filter shows
+        // Filter shows based on criteria
         return shows.filter(show => {
-            // Network/platform filter
-            const showNetwork = show.show.network?.name;
-            const showWebChannel = show.show.webChannel?.name;
-            
-            if (networks.length > 0) {
-                const normalizedShowNetwork = normalizeNetworkName(showNetwork);
-                const normalizedShowWebChannel = normalizeNetworkName(showWebChannel);
-                
-                const matchingNetwork = networks.some(n => {
-                    const normalizedConfigNetwork = normalizeNetworkName(n);
-                    return normalizedShowNetwork.toLowerCase().includes(normalizedConfigNetwork.toLowerCase()) ||
-                           normalizedShowWebChannel.toLowerCase().includes(normalizedConfigNetwork.toLowerCase());
-                });
-                
-                if (!matchingNetwork) {
-                    return false;
-                }
-            }
-
-            // Type filter
+            // Filter by type if specified
             if (types.length > 0 && !types.includes(show.show.type)) {
                 return false;
             }
 
-            // Genre filter
-            if (genres.length > 0 && !show.show.genres.some(g => genres.includes(g))) {
-                return false;
+            // Filter by network if specified
+            if (networks.length > 0) {
+                const showNetwork = show.show.network?.name || show.show.webChannel?.name;
+                if (!showNetwork) return false;
+                
+                const normalizedShowNetwork = normalizeNetworkName(showNetwork);
+                const hasMatchingNetwork = networks.some(network => 
+                    normalizeNetworkName(network) === normalizedShowNetwork
+                );
+                if (!hasMatchingNetwork) return false;
+            }
+
+            // Filter by genre if specified
+            if (genres.length > 0) {
+                const showGenres = show.show.genres || [];
+                const hasMatchingGenre = genres.some(genre => 
+                    showGenres.includes(genre)
+                );
+                if (!hasMatchingGenre) return false;
             }
 
             return true;
         });
     } catch (error) {
         console.error('Error fetching TV shows:', error.message);
+        console.error('Error details:', error.config);
         return [];
     }
 }
@@ -243,7 +254,7 @@ export async function fetchTvShows({ date = getTodayDate(), country = 'US', type
  * @param {Array} shows - Array of shows from TVMaze API
  * @returns {Object} - Shows grouped by network
  */
-export function groupShowsByNetwork(shows) {
+function groupShowsByNetwork(shows) {
     const networkGroups = {};
     
     shows.forEach(show => {
@@ -279,7 +290,7 @@ export function groupShowsByNetwork(shows) {
  * @param {Array} shows - Array of shows from TVMaze API
  * @returns {Array} - Sorted shows
  */
-export function sortShowsByTime(shows) {
+function sortShowsByTime(shows) {
     return [...shows].sort((a, b) => (a.airtime || '').localeCompare(b.airtime || ''));
 }
 
@@ -288,7 +299,7 @@ export function sortShowsByTime(shows) {
  * @param {Object} show - The show object from TVMaze API
  * @returns {Object} - Formatted show details
  */
-export function getShowDetails(show) {
+function getShowDetails(show) {
     // For web shows, prefer the web channel name
     let network = show.show.webChannel?.name
         ? show.show.webChannel.name
@@ -312,3 +323,15 @@ export function getShowDetails(show) {
         isEpisodeNameDifferent: show.name !== show.show.name
     };
 }
+
+export {
+    api,
+    formatTime,
+    getTodayDate,
+    normalizeNetworkName,
+    normalizeShowData,
+    fetchTvShows,
+    groupShowsByNetwork,
+    sortShowsByTime,
+    getShowDetails
+};
