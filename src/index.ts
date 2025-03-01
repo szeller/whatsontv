@@ -1,16 +1,27 @@
 import 'dotenv/config';
 import schedule from 'node-schedule';
 import { WebClient } from '@slack/web-api';
-import { fetchTvShows } from './services/tvShowService.js';
-import config from './config.js';
+import { fetchTvShows } from './services/tvShowService';
+import config from './config';
+import type { Show } from './types/tvmaze';
+
+interface ShowSummary {
+    show_name: string;
+    episode_name: string;
+    season: string | number;
+    episode_number: string | number;
+    network: string;
+    time: string;
+    type: string;
+}
 
 // Initialize Slack client if enabled
-let slack;
+let slack: WebClient | undefined;
 if (config.slack.enabled && config.slack.botToken) {
     slack = new WebClient(config.slack.botToken);
 }
 
-async function getTvShows(options = {}) {
+async function getTvShows(options: { types?: string[]; networks?: string[] } = {}): Promise<ShowSummary[]> {
     try {
         // Get today's date in YYYY-MM-DD format
         const today = new Date().toISOString().split('T')[0];
@@ -23,7 +34,7 @@ async function getTvShows(options = {}) {
             networks: options.networks || config.networks
         });
 
-        return shows.map(show => ({
+        return shows.map((show: Show) => ({
             show_name: show.show.name,
             episode_name: show.name,
             season: show.season,
@@ -33,19 +44,23 @@ async function getTvShows(options = {}) {
             type: show.show.type || 'Unknown'
         }));
     } catch (error) {
-        console.error('Error fetching TV shows:', error.message);
+        if (error instanceof Error) {
+            console.error('Error fetching TV shows:', error.message);
+        } else {
+            console.error('Unknown error fetching TV shows');
+        }
         return [];
     }
 }
 
-async function sendSlackNotification(shows) {
+async function sendSlackNotification(shows: ShowSummary[]): Promise<void> {
     if (!config.slack.enabled || !slack) {
         console.log('Slack notifications are disabled');
         return;
     }
 
     try {
-        let message;
+        let message: string;
         
         if (shows.length === 0) {
             message = "No new TV shows today!";
@@ -53,7 +68,7 @@ async function sendSlackNotification(shows) {
             message = "📺 *TV Shows Today:*\n\n";
             
             // Group shows by network
-            const showsByNetwork = shows.reduce((acc, show) => {
+            const showsByNetwork = shows.reduce<Record<string, ShowSummary[]>>((acc, show) => {
                 const network = show.network;
                 if (!acc[network]) {
                     acc[network] = [];
@@ -78,18 +93,22 @@ async function sendSlackNotification(shows) {
         }
 
         await slack.chat.postMessage({
-            channel: config.slack.channel,
+            channel: config.slack.channel || '',
             text: message,
             mrkdwn: true
         });
 
         console.log('Slack notification sent successfully!');
     } catch (error) {
-        console.error('Error sending Slack message:', error.message);
+        if (error instanceof Error) {
+            console.error('Error sending Slack message:', error.message);
+        } else {
+            console.error('Unknown error sending Slack message');
+        }
     }
 }
 
-async function dailyTvShowCheck() {
+async function dailyTvShowCheck(): Promise<void> {
     console.log('Fetching today\'s TV shows...');
     const shows = await getTvShows();
     await sendSlackNotification(shows);

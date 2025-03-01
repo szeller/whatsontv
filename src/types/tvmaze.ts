@@ -19,7 +19,7 @@ export interface ShowDetails {
     id: number | string;
     name: string;
     type: string;
-    language: string;
+    language: string | null;
     genres: string[];
     network: Network | null;
     webChannel: Network | null;
@@ -43,7 +43,7 @@ export interface TVMazeShow {
     number?: string | number;
     id?: number | string;
     type?: string;
-    language?: string;
+    language?: string | null;
     genres?: string[];
     network?: Network | null;
     webChannel?: Network | null;

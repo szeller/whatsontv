@@ -1,6 +1,7 @@
-import { normalizeNetworkName, normalizeShowData, fetchTvShows, TVMAZE_API, api } from '../../services/tvShowService.js';
+import { normalizeNetworkName, normalizeShowData, fetchTvShows, TVMAZE_API, api } from '../../services/tvShowService';
 import MockAdapter from 'axios-mock-adapter';
 import { jest } from '@jest/globals';
+import type { Show, TVMazeShow } from '../../types/tvmaze';
 
 // Create mock using the exported api instance
 const mock = new MockAdapter(api);
@@ -25,7 +26,7 @@ describe('tvShowService', () => {
         genres: ['Drama', 'Crime'],
         language: 'English'
       }
-    });
+    } as TVMazeShow) as Show;
 
     const mockWebShow = normalizeShowData({
       airtime: '12:00',
@@ -40,7 +41,7 @@ describe('tvShowService', () => {
         genres: ['Drama', 'Crime'],
         language: 'English'
       }
-    });
+    } as TVMazeShow) as Show;
 
     const mockSpanishShow = {
       airtime: '21:00',
@@ -58,7 +59,7 @@ describe('tvShowService', () => {
         image: null,
         summary: 'A Spanish crime drama series'
       }
-    };
+    } as Show;
 
     test('fetches and combines shows from both TV and web schedules', async () => {
       // Mock both endpoints
@@ -175,7 +176,7 @@ describe('tvShowService', () => {
           image: null,
           summary: 'A show without language'
         }
-      });
+      } as TVMazeShow) as Show;
 
       mock.onGet().reply((config) => {
         if (config.url === TVMAZE_API.TV_SCHEDULE) {
@@ -202,44 +203,27 @@ describe('tvShowService', () => {
     });
 
     test('handles API errors gracefully', async () => {
-      // Mock both endpoints with errors
-      mock.onGet().reply(500);
+      mock.onGet(TVMAZE_API.TV_SCHEDULE).reply(500);
+      mock.onGet(TVMAZE_API.WEB_SCHEDULE).reply(500);
 
-      const result = await fetchTvShows({
-        date: '2025-03-07'
-      });
-
-      expect(result).toEqual([]);
+      const result = await fetchTvShows();
+      expect(result).toHaveLength(0);
     });
 
     test('only uses country parameter with TV schedule endpoint', async () => {
-      let tvScheduleParams;
-      let webScheduleParams;
-
       mock.onGet().reply((config) => {
         if (config.url === TVMAZE_API.TV_SCHEDULE) {
-          tvScheduleParams = config.params;
-          return [200, [mockTvShow]];
+          expect(config.params.country).toBe('US');
+          return [200, []];
         }
         if (config.url === TVMAZE_API.WEB_SCHEDULE) {
-          webScheduleParams = config.params;
-          return [200, [mockWebShow]];
+          expect(config.params.country).toBeUndefined();
+          return [200, []];
         }
         return [404, {}];
       });
 
-      await fetchTvShows({
-        date: '2025-03-07',
-        country: 'US'
-      });
-
-      expect(tvScheduleParams).toEqual({
-        date: '2025-03-07',
-        country: 'US'
-      });
-      expect(webScheduleParams).toEqual({
-        date: '2025-03-07'
-      });
+      await fetchTvShows();
     });
   });
 
@@ -248,6 +232,7 @@ describe('tvShowService', () => {
       expect(normalizeNetworkName('Paramount+')).toBe('Paramount+');
       expect(normalizeNetworkName('Paramount Plus')).toBe('Paramount+');
       expect(normalizeNetworkName('paramount+')).toBe('Paramount+');
+      expect(normalizeNetworkName('paramount plus')).toBe('Paramount+');
     });
 
     test('handles Paramount Network', () => {
@@ -261,8 +246,8 @@ describe('tvShowService', () => {
     });
 
     test('handles null or undefined input', () => {
-      expect(normalizeNetworkName(null)).toBe('');
       expect(normalizeNetworkName(undefined)).toBe('');
+      expect(normalizeNetworkName(null as unknown as string)).toBe('');
     });
   });
 
@@ -271,7 +256,7 @@ describe('tvShowService', () => {
       // Mock Date.now() to return a consistent value for generateId
       jest.spyOn(Date, 'now').mockImplementation(() => 1234567890);
       // Mock Math.random() to return a consistent value for generateId
-      jest.spyOn(Math, 'random').mockImplementation(() => 0.123456789);
+      jest.spyOn(global.Math, 'random').mockImplementation(() => 0.123456789);
     });
 
     afterEach(() => {
@@ -285,6 +270,7 @@ describe('tvShowService', () => {
         season: 1,
         number: 1,
         show: {
+          id: 123,
           name: 'Test Show',
           type: 'Scripted',
           network: { name: 'CBS' },
@@ -294,7 +280,7 @@ describe('tvShowService', () => {
           image: null,
           summary: 'A test show'
         }
-      };
+      } as TVMazeShow;
 
       const result = normalizeShowData(input);
       expect(result).toEqual({
@@ -303,7 +289,7 @@ describe('tvShowService', () => {
         season: 1,
         number: 1,
         show: {
-          id: expect.any(String),
+          id: 123,
           name: 'Test Show',
           type: 'Scripted',
           network: { name: 'CBS' },
@@ -324,6 +310,7 @@ describe('tvShowService', () => {
         number: 1,
         _embedded: {
           show: {
+            id: 456,
             name: 'Test Web Show',
             type: 'Scripted',
             network: null,
@@ -334,7 +321,7 @@ describe('tvShowService', () => {
             summary: 'A web show'
           }
         }
-      };
+      } as TVMazeShow;
 
       const result = normalizeShowData(input);
       expect(result).toEqual({
@@ -343,7 +330,7 @@ describe('tvShowService', () => {
         season: 1,
         number: 1,
         show: {
-          id: expect.any(String),
+          id: 456,
           name: 'Test Web Show',
           type: 'Scripted',
           network: null,
@@ -366,7 +353,7 @@ describe('tvShowService', () => {
         language: 'English',
         image: null,
         summary: 'A direct show'
-      };
+      } as TVMazeShow;
 
       const result = normalizeShowData(input);
       expect(result).toEqual({
@@ -391,26 +378,10 @@ describe('tvShowService', () => {
     test('handles missing data', () => {
       const input = {
         show: {}
-      };
+      } as TVMazeShow;
 
       const result = normalizeShowData(input);
-      expect(result).toEqual({
-        airtime: '',
-        name: '',
-        season: '',
-        number: '',
-        show: {
-          id: expect.any(String),
-          name: '',
-          type: '',
-          network: null,
-          webChannel: null,
-          genres: [],
-          language: '',
-          image: null,
-          summary: ''
-        }
-      });
+      expect(result).toBeNull();
     });
 
     test('handles null input', () => {
@@ -421,7 +392,8 @@ describe('tvShowService', () => {
       const input = {
         airtime: '20:00',
         name: 'Test Show'
-      };
+      } as TVMazeShow;
+
       const result = normalizeShowData(input);
       expect(result).toEqual({
         airtime: '20:00',

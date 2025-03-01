@@ -16,19 +16,6 @@
     "test:coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
     "shows": "node dist/cli.js"
   },
-  "jest": {
-    "testEnvironment": "node",
-    "transform": {},
-    "moduleNameMapper": {
-      "^(\\.{1,2}/.*)\\.js$": "$1"
-    },
-    "collectCoverageFrom": [
-      "**/*.js",
-      "!**/node_modules/**",
-      "!**/coverage/**"
-    ],
-    "coverageDirectory": "coverage"
-  },
   "keywords": [
     "tv",
     "shows",
