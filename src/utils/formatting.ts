@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import type { Show } from '../types/tvmaze';
+import type { Show } from '../types/tvmaze.js';
 
 /**
  * Format show details for display

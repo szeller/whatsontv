@@ -5,7 +5,7 @@ import type {
     FetchOptions,
     GroupedShows,
     ShowDetails
-} from '../types/tvmaze';
+} from '../types/tvmaze.js';
 
 export const TVMAZE_API = {
     BASE_URL: 'https://api.tvmaze.com',

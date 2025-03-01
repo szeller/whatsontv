@@ -8,10 +8,10 @@ import {
     groupShowsByNetwork,
     sortShowsByTime,
     getTodayDate
-} from './services/tvShowService';
-import { formatShowDetails } from './utils/formatting';
-import config from './config';
-import type { Show } from './types/tvmaze';
+} from './services/tvShowService.js';
+import { formatShowDetails } from './utils/formatting.js';
+import config from './config.js';
+import type { Show } from './types/tvmaze.js';
 import type { Arguments } from 'yargs';
 
 interface CliArgs extends Arguments {
