@@ -124,6 +124,22 @@ npm run shows -- --help
 - Customizable through config file
 - Automatic daily notifications at configurable time
 
+## Documentation
+
+### Project Documentation
+- `README.md`: User guide and quick start
+- `docs/TechSpec.md`: Technical documentation including:
+  - Architecture and design decisions
+  - Development workflow
+  - Testing strategy
+  - Version constraints
+  - Code style guidelines
+
+### Code Documentation
+- TSDoc comments for public APIs
+- Clear function and type documentation
+- Examples in comments for complex logic
+
 ## Development
 - Written in TypeScript with strict mode enabled
 - Uses Jest for testing with high coverage requirements:
