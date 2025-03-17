@@ -134,6 +134,12 @@ npm run shows -- --help
   - Testing strategy
   - Version constraints
   - Code style guidelines
+- `docs/TVMaze.md`: Complete TVMaze API reference including:
+  - API endpoints and parameters
+  - Data structures and types
+  - Supported platforms and regions
+  - Error handling and best practices
+  - Rate limiting and authentication
 
 ### Code Documentation
 - TSDoc comments for public APIs
