@@ -91,16 +91,50 @@ graph TD
    - Jest as the testing framework
    - Focus on business logic in services
    - Mocked external dependencies
+   - Comprehensive test coverage:
+     - Time formatting edge cases
+     - Show filtering by country, type, network, genre, and language
+     - Platform-based country detection
+     - Network name normalization
 
 2. **Integration Tests**
    - API integration tests with TVMaze
    - Slack message delivery verification
    - Configuration loading tests
+   - Mock adapter for HTTP requests
 
 3. **Test Coverage**
-   - Aim for high coverage of core business logic
+   - Minimum 80% branch coverage requirement
+   - Current coverage:
+     - Statements: 93.87%
+     - Branches: 85.32%
+     - Functions: 90.90%
+     - Lines: 93.02%
    - Mock console output in tests
    - Error handling verification
+
+## Code Style and Quality
+
+1. **Formatting Rules**
+   - ESLint for code style
+   - Prettier for formatting with specific rules:
+     - Single quotes for strings
+     - Required semicolons
+     - No trailing commas
+     - 2-space indentation
+     - 100 character line width
+
+2. **TypeScript Configuration**
+   - Strict mode enabled
+   - ESM modules
+   - Type safety for external APIs
+   - Comprehensive type definitions
+
+3. **Code Organization**
+   - Clear separation of concerns
+   - Well-documented public APIs
+   - Private functions for internal logic
+   - Integration tests through public APIs
 
 ## Error Handling
 

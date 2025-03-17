@@ -124,17 +124,66 @@ npm run shows -- --help
 - Customizable through config file
 - Automatic daily notifications at configurable time
 
-## Development
-- Written in TypeScript
-- Uses Jest for testing
-- ESM modules
-- Follows modern TypeScript best practices
+## Documentation
 
-To run tests:
+### Project Documentation
+- `README.md`: User guide and quick start
+- `docs/TechSpec.md`: Technical documentation including:
+  - Architecture and design decisions
+  - Development workflow
+  - Testing strategy
+  - Version constraints
+  - Code style guidelines
+- `docs/TVMaze.md`: Complete TVMaze API reference including:
+  - API endpoints and parameters
+  - Data structures and types
+  - Supported platforms and regions
+  - Error handling and best practices
+  - Rate limiting and authentication
+
+### Code Documentation
+- TSDoc comments for public APIs
+- Clear function and type documentation
+- Examples in comments for complex logic
+
+## Development
+- Written in TypeScript with strict mode enabled
+- Uses Jest for testing with high coverage requirements:
+  - Minimum 80% branch coverage
+  - Current coverage: 85%+ across all metrics
+- ESM modules for better tree-shaking
+- Follows modern TypeScript best practices
+- Code style enforced via ESLint and Prettier:
+  - Single quotes for strings
+  - Required semicolons
+  - No trailing commas
+  - 2-space indentation
+  - 100 character line width
+
+### Development Workflow
+1. Create a feature branch for your changes
+2. Make changes following the code style guidelines
+3. Ensure tests pass and maintain coverage thresholds:
+   ```bash
+   # Run tests with coverage
+   npm run coverage
+   ```
+4. Create a pull request for review
+
+### Running Tests
 ```bash
+# Run all tests
 npm test
+
+# Run tests with coverage
+npm run coverage
+
+# Run tests in watch mode during development
+npm run test:watch
 ```
 
-To watch for changes during development:
+### Development Mode
+Watch for changes during development:
 ```bash
 npm run dev
+```

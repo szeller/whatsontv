@@ -13,5 +13,5 @@ export function formatShowDetails(show: Show): string {
   const type = show.show.type || 'Unknown';
 
   // Format: time network type showName episodeNum episodeName
-  return `${chalk.dim(displayTime.padEnd(6))} ${chalk.bold.cyan(network.padEnd(20))} ${chalk.magenta(type.padEnd(12))} ${chalk.green(showName.padEnd(35))} ${chalk.yellow(episodeInfo.padEnd(10))} ${chalk.dim(episodeName)}`;
+  return `${chalk.dim(displayTime.padEnd(6))} ${chalk.bold.cyan(network.padEnd(19))} ${chalk.magenta(type.padEnd(11))} ${chalk.green(showName.padEnd(34))} ${chalk.yellow(episodeInfo.padEnd(9))} ${chalk.dim(episodeName)}`;
 }

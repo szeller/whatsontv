@@ -283,6 +283,9 @@ function groupShowsByNetwork(shows: Show[]): GroupedShows {
  */
 function sortShowsByTime(shows: Show[]): Show[] {
   return [...shows].sort((a, b) => {
+    // Put shows with airtimes first, sorted chronologically
+    if (!a.airtime && b.airtime) return 1;
+    if (a.airtime && !b.airtime) return -1;
     return (a.airtime || '').localeCompare(b.airtime || '');
   });
 }
@@ -298,6 +301,7 @@ export {
   api,
   formatTime,
   getTodayDate,
+  isUSPlatform,
   normalizeNetworkName,
   normalizeShowData,
   fetchTvShows,

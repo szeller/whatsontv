@@ -19,3 +19,10 @@ npm-debug.log*
 .vscode/
 *.swp
 *.swo
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# ESLint
+.eslintcache
