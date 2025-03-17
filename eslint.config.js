@@ -8,6 +8,7 @@ export default [
   eslint.configs.recommended,
   {
     files: ['src/**/*.ts'],
+    ignores: ['**/dist/**', '**/node_modules/**'],
     languageOptions: {
       parser: tseslintParser,
       parserOptions: {
@@ -15,9 +16,19 @@ export default [
         sourceType: 'module'
       },
       globals: {
-        node: true,
-        es2022: true,
-        jest: true
+        // Node.js globals
+        process: 'readonly',
+        console: 'readonly',
+        global: 'readonly',
+        // Jest globals
+        describe: 'readonly',
+        test: 'readonly',
+        expect: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        jest: 'readonly'
       }
     },
     plugins: {
@@ -33,10 +44,8 @@ export default [
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': ['error', {
         argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_'
-      }],
-      'no-console': ['error', {
-        allow: ['log', 'error', 'warn']
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_'
       }],
       'prettier/prettier': ['error', {
         semi: true,
