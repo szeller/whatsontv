@@ -80,6 +80,76 @@ interface Image {
 }
 ```
 
+## API Response Examples
+
+### TV Schedule Response
+```json
+{
+  "id": 1234,
+  "airdate": "2025-03-16",
+  "airtime": "20:00",
+  "airstamp": "2025-03-17T03:00:00+00:00",
+  "runtime": 60,
+  "name": "Episode Title",
+  "season": 2,
+  "number": 5,
+  "show": {
+    "id": 5678,
+    "name": "Show Name",
+    "type": "Scripted",
+    "language": "English",
+    "genres": ["Drama", "Thriller"],
+    "network": {
+      "id": 3,
+      "name": "CBS",
+      "country": {
+        "name": "United States",
+        "code": "US",
+        "timezone": "America/New_York"
+      }
+    },
+    "webChannel": null,
+    "image": {
+      "medium": "https://static.tvmaze.com/medium.jpg",
+      "original": "https://static.tvmaze.com/original.jpg"
+    },
+    "summary": "Show description goes here"
+  }
+}
+```
+
+### Web Schedule Response
+```json
+{
+  "id": 5678,
+  "airdate": "2025-03-16",
+  "airtime": "00:00",
+  "airstamp": "2025-03-16T07:00:00+00:00",
+  "runtime": null,
+  "name": "Season 1 Episode 1",
+  "season": 1,
+  "number": 1,
+  "show": {
+    "id": 9012,
+    "name": "Streaming Show",
+    "type": "Reality",
+    "language": "English",
+    "genres": ["Reality"],
+    "network": null,
+    "webChannel": {
+      "id": 1,
+      "name": "Netflix",
+      "country": null
+    },
+    "image": {
+      "medium": "https://static.tvmaze.com/medium.jpg",
+      "original": "https://static.tvmaze.com/original.jpg"
+    },
+    "summary": "Streaming show description"
+  }
+}
+```
+
 ## Supported Platforms
 
 ### US Available Platforms
@@ -94,6 +164,64 @@ The following streaming platforms are recognized as US-based:
 - Peacock
 - Discovery+
 - AMC+
+
+## Troubleshooting Guide
+
+### Common Issues
+
+1. **Missing Air Times**
+   ```typescript
+   // API Response
+   { "airtime": null }
+   // Our Code
+   const displayTime = show.airtime || 'TBA';
+   ```
+   - Shows without air times display as 'TBA'
+   - Sorted to end of time-sorted lists
+
+2. **Network vs Web Channel**
+   ```typescript
+   // Traditional TV Show
+   network = show.show.network?.name || 'N/A';  // "CBS"
+   // Streaming Show
+   network = show.show.webChannel?.name || 'N/A';  // "Netflix"
+   ```
+   - Always check both network and webChannel
+   - Use normalizeNetworkName() for consistent display
+
+3. **Country Code Handling**
+   ```typescript
+   // US Network
+   "CBS" // No country code needed
+   // International Network
+   "BBC (GB)" // Country code appended
+   // US Streaming Platform
+   "Netflix" // No country code needed even if show is international
+   ```
+   - Use isUSPlatform() to determine if country code is needed
+
+4. **Error Recovery**
+   ```typescript
+   try {
+     const shows = await fetchTvShows();
+   } catch (error) {
+     console.error('Error:', error.message);
+     return []; // Return empty array on error
+   }
+   ```
+   - API errors return empty arrays to prevent app crashes
+   - Invalid dates return empty results
+   - Network errors are logged but don't crash the app
+
+### Rate Limit Handling
+```typescript
+// Response Headers
+X-RateLimit-Limit: 20
+X-RateLimit-Remaining: 19
+```
+- Monitor X-RateLimit headers
+- Implement exponential backoff if needed
+- Consider caching frequently accessed data
 
 ## Additional Resources
 
