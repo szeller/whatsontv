@@ -12,6 +12,14 @@ This directory contains technical documentation for the What's On TV project.
   - Version constraints and dependencies
   - Code style guidelines and enforcement
 
+### API Documentation
+- [`TVMaze.md`](./TVMaze.md): Complete TVMaze API reference including:
+  - API endpoints and parameters
+  - Data structures and types
+  - Supported platforms and regions
+  - Error handling and best practices
+  - Rate limiting and authentication
+
 ## Code Style and Quality
 
 Our project enforces strict code style and quality standards:
