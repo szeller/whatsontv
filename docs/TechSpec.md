@@ -153,6 +153,36 @@ graph TD
    - Detailed error logging
    - User-friendly error messages
 
+## Future Improvements
+
+### Code Quality
+1. Error Handling
+   - Add custom error types for better error handling in `tvShowService.ts`
+   - Implement structured error logging
+   - Add error recovery strategies for API failures
+
+2. Code Organization
+   - Extract complex filtering logic into dedicated utility functions
+   - Consider implementing a service layer pattern
+   - Add examples in comments for complex filtering logic
+
+### Testing
+1. Configuration
+   - Extract coverage thresholds to constants for easier maintenance
+   - Add documentation for ESM-specific Jest settings
+   - Consider adding integration test suite
+
+2. Test Organization
+   - Group tests by feature/functionality
+   - Add more edge cases for error conditions
+   - Consider adding performance benchmarks
+
+All improvements must maintain:
+- Minimum 80% branch coverage
+- ESLint v8.x.x compatibility
+- TypeScript version constraints (>=4.7.4 <5.6.0)
+- Existing code style requirements
+
 ## Future Considerations
 
 ### Potential Enhancements
