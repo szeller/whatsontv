@@ -179,3 +179,50 @@ graph TD
    - Regular review of TVMaze API changes
    - TypeScript and Node.js version updates
    - Security patches
+
+## Version Constraints and Dependencies
+
+This section tracks specific version constraints and dependencies that require careful consideration during updates.
+
+### ESLint Ecosystem
+- **ESLint**: Using v8.x.x (not v9) due to:
+  - Better compatibility with TypeScript ecosystem
+  - Integration with jest-runner-eslint
+  - Stable support for our code style preferences
+  - Related dependencies:
+    - `@typescript-eslint/parser`: Requires ESLint v8
+    - `@typescript-eslint/eslint-plugin`: Requires ESLint v8
+    - `eslint-config-prettier`: Compatible with ESLint v8
+
+### TypeScript
+- **TypeScript**: Using v5.5.x due to:
+  - Compatibility with @typescript-eslint tooling
+  - Support range: >=4.7.4 <5.6.0
+  - Affects:
+    - Type checking
+    - ESLint integration
+    - Jest type definitions
+
+### Testing Framework
+- **Jest**: Using v29.x.x with:
+  - jest-runner-eslint for linting integration
+  - ts-jest for TypeScript support
+  - Configured with separate projects for tests and linting
+
+### Version Update Strategy
+1. **Major Version Updates**
+   - Evaluate ecosystem compatibility before upgrading
+   - Test all integrations thoroughly
+   - Update related dependencies in sync
+   - Document any breaking changes
+
+2. **Compatibility Checks**
+   - ESLint + TypeScript compatibility
+   - Jest runner compatibility
+   - Code style enforcement consistency
+
+3. **Update Assessment**
+   - Security implications
+   - Feature requirements
+   - Breaking changes
+   - Integration impacts

@@ -1,4 +1,10 @@
-import { normalizeNetworkName, normalizeShowData, fetchTvShows, TVMAZE_API, api } from '../../services/tvShowService';
+import {
+  normalizeNetworkName,
+  normalizeShowData,
+  fetchTvShows,
+  TVMAZE_API,
+  api
+} from '../../services/tvShowService';
 import MockAdapter from 'axios-mock-adapter';
 import { jest } from '@jest/globals';
 import type { Show, TVMazeShow } from '../../types/tvmaze';
@@ -75,7 +81,7 @@ describe('tvShowService', () => {
 
     test('fetches and combines shows from both TV and web schedules', async () => {
       // Mock both endpoints
-      mock.onGet().reply((config) => {
+      mock.onGet().reply(config => {
         if (config.url === TVMAZE_API.TV_SCHEDULE) {
           return [200, [mockTvShow]];
         }
@@ -97,7 +103,7 @@ describe('tvShowService', () => {
 
     test('filters shows by network', async () => {
       // Mock both endpoints
-      mock.onGet().reply((config) => {
+      mock.onGet().reply(config => {
         if (config.url === TVMAZE_API.TV_SCHEDULE) {
           return [200, [mockTvShow]];
         }
@@ -118,7 +124,7 @@ describe('tvShowService', () => {
 
     test('filters shows by type', async () => {
       // Mock both endpoints
-      mock.onGet().reply((config) => {
+      mock.onGet().reply(config => {
         if (config.url === TVMAZE_API.TV_SCHEDULE) {
           return [200, [mockTvShow]];
         }
@@ -138,7 +144,7 @@ describe('tvShowService', () => {
 
     test('filters shows by genre', async () => {
       // Mock both endpoints
-      mock.onGet().reply((config) => {
+      mock.onGet().reply(config => {
         if (config.url === TVMAZE_API.TV_SCHEDULE) {
           return [200, [mockTvShow]];
         }
@@ -158,7 +164,7 @@ describe('tvShowService', () => {
 
     test('filters shows by language', async () => {
       // Mock both endpoints to include Spanish and English shows
-      mock.onGet().reply((config) => {
+      mock.onGet().reply(config => {
         if (config.url === TVMAZE_API.TV_SCHEDULE) {
           return [200, [mockTvShow, mockSpanishShow]];
         }
@@ -181,7 +187,7 @@ describe('tvShowService', () => {
     test('handles missing language gracefully', async () => {
       const showWithoutLanguage = normalizeShowData({
         ...mockTvShow,
-        show: { 
+        show: {
           ...mockTvShow.show,
           id: 'mock-no-language',
           language: null,
@@ -190,7 +196,7 @@ describe('tvShowService', () => {
         }
       } as TVMazeShow) as Show;
 
-      mock.onGet().reply((config) => {
+      mock.onGet().reply(config => {
         if (config.url === TVMAZE_API.TV_SCHEDULE) {
           return [200, [showWithoutLanguage]];
         }
@@ -228,7 +234,7 @@ describe('tvShowService', () => {
     });
 
     test('only uses country parameter with TV schedule endpoint', async () => {
-      mock.onGet().reply((config) => {
+      mock.onGet().reply(config => {
         if (config.url === TVMAZE_API.TV_SCHEDULE) {
           expect(config.params.country).toBe('US');
           return [200, []];
