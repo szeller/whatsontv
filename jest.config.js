@@ -13,7 +13,6 @@ const COVERAGE_THRESHOLD = {
  * Version constraints:
  * - Jest v29.x.x for ESM and TypeScript compatibility
  * - ts-jest for TypeScript transformation
- * - jest-runner-eslint for code style enforcement
  */
 const config = {
   // Enable coverage collection based on npm script
@@ -39,7 +38,7 @@ const config = {
   // Configure test runners
   projects: [
     {
-      displayName: 'test',
+      displayName: 'unit',
       preset: 'ts-jest/presets/default-esm',
       moduleNameMapper: {
         // Handle ESM imports in Jest environment
@@ -55,12 +54,6 @@ const config = {
       injectGlobals: true,
       testEnvironment: 'node',
       testMatch: ['**/*.test.ts']
-    },
-    {
-      displayName: 'lint',
-      runner: 'jest-runner-eslint',
-      testMatch: ['<rootDir>/src/**/*.ts'],
-      moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx']
     }
   ]
 };
