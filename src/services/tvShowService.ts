@@ -121,16 +121,16 @@ function normalizeShowData(show: TVMazeShow | null): Show | null {
   // Handle both regular schedule and web schedule data structures
   const showDetails = show._embedded?.show ||
     show.show || {
-      id: show.id,
-      name: show.name,
-      type: show.type,
-      language: show.language,
-      genres: show.genres,
-      network: show.network,
-      webChannel: show.webChannel,
-      image: show.image,
-      summary: show.summary
-    };
+    id: show.id,
+    name: show.name,
+    type: show.type,
+    language: show.language,
+    genres: show.genres,
+    network: show.network,
+    webChannel: show.webChannel,
+    image: show.image,
+    summary: show.summary
+  };
 
   if (!showDetails || !showDetails.name) return null;
 

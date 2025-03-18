@@ -1,8 +1,6 @@
 import eslint from '@eslint/js';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tseslintParser from '@typescript-eslint/parser';
-import prettierConfig from 'eslint-config-prettier';
-import prettierPlugin from 'eslint-plugin-prettier';
 
 export default [
   eslint.configs.recommended,
@@ -32,8 +30,7 @@ export default [
       }
     },
     plugins: {
-      '@typescript-eslint': tseslint,
-      'prettier': prettierPlugin
+      '@typescript-eslint': tseslint
     },
     rules: {
       ...tseslint.configs.recommended.rules,
@@ -47,15 +44,12 @@ export default [
         varsIgnorePattern: '^_',
         caughtErrorsIgnorePattern: '^_'
       }],
-      'prettier/prettier': ['error', {
-        semi: true,
-        trailingComma: 'none',
-        singleQuote: true,
-        printWidth: 100,
-        tabWidth: 2,
-        arrowParens: 'avoid'
-      }]
+      // Basic formatting rules
+      'semi': ['error', 'always'],
+      'quotes': ['error', 'single'],
+      'max-len': ['error', { 'code': 100 }],
+      'indent': ['error', 2],
+      'comma-dangle': ['error', 'never']
     }
-  },
-  prettierConfig
+  }
 ];

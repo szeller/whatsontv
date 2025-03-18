@@ -111,7 +111,7 @@ async function sendSlackNotification(shows: ShowSummary[]): Promise<void> {
 }
 
 async function dailyTvShowCheck(): Promise<void> {
-  console.log("Fetching today's TV shows...");
+  console.log('Fetching today\'s TV shows...');
   const shows = await getTvShows();
   await sendSlackNotification(shows);
 }
