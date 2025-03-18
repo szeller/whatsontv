@@ -46,7 +46,7 @@ jobs:
         run: |
           npx prettier --check '**/*.{ts,tsx,js,jsx,json,md,yml}' \
             --single-quote \
-            --no-semi \
+            --semi \
             --trailing-comma none \
             --print-width 100 \
             --tab-width 2
