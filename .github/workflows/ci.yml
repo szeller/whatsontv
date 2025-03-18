@@ -12,7 +12,7 @@ jobs:
     
     strategy:
       matrix:
-        node-version: [18.x, 20.x]  # Test against LTS and current
+        node-version: [18.x, 20.x]  # Current LTS versions
       fail-fast: false  # Continue with other versions if one fails
 
     steps:
