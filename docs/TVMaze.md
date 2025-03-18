@@ -7,6 +7,7 @@ This document outlines the TVMaze API endpoints and data structures used in the 
 Our application uses the following TVMaze API endpoints:
 
 ### Base URL
+
 ```
 https://api.tvmaze.com
 ```
@@ -14,6 +15,7 @@ https://api.tvmaze.com
 ### Schedule Endpoints
 
 1. **TV Schedule** (`/schedule`)
+
    - Returns all TV shows airing during a specific date
    - Parameters:
      - `date`: YYYY-MM-DD format (e.g., 2025-03-16)
@@ -29,53 +31,58 @@ https://api.tvmaze.com
 ## Data Structures
 
 ### Show Object
+
 ```typescript
 interface Show {
-  airtime: string;        // Show's airtime in HH:MM format
-  name: string;           // Episode name
-  season: string|number;  // Season number
-  number: string|number;  // Episode number
-  show: ShowDetails;      // Detailed show information
+  airtime: string; // Show's airtime in HH:MM format
+  name: string; // Episode name
+  season: string | number; // Season number
+  number: string | number; // Episode number
+  show: ShowDetails; // Detailed show information
 }
 ```
 
 ### Show Details
+
 ```typescript
 interface ShowDetails {
-  id: number|string;
-  name: string;           // Show name
-  type: string;          // e.g., 'Scripted', 'Reality', etc.
-  language: string|null;
+  id: number | string;
+  name: string; // Show name
+  type: string; // e.g., 'Scripted', 'Reality', etc.
+  language: string | null;
   genres: string[];
-  network: Network|null;  // Traditional TV network
-  webChannel: Network|null; // Streaming platform
-  image: Image|null;
+  network: Network | null; // Traditional TV network
+  webChannel: Network | null; // Streaming platform
+  image: Image | null;
   summary: string;
 }
 ```
 
 ### Network/Web Channel
+
 ```typescript
 interface Network {
   id: number;
-  name: string;          // Network/Platform name
-  country: Country|null;
+  name: string; // Network/Platform name
+  country: Country | null;
 }
 ```
 
 ### Country
+
 ```typescript
 interface Country {
-  name: string;    // Full country name
-  code: string;    // Two-letter country code
+  name: string; // Full country name
+  code: string; // Two-letter country code
   timezone: string; // e.g., 'America/New_York'
 }
 ```
 
 ### Image
+
 ```typescript
 interface Image {
-  medium: string;   // URL to medium-size image
+  medium: string; // URL to medium-size image
   original: string; // URL to original-size image
 }
 ```
@@ -83,6 +90,7 @@ interface Image {
 ## API Response Examples
 
 ### TV Schedule Response
+
 ```json
 {
   "id": 1234,
@@ -119,6 +127,7 @@ interface Image {
 ```
 
 ### Web Schedule Response
+
 ```json
 {
   "id": 5678,
@@ -153,7 +162,9 @@ interface Image {
 ## Supported Platforms
 
 ### US Available Platforms
+
 The following streaming platforms are recognized as US-based:
+
 - Netflix
 - Paramount+ (also recognized as "Paramount Plus" or "Paramount")
 - Hulu
@@ -170,34 +181,40 @@ The following streaming platforms are recognized as US-based:
 ### Common Issues
 
 1. **Missing Air Times**
+
    ```typescript
    // API Response
    { "airtime": null }
    // Our Code
    const displayTime = show.airtime || 'TBA';
    ```
+
    - Shows without air times display as 'TBA'
    - Sorted to end of time-sorted lists
 
 2. **Network vs Web Channel**
+
    ```typescript
    // Traditional TV Show
-   network = show.show.network?.name || 'N/A';  // "CBS"
+   network = show.show.network?.name || 'N/A'; // "CBS"
    // Streaming Show
-   network = show.show.webChannel?.name || 'N/A';  // "Netflix"
+   network = show.show.webChannel?.name || 'N/A'; // "Netflix"
    ```
+
    - Always check both network and webChannel
    - Use normalizeNetworkName() for consistent display
 
 3. **Country Code Handling**
+
    ```typescript
    // US Network
-   "CBS" // No country code needed
+   'CBS'; // No country code needed
    // International Network
-   "BBC (GB)" // Country code appended
+   'BBC (GB)'; // Country code appended
    // US Streaming Platform
-   "Netflix" // No country code needed even if show is international
+   'Netflix'; // No country code needed even if show is international
    ```
+
    - Use isUSPlatform() to determine if country code is needed
 
 4. **Error Recovery**
@@ -214,11 +231,13 @@ The following streaming platforms are recognized as US-based:
    - Network errors are logged but don't crash the app
 
 ### Rate Limit Handling
+
 ```typescript
 // Response Headers
 X-RateLimit-Limit: 20
 X-RateLimit-Remaining: 19
 ```
+
 - Monitor X-RateLimit headers
 - Implement exponential backoff if needed
 - Consider caching frequently accessed data
@@ -232,12 +251,14 @@ X-RateLimit-Remaining: 19
 ## Rate Limiting
 
 TVMaze API has the following rate limits:
+
 - No authentication required for up to 20 calls every 10 seconds
 - Authentication available for higher rate limits (not currently used in this project)
 
 ## Error Handling
 
 Our application handles API errors gracefully:
+
 - Network errors return an empty array
 - Invalid date formats are caught and logged
 - Missing show data fields are handled with reasonable defaults
@@ -246,10 +267,12 @@ Our application handles API errors gracefully:
 ## Best Practices
 
 1. **Date Formatting**
+
    - Always use YYYY-MM-DD format for date parameters
    - Use the `getTodayDate()` utility function for consistency
 
 2. **Network Names**
+
    - Use `normalizeNetworkName()` to handle network name variations
    - Check platform availability with `isUSPlatform()`
 

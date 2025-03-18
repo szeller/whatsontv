@@ -1,7 +1,3 @@
 export default {
-  '*.ts': [
-    'prettier --write',
-    'eslint --fix',
-    'jest --bail --findRelatedTests'
-  ]
+  '*.ts': ['prettier --write', 'eslint --fix', 'jest --bail --findRelatedTests']
 };

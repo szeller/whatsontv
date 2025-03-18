@@ -12,36 +12,36 @@ jobs:
     env:
       NODE_OPTIONS: --experimental-vm-modules
       NODE_ENV: test
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Verify dependency versions
         run: |
           TYPESCRIPT_VERSION=$(node -p "require('./package.json').devDependencies.typescript")
           ESLINT_VERSION=$(node -p "require('./package.json').devDependencies.eslint")
           JEST_VERSION=$(node -p "require('./package.json').devDependencies.jest")
-          
+
           echo "TypeScript version: $TYPESCRIPT_VERSION"
           echo "ESLint version: $ESLINT_VERSION"
           echo "Jest version: $JEST_VERSION"
-          
+
           [[ $TYPESCRIPT_VERSION =~ ^[~^]?(4\.[7-9]\.|5\.[0-5]\.) ]] || exit 1
           [[ $ESLINT_VERSION =~ ^[~^]?8\. ]] || exit 1
           [[ $JEST_VERSION =~ ^[~^]?29\. ]] || exit 1
-      
+
       - name: Type check
         run: npm run type-check
-      
+
       - name: Format check
         run: |
           npx prettier --check '**/*.{ts,tsx,js,jsx,json,md,yml}' \
@@ -50,15 +50,15 @@ jobs:
             --trailing-comma none \
             --print-width 100 \
             --tab-width 2
-      
+
       - name: Lint
         run: npm run lint
-        
+
       - name: Run tests
         run: npm run test:ci
         env:
           CI: true
-        
+
       - name: Upload coverage
         if: success()
         uses: actions/upload-artifact@v4

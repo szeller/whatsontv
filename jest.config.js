@@ -19,7 +19,7 @@ const config = {
   // Enable coverage collection based on npm script
   collectCoverage: process.env.npm_lifecycle_event === 'coverage',
   coverageDirectory: '<rootDir>/coverage',
-  
+
   // Exclude test files and type definitions from coverage
   coveragePathIgnorePatterns: [
     '<rootDir>/node_modules/',
@@ -27,15 +27,15 @@ const config = {
     '\\.test\\.ts$',
     '<rootDir>/src/types/'
   ],
-  
+
   // Generate various coverage report formats
   coverageReporters: ['text', 'lcov', 'html'],
-  
+
   // Enforce minimum coverage thresholds
   coverageThreshold: {
     global: COVERAGE_THRESHOLD
   },
-  
+
   // Configure test runners
   projects: [
     {

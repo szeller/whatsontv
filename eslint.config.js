@@ -33,28 +33,37 @@ export default [
     },
     plugins: {
       '@typescript-eslint': tseslint,
-      'prettier': prettierPlugin
+      prettier: prettierPlugin
     },
     rules: {
       ...tseslint.configs.recommended.rules,
-      '@typescript-eslint/explicit-function-return-type': ['error', {
-        allowExpressions: true,
-        allowTypedFunctionExpressions: true
-      }],
+      '@typescript-eslint/explicit-function-return-type': [
+        'error',
+        {
+          allowExpressions: true,
+          allowTypedFunctionExpressions: true
+        }
+      ],
       '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/no-unused-vars': ['error', {
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_',
-        caughtErrorsIgnorePattern: '^_'
-      }],
-      'prettier/prettier': ['error', {
-        semi: true,
-        trailingComma: 'none',
-        singleQuote: true,
-        printWidth: 100,
-        tabWidth: 2,
-        arrowParens: 'avoid'
-      }]
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_'
+        }
+      ],
+      'prettier/prettier': [
+        'error',
+        {
+          semi: true,
+          trailingComma: 'none',
+          singleQuote: true,
+          printWidth: 100,
+          tabWidth: 2,
+          arrowParens: 'avoid'
+        }
+      ]
     }
   },
   prettierConfig

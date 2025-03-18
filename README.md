@@ -1,9 +1,15 @@
 # What's On TV
 
+[![Test](https://github.com/szeller/whatsontv/actions/workflows/test.yml/badge.svg)](https://github.com/szeller/whatsontv/actions/workflows/test.yml)
+[![TypeScript](https://img.shields.io/badge/TypeScript-4.7.4+-blue.svg)](https://www.typescriptlang.org/)
+[![Coverage](https://img.shields.io/badge/coverage-80%2B-brightgreen.svg)](https://github.com/szeller/whatsontv/actions)
+
 ## Overview
+
 A TypeScript application that fetches TV shows for the current day and sends notifications to a specified Slack channel using the TVMaze API. It supports filtering shows by type, network, genre, and language. It can be used both as a CLI tool and a Slack notification service.
 
 ## Prerequisites
+
 - Node.js 18+
 - Slack Bot Token (optional, only needed for Slack notifications)
 
@@ -12,37 +18,43 @@ A TypeScript application that fetches TV shows for the current day and sends not
 1. Clone the repository
 
 2. Install dependencies:
+
    ```
    npm install
    ```
 
 3. Create a `.env` file with the following variables (only needed for Slack notifications):
+
    ```
    SLACK_BOT_TOKEN=your_slack_bot_token
    SLACK_CHANNEL=#your_channel
    ```
 
 4. Copy the example config file and customize it:
+
    ```
    cp config.json.example config.json
    ```
+
    Edit `config.json` to set your preferences:
+
    ```json
    {
-       "country": "US",
-       "types": ["Reality", "Scripted"],
-       "networks": ["Discovery", "CBS", "Netflix"],
-       "genres": ["Drama", "Comedy"],
-       "languages": ["English"],
-       "notificationTime": "9:00",
-       "slack": {
-           "enabled": true,
-           "channel": "#tv-shows"
-       }
+     "country": "US",
+     "types": ["Reality", "Scripted"],
+     "networks": ["Discovery", "CBS", "Netflix"],
+     "genres": ["Drama", "Comedy"],
+     "languages": ["English"],
+     "notificationTime": "9:00",
+     "slack": {
+       "enabled": true,
+       "channel": "#tv-shows"
+     }
    }
    ```
 
 5. Build and run the application:
+
    ```bash
    # Build TypeScript files
    npm run build
@@ -57,6 +69,7 @@ A TypeScript application that fetches TV shows for the current day and sends not
 ## Configuration
 
 ### Config File (config.json)
+
 - `country`: Default country code for TV listings (e.g., "US", "GB")
 - `types`: Default show types to filter by (e.g., ["Reality", "Scripted"])
 - `networks`: Default networks to filter by (e.g., ["Discovery", "CBS"])
@@ -67,6 +80,7 @@ A TypeScript application that fetches TV shows for the current day and sends not
 - `slack.channel`: Default Slack channel for notifications
 
 ### CLI Options
+
 - `--date, -d`: Date to fetch shows for (YYYY-MM-DD)
 - `--country, -c`: Country code (e.g., US, GB)
 - `--types, -t`: Show types to filter by
@@ -77,6 +91,7 @@ A TypeScript application that fetches TV shows for the current day and sends not
 - `--help`: Show help menu
 
 ### Available Show Types
+
 - Reality
 - Scripted
 - News
@@ -89,6 +104,7 @@ A TypeScript application that fetches TV shows for the current day and sends not
 - Variety
 
 ### Example Commands
+
 ```bash
 # Show all shows for today
 npm run shows
@@ -107,6 +123,7 @@ npm run shows -- --help
 ```
 
 ## Features
+
 - Written in TypeScript for improved type safety and developer experience
 - Uses TVMaze API to fetch TV show data (no API key required)
 - Filter shows by:
@@ -127,6 +144,7 @@ npm run shows -- --help
 ## Documentation
 
 ### Project Documentation
+
 - `README.md`: User guide and quick start
 - `docs/TechSpec.md`: Technical documentation including:
   - Architecture and design decisions
@@ -142,11 +160,13 @@ npm run shows -- --help
   - Rate limiting and authentication
 
 ### Code Documentation
+
 - TSDoc comments for public APIs
 - Clear function and type documentation
 - Examples in comments for complex logic
 
 ## Development
+
 - Written in TypeScript with strict mode enabled
 - Uses Jest for testing with high coverage requirements:
   - Minimum 80% branch coverage
@@ -161,16 +181,47 @@ npm run shows -- --help
   - 100 character line width
 
 ### Development Workflow
-1. Create a feature branch for your changes
-2. Make changes following the code style guidelines
-3. Ensure tests pass and maintain coverage thresholds:
+
+1. Create a feature branch for your changes:
    ```bash
-   # Run tests with coverage
-   npm run coverage
+   git checkout -b feat/your-feature-name
    ```
-4. Create a pull request for review
+2. Make changes following our code style guidelines:
+
+   - Single quotes for strings
+   - Required semicolons
+   - No trailing commas
+   - 2-space indentation
+   - 100 character line width
+
+3. Run type checks and tests locally:
+
+   ```bash
+   # Type check
+   npm run type-check
+
+   # Run tests with coverage
+   npm run test:ci
+   ```
+
+4. Ensure all checks pass:
+
+   - TypeScript compilation
+   - ESLint rules
+   - Jest tests (80%+ coverage)
+   - Prettier formatting
+
+5. Create a pull request:
+   - GitHub Actions will automatically run:
+     - Type checking
+     - Linting
+     - Tests with coverage
+   - All checks must pass
+   - Code review required
+   - No merge conflicts
 
 ### Running Tests
+
 ```bash
 # Run all tests
 npm test
@@ -183,7 +234,9 @@ npm run test:watch
 ```
 
 ### Development Mode
+
 Watch for changes during development:
+
 ```bash
 npm run dev
 ```
