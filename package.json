@@ -20,8 +20,8 @@
     "shows": "node dist/cli.js",
     "lint": "eslint 'src/**/*.{ts,tsx}' --max-warnings 0",
     "lint:fix": "eslint 'src/**/*.{ts,tsx}' --fix",
-    "format": "prettier --write 'src/**/*.{ts,tsx,js,jsx,json,md,yml}' --single-quote --semi --trailing-comma none --print-width 100 --tab-width 2",
-    "format:check": "prettier --check 'src/**/*.{ts,tsx,js,jsx,json,md,yml}' --single-quote --semi --trailing-comma none --print-width 100 --tab-width 2",
+    "format": "prettier --write '**/*.{ts,tsx,js,jsx,json,md,yml}' --single-quote --semi --trailing-comma none --print-width 100 --tab-width 2",
+    "format:check": "prettier --check '**/*.{ts,tsx,js,jsx,json,md,yml}' --single-quote --semi --trailing-comma none --print-width 100 --tab-width 2",
     "style": "npm run format && npm run lint:fix",
     "pretest": "npm run lint",
     "prepare": "husky install"
