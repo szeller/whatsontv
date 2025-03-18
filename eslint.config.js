@@ -1,8 +1,6 @@
 import eslint from '@eslint/js';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tseslintParser from '@typescript-eslint/parser';
-import prettierConfig from 'eslint-config-prettier';
-import prettierPlugin from 'eslint-plugin-prettier';
 
 export default [
   eslint.configs.recommended,
@@ -31,8 +29,7 @@ export default [
       }
     },
     plugins: {
-      '@typescript-eslint': tseslint,
-      prettier: prettierPlugin
+      '@typescript-eslint': tseslint
     },
     rules: {
       ...tseslint.configs.recommended.rules,
@@ -56,19 +53,9 @@ export default [
       '@typescript-eslint/strict-boolean-expressions': 'error',
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/await-thenable': 'error',
-      // Prettier integration
-      'prettier/prettier': [
-        'error',
-        {
-          semi: true,
-          singleQuote: true,
-          printWidth: 100,
-          tabWidth: 2,
-          trailingComma: 'none',
-          arrowParens: 'always'
-        }
-      ]
+      '@typescript-eslint/prefer-readonly': 'error',
+      '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
+      '@typescript-eslint/no-non-null-assertion': 'error'
     }
-  },
-  prettierConfig
+  }
 ];
