@@ -26,7 +26,7 @@ jobs:
     
     - name: Verify package-lock.json
       run: |
-        npm install --package-lock-only
+        npm install --package-lock-only --ignore-scripts
         git diff --exit-code package-lock.json || (echo "package-lock.json is out of sync" && exit 1)
     
     - name: Install dependencies

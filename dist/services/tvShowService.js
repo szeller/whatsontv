@@ -28,7 +28,7 @@ const US_AVAILABLE_PLATFORMS = [
 /**
  * Check if a show is scheduled for a specific date
  */
-function isShowOnDate(show, date) {
+function _isShowOnDate(show, date) {
     return show.airdate === date;
 }
 /**
@@ -57,32 +57,27 @@ function isUSPlatform(name) {
     if (!name)
         return false;
     // Normalize the name by replacing special characters
-    const normalizedName = name.toLowerCase()
-        .replace(/\+/g, ' plus')
-        .replace(/\s+/g, ' ')
-        .trim();
+    const normalizedName = name.toLowerCase().replace(/\+/g, ' plus').replace(/\s+/g, ' ').trim();
     return US_AVAILABLE_PLATFORMS.some(platform => {
-        const normalizedPlatform = platform.toLowerCase()
+        const normalizedPlatform = platform
+            .toLowerCase()
             .replace(/\+/g, ' plus')
             .replace(/\s+/g, ' ')
             .trim();
-        return normalizedName.includes(normalizedPlatform) ||
-            normalizedPlatform.includes(normalizedName);
+        return (normalizedName.includes(normalizedPlatform) || normalizedPlatform.includes(normalizedName));
     });
 }
 /**
  * Check if a show matches the user's country criteria
  */
-function isShowFromCountry(show, country) {
+function _isShowFromCountry(show, country) {
     // Get the show's country and platform information
     const showCountry = show._embedded?.show?.network?.country?.code ||
         show._embedded?.show?.webChannel?.country?.code ||
         show.show?.network?.country?.code ||
         show.show?.webChannel?.country?.code;
-    const webChannel = show._embedded?.show?.webChannel?.name ||
-        show.show?.webChannel?.name;
-    const network = show._embedded?.show?.network?.name ||
-        show.show?.network?.name;
+    const webChannel = show._embedded?.show?.webChannel?.name || show.show?.webChannel?.name;
+    const network = show._embedded?.show?.network?.name || show.show?.network?.name;
     // Include the show if any of these conditions are met:
     return (
     // Show is from the user's country
@@ -106,7 +101,8 @@ function normalizeShowData(show) {
     if (!show)
         return null;
     // Handle both regular schedule and web schedule data structures
-    const showDetails = show._embedded?.show || show.show || {
+    const showDetails = show._embedded?.show ||
+        show.show || {
         id: show.id,
         name: show.name,
         type: show.type,
@@ -169,8 +165,8 @@ async function fetchFromEndpoint(endpoint, { date, country }, includeCountry = t
         const response = await api.get(endpoint, { params });
         return response.data;
     }
-    catch (error) {
-        console.error(`Error fetching from ${endpoint}:`, error);
+    catch (_error) {
+        console.error(`Error fetching from ${endpoint}:`, _error);
         return [];
     }
 }
@@ -185,7 +181,9 @@ async function fetchTvShows({ date = getTodayDate(), country = 'US', types = [],
             fetchFromEndpoint(TVMAZE_API.WEB_SCHEDULE, { date, country }, false)
         ]);
         // Combine and process shows
-        const shows = [...tvResponse, ...webResponse].map(normalizeShowData).filter((show) => show !== null);
+        const shows = [...tvResponse, ...webResponse]
+            .map(normalizeShowData)
+            .filter((show) => show !== null);
         // Filter shows based on criteria
         return shows.filter(show => {
             // Filter by type if specified
@@ -219,7 +217,7 @@ async function fetchTvShows({ date = getTodayDate(), country = 'US', types = [],
             return true;
         });
     }
-    catch (error) {
+    catch (_error) {
         return [];
     }
 }
@@ -241,6 +239,11 @@ function groupShowsByNetwork(shows) {
  */
 function sortShowsByTime(shows) {
     return [...shows].sort((a, b) => {
+        // Put shows with airtimes first, sorted chronologically
+        if (!a.airtime && b.airtime)
+            return 1;
+        if (a.airtime && !b.airtime)
+            return -1;
         return (a.airtime || '').localeCompare(b.airtime || '');
     });
 }
@@ -250,4 +253,4 @@ function sortShowsByTime(shows) {
 function getShowDetails(show) {
     return show.show;
 }
-export { api, formatTime, getTodayDate, normalizeNetworkName, normalizeShowData, fetchTvShows, groupShowsByNetwork, sortShowsByTime, getShowDetails };
+export { api, formatTime, getTodayDate, isUSPlatform, normalizeNetworkName, normalizeShowData, fetchTvShows, groupShowsByNetwork, sortShowsByTime, getShowDetails };

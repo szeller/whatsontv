@@ -47,10 +47,10 @@ async function sendSlackNotification(shows) {
     try {
         let message;
         if (shows.length === 0) {
-            message = "No new TV shows today!";
+            message = 'No new TV shows today!';
         }
         else {
-            message = "📺 *TV Shows Today:*\n\n";
+            message = '📺 *TV Shows Today:*\n\n';
             // Group shows by network
             const showsByNetwork = shows.reduce((acc, show) => {
                 const network = show.network;

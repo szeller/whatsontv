@@ -18,7 +18,7 @@
     "shows": "node dist/cli.js",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix",
-    "prepare": "husky install",
+    "prepare": "[ -n \"$CI\" ] || husky install",
     "ci": "npm run lint && npm test -- --coverage && npm run build"
   },
   "keywords": [

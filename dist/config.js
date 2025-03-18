@@ -5,11 +5,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Default configuration
 const defaultConfig = {
     country: 'US',
-    types: [], // e.g., ['Reality', 'Scripted']
-    networks: [], // e.g., ['Discovery', 'CBS']
-    genres: [], // e.g., ['Drama', 'Comedy']
-    languages: ['English'], // Default to English shows
-    notificationTime: '9:00', // 24-hour format
+    types: [],
+    networks: [],
+    genres: [],
+    languages: ['English'],
+    notificationTime: '9:00',
     slack: {
         enabled: true,
         botToken: process.env.SLACK_BOT_TOKEN,
