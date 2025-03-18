@@ -27,9 +27,17 @@ jobs:
       
       - name: Verify dependency versions
         run: |
-          npx typescript --version | grep -q '^Version [4]\.[7-9]\.' || npx typescript --version | grep -q '^Version 5\.[0-5]\.'
-          npx eslint --version | grep -q '^v8\.'
-          npx jest --version | grep -q '^29\.'
+          TYPESCRIPT_VERSION=$(node -p "require('./package.json').devDependencies.typescript")
+          ESLINT_VERSION=$(node -p "require('./package.json').devDependencies.eslint")
+          JEST_VERSION=$(node -p "require('./package.json').devDependencies.jest")
+          
+          echo "TypeScript version: $TYPESCRIPT_VERSION"
+          echo "ESLint version: $ESLINT_VERSION"
+          echo "Jest version: $JEST_VERSION"
+          
+          [[ $TYPESCRIPT_VERSION =~ ^[~^]?(4\.[7-9]\.|5\.[0-5]\.) ]] || exit 1
+          [[ $ESLINT_VERSION =~ ^[~^]?8\. ]] || exit 1
+          [[ $JEST_VERSION =~ ^[~^]?29\. ]] || exit 1
       
       - name: Type check
         run: npm run type-check
