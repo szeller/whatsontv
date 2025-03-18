@@ -11,14 +11,15 @@
     "build": "tsc",
     "start": "node dist/cli.js",
     "dev": "tsc -w",
-    "test:unit": "NODE_OPTIONS=--experimental-vm-modules jest --selectProjects unit",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --selectProjects unit",
     "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
     "coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
     "slack": "node dist/slack.js",
     "shows": "node dist/cli.js",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "ci": "npm run lint && npm test -- --coverage && npm run build"
   },
   "keywords": [
     "tv",
