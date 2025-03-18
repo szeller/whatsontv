@@ -112,7 +112,7 @@ describe('tvShowService', () => {
   describe('fetchTvShows', () => {
     test('fetches and combines shows from both TV and web schedules', async () => {
       // Mock both endpoints
-      mock.onGet().reply(config => {
+      mock.onGet().reply((config) => {
         if (config.url === TVMAZE_API.TV_SCHEDULE) {
           return [200, [mockTvShow]];
         }
@@ -165,7 +165,7 @@ describe('tvShowService', () => {
         }
       } as TVMazeShow);
 
-      mock.onGet().reply(config => {
+      mock.onGet().reply((config) => {
         if (config.url?.includes('/schedule/web')) {
           return [200, [showWithEmbeddedWebChannel, showWithoutCountryButUSPlatform]];
         }
@@ -177,12 +177,12 @@ describe('tvShowService', () => {
 
       const shows = await fetchTvShows({ country: 'US' });
       expect(shows).toHaveLength(3);
-      expect(shows.map(s => s.name)).toEqual(['Show 1', 'Show 2', 'Show 3']);
+      expect(shows.map((s) => s.name)).toEqual(['Show 1', 'Show 2', 'Show 3']);
     });
 
     test('filters shows by network', async () => {
       // Mock both endpoints
-      mock.onGet().reply(config => {
+      mock.onGet().reply((config) => {
         if (config.url === TVMAZE_API.TV_SCHEDULE) {
           return [200, [mockTvShow]];
         }
@@ -203,7 +203,7 @@ describe('tvShowService', () => {
 
     test('filters shows by type', async () => {
       // Mock both endpoints
-      mock.onGet().reply(config => {
+      mock.onGet().reply((config) => {
         if (config.url === TVMAZE_API.TV_SCHEDULE) {
           return [200, [mockTvShow]];
         }
@@ -223,7 +223,7 @@ describe('tvShowService', () => {
 
     test('filters shows by genre', async () => {
       // Mock both endpoints
-      mock.onGet().reply(config => {
+      mock.onGet().reply((config) => {
         if (config.url === TVMAZE_API.TV_SCHEDULE) {
           return [200, [mockTvShow]];
         }
@@ -243,7 +243,7 @@ describe('tvShowService', () => {
 
     test('filters shows by language', async () => {
       // Mock both endpoints to include Spanish and English shows
-      mock.onGet().reply(config => {
+      mock.onGet().reply((config) => {
         if (config.url === TVMAZE_API.TV_SCHEDULE) {
           return [200, [mockTvShow, mockSpanishShow]];
         }
@@ -275,7 +275,7 @@ describe('tvShowService', () => {
         }
       } as TVMazeShow) as Show;
 
-      mock.onGet().reply(config => {
+      mock.onGet().reply((config) => {
         if (config.url === TVMAZE_API.TV_SCHEDULE) {
           return [200, [showWithoutLanguage]];
         }
@@ -328,7 +328,7 @@ describe('tvShowService', () => {
         }
       } as TVMazeShow;
 
-      mock.onGet().reply(config => {
+      mock.onGet().reply((config) => {
         if (config.url?.includes('/schedule/web')) {
           return [200, []];
         }
@@ -370,7 +370,7 @@ describe('tvShowService', () => {
         }
       } as TVMazeShow;
 
-      mock.onGet().reply(config => {
+      mock.onGet().reply((config) => {
         if (config.url?.includes('/schedule/web')) {
           return [200, []];
         }
@@ -416,7 +416,7 @@ describe('tvShowService', () => {
         }
       } as TVMazeShow;
 
-      mock.onGet().reply(config => {
+      mock.onGet().reply((config) => {
         if (config.url?.includes('/schedule/web')) {
           return [200, [netflixShow]];
         }
@@ -488,7 +488,7 @@ describe('tvShowService', () => {
         }
       } as TVMazeShow;
 
-      mock.onGet().reply(config => {
+      mock.onGet().reply((config) => {
         if (config.url?.includes('/schedule/web')) {
           return [200, []];
         }
@@ -561,7 +561,7 @@ describe('tvShowService', () => {
         }
       } as TVMazeShow;
 
-      mock.onGet().reply(config => {
+      mock.onGet().reply((config) => {
         if (config.url?.includes('/schedule/web')) {
           return [200, []];
         }
@@ -634,7 +634,7 @@ describe('tvShowService', () => {
         }
       } as TVMazeShow;
 
-      mock.onGet().reply(config => {
+      mock.onGet().reply((config) => {
         if (config.url?.includes('/schedule/web')) {
           return [200, []];
         }
@@ -707,7 +707,7 @@ describe('tvShowService', () => {
         }
       } as TVMazeShow;
 
-      mock.onGet().reply(config => {
+      mock.onGet().reply((config) => {
         if (config.url?.includes('/schedule/web')) {
           return [200, []];
         }
@@ -754,7 +754,7 @@ describe('tvShowService', () => {
         }
       } as TVMazeShow;
 
-      mock.onGet().reply(config => {
+      mock.onGet().reply((config) => {
         if (config.url?.includes('/schedule/web')) {
           return [200, []];
         }
@@ -791,7 +791,7 @@ describe('tvShowService', () => {
         }
       };
 
-      mock.onGet().reply(config => {
+      mock.onGet().reply((config) => {
         if (config.url?.includes('/schedule/web')) {
           return [200, []];
         }

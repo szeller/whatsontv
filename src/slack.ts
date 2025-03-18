@@ -82,7 +82,7 @@ async function sendSlackNotification(shows: ShowSummary[]): Promise<void> {
       // Format shows by network
       Object.entries(showsByNetwork).forEach(([network, networkShows]) => {
         message += `*${network}*\n`;
-        networkShows.forEach(show => {
+        networkShows.forEach((show) => {
           const time = show.time || 'TBA';
           const episodeInfo = `S${show.season}E${show.episode_number}`;
           message += `• \`${time}\` *${show.show_name}* (${show.type}) - ${episodeInfo}\n`;

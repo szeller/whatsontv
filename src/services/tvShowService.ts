@@ -66,7 +66,7 @@ function isUSPlatform(name: string | undefined): boolean {
   // Normalize the name by replacing special characters
   const normalizedName = name.toLowerCase().replace(/\+/g, ' plus').replace(/\s+/g, ' ').trim();
 
-  return US_AVAILABLE_PLATFORMS.some(platform => {
+  return US_AVAILABLE_PLATFORMS.some((platform) => {
     const normalizedPlatform = platform
       .toLowerCase()
       .replace(/\+/g, ' plus')
@@ -223,7 +223,7 @@ async function fetchTvShows({
       .filter((show): show is Show => show !== null);
 
     // Filter shows based on criteria
-    return shows.filter(show => {
+    return shows.filter((show) => {
       // Filter by type if specified
       if (types.length > 0 && !types.includes(show.show.type)) {
         return false;
@@ -236,7 +236,7 @@ async function fetchTvShows({
 
         const normalizedShowNetwork = normalizeNetworkName(showNetwork);
         const hasMatchingNetwork = networks.some(
-          network => normalizeNetworkName(network) === normalizedShowNetwork
+          (network) => normalizeNetworkName(network) === normalizedShowNetwork
         );
         if (!hasMatchingNetwork) return false;
       }
@@ -244,7 +244,7 @@ async function fetchTvShows({
       // Filter by genre if specified
       if (genres.length > 0) {
         const showGenres = show.show.genres || [];
-        const hasMatchingGenre = genres.some(genre => showGenres.includes(genre));
+        const hasMatchingGenre = genres.some((genre) => showGenres.includes(genre));
         if (!hasMatchingGenre) return false;
       }
 
@@ -252,7 +252,7 @@ async function fetchTvShows({
       if (languages.length > 0) {
         const showLanguage = show.show.language || '';
         const hasMatchingLanguage = languages.some(
-          lang => lang.toLowerCase() === showLanguage.toLowerCase()
+          (lang) => lang.toLowerCase() === showLanguage.toLowerCase()
         );
         if (!hasMatchingLanguage) return false;
       }
