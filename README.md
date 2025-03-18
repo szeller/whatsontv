@@ -1,5 +1,9 @@
 # What's On TV
 
+[![Test](https://github.com/szeller/whatsontv/actions/workflows/test.yml/badge.svg)](https://github.com/szeller/whatsontv/actions/workflows/test.yml)
+[![TypeScript](https://img.shields.io/badge/TypeScript-4.7.4+-blue.svg)](https://www.typescriptlang.org/)
+[![Coverage](https://img.shields.io/badge/coverage-80%2B-brightgreen.svg)](https://github.com/szeller/whatsontv/actions)
+
 ## Overview
 A TypeScript application that fetches TV shows for the current day and sends notifications to a specified Slack channel using the TVMaze API. It supports filtering shows by type, network, genre, and language. It can be used both as a CLI tool and a Slack notification service.
 
@@ -161,14 +165,40 @@ npm run shows -- --help
   - 100 character line width
 
 ### Development Workflow
-1. Create a feature branch for your changes
-2. Make changes following the code style guidelines
-3. Ensure tests pass and maintain coverage thresholds:
+1. Create a feature branch for your changes:
    ```bash
-   # Run tests with coverage
-   npm run coverage
+   git checkout -b feat/your-feature-name
    ```
-4. Create a pull request for review
+2. Make changes following our code style guidelines:
+   - Single quotes for strings
+   - Required semicolons
+   - No trailing commas
+   - 2-space indentation
+   - 100 character line width
+
+3. Run type checks and tests locally:
+   ```bash
+   # Type check
+   npm run type-check
+
+   # Run tests with coverage
+   npm run test:ci
+   ```
+
+4. Ensure all checks pass:
+   - TypeScript compilation
+   - ESLint rules
+   - Jest tests (80%+ coverage)
+   - Prettier formatting
+
+5. Create a pull request:
+   - GitHub Actions will automatically run:
+     - Type checking
+     - Linting
+     - Tests with coverage
+   - All checks must pass
+   - Code review required
+   - No merge conflicts
 
 ### Running Tests
 ```bash
