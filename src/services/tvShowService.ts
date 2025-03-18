@@ -41,9 +41,11 @@ function _isShowOnDate(show: TVMazeShow, date: string): boolean {
  * Format time to 12-hour format
  */
 function formatTime(time: string | undefined): string {
-  if (!time) return 'TBA';
+  if (time === undefined || time === '') {
+    return 'TBA';
+  }
   const [hours, minutes] = time.split(':');
-  const hour = parseInt(hours);
+  const hour = parseInt(hours, 10);
   const ampm = hour >= 12 ? 'PM' : 'AM';
   const hour12 = hour % 12 || 12;
   return `${hour12}:${minutes} ${ampm}`;
@@ -61,12 +63,14 @@ function getTodayDate(): string {
  * Check if a platform or network is US-based
  */
 function isUSPlatform(name: string | undefined): boolean {
-  if (!name) return false;
+  if (name === undefined || name === '') {
+    return false;
+  }
 
   // Normalize the name by replacing special characters
   const normalizedName = name.toLowerCase().replace(/\+/g, ' plus').replace(/\s+/g, ' ').trim();
 
-  return US_AVAILABLE_PLATFORMS.some(platform => {
+  return US_AVAILABLE_PLATFORMS.some((platform): boolean => {
     const normalizedPlatform = platform
       .toLowerCase()
       .replace(/\+/g, ' plus')
@@ -98,10 +102,10 @@ function _isShowFromCountry(show: TVMazeShow, country: string): boolean {
     // Show is from the user's country
     showCountry === country ||
     // Show has no country information
-    !showCountry ||
+    showCountry === undefined ||
     // Show is on a major US streaming platform or network
-    isUSPlatform(webChannel) ||
-    isUSPlatform(network)
+    isUSPlatform(webChannel) === true ||
+    isUSPlatform(network) === true
   );
 }
 
@@ -116,7 +120,9 @@ function generateId(): string {
  * Normalizes show data to a consistent format
  */
 function normalizeShowData(show: TVMazeShow | null): Show | null {
-  if (!show) return null;
+  if (show === null) {
+    return null;
+  }
 
   // Handle both regular schedule and web schedule data structures
   const showDetails = show._embedded?.show ||
@@ -132,7 +138,9 @@ function normalizeShowData(show: TVMazeShow | null): Show | null {
     summary: show.summary
   };
 
-  if (!showDetails || !showDetails.name) return null;
+  if (showDetails === undefined || showDetails.name === undefined) {
+    return null;
+  }
 
   return {
     airtime: show.airtime || '',
@@ -157,13 +165,15 @@ function normalizeShowData(show: TVMazeShow | null): Show | null {
  * Normalize network names to handle variations
  */
 function normalizeNetworkName(network: string | undefined): string {
-  if (!network) return '';
+  if (network === undefined || network === '') {
+    return '';
+  }
 
   const name = network.toLowerCase();
 
   // Handle Paramount variations
-  if (name.includes('paramount')) {
-    if (name.includes('plus') || name.includes('+')) {
+  if (name.includes('paramount') === true) {
+    if (name.includes('plus') === true || name.includes('+') === true) {
       return 'Paramount+';
     }
     return 'Paramount Network';
@@ -187,7 +197,7 @@ async function fetchFromEndpoint(
 ): Promise<TVMazeShow[]> {
   try {
     const params: { date: string; country?: string } = { date };
-    if (includeCountry) {
+    if (includeCountry === true) {
       params.country = country;
     }
 
@@ -223,7 +233,7 @@ async function fetchTvShows({
       .filter((show): show is Show => show !== null);
 
     // Filter shows based on criteria
-    return shows.filter(show => {
+    return shows.filter((show): boolean => {
       // Filter by type if specified
       if (types.length > 0 && !types.includes(show.show.type)) {
         return false;
@@ -232,29 +242,37 @@ async function fetchTvShows({
       // Filter by network if specified
       if (networks.length > 0) {
         const showNetwork = show.show.network?.name || show.show.webChannel?.name;
-        if (!showNetwork) return false;
+        if (showNetwork === undefined) {
+          return false;
+        }
 
         const normalizedShowNetwork = normalizeNetworkName(showNetwork);
         const hasMatchingNetwork = networks.some(
-          network => normalizeNetworkName(network) === normalizedShowNetwork
+          (network): boolean => normalizeNetworkName(network) === normalizedShowNetwork
         );
-        if (!hasMatchingNetwork) return false;
+        if (hasMatchingNetwork === false) {
+          return false;
+        }
       }
 
       // Filter by genre if specified
       if (genres.length > 0) {
         const showGenres = show.show.genres || [];
-        const hasMatchingGenre = genres.some(genre => showGenres.includes(genre));
-        if (!hasMatchingGenre) return false;
+        const hasMatchingGenre = genres.some((genre): boolean => showGenres.includes(genre));
+        if (hasMatchingGenre === false) {
+          return false;
+        }
       }
 
       // Filter by language if specified
       if (languages.length > 0) {
         const showLanguage = show.show.language || '';
         const hasMatchingLanguage = languages.some(
-          lang => lang.toLowerCase() === showLanguage.toLowerCase()
+          (lang): boolean => lang.toLowerCase() === showLanguage.toLowerCase()
         );
-        if (!hasMatchingLanguage) return false;
+        if (hasMatchingLanguage === false) {
+          return false;
+        }
       }
 
       return true;
@@ -268,9 +286,9 @@ async function fetchTvShows({
  * Group shows by their network
  */
 function groupShowsByNetwork(shows: Show[]): GroupedShows {
-  return shows.reduce((grouped: GroupedShows, show) => {
+  return shows.reduce((grouped: GroupedShows, show): GroupedShows => {
     const network = show.show.network?.name || show.show.webChannel?.name || 'Other';
-    if (!grouped[network]) {
+    if (grouped[network] === undefined) {
       grouped[network] = [];
     }
     grouped[network].push(show);
@@ -282,11 +300,18 @@ function groupShowsByNetwork(shows: Show[]): GroupedShows {
  * Sort shows chronologically by airtime
  */
 function sortShowsByTime(shows: Show[]): Show[] {
-  return [...shows].sort((a, b) => {
-    // Put shows with airtimes first, sorted chronologically
-    if (!a.airtime && b.airtime) return 1;
-    if (a.airtime && !b.airtime) return -1;
-    return (a.airtime || '').localeCompare(b.airtime || '');
+  return [...shows].sort((a, b): number => {
+    const aTime = a.airtime || '';
+    const bTime = b.airtime || '';
+    
+    // Put shows with non-empty airtimes first, sorted chronologically
+    if (aTime === '' && bTime !== '') {
+      return 1;
+    }
+    if (aTime !== '' && bTime === '') {
+      return -1;
+    }
+    return aTime.localeCompare(bTime);
   });
 }
 
