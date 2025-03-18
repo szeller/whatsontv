@@ -1,3 +1,10 @@
 export default {
-  '*.ts': ['prettier --write', 'eslint --fix', 'jest --bail --findRelatedTests']
+  // TypeScript files
+  '*.{ts,tsx}': [
+    'prettier --write',
+    'eslint --fix --max-warnings 0',
+    'jest --bail --findRelatedTests'
+  ],
+  // Config and documentation files
+  '*.{js,jsx,json,md,yml}': ['prettier --write']
 };

@@ -13,14 +13,13 @@ export default [
       parser: tseslintParser,
       parserOptions: {
         ecmaVersion: 2022,
-        sourceType: 'module'
+        sourceType: 'module',
+        project: './tsconfig.json'
       },
       globals: {
-        // Node.js globals
         process: 'readonly',
         console: 'readonly',
         global: 'readonly',
-        // Jest globals
         describe: 'readonly',
         test: 'readonly',
         expect: 'readonly',
@@ -37,6 +36,7 @@ export default [
     },
     rules: {
       ...tseslint.configs.recommended.rules,
+      // TypeScript rules
       '@typescript-eslint/explicit-function-return-type': [
         'error',
         {
@@ -53,15 +53,19 @@ export default [
           caughtErrorsIgnorePattern: '^_'
         }
       ],
+      '@typescript-eslint/strict-boolean-expressions': 'error',
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/await-thenable': 'error',
+      // Prettier integration
       'prettier/prettier': [
         'error',
         {
           semi: true,
-          trailingComma: 'none',
           singleQuote: true,
           printWidth: 100,
           tabWidth: 2,
-          arrowParens: 'avoid'
+          trailingComma: 'none',
+          arrowParens: 'always'
         }
       ]
     }
