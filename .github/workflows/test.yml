@@ -1,0 +1,62 @@
+name: Test
+
+on:
+  push:
+    branches: ['*']
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: --experimental-vm-modules
+      NODE_ENV: test
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: |
+          npm install -g npm@latest
+          npm ci
+      
+      - name: Verify dependency versions
+        run: |
+          npx typescript --version | grep -q '^Version [4]\.[7-9]\.' || npx typescript --version | grep -q '^Version 5\.[0-5]\.'
+          npx eslint --version | grep -q '^v8\.'
+          npx jest --version | grep -q '^29\.'
+      
+      - name: Type check
+        run: npm run type-check
+      
+      - name: Format check
+        run: |
+          npx prettier --check '**/*.{ts,tsx,js,jsx,json,md,yml}' \
+            --single-quote \
+            --no-semi \
+            --trailing-comma none \
+            --print-width 100 \
+            --tab-width 2
+      
+      - name: Lint
+        run: npm run lint
+        
+      - name: Run tests
+        run: npm run test:ci
+        env:
+          CI: true
+        
+      - name: Upload coverage
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14
