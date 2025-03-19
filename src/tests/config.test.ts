@@ -92,9 +92,9 @@ describe('config', () => {
 
     const { default: config } = await import('../config.js');
 
-    expect(mockWarn).toHaveBeenCalledWith(
-      'Warning: Could not load config.json: Unexpected token \'i\', "invalid json" is not valid JSON'
-    );
+    const expectedError = 'Warning: Could not load config.json: ' + 
+      'Unexpected token \'i\', "invalid json" is not valid JSON';
+    expect(mockWarn).toHaveBeenCalledWith(expectedError);
     expect(config).toEqual(defaultConfig);
   });
 
