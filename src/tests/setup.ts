@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals';
 
 // Import and configure test helpers
-import { createMockYargs, mockYargs } from './helpers/yargsHelper';
+import { createMockYargs, mockYargs } from './helpers/yargsHelper.js';
 
 // Setup yargs mock
 const yargsInstance = createMockYargs();

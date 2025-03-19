@@ -1,6 +1,6 @@
 export default {
   '*.ts': [
     'eslint --fix',
-    'NODE_OPTIONS="--loader ts-node/esm" jest --selectProjects unit --bail --findRelatedTests'
+    'NODE_OPTIONS="--experimental-vm-modules --no-warnings" jest --selectProjects unit --bail --findRelatedTests'
   ]
 };
