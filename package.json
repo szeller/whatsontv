@@ -21,7 +21,7 @@
     "prepare": "[ -n \"$CI\" ] || husky install",
     "build": "tsc",
     "prepublishOnly": "npm run build",
-    "postinstall": "echo 'Note: Peer dependency warnings are expected with ESLint v9 and TypeScript ESLint v7'"
+    "postinstall": "echo 'Note: Using TypeScript v5.8.2, ESLint v9, and TypeScript ESLint v8'"
   },
   "keywords": [
     "tv",
@@ -55,11 +55,11 @@
     "@eslint/js": "^9.0.0",
     "@jest/globals": "^29.7.0",
     "@types/jest": "^29.5.12",
-    "@types/node": "^20.11.28",
+    "@types/node": "^22.13.10",
     "@types/node-schedule": "^2.1.6",
     "@types/yargs": "^17.0.32",
-    "@typescript-eslint/eslint-plugin": "^7.0.0",
-    "@typescript-eslint/parser": "^7.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.26.1",
+    "@typescript-eslint/parser": "^8.26.1",
     "axios-mock-adapter": "^2.1.0",
     "babel-jest": "^29.7.0",
     "eslint": "^9.0.0",
@@ -70,7 +70,7 @@
     "jest-environment-node": "^29.7.0",
     "lint-staged": "^15.2.2",
     "ts-jest": "^29.1.2",
-    "typescript": "5.5.2"
+    "typescript": "^5.8.2"
   },
   "peerDependencyOverrides": {
     "@typescript-eslint/eslint-plugin": {

@@ -6,7 +6,7 @@
 A TypeScript application that fetches TV shows for the current day and sends notifications to a specified Slack channel using the TVMaze API. It supports filtering shows by type, network, genre, and language. It can be used both as a CLI tool and a Slack notification service.
 
 ## Prerequisites
-- Node.js 18+
+- Node.js 18.18.0+
 - Slack Bot Token (optional, only needed for Slack notifications)
 
 ## Setup
@@ -149,17 +149,17 @@ npm run shows -- --help
 - Examples in comments for complex logic
 
 ## Development
-- Written in TypeScript with strict mode enabled
+- Written in TypeScript 5.8.2 with strict mode enabled
 - Uses Jest for testing with coverage requirements:
   - Target: 80% coverage across all metrics
   - Current coverage:
-    - Statements: 61.97%
-    - Branches: 64.37%
-    - Functions: 53.48%
-    - Lines: 62.98%
+    - Statements: 56.15%
+    - Branches: 51.78%
+    - Functions: 52.27%
+    - Lines: 56.70%
 - ESM modules for better tree-shaking
 - Follows modern TypeScript best practices
-- Code style enforced via ESLint v9:
+- Code style enforced via ESLint v9 with TypeScript-ESLint v8:
   - Single source of truth for code quality and formatting
   - Strict boolean expressions with no implicit conversions
   - No floating promises allowed

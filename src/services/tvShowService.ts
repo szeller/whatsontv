@@ -285,7 +285,7 @@ export async function fetchTvShows(options: FetchOptions = {}): Promise<Show[]> 
     shows = applyShowFilters(shows, options);
 
     return shows;
-  } catch (error) {
+  } catch (_error) {
     throw new Error('Failed to fetch TV shows');
   }
 }
