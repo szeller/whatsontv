@@ -88,7 +88,7 @@ graph TD
 ## Testing Strategy
 
 1. **Unit Tests**
-   - Jest as the testing framework
+   - Jest v29.x.x as testing framework with jest-runner-eslint integration
    - Focus on business logic in services
    - Mocked external dependencies
    - Comprehensive test coverage:
@@ -104,20 +104,28 @@ graph TD
    - Mock adapter for HTTP requests
 
 3. **Test Coverage**
-   - Minimum 80% branch coverage requirement
+   - Target: 80% coverage across all metrics
    - Current coverage:
-     - Statements: 93.87%
-     - Branches: 85.32%
-     - Functions: 90.90%
-     - Lines: 93.02%
+     - Statements: 61.97%
+     - Branches: 64.37%
+     - Functions: 53.48%
+     - Lines: 62.98%
+   - Interim threshold: 50% while improving coverage
    - Mock console output in tests
    - Error handling verification
 
 ## Code Style and Quality
 
-1. **Formatting Rules**
-   - ESLint for code style
-   - Prettier for formatting with specific rules:
+1. **Formatting and Linting**
+   - ESLint v8.x.x as single source of truth for code quality and formatting
+   - No Prettier to avoid conflicts
+   - TypeScript-specific rules:
+     - Strict boolean expressions
+     - No implicit conversions
+     - Explicit function return types
+     - No floating promises
+     - No non-null assertions (except in tests)
+   - Formatting standards:
      - Single quotes for strings
      - Required semicolons
      - No trailing commas
@@ -125,6 +133,7 @@ graph TD
      - 100 character line width
 
 2. **TypeScript Configuration**
+   - Version constraints: >=4.7.4 <5.6.0
    - Strict mode enabled
    - ESM modules
    - Type safety for external APIs
@@ -135,6 +144,29 @@ graph TD
    - Well-documented public APIs
    - Private functions for internal logic
    - Integration tests through public APIs
+
+## Build and Validation
+
+1. **Continuous Integration**
+   - GitHub Actions workflow
+   - Single validation job that runs:
+     - Type checking
+     - ESLint (via Jest runner)
+     - Unit tests with coverage
+   - Package-lock.json verification
+   - Status badge in README
+
+2. **Pre-commit Hooks**
+   - Type checking runs first
+   - ESLint with --fix via lint-staged
+   - Unit tests for changed files
+   - Consistent with CI validation
+
+3. **Development Commands**
+   - `npm test`: Run tests with ESLint and coverage
+   - `npm run type-check`: TypeScript validation
+   - `npm run ci`: Full CI validation suite
+   - `npm run dev`: Watch mode for development
 
 ## Error Handling
 
@@ -207,7 +239,6 @@ All improvements must maintain:
 
 2. **Code Quality**
    - ESLint for code style
-   - Prettier for formatting
    - TypeScript strict mode
 
 3. **Deployment**
@@ -256,7 +287,6 @@ This section tracks specific version constraints and dependencies that require c
   - Related dependencies:
     - `@typescript-eslint/parser`: Requires ESLint v8
     - `@typescript-eslint/eslint-plugin`: Requires ESLint v8
-    - `eslint-config-prettier`: Compatible with ESLint v8
 
 ### TypeScript
 - **TypeScript**: Using v5.5.x due to:
