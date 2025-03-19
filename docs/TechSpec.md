@@ -133,13 +133,21 @@ graph TD
      - 100 character line width
 
 2. **TypeScript Configuration**
-   - Version constraints: >=4.7.4 <5.6.0
+   - TypeScript 5.5.2 with full ESM support
+   - NodeNext module resolution for improved import handling
+   - ES2022 target for modern JavaScript features
    - Strict mode enabled
-   - ESM modules
    - Type safety for external APIs
    - Comprehensive type definitions
+   - Version constraints: >=4.7.4 <5.6.0 for ESLint tooling compatibility
 
-3. **Code Organization**
+3. **ESM Implementation**
+   - Native ESM modules with `"type": "module"` in package.json
+   - Node.js register API for TypeScript execution
+   - Explicit `.js` extensions in import statements for NodeNext compatibility
+   - Import path URL resolution using `import.meta.url`
+
+4. **Code Organization**
    - Clear separation of concerns
    - Well-documented public APIs
    - Private functions for internal logic
@@ -151,6 +159,8 @@ graph TD
 - Using Jest v29.x.x with jest-runner-eslint integration
 - ES modules support enabled with `"type": "module"` in package.json
 - TypeScript configuration aligned with ESLint standards
+- Experimental VM modules for ESM testing
+- Warning suppression for cleaner test output
 
 ### 2. Mocking Approaches
 
@@ -404,13 +414,13 @@ This section tracks specific version constraints and dependencies that require c
     - `@typescript-eslint/eslint-plugin`: Requires ESLint v8
 
 ### TypeScript
-- **TypeScript**: Using v5.5.x due to:
-  - Compatibility with @typescript-eslint tooling
-  - Support range: >=4.7.4 <5.6.0
-  - Affects:
-    - Type checking
-    - ESLint integration
-    - Jest type definitions
+- **TypeScript**: Using v5.5.2 with full ESM support
+- **NodeNext module resolution**: For improved import handling
+- **ES2022 target**: For modern JavaScript features
+- **Strict mode enabled**: For type safety and best practices
+- **Type safety for external APIs**: For robust error handling
+- **Comprehensive type definitions**: For maintainable codebase
+- **Version constraints**: >=4.7.4 <5.6.0 for ESLint tooling compatibility
 
 ### Testing Framework
 - **Jest**: Using v29.x.x with:
