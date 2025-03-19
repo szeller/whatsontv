@@ -1,6 +1,8 @@
-import { jest, describe, it, expect } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
+
+import { jest, describe, it, expect } from '@jest/globals';
+
 import type { Config } from '../types/config.js';
 
 // Mock fs module functions

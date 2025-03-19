@@ -1,4 +1,5 @@
 import axios from 'axios';
+
 import type { Show, TVMazeShow, Network, Image } from '../types/tvmaze.js';
 import { generateId } from '../utils/ids.js';
 
@@ -93,26 +94,50 @@ export function normalizeShowData(show: TVMazeShow | null): Show | null {
 
   // Handle both regular schedule and web schedule data structures
   const showDetails: ShowDetails = {
-    id: show._embedded?.show?.id || show.show?.id || show.id || generateId(),
-    name: show._embedded?.show?.name || show.show?.name || show.name || '',
-    type: show._embedded?.show?.type || show.show?.type || show.type || '',
-    language: show._embedded?.show?.language || show.show?.language || show.language || null,
-    genres: show._embedded?.show?.genres || show.show?.genres || show.genres || [],
-    network: show._embedded?.show?.network || show.show?.network || show.network || null,
-    webChannel: show._embedded?.show?.webChannel || show.show?.webChannel || null,
-    image: show._embedded?.show?.image || show.show?.image || show.image || null,
-    summary: show._embedded?.show?.summary || show.show?.summary || show.summary || ''
+    id: show._embedded?.show?.id !== undefined ? show._embedded.show.id : 
+      (show.show?.id !== undefined ? show.show.id : 
+        (show.id !== undefined ? show.id : generateId())),
+    name: show._embedded?.show?.name !== undefined && show._embedded.show.name !== '' 
+      ? show._embedded.show.name 
+      : (show.show?.name !== undefined && show.show.name !== '' 
+        ? show.show.name 
+        : (show.name !== undefined && show.name !== '' ? show.name : '')),
+    type: show._embedded?.show?.type !== undefined && show._embedded.show.type !== '' 
+      ? show._embedded.show.type 
+      : (show.show?.type !== undefined && show.show.type !== '' 
+        ? show.show.type 
+        : (show.type !== undefined && show.type !== '' ? show.type : '')),
+    language: show._embedded?.show?.language !== undefined ? show._embedded.show.language : 
+      (show.show?.language !== undefined ? show.show.language : 
+        (show.language !== undefined ? show.language : null)),
+    genres: show._embedded?.show?.genres !== undefined ? show._embedded.show.genres : 
+      (show.show?.genres !== undefined ? show.show.genres : 
+        (show.genres !== undefined ? show.genres : [])),
+    network: show._embedded?.show?.network !== undefined ? show._embedded.show.network : 
+      (show.show?.network !== undefined ? show.show.network : 
+        (show.network !== undefined ? show.network : null)),
+    webChannel: show._embedded?.show?.webChannel !== undefined 
+      ? show._embedded.show.webChannel 
+      : (show.show?.webChannel !== undefined ? show.show.webChannel : null),
+    image: show._embedded?.show?.image !== undefined ? show._embedded.show.image : 
+      (show.show?.image !== undefined ? show.show.image : 
+        (show.image !== undefined ? show.image : null)),
+    summary: show._embedded?.show?.summary !== undefined && show._embedded.show.summary !== '' 
+      ? show._embedded.show.summary 
+      : (show.show?.summary !== undefined && show.show.summary !== '' 
+        ? show.show.summary 
+        : (show.summary !== undefined && show.summary !== '' ? show.summary : ''))
   };
 
-  if (!showDetails.name) {
+  if (showDetails.name === '') {
     return null;
   }
 
   return {
-    airtime: show.airtime || '',
-    name: show.name || '',
-    season: show.season || '',
-    number: show.number || '',
+    airtime: show.airtime !== undefined && show.airtime !== '' ? show.airtime : '',
+    name: show.name !== undefined && show.name !== '' ? show.name : '',
+    season: show.season !== undefined && show.season !== '' ? show.season : '',
+    number: show.number !== undefined && show.number !== '' ? show.number : '',
     show: showDetails
   };
 }
@@ -135,11 +160,18 @@ function applyShowFilters(
   const { types = [], networks = [], genres = [], languages = [] } = filters;
 
   return shows.filter((show: Show): boolean => {
-    const showType = show.show.type || '';
-    const showGenres = show.show.genres || [];
-    const showLanguage = show.show.language || '';
-    const showNetwork = show.show.network?.name || '';
-    const showWebChannel = show.show.webChannel?.name || '';
+    const showType = show.show.type !== undefined && show.show.type !== '' ? show.show.type : '';
+    const showGenres = show.show.genres !== undefined ? show.show.genres : [];
+    const showLanguage = show.show.language !== null && show.show.language !== undefined 
+      ? show.show.language 
+      : '';
+    const showNetwork = show.show.network?.name !== undefined && show.show.network.name !== '' 
+      ? show.show.network.name 
+      : '';
+    const showWebChannel = show.show.webChannel?.name !== undefined 
+      && show.show.webChannel.name !== '' 
+      ? show.show.webChannel.name 
+      : '';
 
     const typeMatch = types.length === 0 || types.includes(showType);
     const networkMatch =
@@ -164,10 +196,10 @@ function applyShowFilters(
  * @returns Normalized network name
  */
 export function normalizeNetworkName(name: string | undefined): string {
-  if (!name) {
+  if (name === undefined || name === '') {
     return 'Unknown';
   }
-  return name.trim();
+  return name.toLowerCase().trim();
 }
 
 /**
@@ -201,9 +233,15 @@ export function groupShowsByNetwork(shows: Show[]): Record<string, Show[]> {
   return shows.reduce((groups: Record<string, Show[]>, show: Show) => {
     const network = show.show.network?.name;
     const webChannel = show.show.webChannel?.name;
-    const networkName = normalizeNetworkName(network || webChannel);
+    
+    // Use the original network name for the group key, not the normalized version
+    const networkName = (network !== undefined && network !== '') 
+      ? network 
+      : (webChannel !== undefined && webChannel !== '') 
+        ? webChannel 
+        : 'Unknown';
 
-    if (!groups[networkName]) {
+    if (groups[networkName] === undefined) {
       groups[networkName] = [];
     }
     groups[networkName].push(show);
@@ -227,7 +265,9 @@ export function getShowDetails(show: Show): ShowDetails {
  */
 export async function fetchTvShows(options: FetchOptions = {}): Promise<Show[]> {
   try {
-    const date = options.date || getTodayDate();
+    const date = options.date !== undefined && options.date !== '' 
+      ? options.date 
+      : getTodayDate();
     const params = { date, country: 'US' };
 
     // Fetch shows from both TV and web schedules

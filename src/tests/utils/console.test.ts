@@ -1,4 +1,5 @@
 import { describe, expect, it, jest } from '@jest/globals';
+
 import { consoleOutput, createMockConsole } from '../../utils/console.js';
 
 describe('Console Utilities', () => {

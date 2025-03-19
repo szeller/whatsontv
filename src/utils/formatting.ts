@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+
 import type { Show } from '../types/tvmaze.js';
 
 /**
@@ -9,7 +10,11 @@ import type { Show } from '../types/tvmaze.js';
  */
 export function formatShowDetails(show: Show): string {
   const displayTime: string = show.airtime || 'TBA';
-  const network: string = show.show.network?.name || show.show.webChannel?.name || 'N/A';
+  const network: string = (show.show.network?.name !== undefined && show.show.network.name !== '') 
+    ? show.show.network.name 
+    : (show.show.webChannel?.name !== undefined && show.show.webChannel.name !== '') 
+      ? show.show.webChannel.name 
+      : 'N/A';
   const episodeInfo: string = `S${show.season}E${show.number}`;
   const showName: string = show.show.name || 'Unknown Show';
   const episodeName: string = show.name || '';

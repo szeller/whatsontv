@@ -24,7 +24,8 @@ const config = {
     '<rootDir>/node_modules/',
     '<rootDir>/dist/',
     '\\.test\\.ts$',
-    '<rootDir>/src/types/'
+    '<rootDir>/src/types/',
+    '<rootDir>/scripts/'
   ],
   
   // Generate various coverage report formats
@@ -37,6 +38,9 @@ const config = {
   
   // ESM support
   extensionsToTreatAsEsm: ['.ts'],
+  
+  // Automatically clear mock calls between every test
+  clearMocks: true,
   
   // Projects configuration for different test types
   projects: [
@@ -54,17 +58,8 @@ const config = {
       injectGlobals: true,
       testEnvironment: 'node',
       setupFilesAfterEnv: ['<rootDir>/src/tests/setup.ts']
-    },
-    {
-      displayName: 'lint',
-      runner: 'jest-runner-eslint',
-      testMatch: ['<rootDir>/src/**/*.ts'],
-      moduleFileExtensions: ['ts', 'js']
     }
-  ],
-  
-  // Automatically clear mock calls between every test
-  clearMocks: true
+  ]
 };
 
 export default config;

@@ -159,7 +159,11 @@ npm run shows -- --help
     - Lines: 62.98%
 - ESM modules for better tree-shaking
 - Follows modern TypeScript best practices
-- Code style enforced via ESLint:
+- Code style enforced via ESLint v9:
+  - Single source of truth for code quality and formatting
+  - Strict boolean expressions with no implicit conversions
+  - No floating promises allowed
+  - Explicit function return types required
   - Single quotes for strings
   - Required semicolons
   - No trailing commas
@@ -178,20 +182,31 @@ npm run shows -- --help
 
 ### Running Tests
 ```bash
-# Run all tests (includes ESLint and coverage)
+# Run all tests
 npm test
 
 # Run type checking
 npm run type-check
 
-# Run CI checks (type checking and tests)
+# Run linting
+npm run lint
+
+# Run linting with auto-fix
+npm run lint:fix
+
+# Run CI checks (type checking, tests, and linting)
 npm run ci
 
 # Run tests in watch mode during development
 npm run test:watch
+
+# Run tests only on changed files (used by pre-commit hooks)
+npm run test:changed
 ```
 
 ### Development Mode
 Watch for changes during development:
 ```bash
 npm run dev
+
+```

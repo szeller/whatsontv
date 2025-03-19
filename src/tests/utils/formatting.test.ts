@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, jest, test } from '@jest/globals';
-import { formatShowDetails } from '../../utils/formatting.js';
+
 import type { Show } from '../../types/tvmaze.js';
+import { formatShowDetails } from '../../utils/formatting.js';
 
 // Strip ANSI color codes from string
 const stripAnsi = (str: string): string => {

@@ -1,9 +1,10 @@
 import { WebClient } from '@slack/web-api';
 import schedule from 'node-schedule';
+
 import config from './config.js';
-import { consoleOutput } from './utils/console.js';
 import { fetchTvShows, getTodayDate } from './services/tvShowService.js';
 import type { Show } from './types/tvmaze.js';
+import { consoleOutput } from './utils/console.js';
 
 interface SlackMessage {
   channel: string;
@@ -21,7 +22,11 @@ interface MessageBlock {
 
 // Initialize Slack client if enabled
 let slack: WebClient | undefined;
-if (config.slack.enabled && config.slack.botToken) {
+if (
+  config.slack.enabled === true && 
+  config.slack.botToken !== undefined && 
+  config.slack.botToken !== ''
+) {
   slack = new WebClient(config.slack.botToken);
 }
 
@@ -32,11 +37,11 @@ if (config.slack.enabled && config.slack.botToken) {
  */
 export async function sendTvShowNotifications(timeSort = false): Promise<void> {
   try {
-    if (!slack) {
+    if (slack === undefined) {
       throw new Error('Slack client not initialized. Check your configuration.');
     }
 
-    if (!config.slack.channel) {
+    if (config.slack.channel === undefined || config.slack.channel === '') {
       throw new Error('Slack channel not configured.');
     }
 
@@ -136,8 +141,13 @@ export function startTvShowNotifier(): void {
  */
 function groupShowsByNetwork(shows: Show[]): Record<string, Show[]> {
   return shows.reduce<Record<string, Show[]>>((acc, show) => {
-    const network: string = show.show.network?.name || show.show.webChannel?.name || 'N/A';
-    if (!acc[network]) {
+    const network: string = (
+      show.show.network?.name !== undefined && show.show.network.name !== ''
+    ) ? show.show.network.name : (
+        show.show.webChannel?.name !== undefined && show.show.webChannel.name !== ''
+      ) ? show.show.webChannel.name : 'N/A';
+    
+    if (acc[network] === undefined) {
       acc[network] = [];
     }
     acc[network].push(show);
@@ -160,7 +170,7 @@ function formatShowDetails(show: Show): string {
 // Check if running in test mode
 if (process.argv.includes('--test')) {
   // Just run once and exit
-  sendTvShowNotifications().then(() => process.exit(0));
+  void sendTvShowNotifications().then(() => process.exit(0));
 } else {
   startTvShowNotifier();
 }

@@ -1,5 +1,6 @@
 import { jest, describe, it } from '@jest/globals';
-import type { Show, TVMazeShow } from '../../types/tvmaze.js';
+import MockAdapter from 'axios-mock-adapter';
+
 import {
   api,
   TVMAZE_API,
@@ -10,7 +11,7 @@ import {
   getShowDetails,
   fetchTvShows
 } from '../../services/tvShowService.js';
-import MockAdapter from 'axios-mock-adapter';
+import type { Show, TVMazeShow } from '../../types/tvmaze.js';
 
 const mock = new MockAdapter(api);
 

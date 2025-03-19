@@ -1,20 +1,23 @@
 #!/usr/bin/env node
 
-import yargs from 'yargs';
-import { hideBin } from 'yargs/helpers';
-import chalk from 'chalk';
 import { URL } from 'url';
+
+import chalk from 'chalk';
+import yargs from 'yargs';
+import type { Arguments } from 'yargs';
+import { hideBin } from 'yargs/helpers';
+
+import config from './config.js';
 import {
   fetchTvShows,
   groupShowsByNetwork,
   sortShowsByTime,
   getTodayDate
 } from './services/tvShowService.js';
-import { formatShowDetails } from './utils/formatting.js';
-import { consoleOutput } from './utils/console.js';
-import config from './config.js';
 import type { Show } from './types/tvmaze.js';
-import type { Arguments } from 'yargs';
+import { consoleOutput } from './utils/console.js';
+import { formatShowDetails } from './utils/formatting.js';
+
 
 export interface CliArgs extends Arguments {
   date: string;
@@ -130,5 +133,5 @@ export async function displayShows(args: CliArgs = argv): Promise<void> {
 
 // Only run displayShows if this is the main module
 if (import.meta.url === new URL(process.argv[1], 'file:').href) {
-  displayShows();
+  void displayShows();
 }
