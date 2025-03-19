@@ -145,6 +145,127 @@ graph TD
    - Private functions for internal logic
    - Integration tests through public APIs
 
+## Testing & Mocking Standards
+
+### 1. Jest Configuration
+- Using Jest v29.x.x with jest-runner-eslint integration
+- ES modules support enabled with `"type": "module"` in package.json
+- TypeScript configuration aligned with ESLint standards
+
+### 2. Mocking Approaches
+
+#### Module Mocking
+```typescript
+// Preferred: Use jest.unstable_mockModule for ES modules
+jest.unstable_mockModule('./path/to/module.js', () => ({
+  functionName: jest.fn(() => returnValue)
+}));
+
+// Alternative: Use jest.spyOn for class methods and global objects
+jest.spyOn(object, 'method').mockImplementation(() => returnValue);
+```
+
+#### Common Pitfalls
+1. **ES Module Extensions**: Always include `.js` extension in imports and mocks
+   ```typescript
+   // Correct
+   import { function } from './module.js';
+   jest.unstable_mockModule('./module.js', ...);
+
+   // Incorrect
+   import { function } from './module';
+   jest.mock('./module', ...);
+   ```
+
+2. **Mock Timing**: Module mocks must be defined before any imports
+   ```typescript
+   // Correct
+   jest.unstable_mockModule('./module.js', ...);
+   import { function } from './module.js';
+
+   // Incorrect
+   import { function } from './module.js';
+   jest.unstable_mockModule('./module.js', ...);
+   ```
+
+3. **Mock Cleanup**: Reset mocks in beforeEach to prevent test pollution
+   ```typescript
+   beforeEach(() => {
+     jest.resetAllMocks();
+   });
+   ```
+
+### 3. Testing Best Practices
+
+#### Test Structure
+- Mirror source code structure in test files
+- Group related tests using describe blocks
+- Use clear test descriptions following the pattern:
+  ```typescript
+  describe('componentName', () => {
+    describe('functionName', () => {
+      test('should describe expected behavior', () => {
+        // Test implementation
+      });
+    });
+  });
+  ```
+
+#### Assertions
+- Prefer explicit assertions over snapshot testing
+- Use type-safe assertions when possible
+- Test both success and error paths
+
+#### Mock Data
+- Define reusable mock data at the top of test files
+- Use TypeScript interfaces to ensure mock data correctness
+- Keep mock data minimal and focused on test requirements
+
+### 4. Common Mocking Scenarios
+
+#### External Dependencies
+```typescript
+// API Clients (using axios-mock-adapter)
+const mock = new MockAdapter(api);
+mock.onGet('/path').reply(200, responseData);
+
+// Utility Functions
+jest.unstable_mockModule('../../utils/ids.js', () => ({
+  generateId: jest.fn(() => 'mock-id')
+}));
+
+// Date/Time
+jest.spyOn(global.Date, 'now').mockImplementation(() => 1234567890);
+```
+
+#### Internal Dependencies
+```typescript
+// Class Methods
+jest.spyOn(instance, 'method').mockImplementation(() => result);
+
+// Event Handlers
+jest.spyOn(element, 'addEventListener');
+```
+
+### 5. Coverage Requirements
+- Maintain 80% coverage for:
+  - Statements
+  - Branches
+  - Functions
+  - Lines
+- Exclude test files from coverage reports
+- Document any intentionally uncovered code
+
+### 6. Performance
+- Mock heavy operations in unit tests
+- Use setup/teardown hooks efficiently
+- Keep test execution time under 5 seconds per file
+
+### 7. Debugging
+- Use `test.only()` for focusing on specific tests
+- Enable Jest's verbose mode for detailed output
+- Utilize Jest's --detectOpenHandles for async issues
+
 ## Build and Validation
 
 1. **Continuous Integration**
@@ -209,13 +330,7 @@ graph TD
    - Add more edge cases for error conditions
    - Consider adding performance benchmarks
 
-All improvements must maintain:
-- Minimum 80% branch coverage
-- ESLint v8.x.x compatibility
-- TypeScript version constraints (>=4.7.4 <5.6.0)
-- Existing code style requirements
-
-## Future Considerations
+### Future Considerations
 
 ### Potential Enhancements
 1. Support for additional TV data sources

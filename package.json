@@ -15,6 +15,7 @@
     "ci": "npm run type-check && npm test",
     "slack": "NODE_OPTIONS='--loader ts-node/esm' node src/slack.ts",
     "shows": "NODE_OPTIONS='--loader ts-node/esm' node src/cli.ts",
+    "lint": "NODE_OPTIONS=--experimental-vm-modules jest --selectProjects lint",
     "lint:fix": "eslint 'src/**/*.ts' --fix",
     "prepare": "[ -n \"$CI\" ] || husky install",
     "build": "tsc",

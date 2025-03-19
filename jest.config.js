@@ -30,37 +30,29 @@ const config = {
   // Generate various coverage report formats
   coverageReporters: ['text', 'lcov', 'html'],
   
-  // Enforce interim coverage thresholds (targeting 80% in issue #16)
+  // Coverage thresholds
   coverageThreshold: {
     global: COVERAGE_THRESHOLD
   },
   
-  // Configure test runners
+  // ESM support
+  extensionsToTreatAsEsm: ['.ts'],
+  
+  // Projects configuration for different test types
   projects: [
     {
       displayName: 'unit',
       preset: 'ts-jest/presets/default-esm',
-      moduleNameMapper: {
-        // Handle ESM imports in Jest environment
-        '^(\\.{1,2}/.*)\\.js$': '$1'
-      },
+      testMatch: ['**/*.test.ts'],
       transform: {
-        // Transform TypeScript files using ts-jest
-        '^.+\\.tsx?$': [
-          'ts-jest',
-          {
-            useESM: true,
-            tsconfig: 'tsconfig.json'
-          }
-        ]
+        '^.+\\.tsx?$': ['ts-jest', { useESM: true, tsconfig: 'tsconfig.test.json' }]
       },
-      // Required for ESM support
-      extensionsToTreatAsEsm: ['.ts'],
-      // Enable Jest globals for better test readability
+      moduleNameMapper: {
+        '^(\\.{1,2}/.*)\\.js$': '$1',
+        '^(\\.{1,2}/.*)\\.ts$': '$1'
+      },
       injectGlobals: true,
       testEnvironment: 'node',
-      testMatch: ['**/*.test.ts'],
-      // Add setup file for common mocks
       setupFilesAfterEnv: ['<rootDir>/src/tests/setup.ts']
     },
     {
@@ -69,7 +61,10 @@ const config = {
       testMatch: ['<rootDir>/src/**/*.ts'],
       moduleFileExtensions: ['ts', 'js']
     }
-  ]
+  ],
+  
+  // Automatically clear mock calls between every test
+  clearMocks: true
 };
 
 export default config;
