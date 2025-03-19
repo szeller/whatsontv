@@ -1,6 +1,7 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
-import type { Show, ShowDetails } from '../types/tvmaze.js';
+
 import config from '../config.js';
+import type { Show, ShowDetails } from '../types/tvmaze.js';
 
 // Mock tvShowService with explicit types
 const mockGetTodayDate = jest.fn<() => string>();

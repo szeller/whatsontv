@@ -1,20 +1,23 @@
 #!/usr/bin/env node
 
-import yargs from 'yargs';
-import { hideBin } from 'yargs/helpers';
-import chalk from 'chalk';
 import { URL } from 'url';
+
+import chalk from 'chalk';
+import yargs from 'yargs';
+import type { Arguments } from 'yargs';
+import { hideBin } from 'yargs/helpers';
+
+import config from './config.js';
 import {
   fetchTvShows,
   groupShowsByNetwork,
   sortShowsByTime,
   getTodayDate
 } from './services/tvShowService.js';
-import { formatShowDetails } from './utils/formatting.js';
-import { consoleOutput } from './utils/console.js';
-import config from './config.js';
 import type { Show } from './types/tvmaze.js';
-import type { Arguments } from 'yargs';
+import { consoleOutput } from './utils/console.js';
+import { formatShowDetails } from './utils/formatting.js';
+
 
 export interface CliArgs extends Arguments {
   date: string;

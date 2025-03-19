@@ -1,4 +1,5 @@
 import axios from 'axios';
+
 import type { Show, TVMazeShow, Network, Image } from '../types/tvmaze.js';
 import { generateId } from '../utils/ids.js';
 

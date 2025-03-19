@@ -1,9 +1,10 @@
 import { WebClient } from '@slack/web-api';
 import schedule from 'node-schedule';
+
 import config from './config.js';
-import { consoleOutput } from './utils/console.js';
 import { fetchTvShows, getTodayDate } from './services/tvShowService.js';
 import type { Show } from './types/tvmaze.js';
+import { consoleOutput } from './utils/console.js';
 
 interface SlackMessage {
   channel: string;

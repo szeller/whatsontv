@@ -1,6 +1,7 @@
 import eslint from '@eslint/js';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tseslintParser from '@typescript-eslint/parser';
+import importPlugin from 'eslint-plugin-import';
 
 /**
  * ESLint v9 configuration
@@ -40,7 +41,8 @@ export default [
       }
     },
     plugins: {
-      '@typescript-eslint': tseslint
+      '@typescript-eslint': tseslint,
+      'import': importPlugin
     },
     rules: {
       // TypeScript-specific rules
@@ -58,6 +60,26 @@ export default [
       '@typescript-eslint/no-floating-promises': 'error', // Restored to error level
       '@typescript-eslint/strict-boolean-expressions': 'error', // Restored to error level
       '@typescript-eslint/no-non-null-assertion': 'error',
+      
+      // Import rules
+      'import/no-unresolved': 'off', // TypeScript handles this
+      'import/order': ['error', {
+        'groups': [
+          'builtin',
+          'external',
+          'internal',
+          'parent',
+          'sibling',
+          'index'
+        ],
+        'newlines-between': 'always',
+        'alphabetize': {
+          'order': 'asc',
+          'caseInsensitive': true
+        }
+      }],
+      'import/no-duplicates': 'error',
+      'import/no-cycle': 'error',
       
       // Formatting rules (aligned with project standards)
       'semi': ['error', 'always'],
