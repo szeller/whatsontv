@@ -8,13 +8,13 @@
     "whatsontv": "./src/cli.ts"
   },
   "scripts": {
-    "start": "NODE_OPTIONS='--loader ts-node/esm' node src/cli.ts",
+    "start": "node --import ./src/register.mjs src/cli.ts",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --selectProjects unit lint",
     "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
     "type-check": "tsc --noEmit",
     "ci": "npm run type-check && npm test",
-    "slack": "NODE_OPTIONS='--loader ts-node/esm' node src/slack.ts",
-    "shows": "NODE_OPTIONS='--loader ts-node/esm' node src/cli.ts",
+    "slack": "node --import ./src/register.mjs src/slack.ts",
+    "shows": "node --import ./src/register.mjs src/cli.ts",
     "lint": "NODE_OPTIONS=--experimental-vm-modules jest --selectProjects lint",
     "lint:fix": "eslint 'src/**/*.ts' --fix",
     "prepare": "[ -n \"$CI\" ] || husky install",
@@ -56,8 +56,8 @@
     "@types/node": "^20.11.28",
     "@types/node-schedule": "^2.1.6",
     "@types/yargs": "^17.0.32",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
     "axios-mock-adapter": "^2.1.0",
     "babel-jest": "^29.7.0",
     "eslint": "^8.57.0",
@@ -68,7 +68,7 @@
     "jest-runner-eslint": "^2.2.1",
     "lint-staged": "^15.2.2",
     "ts-jest": "^29.1.2",
-    "typescript": "~4.7.4"
+    "typescript": "5.5.2"
   },
   "lint-staged": {
     "*.ts": "eslint --fix"
