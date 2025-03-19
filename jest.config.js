@@ -15,8 +15,8 @@ const COVERAGE_THRESHOLD = {
  * - ts-jest for TypeScript transformation
  */
 const config = {
-  // Enable coverage collection based on npm script
-  collectCoverage: process.env.npm_lifecycle_event === 'coverage',
+  // Always collect coverage
+  collectCoverage: true,
   coverageDirectory: '<rootDir>/coverage',
   
   // Exclude test files and type definitions from coverage
@@ -62,6 +62,12 @@ const config = {
       testMatch: ['**/*.test.ts'],
       // Add setup file for common mocks
       setupFilesAfterEnv: ['<rootDir>/src/tests/setup.ts']
+    },
+    {
+      displayName: 'lint',
+      runner: 'jest-runner-eslint',
+      testMatch: ['<rootDir>/src/**/*.ts'],
+      moduleFileExtensions: ['ts', 'js']
     }
   ]
 };

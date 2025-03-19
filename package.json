@@ -9,15 +9,14 @@
   },
   "scripts": {
     "start": "NODE_OPTIONS='--loader ts-node/esm' node src/cli.ts",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest --selectProjects unit",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --selectProjects unit lint",
     "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
-    "coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
+    "type-check": "tsc --noEmit",
+    "ci": "npm run type-check && npm test",
     "slack": "NODE_OPTIONS='--loader ts-node/esm' node src/slack.ts",
     "shows": "NODE_OPTIONS='--loader ts-node/esm' node src/cli.ts",
-    "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix",
     "prepare": "[ -n \"$CI\" ] || husky install",
-    "ci": "npm run lint && npm test -- --coverage && npm run build",
     "build": "tsc",
     "prepublishOnly": "npm run build"
   },
