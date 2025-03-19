@@ -1,5 +1,7 @@
 # What's On TV
 
+[![CI Status](https://github.com/szeller/whatsontv/actions/workflows/ci.yml/badge.svg)](https://github.com/szeller/whatsontv/actions)
+
 ## Overview
 A TypeScript application that fetches TV shows for the current day and sends notifications to a specified Slack channel using the TVMaze API. It supports filtering shows by type, network, genre, and language. It can be used both as a CLI tool and a Slack notification service.
 
@@ -148,12 +150,16 @@ npm run shows -- --help
 
 ## Development
 - Written in TypeScript with strict mode enabled
-- Uses Jest for testing with high coverage requirements:
-  - Minimum 80% branch coverage
-  - Current coverage: 85%+ across all metrics
+- Uses Jest for testing with coverage requirements:
+  - Target: 80% coverage across all metrics
+  - Current coverage:
+    - Statements: 61.97%
+    - Branches: 64.37%
+    - Functions: 53.48%
+    - Lines: 62.98%
 - ESM modules for better tree-shaking
 - Follows modern TypeScript best practices
-- Code style enforced via ESLint and Prettier:
+- Code style enforced via ESLint:
   - Single quotes for strings
   - Required semicolons
   - No trailing commas
@@ -163,20 +169,23 @@ npm run shows -- --help
 ### Development Workflow
 1. Create a feature branch for your changes
 2. Make changes following the code style guidelines
-3. Ensure tests pass and maintain coverage thresholds:
+3. Ensure tests pass and meet coverage thresholds:
    ```bash
    # Run tests with coverage
-   npm run coverage
+   npm test
    ```
 4. Create a pull request for review
 
 ### Running Tests
 ```bash
-# Run all tests
+# Run all tests (includes ESLint and coverage)
 npm test
 
-# Run tests with coverage
-npm run coverage
+# Run type checking
+npm run type-check
+
+# Run CI checks (type checking and tests)
+npm run ci
 
 # Run tests in watch mode during development
 npm run test:watch
@@ -186,4 +195,3 @@ npm run test:watch
 Watch for changes during development:
 ```bash
 npm run dev
-```
