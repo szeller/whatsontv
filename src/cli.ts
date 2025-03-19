@@ -130,5 +130,5 @@ export async function displayShows(args: CliArgs = argv): Promise<void> {
 
 // Only run displayShows if this is the main module
 if (import.meta.url === new URL(process.argv[1], 'file:').href) {
-  displayShows();
+  void displayShows();
 }

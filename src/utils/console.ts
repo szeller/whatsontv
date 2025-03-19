@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Console output wrapper for better testability.
  * Allows mocking of console output in tests while maintaining type safety.
