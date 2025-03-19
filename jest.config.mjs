@@ -38,6 +38,9 @@ const config = {
   // ESM support
   extensionsToTreatAsEsm: ['.ts'],
   
+  // Automatically clear mock calls between every test
+  clearMocks: true,
+  
   // Projects configuration for different test types
   projects: [
     {
@@ -61,10 +64,7 @@ const config = {
       testMatch: ['<rootDir>/src/**/*.ts'],
       moduleFileExtensions: ['ts', 'js']
     }
-  ],
-  
-  // Automatically clear mock calls between every test
-  clearMocks: true
+  ]
 };
 
 export default config;
