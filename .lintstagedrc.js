@@ -1,6 +1,6 @@
 export default {
   '*.ts': [
     'eslint --fix',
-    'jest --bail --findRelatedTests'
+    'NODE_OPTIONS=--experimental-vm-modules jest --selectProjects unit --bail --findRelatedTests'
   ]
 };
