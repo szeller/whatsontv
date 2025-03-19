@@ -1,5 +1,7 @@
 import { jest } from '@jest/globals';
-import { createMockYargs, mockYargs } from './helpers/yargsHelper.js';
+
+// Import and configure test helpers
+import { createMockYargs, mockYargs } from './helpers/yargsHelper';
 
 // Setup yargs mock
 const yargsInstance = createMockYargs();
@@ -17,12 +19,10 @@ jest.mock('chalk', () => ({
 }));
 
 // Mock console utility module
-jest.mock('../utils/console.js', () => ({
-  consoleOutput: {
-    log: jest.fn(),
-    error: jest.fn()
+jest.mock('../utils/console', () => ({
+  __esModule: true,
+  consoleOutput: { 
+    log: jest.fn().mockReturnValue(undefined),
+    error: jest.fn().mockReturnValue(undefined)
   }
 }));
-
-// Export mocks for tests
-export const mockYargsExit = yargsInstance.exit;

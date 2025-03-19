@@ -26,7 +26,11 @@ export interface CliArgs extends Arguments {
   timeSort: boolean;
 }
 
-// Parse command line arguments
+/**
+ * Parse command line arguments with type safety.
+ * @param args Command line arguments to parse
+ * @returns Parsed CLI arguments with proper types
+ */
 export const parseArgs = (args: string[]): CliArgs => {
   return yargs(args)
     .option('date', {
@@ -76,11 +80,16 @@ export const parseArgs = (args: string[]): CliArgs => {
 };
 
 // Parse arguments from process.argv
-export const argv = parseArgs(hideBin(process.argv));
+export const argv: CliArgs = parseArgs(hideBin(process.argv));
 
+/**
+ * Display TV shows based on CLI arguments.
+ * Shows can be sorted by time or grouped by network.
+ * @param args CLI arguments for filtering shows
+ */
 export async function displayShows(args: CliArgs = argv): Promise<void> {
   try {
-    const shows = await fetchTvShows({
+    const shows: Show[] = await fetchTvShows({
       date: args.date,
       country: args.country,
       types: args.types,
@@ -94,9 +103,9 @@ export async function displayShows(args: CliArgs = argv): Promise<void> {
       return;
     }
 
-    // Group or sort shows
+    // Group or sort shows based on CLI args
     if (args.timeSort) {
-      const displayShows = sortShowsByTime(shows);
+      const displayShows: Show[] = sortShowsByTime(shows);
       displayShows.forEach((show: Show): void => {
         consoleOutput.log(formatShowDetails(show));
       });

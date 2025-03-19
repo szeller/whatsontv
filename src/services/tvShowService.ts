@@ -1,5 +1,6 @@
-import axios, { AxiosInstance } from 'axios';
-import type { Show, TVMazeShow, FetchOptions, GroupedShows, ShowDetails } from '../types/tvmaze.js';
+import axios from 'axios';
+import type { Show, TVMazeShow, Network, Image } from '../types/tvmaze.js';
+import { generateId } from '../utils/ids.js';
 
 export const TVMAZE_API = {
   BASE_URL: 'https://api.tvmaze.com',
@@ -8,39 +9,40 @@ export const TVMAZE_API = {
 } as const;
 
 // Configure axios with base URL
-const api: AxiosInstance = axios.create({
+export const api = axios.create({
   baseURL: TVMAZE_API.BASE_URL
 });
 
-// List of streaming platforms and networks that are available in the US
-const US_AVAILABLE_PLATFORMS: readonly string[] = [
-  'Netflix',
-  'Paramount+',
-  'Paramount Plus',
-  'Paramount',
-  'Hulu',
-  'Prime Video',
-  'Apple TV+',
-  'Apple TV Plus',
-  'Disney+',
-  'Disney Plus',
-  'Max',
-  'Peacock',
-  'CBS',
-  'Paramount Network'
-] as const;
+interface ShowDetails {
+  id?: string | number;
+  name: string;
+  type: string;
+  language: string | null;
+  genres: string[];
+  network: Network | null;
+  webChannel: Network | null;
+  image: Image | null;
+  summary: string;
+}
 
 /**
- * Check if a show is scheduled for a specific date
+ * Get today's date in YYYY-MM-DD format
+ * @returns Today's date string
  */
-function _isShowOnDate(show: TVMazeShow, date: string): boolean {
-  return show.airdate === date;
+export function getTodayDate(): string {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 /**
  * Format time to 12-hour format
+ * @param time Time string in HH:MM format
+ * @returns Formatted time string
  */
-function formatTime(time: string | undefined): string {
+export function formatTime(time: string | undefined): string {
   if (time === undefined || time === '') {
     return 'TBA';
   }
@@ -52,285 +54,207 @@ function formatTime(time: string | undefined): string {
 }
 
 /**
- * Get today's date in YYYY-MM-DD format
+ * Check if a given network is a major US platform
+ * @param channel Network to check
+ * @returns True if the channel is a major US platform
  */
-function getTodayDate(): string {
-  const today = new Date();
-  return today.toISOString().split('T')[0];
-}
-
-/**
- * Check if a platform or network is US-based
- */
-function isUSPlatform(name: string | undefined): boolean {
-  if (name === undefined || name === '') {
+export function isUSPlatform(channel: Network | null): boolean {
+  if (!channel) {
     return false;
   }
 
-  // Normalize the name by replacing special characters
-  const normalizedName = name.toLowerCase().replace(/\+/g, ' plus').replace(/\s+/g, ' ').trim();
+  const majorPlatforms: string[] = [
+    'Netflix',
+    'Amazon',
+    'Hulu',
+    'HBO',
+    'Disney+',
+    'Apple TV+',
+    'Peacock',
+    'Paramount+'
+  ];
 
-  return US_AVAILABLE_PLATFORMS.some((platform): boolean => {
-    const normalizedPlatform = platform
-      .toLowerCase()
-      .replace(/\+/g, ' plus')
-      .replace(/\s+/g, ' ')
-      .trim();
-
-    return (
-      normalizedName.includes(normalizedPlatform) || normalizedPlatform.includes(normalizedName)
-    );
-  });
-}
-
-/**
- * Check if a show matches the user's country criteria
- */
-function _isShowFromCountry(show: TVMazeShow, country: string): boolean {
-  // Get the show's country and platform information
-  const showCountry =
-    show._embedded?.show?.network?.country?.code ||
-    show._embedded?.show?.webChannel?.country?.code ||
-    show.show?.network?.country?.code ||
-    show.show?.webChannel?.country?.code;
-
-  const webChannel = show._embedded?.show?.webChannel?.name || show.show?.webChannel?.name;
-  const network = show._embedded?.show?.network?.name || show.show?.network?.name;
-
-  // Include the show if any of these conditions are met:
+  const platformName = channel.name?.toLowerCase() || '';
   return (
-    // Show is from the user's country
-    showCountry === country ||
-    // Show has no country information
-    showCountry === undefined ||
-    // Show is on a major US streaming platform or network
-    isUSPlatform(webChannel) === true ||
-    isUSPlatform(network) === true
+    channel.country?.code === 'US' ||
+    majorPlatforms.some(platform => platformName.includes(platform.toLowerCase()))
   );
 }
 
 /**
- * Generates a unique ID for a show
+ * Normalize show data to a consistent format
+ * @param show Raw show data from TVMaze API
+ * @returns Normalized show data or null if invalid
  */
-function generateId(): string {
-  return Math.random().toString(36).substring(2) + Date.now().toString(36);
-}
-
-/**
- * Normalizes show data to a consistent format
- */
-function normalizeShowData(show: TVMazeShow | null): Show | null {
-  if (show === null) {
+export function normalizeShowData(show: TVMazeShow | null): Show | null {
+  if (!show) {
     return null;
   }
 
   // Handle both regular schedule and web schedule data structures
-  const showDetails = show._embedded?.show ||
-    show.show || {
-    id: show.id,
-    name: show.name,
-    type: show.type,
-    language: show.language,
-    genres: show.genres,
-    network: show.network,
-    webChannel: show.webChannel,
-    image: show.image,
-    summary: show.summary
+  const showDetails: ShowDetails = {
+    id: show._embedded?.show?.id || show.show?.id || show.id || generateId(),
+    name: show._embedded?.show?.name || show.show?.name || show.name || '',
+    type: show._embedded?.show?.type || show.show?.type || show.type || '',
+    language: show._embedded?.show?.language || show.show?.language || show.language || null,
+    genres: show._embedded?.show?.genres || show.show?.genres || show.genres || [],
+    network: show._embedded?.show?.network || show.show?.network || show.network || null,
+    webChannel: show._embedded?.show?.webChannel || show.show?.webChannel || null,
+    image: show._embedded?.show?.image || show.show?.image || show.image || null,
+    summary: show._embedded?.show?.summary || show.show?.summary || show.summary || ''
   };
 
-  if (showDetails === undefined || showDetails.name === undefined) {
+  if (!showDetails.name) {
     return null;
   }
 
   return {
     airtime: show.airtime || '',
-    name: showDetails.name || '',
+    name: show.name || '',
     season: show.season || '',
     number: show.number || '',
-    show: {
-      id: showDetails.id || generateId(),
-      name: showDetails.name || '',
-      type: showDetails.type || '',
-      network: showDetails.network || null,
-      webChannel: showDetails.webChannel || null,
-      genres: showDetails.genres || [],
-      language: showDetails.language || '',
-      image: showDetails.image || null,
-      summary: showDetails.summary || ''
-    }
+    show: showDetails
   };
 }
 
 /**
- * Normalize network names to handle variations
+ * Apply filters to shows based on user preferences
+ * @param shows List of shows to filter
+ * @param filters Filter criteria
+ * @returns Filtered list of shows
  */
-function normalizeNetworkName(network: string | undefined): string {
-  if (network === undefined || network === '') {
-    return '';
+function applyShowFilters(
+  shows: Show[],
+  filters: {
+    types?: string[];
+    networks?: string[];
+    genres?: string[];
+    languages?: string[];
   }
+): Show[] {
+  const { types = [], networks = [], genres = [], languages = [] } = filters;
 
-  const name = network.toLowerCase();
+  return shows.filter((show: Show): boolean => {
+    const showType = show.show.type || '';
+    const showGenres = show.show.genres || [];
+    const showLanguage = show.show.language || '';
+    const showNetwork = show.show.network?.name || '';
+    const showWebChannel = show.show.webChannel?.name || '';
 
-  // Handle Paramount variations
-  if (name.includes('paramount') === true) {
-    if (name.includes('plus') === true || name.includes('+') === true) {
-      return 'Paramount+';
-    }
-    return 'Paramount Network';
-  }
+    const typeMatch = types.length === 0 || types.includes(showType);
+    const networkMatch =
+      networks.length === 0 ||
+      networks.some(
+        network =>
+          showNetwork.toLowerCase().includes(network.toLowerCase()) ||
+          showWebChannel.toLowerCase().includes(network.toLowerCase())
+      );
+    const genreMatch =
+      genres.length === 0 ||
+      genres.some(genre => showGenres.map(g => g.toLowerCase()).includes(genre.toLowerCase()));
+    const languageMatch = languages.length === 0 || languages.includes(showLanguage);
 
-  // Handle CBS shows also appearing on Paramount+
-  if (name === 'cbs') {
-    return 'CBS';
-  }
-
-  return network;
-}
-
-/**
- * Fetch shows from a specific TVMaze endpoint
- */
-async function fetchFromEndpoint(
-  endpoint: string,
-  { date, country }: { date: string; country: string },
-  includeCountry = true
-): Promise<TVMazeShow[]> {
-  try {
-    const params: { date: string; country?: string } = { date };
-    if (includeCountry === true) {
-      params.country = country;
-    }
-
-    const response = await api.get(endpoint, { params });
-    return response.data;
-  } catch (_error) {
-    console.error(`Error fetching from ${endpoint}:`, _error);
-    return [];
-  }
-}
-
-/**
- * Fetch TV shows from TVMaze API
- */
-async function fetchTvShows({
-  date = getTodayDate(),
-  country = 'US',
-  types = [],
-  networks = [],
-  genres = [],
-  languages = []
-}: FetchOptions = {}): Promise<Show[]> {
-  try {
-    // Fetch both regular and web schedules
-    const [tvResponse, webResponse] = await Promise.all([
-      fetchFromEndpoint(TVMAZE_API.TV_SCHEDULE, { date, country }),
-      fetchFromEndpoint(TVMAZE_API.WEB_SCHEDULE, { date, country }, false)
-    ]);
-
-    // Combine and process shows
-    const shows = [...tvResponse, ...webResponse]
-      .map(normalizeShowData)
-      .filter((show): show is Show => show !== null);
-
-    // Filter shows based on criteria
-    return shows.filter((show): boolean => {
-      // Filter by type if specified
-      if (types.length > 0 && !types.includes(show.show.type)) {
-        return false;
-      }
-
-      // Filter by network if specified
-      if (networks.length > 0) {
-        const showNetwork = show.show.network?.name || show.show.webChannel?.name;
-        if (showNetwork === undefined) {
-          return false;
-        }
-
-        const normalizedShowNetwork = normalizeNetworkName(showNetwork);
-        const hasMatchingNetwork = networks.some(
-          (network): boolean => normalizeNetworkName(network) === normalizedShowNetwork
-        );
-        if (hasMatchingNetwork === false) {
-          return false;
-        }
-      }
-
-      // Filter by genre if specified
-      if (genres.length > 0) {
-        const showGenres = show.show.genres || [];
-        const hasMatchingGenre = genres.some((genre): boolean => showGenres.includes(genre));
-        if (hasMatchingGenre === false) {
-          return false;
-        }
-      }
-
-      // Filter by language if specified
-      if (languages.length > 0) {
-        const showLanguage = show.show.language || '';
-        const hasMatchingLanguage = languages.some(
-          (lang): boolean => lang.toLowerCase() === showLanguage.toLowerCase()
-        );
-        if (hasMatchingLanguage === false) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  } catch (_error) {
-    return [];
-  }
-}
-
-/**
- * Group shows by their network
- */
-function groupShowsByNetwork(shows: Show[]): GroupedShows {
-  return shows.reduce((grouped: GroupedShows, show): GroupedShows => {
-    const network = show.show.network?.name || show.show.webChannel?.name || 'Other';
-    if (grouped[network] === undefined) {
-      grouped[network] = [];
-    }
-    grouped[network].push(show);
-    return grouped;
-  }, {});
-}
-
-/**
- * Sort shows chronologically by airtime
- */
-function sortShowsByTime(shows: Show[]): Show[] {
-  return [...shows].sort((a, b): number => {
-    const aTime = a.airtime || '';
-    const bTime = b.airtime || '';
-    
-    // Put shows with non-empty airtimes first, sorted chronologically
-    if (aTime === '' && bTime !== '') {
-      return 1;
-    }
-    if (aTime !== '' && bTime === '') {
-      return -1;
-    }
-    return aTime.localeCompare(bTime);
+    return typeMatch && networkMatch && genreMatch && languageMatch;
   });
 }
 
 /**
- * Extract show details in a consistent format
+ * Normalize network name for consistent comparison
+ * @param name Network name to normalize
+ * @returns Normalized network name
  */
-function getShowDetails(show: Show): ShowDetails {
+export function normalizeNetworkName(name: string | undefined): string {
+  if (!name) {
+    return 'Unknown';
+  }
+  return name.trim();
+}
+
+/**
+ * Sort shows by airtime
+ * @param shows Shows to sort
+ * @returns Sorted shows array
+ */
+export function sortShowsByTime(shows: Show[]): Show[] {
+  return [...shows].sort((a, b) => {
+    // Handle empty airtimes
+    if (!a.airtime && !b.airtime) return 0;
+    if (!a.airtime) return 1;
+    if (!b.airtime) return -1;
+
+    // Convert time strings to comparable values
+    const [aHour, aMinute] = a.airtime.split(':').map(Number);
+    const [bHour, bMinute] = b.airtime.split(':').map(Number);
+
+    // Compare hours first, then minutes
+    if (aHour !== bHour) return aHour - bHour;
+    return aMinute - bMinute;
+  });
+}
+
+/**
+ * Group shows by their network
+ * @param shows Shows to group
+ * @returns Shows grouped by network
+ */
+export function groupShowsByNetwork(shows: Show[]): Record<string, Show[]> {
+  return shows.reduce((groups: Record<string, Show[]>, show: Show) => {
+    const network = show.show.network?.name;
+    const webChannel = show.show.webChannel?.name;
+    const networkName = normalizeNetworkName(network || webChannel);
+
+    if (!groups[networkName]) {
+      groups[networkName] = [];
+    }
+    groups[networkName].push(show);
+    return groups;
+  }, {});
+}
+
+/**
+ * Get show details in a consistent format
+ * @param show Show to get details from
+ * @returns Show details
+ */
+export function getShowDetails(show: Show): ShowDetails {
   return show.show;
 }
 
-export {
-  api,
-  formatTime,
-  getTodayDate,
-  isUSPlatform,
-  normalizeNetworkName,
-  normalizeShowData,
-  fetchTvShows,
-  groupShowsByNetwork,
-  sortShowsByTime,
-  getShowDetails
-};
+/**
+ * Fetch TV shows from TVMaze API with optional filters
+ * @param options Filter options for the TV shows
+ * @returns Promise resolving to filtered list of shows
+ */
+export async function fetchTvShows(options: FetchOptions = {}): Promise<Show[]> {
+  try {
+    const date = options.date || getTodayDate();
+    const params = { date, country: 'US' };
+
+    // Fetch shows from both TV and web schedules
+    const [tvResponse, webResponse] = await Promise.all([
+      api.get<TVMazeShow[]>(TVMAZE_API.TV_SCHEDULE, { params }),
+      api.get<TVMazeShow[]>(TVMAZE_API.WEB_SCHEDULE, { params: { date } })
+    ]);
+
+    // Normalize and combine show data
+    const tvShows = tvResponse.data.map(normalizeShowData).filter(Boolean) as Show[];
+    const webShows = webResponse.data.map(normalizeShowData).filter(Boolean) as Show[];
+    let shows = [...tvShows, ...webShows];
+
+    // Apply filters if provided
+    shows = applyShowFilters(shows, options);
+
+    return shows;
+  } catch (error) {
+    throw new Error('Failed to fetch TV shows');
+  }
+}
+
+interface FetchOptions {
+  date?: string;
+  country?: string;
+  types?: string[];
+  networks?: string[];
+  genres?: string[];
+  languages?: string[];
+}

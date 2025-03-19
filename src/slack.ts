@@ -1,18 +1,22 @@
-import 'dotenv/config';
-import schedule from 'node-schedule';
 import { WebClient } from '@slack/web-api';
-import { fetchTvShows } from './services/tvShowService.js';
+import schedule from 'node-schedule';
 import config from './config.js';
+import { consoleOutput } from './utils/console.js';
+import { fetchTvShows, getTodayDate } from './services/tvShowService.js';
 import type { Show } from './types/tvmaze.js';
 
-interface ShowSummary {
-  show_name: string;
-  episode_name: string;
-  season: string | number;
-  episode_number: string | number;
-  network: string;
-  time: string;
+interface SlackMessage {
+  channel: string;
+  text: string;
+  blocks?: MessageBlock[];
+}
+
+interface MessageBlock {
   type: string;
+  text: {
+    type: string;
+    text: string;
+  };
 }
 
 // Initialize Slack client if enabled
@@ -21,109 +25,142 @@ if (config.slack.enabled && config.slack.botToken) {
   slack = new WebClient(config.slack.botToken);
 }
 
-async function getTvShows(
-  options: { types?: string[]; networks?: string[] } = {}
-): Promise<ShowSummary[]> {
+/**
+ * Send TV show notifications to Slack
+ * @param timeSort Whether to sort shows by time
+ * @returns Promise that resolves when notifications are sent
+ */
+export async function sendTvShowNotifications(timeSort = false): Promise<void> {
   try {
-    // Get today's date in YYYY-MM-DD format
-    const today = new Date().toISOString().split('T')[0];
+    if (!slack) {
+      throw new Error('Slack client not initialized. Check your configuration.');
+    }
 
-    // Fetch TV shows using the improved service with config defaults
-    const shows = await fetchTvShows({
-      date: today,
-      country: config.country,
-      types: options.types || config.types,
-      networks: options.networks || config.networks
+    if (!config.slack.channel) {
+      throw new Error('Slack channel not configured.');
+    }
+
+    const shows: Show[] = await fetchTvShows({
+      types: config.types,
+      networks: config.networks,
+      genres: config.genres,
+      languages: config.languages,
+      date: getTodayDate()
     });
 
-    return shows.map((show: Show) => ({
-      show_name: show.show.name,
-      episode_name: show.name,
-      season: show.season,
-      episode_number: show.number,
-      network: show.show.network?.name || show.show.webChannel?.name || 'N/A',
-      time: show.airtime,
-      type: show.show.type || 'Unknown'
-    }));
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error('Error fetching TV shows:', error.message);
-    } else {
-      console.error('Unknown error fetching TV shows');
-    }
-    return [];
-  }
-}
-
-async function sendSlackNotification(shows: ShowSummary[]): Promise<void> {
-  if (!config.slack.enabled || !slack) {
-    console.log('Slack notifications are disabled');
-    return;
-  }
-
-  try {
-    let message: string;
+    let message = '';
+    let blocks: MessageBlock[] = [];
 
     if (shows.length === 0) {
-      message = 'No new TV shows today!';
+      message = ' No TV shows found for today.';
+      blocks = [{
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: message
+        }
+      }];
     } else {
-      message = '📺 *TV Shows Today:*\n\n';
+      message = '*TV Shows Today:*\n\n';
 
       // Group shows by network
-      const showsByNetwork = shows.reduce<Record<string, ShowSummary[]>>((acc, show) => {
-        const network = show.network;
-        if (!acc[network]) {
-          acc[network] = [];
-        }
-        acc[network].push(show);
-        return acc;
-      }, {});
+      const networkGroups: Record<string, Show[]> = groupShowsByNetwork(shows);
+      const messageBlocks: MessageBlock[] = Object.entries(networkGroups)
+        .sort(([a], [b]): number => a.localeCompare(b))
+        .map(([network, shows]: [string, Show[]]): MessageBlock => {
+          const formattedShows: string = shows
+            .sort((a: Show, b: Show): number => {
+              if (timeSort) {
+                return (a.airtime || '').localeCompare(b.airtime || '');
+              }
+              return a.show.name.localeCompare(b.show.name);
+            })
+            .map((show: Show): string => formatShowDetails(show))
+            .join('\n');
+
+          return {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `*${network}*\n${formattedShows}`
+            }
+          };
+        });
 
       // Format shows by network
-      Object.entries(showsByNetwork).forEach(([network, networkShows]) => {
-        message += `*${network}*\n`;
-        networkShows.forEach(show => {
-          const time = show.time || 'TBA';
-          const episodeInfo = `S${show.season}E${show.episode_number}`;
-          message += `• \`${time}\` *${show.show_name}* (${show.type}) - ${episodeInfo}\n`;
-          if (show.episode_name) {
-            message += `  "${show.episode_name}"\n`;
-          }
-        });
-        message += '\n';
+      messageBlocks.forEach((block: MessageBlock): void => {
+        message += block.text.text + '\n\n';
       });
+
+      blocks = messageBlocks;
     }
 
-    await slack.chat.postMessage({
-      channel: config.slack.channel || '',
+    const slackMessage: SlackMessage = {
+      channel: config.slack.channel,
       text: message,
-      mrkdwn: true
-    });
+      blocks
+    };
 
-    console.log('Slack notification sent successfully!');
+    await slack.chat.postMessage(slackMessage);
+    consoleOutput.log('TV show notifications sent successfully.');
   } catch (error) {
-    if (error instanceof Error) {
-      console.error('Error sending Slack message:', error.message);
-    } else {
-      console.error('Unknown error sending Slack message');
-    }
+    consoleOutput.error('Failed to send TV show notifications:', error);
+    throw error;
   }
 }
 
-async function dailyTvShowCheck(): Promise<void> {
-  console.log('Fetching today\'s TV shows...');
-  const shows = await getTvShows();
-  await sendSlackNotification(shows);
+/**
+ * Start the TV show notification service
+ */
+export function startTvShowNotifier(): void {
+  const cronSchedule = `0 ${config.notificationTime.split(':')[1]} ${
+    config.notificationTime.split(':')[0]
+  } * * *`;
+
+  const dailyTvShowCheck = async (): Promise<void> => {
+    try {
+      await sendTvShowNotifications();
+    } catch (error) {
+      consoleOutput.error('Failed to run daily TV show check:', error);
+    }
+  };
+
+  schedule.scheduleJob(cronSchedule, dailyTvShowCheck);
+  consoleOutput.log(`TV Show Notifier is running. Scheduled for ${config.notificationTime} daily.`);
+}
+
+/**
+ * Group shows by their network or web channel
+ * @param shows List of shows to group
+ * @returns Shows grouped by network
+ */
+function groupShowsByNetwork(shows: Show[]): Record<string, Show[]> {
+  return shows.reduce<Record<string, Show[]>>((acc, show) => {
+    const network: string = show.show.network?.name || show.show.webChannel?.name || 'N/A';
+    if (!acc[network]) {
+      acc[network] = [];
+    }
+    acc[network].push(show);
+    return acc;
+  }, {} as Record<string, Show[]>);
+}
+
+/**
+ * Format show details for display
+ * @param show Show to format
+ * @returns Formatted show details
+ */
+function formatShowDetails(show: Show): string {
+  const time: string = show.airtime || 'TBA';
+  const episodeInfo: string = `S${show.season}E${show.number}`;
+  return `• \`${time}\` *${show.show.name}* (${show.show.type || 'Unknown'}) - ${episodeInfo}\n` +
+    (show.name ? `  "${show.name}"\n` : '');
 }
 
 // Check if running in test mode
 if (process.argv.includes('--test')) {
   // Just run once and exit
-  dailyTvShowCheck().then(() => process.exit(0));
+  sendTvShowNotifications().then(() => process.exit(0));
 } else {
-  // Schedule the job to run daily at the configured time
-  const [hour, minute] = config.notificationTime.split(':');
-  const cronSchedule = `${minute} ${hour} * * *`;
-  schedule.scheduleJob(cronSchedule, dailyTvShowCheck);
-  console.log(`TV Show Notifier is running. Scheduled for ${config.notificationTime} daily.`);
+  startTvShowNotifier();
 }

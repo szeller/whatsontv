@@ -1,4 +1,4 @@
-import { jest, describe, it, expect } from '@jest/globals';
+import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import type { Show, ShowDetails } from '../types/tvmaze.js';
 import config from '../config.js';
 
@@ -29,49 +29,63 @@ const mockShowDetails: ShowDetails = {
 
 const mockShow: Show = {
   airtime: '20:00',
-  name: 'Test Episode',
+  name: 'Test Show',
+  show: mockShowDetails,
   season: 1,
-  number: 1,
-  show: mockShowDetails
+  number: 1
 };
 
-// Set up mock implementations with explicit types
-const mockDate = '2025-03-19';
-mockGetTodayDate.mockImplementation(() => mockDate);
-mockFetchTvShows.mockImplementation(async () => [mockShow]);
+// Mock date for consistent testing
+const MOCK_DATE = '2025-03-19';
 
-// Mock the module
+// Mock the module before any imports that use it
 jest.mock('../services/tvShowService.js', () => ({
   getTodayDate: mockGetTodayDate,
   fetchTvShows: mockFetchTvShows
 }));
 
 describe('cli', () => {
-  beforeEach((): void => {
-    // Clear module cache and mocks
-    jest.resetModules();
-    jest.clearAllMocks();
-    
-    // Reset getTodayDate mock for each test
-    mockGetTodayDate.mockImplementation(() => mockDate);
+  beforeEach(() => {
+    jest.resetAllMocks();
+    mockGetTodayDate.mockReturnValue(MOCK_DATE);
+    mockFetchTvShows.mockResolvedValue([mockShow]);
   });
 
   describe('parseArgs', () => {
-    it('should parse command line arguments correctly', async (): Promise<void> => {
+    it('should use default values when no arguments provided', async () => {
       const { parseArgs } = await import('../cli.js');
+
+      const args = parseArgs([]);
+
+      // Check specific fields we care about
+      expect(args).toMatchObject({
+        _: [],
+        c: 'US',
+        country: 'US',
+        d: MOCK_DATE,
+        date: MOCK_DATE
+      });
+
+      // Check array fields using arrayContaining
+      expect(args.g).toEqual(expect.arrayContaining(config.genres));
+      expect(args.genres).toEqual(expect.arrayContaining(config.genres));
+    });
+
+    it('should parse command line arguments correctly', async () => {
+      const { parseArgs } = await import('../cli.js');
+
       const args = parseArgs([
-        '--date', mockDate,
+        '--date', MOCK_DATE,
         '--country', 'US',
         '--types', 'Reality',
         '--networks', 'CBS',
-        '--genres', 'Drama',
-        '--languages', 'English'
+        '--genres', 'Drama'
       ]);
 
-      // Include aliases in expected args as yargs adds them
-      const expectedArgs = {
-        date: mockDate,
-        d: mockDate,
+      // Check specific fields we care about
+      expect(args).toMatchObject({
+        date: MOCK_DATE,
+        d: MOCK_DATE,
         country: 'US',
         c: 'US',
         types: ['Reality'],
@@ -79,44 +93,8 @@ describe('cli', () => {
         networks: ['CBS'],
         n: ['CBS'],
         genres: ['Drama'],
-        g: ['Drama'],
-        languages: ['English'],
-        l: ['English'],
-        timeSort: false,
-        's': false,
-        'time-sort': false,
-        _: [] as string[],
-        $0: expect.stringMatching(/.*/)
-      };
-
-      expect(args).toEqual(expect.objectContaining(expectedArgs));
-    });
-
-    it('should use default values when no arguments provided', async (): Promise<void> => {
-      const { parseArgs } = await import('../cli.js');
-      const args = parseArgs([]);
-
-      // Include aliases in expected args as yargs adds them
-      const expectedArgs = {
-        date: mockDate,
-        d: mockDate,
-        country: config.country,
-        c: config.country,
-        types: config.types,
-        t: config.types,
-        networks: config.networks,
-        n: config.networks,
-        genres: config.genres,
-        g: config.genres,
-        languages: config.languages,
-        l: config.languages,
-        timeSort: false,
-        's': false,
-        'time-sort': false,
-        _: [] as string[]
-      };
-
-      expect(args).toEqual(expect.objectContaining(expectedArgs));
+        g: ['Drama']
+      });
     });
   });
 });

@@ -47,25 +47,43 @@ const defaultArgs: CliArgs = {
   $0: 'test'
 };
 
-// Type guards for runtime type checking
+/**
+ * Type guard to check if a value is a YargsCommand
+ * @param cmd Value to check
+ * @returns True if value is a YargsCommand
+ */
 function isYargsCommand(cmd: unknown): cmd is YargsCommand {
   return typeof cmd === 'object' && cmd !== null && 'command' in cmd;
 }
 
+/**
+ * Type guard to check if a value is a string array
+ * @param value Value to check
+ * @returns True if value is string[]
+ */
 function isStringArray(value: unknown): value is string[] {
-  return Array.isArray(value) && value.every(item => typeof item === 'string');
+  return Array.isArray(value) && value.every((item: unknown): boolean => typeof item === 'string');
 }
 
+/**
+ * Type guard to check if a value is a YargsOptions object
+ * @param value Value to check
+ * @returns True if value is Record<string, YargsOptions>
+ */
 function isOptionsObject(value: unknown): value is Record<string, YargsOptions> {
   return typeof value === 'object' && value !== null;
 }
 
+/**
+ * Create a mock Yargs instance for testing
+ * @returns Mock Yargs instance with test implementations
+ */
 export function createMockYargs(): MockYargsInstance {
-  const mockCommand = jest.fn();
-  const mockParse = jest.fn();
-  const mockOptions = jest.fn();
-  const mockHelp = jest.fn();
-  const mockExit = jest.fn();
+  const mockCommand: jest.Mock = jest.fn();
+  const mockParse: jest.Mock = jest.fn();
+  const mockOptions: jest.Mock = jest.fn();
+  const mockHelp: jest.Mock = jest.fn();
+  const mockExit: jest.Mock = jest.fn();
   let currentOptions: Record<string, YargsOptions> = {};
 
   const mockYargs: MockYargsInstance = {
@@ -81,7 +99,7 @@ export function createMockYargs(): MockYargsInstance {
   const commandHandlers: Record<string, (args: Arguments) => void | Promise<void>> = {};
 
   // Mock command implementation
-  mockCommand.mockImplementation((cmd: unknown) => {
+  mockCommand.mockImplementation((cmd: unknown): MockYargsInstance => {
     if (typeof cmd === 'string' || isYargsCommand(cmd)) {
       if (isYargsCommand(cmd)) {
         const { command, builder, handler } = cmd;
@@ -98,7 +116,7 @@ export function createMockYargs(): MockYargsInstance {
   });
 
   // Mock parse implementation
-  mockParse.mockImplementation((args: unknown) => {
+  mockParse.mockImplementation((args: unknown): Record<string, unknown> => {
     if (!isStringArray(args)) {
       throw new TypeError('Parse expects string array argument');
     }
@@ -106,10 +124,10 @@ export function createMockYargs(): MockYargsInstance {
     const parsedArgs: Record<string, unknown> = { ...defaultArgs };
 
     for (let i = 0; i < args.length; i++) {
-      const arg = args[i];
+      const arg: string = args[i];
       if (arg.startsWith('--')) {
-        const key = arg.slice(2);
-        const option = currentOptions[key];
+        const key: string = arg.slice(2);
+        const option: YargsOptions | undefined = currentOptions[key];
         if (option) {
           if (option.type === 'boolean') {
             parsedArgs[key] = true;
@@ -117,7 +135,7 @@ export function createMockYargs(): MockYargsInstance {
               parsedArgs[option.alias] = true;
             }
           } else {
-            const value = args[i + 1];
+            const value: string | undefined = args[i + 1];
             if (option.type === 'array' && value) {
               parsedArgs[key] = [value];
               if (option.alias) {
@@ -136,7 +154,7 @@ export function createMockYargs(): MockYargsInstance {
       }
     }
 
-    Object.entries(currentOptions).forEach(([key, option]) => {
+    Object.entries(currentOptions).forEach(([key, option]: [string, YargsOptions]): void => {
       if (option.default !== undefined && parsedArgs[key] === undefined) {
         parsedArgs[key] = option.default;
         if (option.alias) {
@@ -149,7 +167,7 @@ export function createMockYargs(): MockYargsInstance {
   });
 
   // Mock options implementation
-  mockOptions.mockImplementation((opts: unknown) => {
+  mockOptions.mockImplementation((opts: unknown): MockYargsInstance => {
     if (!isOptionsObject(opts)) {
       throw new TypeError('Options expects options object argument');
     }
@@ -158,10 +176,10 @@ export function createMockYargs(): MockYargsInstance {
   });
 
   // Mock help implementation
-  mockHelp.mockImplementation(() => mockYargs);
+  mockHelp.mockImplementation((): MockYargsInstance => mockYargs);
 
   // Mock exit implementation
-  mockExit.mockImplementation((code: unknown) => {
+  mockExit.mockImplementation((code: unknown): void => {
     if (typeof code !== 'number') {
       throw new TypeError('Exit expects number argument');
     }
@@ -171,6 +189,10 @@ export function createMockYargs(): MockYargsInstance {
   return mockYargs;
 }
 
+/**
+ * Mock the yargs module for testing
+ * @param yargs Mock Yargs instance to use
+ */
 export function mockYargs(yargs: MockYargsInstance): void {
   jest.mock('yargs', () => ({
     __esModule: true,

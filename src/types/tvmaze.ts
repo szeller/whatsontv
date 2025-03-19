@@ -16,7 +16,7 @@ export interface Image {
 }
 
 export interface ShowDetails {
-  id: number | string;
+  id?: number | string;
   name: string;
   type: string;
   language: string | null;
@@ -51,7 +51,7 @@ export interface TVMazeShow {
   summary?: string;
   show?: ShowDetails;
   _embedded?: {
-    show: ShowDetails;
+    show?: ShowDetails;
   };
 }
 
@@ -65,5 +65,5 @@ export interface FetchOptions {
 }
 
 export interface GroupedShows {
-  [network: string]: Show[];
+  [key: string]: Show[];
 }
