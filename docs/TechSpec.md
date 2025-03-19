@@ -117,7 +117,7 @@ graph TD
 ## Code Style and Quality
 
 1. **Formatting and Linting**
-   - ESLint v8.x.x as single source of truth for code quality and formatting
+   - ESLint v9.x.x as single source of truth for code quality and formatting
    - No Prettier to avoid conflicts
    - TypeScript-specific rules:
      - Strict boolean expressions
@@ -156,7 +156,7 @@ graph TD
 ## Testing & Mocking Standards
 
 ### 1. Jest Configuration
-- Using Jest v29.x.x with jest-runner-eslint integration
+- Using Jest v29.x.x with ts-jest for TypeScript support
 - ES modules support enabled with `"type": "module"` in package.json
 - TypeScript configuration aligned with ESLint standards
 - Experimental VM modules for ESM testing
@@ -276,45 +276,98 @@ jest.spyOn(element, 'addEventListener');
 - Enable Jest's verbose mode for detailed output
 - Utilize Jest's --detectOpenHandles for async issues
 
-## Build and Validation
+## Development Workflow
 
-1. **Continuous Integration**
-   - GitHub Actions workflow
-   - Single validation job that runs:
-     - Type checking
-     - ESLint (via Jest runner)
-     - Unit tests with coverage
-   - Package-lock.json verification
-   - Status badge in README
+1. **Local Development**
+   - TypeScript compilation via `tsc --noEmit`
+   - ESLint for code quality and formatting
+   - Jest for unit testing
+   - Pre-commit hooks:
+     - ESLint with --fix via lint-staged
+     - Jest tests on changed files without coverage checks
+   - Common commands:
+     - `npm run ci`: Run type checking, tests, and linting
+     - `npm test`: Run tests
+     - `npm run lint`: Run ESLint
+     - `npm run lint:fix`: Run ESLint with auto-fix
+     - `npm run test:watch`: Run tests in watch mode
+     - `npm run test:changed`: Run tests on changed files only
 
-2. **Pre-commit Hooks**
-   - Type checking runs first
-   - ESLint with --fix via lint-staged
-   - Unit tests for changed files
-   - Consistent with CI validation
+## Documentation
 
-3. **Development Commands**
-   - `npm test`: Run tests with ESLint and coverage
-   - `npm run type-check`: TypeScript validation
-   - `npm run ci`: Full CI validation suite
-   - `npm run dev`: Watch mode for development
+1. **Code Documentation**
+   - TSDoc comments for public APIs
+   - Clear function and type documentation
+   - Examples in comments for complex logic
 
-## Error Handling
+2. **Project Documentation**
+   - README.md for user guide
+   - TechSpec.md for technical documentation
+   - Inline comments for implementation details
 
-1. **API Errors**
-   - Graceful handling of TVMaze API failures
-   - Retry logic for transient failures
-   - Clear error messages for users
+## Maintenance
 
-2. **Configuration Errors**
-   - Validation of user configuration
-   - Sensible defaults for missing options
-   - Environment variable checking
+1. **Dependency Management**
+   - Regular updates of dependencies
+   - Security vulnerability monitoring
+   - Compatibility testing
 
-3. **Runtime Errors**
-   - Graceful degradation on failures
-   - Detailed error logging
-   - User-friendly error messages
+2. **Monitoring**
+   - Error logging
+   - Usage statistics
+   - API response times
+
+3. **Updates**
+   - Regular review of TVMaze API changes
+   - TypeScript and Node.js version updates
+   - Security patches
+
+## Version Constraints and Dependencies
+
+This section tracks specific version constraints and dependencies that require careful consideration during updates.
+
+### ESLint Ecosystem
+- **ESLint**: Using v9.x.x with:
+  - Flat config format (eslint.config.js)
+  - Direct integration with TypeScript
+  - Single source of truth for code quality and formatting
+  - Related dependencies:
+    - `@eslint/js`: v9.x.x for JavaScript configurations
+    - `@typescript-eslint/parser`: v7.x.x for TypeScript parsing
+    - `@typescript-eslint/eslint-plugin`: v7.x.x for TypeScript-specific rules
+
+### TypeScript
+- **TypeScript**: Using v5.5.2 with full ESM support
+- **NodeNext module resolution**: For improved import handling
+- **ES2022 target**: For modern JavaScript features
+- **Strict mode enabled**: For type safety and best practices
+- **Type safety for external APIs**: For robust error handling
+- **Comprehensive type definitions**: For maintainable codebase
+- **Version constraints**: >=4.7.4 <5.6.0 for ESLint tooling compatibility
+
+### Testing Framework
+- **Jest**: Using v29.x.x with:
+  - ts-jest for TypeScript support
+  - Configured with separate projects for unit tests
+  - Coverage reporting and thresholds
+
+### Version Update Strategy
+1. **Major Version Updates**
+   - Evaluate ecosystem compatibility before upgrading
+   - Test all integrations thoroughly
+   - Update related dependencies in sync
+   - Document any breaking changes
+
+2. **Compatibility Checks**
+   - ESLint + TypeScript compatibility
+   - Jest runner compatibility
+   - Code style enforcement consistency
+
+3. **Update Assessment**
+   - Security implications
+   - Feature requirements
+   - Breaking changes
+   - Integration impacts
 
 ## Future Improvements
 
@@ -355,93 +408,45 @@ jest.spyOn(element, 'addEventListener');
 3. Performance optimization for large result sets
 4. Enhanced error reporting
 
-## Development Workflow
+## Error Handling
 
-1. **Version Control**
-   - Git for source control
-   - Feature branches for development
-   - Pull request workflow
+1. **API Errors**
+   - Graceful handling of TVMaze API failures
+   - Retry logic for transient failures
+   - Clear error messages for users
 
-2. **Code Quality**
-   - ESLint for code style
-   - TypeScript strict mode
+2. **Configuration Errors**
+   - Validation of user configuration
+   - Sensible defaults for missing options
+   - Environment variable checking
 
-3. **Deployment**
-   - npm scripts for common tasks
-   - Build process using `tsc`
-   - Clean build directory management
+3. **Runtime Errors**
+   - Graceful degradation on failures
+   - Detailed error logging
+   - User-friendly error messages
 
-## Documentation
+## Build and Validation
 
-1. **Code Documentation**
-   - TSDoc comments for public APIs
-   - Clear function and type documentation
-   - Examples in comments for complex logic
+1. **Continuous Integration**
+   - GitHub Actions workflow
+   - Single validation job that runs:
+     - Type checking
+     - ESLint for code quality and formatting
+     - Unit tests with coverage
+   - Package-lock.json verification
+   - Status badge in README
 
-2. **Project Documentation**
-   - README.md for user guide
-   - TechSpec.md for technical documentation
-   - Inline comments for implementation details
+2. **Pre-commit Hooks**
+   - Type checking runs first
+   - ESLint with --fix via lint-staged
+   - Unit tests for changed files without coverage checks
+   - Consistent with CI validation
 
-## Maintenance
-
-1. **Dependency Management**
-   - Regular updates of dependencies
-   - Security vulnerability monitoring
-   - Compatibility testing
-
-2. **Monitoring**
-   - Error logging
-   - Usage statistics
-   - API response times
-
-3. **Updates**
-   - Regular review of TVMaze API changes
-   - TypeScript and Node.js version updates
-   - Security patches
-
-## Version Constraints and Dependencies
-
-This section tracks specific version constraints and dependencies that require careful consideration during updates.
-
-### ESLint Ecosystem
-- **ESLint**: Using v8.x.x (not v9) due to:
-  - Better compatibility with TypeScript ecosystem
-  - Integration with jest-runner-eslint
-  - Stable support for our code style preferences
-  - Related dependencies:
-    - `@typescript-eslint/parser`: Requires ESLint v8
-    - `@typescript-eslint/eslint-plugin`: Requires ESLint v8
-
-### TypeScript
-- **TypeScript**: Using v5.5.2 with full ESM support
-- **NodeNext module resolution**: For improved import handling
-- **ES2022 target**: For modern JavaScript features
-- **Strict mode enabled**: For type safety and best practices
-- **Type safety for external APIs**: For robust error handling
-- **Comprehensive type definitions**: For maintainable codebase
-- **Version constraints**: >=4.7.4 <5.6.0 for ESLint tooling compatibility
-
-### Testing Framework
-- **Jest**: Using v29.x.x with:
-  - jest-runner-eslint for linting integration
-  - ts-jest for TypeScript support
-  - Configured with separate projects for tests and linting
-
-### Version Update Strategy
-1. **Major Version Updates**
-   - Evaluate ecosystem compatibility before upgrading
-   - Test all integrations thoroughly
-   - Update related dependencies in sync
-   - Document any breaking changes
-
-2. **Compatibility Checks**
-   - ESLint + TypeScript compatibility
-   - Jest runner compatibility
-   - Code style enforcement consistency
-
-3. **Update Assessment**
-   - Security implications
-   - Feature requirements
-   - Breaking changes
-   - Integration impacts
+3. **Development Commands**
+   - `npm test`: Run tests
+   - `npm run type-check`: TypeScript validation
+   - `npm run lint`: Run ESLint checks
+   - `npm run lint:fix`: Run ESLint with auto-fix
+   - `npm run ci`: Full CI validation suite (type-check, test, lint)
+   - `npm run test:watch`: Run tests in watch mode
+   - `npm run test:changed`: Run tests on changed files only
