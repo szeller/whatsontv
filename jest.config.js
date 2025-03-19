@@ -46,14 +46,22 @@ const config = {
       },
       transform: {
         // Transform TypeScript files using ts-jest
-        '^.+\\.tsx?$': ['ts-jest', { useESM: true }]
+        '^.+\\.tsx?$': [
+          'ts-jest',
+          {
+            useESM: true,
+            tsconfig: 'tsconfig.json'
+          }
+        ]
       },
       // Required for ESM support
       extensionsToTreatAsEsm: ['.ts'],
       // Enable Jest globals for better test readability
       injectGlobals: true,
       testEnvironment: 'node',
-      testMatch: ['**/*.test.ts']
+      testMatch: ['**/*.test.ts'],
+      // Add setup file for common mocks
+      setupFilesAfterEnv: ['<rootDir>/src/tests/setup.ts']
     }
   ]
 };
