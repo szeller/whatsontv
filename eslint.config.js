@@ -55,8 +55,8 @@ export default [
         varsIgnorePattern: '^_',
         caughtErrorsIgnorePattern: '^_'
       }],
-      '@typescript-eslint/no-floating-promises': 'warn', // Downgraded to warn for compatibility
-      '@typescript-eslint/strict-boolean-expressions': 'warn', // Downgraded to warn for compatibility
+      '@typescript-eslint/no-floating-promises': 'error', // Restored to error level
+      '@typescript-eslint/strict-boolean-expressions': 'error', // Restored to error level
       '@typescript-eslint/no-non-null-assertion': 'error',
       
       // Formatting rules (aligned with project standards)
