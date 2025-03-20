@@ -41,11 +41,10 @@ jobs:
     - name: Extract coverage info
       id: extract-coverage
       run: |
-        COVERAGE=$(cat coverage/coverage-summary.json)
-        STATEMENTS=$(echo $COVERAGE | jq -r '.total.statements.pct')
-        BRANCHES=$(echo $COVERAGE | jq -r '.total.branches.pct')
-        FUNCTIONS=$(echo $COVERAGE | jq -r '.total.functions.pct')
-        LINES=$(echo $COVERAGE | jq -r '.total.lines.pct')
+        STATEMENTS=$(jq -r '.total.statements.pct' coverage/coverage-summary.json)
+        BRANCHES=$(jq -r '.total.branches.pct' coverage/coverage-summary.json)
+        FUNCTIONS=$(jq -r '.total.functions.pct' coverage/coverage-summary.json)
+        LINES=$(jq -r '.total.lines.pct' coverage/coverage-summary.json)
         
         echo "statements=$STATEMENTS" >> $GITHUB_OUTPUT
         echo "branches=$BRANCHES" >> $GITHUB_OUTPUT
