@@ -189,3 +189,54 @@ The formatters will handle three distinct display cases:
 - Integration test the end-to-end flow with minimal mocking
 
 This approach aligns with our goal of testing without excessive mocking while ensuring good test coverage.
+
+## Detailed Implementation Plan for Console Classes
+
+### 1. StyleService Abstraction
+
+To improve testability and maintainability of the console-related classes, we'll introduce a StyleService abstraction:
+
+1. Create a `StyleService` interface that abstracts text styling operations:
+   - `src/utils/styleService.ts` will define the interface and implementations
+   - Include methods for all styling operations (bold, color, dim, etc.)
+   - Provide two implementations:
+     - `ChalkStyleService`: Production implementation using the chalk library
+     - `PlainStyleService`: Test-friendly implementation with no styling (for assertions)
+
+2. Update `ConsoleFormatter` to use the StyleService:
+   - Inject StyleService via constructor (with default to production implementation)
+   - Replace direct chalk usage with StyleService methods
+   - This allows tests to provide a PlainStyleService for predictable output
+
+### 2. ConsoleFormatter Enhancements
+
+1. Improve handling of different show types:
+   - Shows with web channels instead of networks
+   - Shows with no network or web channel information
+   - Multiple episodes of the same show
+
+2. Standardize formatting patterns:
+   - Consistent padding and alignment
+   - Clear visual hierarchy for network groups
+   - Improved readability for multiple episodes
+
+### 3. ConsoleOutputService Improvements
+
+1. Ensure proper separation of concerns:
+   - ConsoleOutputService handles display logic and user interaction
+   - ConsoleFormatter handles only formatting of show data
+   - StyleService handles only text styling
+
+2. Improve test coverage:
+   - Test with real formatters and mock StyleService
+   - Test all edge cases (empty shows, multiple episodes, etc.)
+   - Avoid mocking core services like tvShowService
+
+### 4. Module Import Handling
+
+Address ESM module import issues in tests:
+   - Ensure proper mocking approach compatible with ESM
+   - Use Jest's spyOn for console output functions
+   - Avoid direct mocking of core services
+
+This detailed plan builds on our existing architecture while addressing the specific challenges we've encountered with testing and maintainability.
