@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { parseArgs, displayShows, type CliArgs } from './services/consoleOutput.js';
+import { ConsoleOutputService, type CliArgs } from './services/consoleOutputService.js';
 import { fetchTvShows } from './services/tvShowService.js';
 import { consoleOutput } from './utils/console.js';
 
@@ -8,18 +8,21 @@ import { consoleOutput } from './utils/console.js';
  * Main function to run the CLI application
  * @param args CLI arguments for filtering shows
  */
-export async function main(args: CliArgs = parseArgs()): Promise<void> {
+export async function main(args?: CliArgs): Promise<void> {
+  const outputService = new ConsoleOutputService();
+  const parsedArgs = args || outputService.parseArgs();
+  
   try {
     const shows = await fetchTvShows({
-      date: args.date,
-      country: args.country,
-      types: args.types,
-      networks: args.networks,
-      genres: args.genres,
-      languages: args.languages
+      date: parsedArgs.date,
+      country: parsedArgs.country,
+      types: parsedArgs.types,
+      networks: parsedArgs.networks,
+      genres: parsedArgs.genres,
+      languages: parsedArgs.languages
     });
 
-    displayShows(shows, args.timeSort);
+    await outputService.displayShows(shows, parsedArgs.timeSort);
   } catch (error) {
     if (error instanceof Error) {
       consoleOutput.error('Error:', error.message);

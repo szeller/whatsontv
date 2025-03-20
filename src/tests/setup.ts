@@ -19,7 +19,7 @@ jest.mock('chalk', () => ({
 }));
 
 // Mock console utility module
-jest.mock('../utils/console', () => ({
+jest.mock('../utils/console.js', () => ({
   __esModule: true,
   consoleOutput: { 
     log: jest.fn().mockReturnValue(undefined),
