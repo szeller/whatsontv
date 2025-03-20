@@ -1,8 +1,8 @@
 import { jest } from '@jest/globals';
 import type { Arguments } from 'yargs';
 
-import type { CliArgs } from '../../cli.js';
 import config from '../../config.js';
+import type { CliArgs } from '../../services/consoleOutput.js';
 import { getTodayDate } from '../../services/tvShowService.js';
 
 interface YargsOptions {
