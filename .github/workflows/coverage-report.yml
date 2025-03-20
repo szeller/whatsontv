@@ -1,0 +1,83 @@
+name: Coverage Report
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Use Node.js 20.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run tests with coverage
+      run: npm test -- --coverage
+      
+    - name: Upload coverage artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: coverage/
+        retention-days: 14
+    
+    - name: Find Comment
+      uses: peter-evans/find-comment@v3
+      id: find-comment
+      with:
+        issue-number: ${{ github.event.pull_request.number }}
+        comment-author: 'github-actions[bot]'
+        body-includes: 'Coverage Report'
+    
+    - name: Extract coverage info
+      id: extract-coverage
+      run: |
+        COVERAGE=$(cat coverage/coverage-summary.json)
+        STATEMENTS=$(echo $COVERAGE | jq -r '.total.statements.pct')
+        BRANCHES=$(echo $COVERAGE | jq -r '.total.branches.pct')
+        FUNCTIONS=$(echo $COVERAGE | jq -r '.total.functions.pct')
+        LINES=$(echo $COVERAGE | jq -r '.total.lines.pct')
+        
+        echo "statements=$STATEMENTS" >> $GITHUB_OUTPUT
+        echo "branches=$BRANCHES" >> $GITHUB_OUTPUT
+        echo "functions=$FUNCTIONS" >> $GITHUB_OUTPUT
+        echo "lines=$LINES" >> $GITHUB_OUTPUT
+        
+        # Check if coverage thresholds are met
+        THRESHOLDS_MET=true
+        if (( $(echo "$STATEMENTS < 80" | bc -l) )); then THRESHOLDS_MET=false; fi
+        if (( $(echo "$BRANCHES < 80" | bc -l) )); then THRESHOLDS_MET=false; fi
+        if (( $(echo "$FUNCTIONS < 80" | bc -l) )); then THRESHOLDS_MET=false; fi
+        if (( $(echo "$LINES < 80" | bc -l) )); then THRESHOLDS_MET=false; fi
+        
+        echo "thresholds_met=$THRESHOLDS_MET" >> $GITHUB_OUTPUT
+    
+    - name: Create or update comment
+      uses: peter-evans/create-or-update-comment@v3
+      with:
+        comment-id: ${{ steps.find-comment.outputs.comment-id }}
+        issue-number: ${{ github.event.pull_request.number }}
+        body: |
+          ## Coverage Report
+          
+          | Metric | Coverage | Threshold | Status |
+          | ------ | -------- | --------- | ------ |
+          | Statements | ${{ steps.extract-coverage.outputs.statements }}% | 80% | ${{ steps.extract-coverage.outputs.statements >= 80 && '✅' || '❌' }} |
+          | Branches | ${{ steps.extract-coverage.outputs.branches }}% | 80% | ${{ steps.extract-coverage.outputs.branches >= 80 && '✅' || '❌' }} |
+          | Functions | ${{ steps.extract-coverage.outputs.functions }}% | 80% | ${{ steps.extract-coverage.outputs.functions >= 80 && '✅' || '❌' }} |
+          | Lines | ${{ steps.extract-coverage.outputs.lines }}% | 80% | ${{ steps.extract-coverage.outputs.lines >= 80 && '✅' || '❌' }} |
+          
+          ${{ steps.extract-coverage.outputs.thresholds_met == 'true' && '✅ All coverage thresholds met!' || '❌ Some coverage thresholds not met. Please improve test coverage.' }}
+          
+          [View detailed coverage report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+        edit-mode: replace
+        reactions: eyes
