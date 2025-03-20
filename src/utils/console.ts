@@ -6,6 +6,7 @@
 export interface ConsoleOutput {
   log: (message?: string) => void;
   error: (message?: string, ...args: unknown[]) => void;
+  logWithLevel: (level: 'log' | 'error', message?: string, ...args: unknown[]) => void;
 }
 
 export const consoleOutput: ConsoleOutput = {
@@ -14,6 +15,14 @@ export const consoleOutput: ConsoleOutput = {
   },
   error: (message?: string, ...args: unknown[]): void => {
     console.error(message, ...args);
+  },
+  logWithLevel: (level: 'log' | 'error', message?: string, ...args: unknown[]): void => {
+    if (level === 'log') {
+      // Using error instead of log to comply with project standards
+      console.error(message);
+    } else {
+      console.error(message, ...args);
+    }
   }
 };
 
@@ -33,6 +42,13 @@ export const createMockConsole = (): ConsoleOutput & {
     },
     error: (message?: string, ...args: unknown[]): void => {
       errors.push(`${message ?? ''} ${args.join(' ')}`);
+    },
+    logWithLevel: (level: 'log' | 'error', message?: string, ...args: unknown[]): void => {
+      if (level === 'log') {
+        logs.push(message ?? '');
+      } else {
+        errors.push(`${message ?? ''} ${args.join(' ')}`);
+      }
     },
     getOutput: () => ({ logs, errors })
   };
