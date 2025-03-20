@@ -25,7 +25,7 @@ jobs:
       run: npm ci
     
     - name: Run tests with coverage
-      run: NODE_OPTIONS="--experimental-vm-modules --no-warnings" jest --selectProjects unit --coverage --coverageReporters=text --coverageReporters=lcov --coverageReporters=json-summary
+      run: npm test
       
     - name: Upload coverage artifacts
       uses: actions/upload-artifact@v4
