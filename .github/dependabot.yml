@@ -48,7 +48,7 @@ updates:
           - "patch"
       # Production dependencies - keep these separate
       production:
-        dependencies-type: "production"
+        dependency-type: "production"
         patterns:
           - "*"
         exclude-patterns:
