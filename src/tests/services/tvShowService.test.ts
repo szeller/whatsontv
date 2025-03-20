@@ -1,6 +1,5 @@
 import { jest, describe, it } from '@jest/globals';
 
-
 import {
   TVMAZE_API,
   setApiClient,
@@ -10,7 +9,13 @@ import {
   sortShowsByTime,
   getShowDetails,
   fetchTvShows,
-  applyShowFilters
+  applyShowFilters,
+  isTVMazeShow,
+  extractShowId,
+  extractShowName,
+  extractShowType,
+  extractShowLanguage,
+  extractShowGenres
 } from '../../services/tvShowService.js';
 import type { Show, TVMazeShow } from '../../types/tvmaze.js';
 import { MockHttpClient } from '../utils/mockHttpClient.js';
@@ -515,6 +520,241 @@ describe('tvShowService', () => {
       const result = applyShowFilters(testShows, { networks: ['mun'] }); // Should match "Telemundo"
       expect(result).toHaveLength(1);
       expect(result[0].show.name).toBe('Spanish Drama');
+    });
+  });
+
+  // New test suite for isTVMazeShow
+  describe('isTVMazeShow', () => {
+    it('identifies valid TVMazeShow with embedded show structure', () => {
+      const validShow = {
+        _embedded: {
+          show: {
+            id: 1,
+            name: 'Test Show'
+          }
+        }
+      };
+      expect(isTVMazeShow(validShow)).toBe(true);
+    });
+
+    it('identifies valid TVMazeShow with direct show property', () => {
+      const validShow = {
+        show: {
+          id: 1,
+          name: 'Test Show'
+        }
+      };
+      expect(isTVMazeShow(validShow)).toBe(true);
+    });
+
+    it('identifies valid TVMazeShow with direct show properties', () => {
+      const validShow = {
+        id: 1,
+        name: 'Test Show'
+      };
+      expect(isTVMazeShow(validShow)).toBe(true);
+    });
+
+    it('rejects null or undefined values', () => {
+      expect(isTVMazeShow(null)).toBe(false);
+      expect(isTVMazeShow(undefined)).toBe(false);
+    });
+
+    it('rejects objects without required properties', () => {
+      expect(isTVMazeShow({})).toBe(false);
+      expect(isTVMazeShow({ id: 1 })).toBe(false);
+      expect(isTVMazeShow({ _embedded: {} })).toBe(false);
+      expect(isTVMazeShow({ show: null })).toBe(false);
+    });
+  });
+
+  // Test suite for extractShowId
+  describe('extractShowId', () => {
+    it('extracts ID from embedded show structure', () => {
+      const show = {
+        _embedded: {
+          show: {
+            id: 123
+          }
+        }
+      } as TVMazeShow;
+      expect(extractShowId(show)).toBe(123);
+    });
+
+    it('extracts ID from direct show property', () => {
+      const show = {
+        show: {
+          id: 456
+        }
+      } as TVMazeShow;
+      expect(extractShowId(show)).toBe(456);
+    });
+
+    it('extracts ID from direct properties', () => {
+      const show = {
+        id: 789
+      } as TVMazeShow;
+      expect(extractShowId(show)).toBe(789);
+    });
+
+    it('generates ID when all IDs are missing', () => {
+      const show = {
+        show: {
+          id: undefined
+        }
+      } as TVMazeShow;
+      const result = extractShowId(show);
+      expect(typeof result).toBe('string');
+      expect((result as string).length).toBeGreaterThan(0);
+    });
+  });
+
+  // Test suite for extractShowName
+  describe('extractShowName', () => {
+    it('extracts name from embedded show structure', () => {
+      const show = {
+        _embedded: {
+          show: {
+            name: 'Embedded Show'
+          }
+        }
+      } as TVMazeShow;
+      expect(extractShowName(show)).toBe('Embedded Show');
+    });
+
+    it('extracts name from direct show property', () => {
+      const show = {
+        show: {
+          name: 'Direct Show'
+        }
+      } as TVMazeShow;
+      expect(extractShowName(show)).toBe('Direct Show');
+    });
+
+    it('extracts name from direct properties', () => {
+      const show = {
+        name: 'Simple Show'
+      } as TVMazeShow;
+      expect(extractShowName(show)).toBe('Simple Show');
+    });
+
+    it('returns empty string when name is missing', () => {
+      const show = {} as TVMazeShow;
+      expect(extractShowName(show)).toBe('');
+    });
+  });
+
+  // Test suite for extractShowType
+  describe('extractShowType', () => {
+    it('extracts type from embedded show structure', () => {
+      const show = {
+        _embedded: {
+          show: {
+            type: 'Scripted'
+          }
+        }
+      } as TVMazeShow;
+      expect(extractShowType(show)).toBe('Scripted');
+    });
+
+    it('extracts type from direct show property', () => {
+      const show = {
+        show: {
+          type: 'Reality'
+        }
+      } as TVMazeShow;
+      expect(extractShowType(show)).toBe('Reality');
+    });
+
+    it('extracts type from direct properties', () => {
+      const show = {
+        type: 'Documentary'
+      } as TVMazeShow;
+      expect(extractShowType(show)).toBe('Documentary');
+    });
+
+    it('returns empty string when type is missing', () => {
+      const show = {} as TVMazeShow;
+      expect(extractShowType(show)).toBe('');
+    });
+  });
+
+  // Test suite for extractShowLanguage
+  describe('extractShowLanguage', () => {
+    it('extracts language from embedded show structure', () => {
+      const show = {
+        _embedded: {
+          show: {
+            language: 'English'
+          }
+        }
+      } as TVMazeShow;
+      expect(extractShowLanguage(show)).toBe('English');
+    });
+
+    it('extracts language from direct show property', () => {
+      const show = {
+        show: {
+          language: 'Spanish'
+        }
+      } as TVMazeShow;
+      expect(extractShowLanguage(show)).toBe('Spanish');
+    });
+
+    it('extracts language from direct properties', () => {
+      const show = {
+        language: 'French'
+      } as TVMazeShow;
+      expect(extractShowLanguage(show)).toBe('French');
+    });
+
+    it('returns null when language is missing', () => {
+      const show = {} as TVMazeShow;
+      expect(extractShowLanguage(show)).toBe(null);
+    });
+  });
+
+  // Test suite for extractShowGenres
+  describe('extractShowGenres', () => {
+    it('extracts genres from embedded show structure', () => {
+      const show = {
+        _embedded: {
+          show: {
+            genres: ['Drama', 'Thriller']
+          }
+        }
+      } as TVMazeShow;
+      expect(extractShowGenres(show)).toEqual(['Drama', 'Thriller']);
+    });
+
+    it('extracts genres from direct show property', () => {
+      const show = {
+        show: {
+          genres: ['Comedy', 'Romance']
+        }
+      } as TVMazeShow;
+      expect(extractShowGenres(show)).toEqual(['Comedy', 'Romance']);
+    });
+
+    it('extracts genres from direct properties', () => {
+      const show = {
+        genres: ['Action', 'Adventure']
+      } as TVMazeShow;
+      expect(extractShowGenres(show)).toEqual(['Action', 'Adventure']);
+    });
+
+    it('returns empty array when genres are missing', () => {
+      const show = {} as TVMazeShow;
+      expect(extractShowGenres(show)).toEqual([]);
+    });
+
+    it('handles non-array genres', () => {
+      const show = {
+        show: {
+          genres: 'Drama' as unknown as string[]
+        }
+      } as TVMazeShow;
+      expect(extractShowGenres(show)).toEqual([]);
     });
   });
 });
