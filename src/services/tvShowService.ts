@@ -144,7 +144,7 @@ export function isTVMazeShow(show: unknown): show is TVMazeShow {
  * @param show Show data from TVMaze API
  * @returns ID from the show or a generated ID
  */
-function extractShowId(show: TVMazeShow): string | number {
+export function extractShowId(show: TVMazeShow): string | number {
   if (isValidObject(show._embedded?.show) && show._embedded.show.id !== undefined) {
     return show._embedded.show.id;
   }
@@ -165,7 +165,7 @@ function extractShowId(show: TVMazeShow): string | number {
  * @param show Show data from TVMaze API
  * @returns Name from the show or empty string
  */
-function extractShowName(show: TVMazeShow): string {
+export function extractShowName(show: TVMazeShow): string {
   if (isValidObject(show._embedded?.show) && isValidString(show._embedded.show.name)) {
     return show._embedded.show.name;
   }
@@ -182,7 +182,7 @@ function extractShowName(show: TVMazeShow): string {
  * @param show Show data from TVMaze API
  * @returns Type from the show or empty string
  */
-function extractShowType(show: TVMazeShow): string {
+export function extractShowType(show: TVMazeShow): string {
   if (isValidObject(show._embedded?.show) && isValidString(show._embedded.show.type)) {
     return show._embedded.show.type;
   }
@@ -199,7 +199,7 @@ function extractShowType(show: TVMazeShow): string {
  * @param show Show data from TVMaze API
  * @returns Language from the show or null
  */
-function extractShowLanguage(show: TVMazeShow): string | null {
+export function extractShowLanguage(show: TVMazeShow): string | null {
   if (isValidObject(show._embedded?.show) && show._embedded.show.language !== undefined) {
     return show._embedded.show.language;
   }
@@ -216,7 +216,7 @@ function extractShowLanguage(show: TVMazeShow): string | null {
  * @param show Show data from TVMaze API
  * @returns Genres from the show or empty array
  */
-function extractShowGenres(show: TVMazeShow): string[] {
+export function extractShowGenres(show: TVMazeShow): string[] {
   if (isValidObject(show._embedded?.show) && Array.isArray(show._embedded.show.genres)) {
     return show._embedded.show.genres;
   }
@@ -233,7 +233,7 @@ function extractShowGenres(show: TVMazeShow): string[] {
  * @param show Show data from TVMaze API
  * @returns Network from the show or null
  */
-function extractShowNetwork(show: TVMazeShow): Network | null {
+export function extractShowNetwork(show: TVMazeShow): Network | null {
   if (isValidObject(show._embedded?.show?.network)) {
     return show._embedded.show.network;
   }
@@ -250,7 +250,7 @@ function extractShowNetwork(show: TVMazeShow): Network | null {
  * @param show Show data from TVMaze API
  * @returns Web channel from the show or null
  */
-function extractShowWebChannel(show: TVMazeShow): Network | null {
+export function extractShowWebChannel(show: TVMazeShow): Network | null {
   if (isValidObject(show._embedded?.show?.webChannel)) {
     return show._embedded.show.webChannel;
   }
@@ -267,7 +267,7 @@ function extractShowWebChannel(show: TVMazeShow): Network | null {
  * @param show Show data from TVMaze API
  * @returns Image from the show or null
  */
-function extractShowImage(show: TVMazeShow): Image | null {
+export function extractShowImage(show: TVMazeShow): Image | null {
   if (isValidObject(show._embedded?.show?.image)) {
     return show._embedded.show.image;
   }
@@ -284,7 +284,7 @@ function extractShowImage(show: TVMazeShow): Image | null {
  * @param show Show data from TVMaze API
  * @returns Summary from the show or empty string
  */
-function extractShowSummary(show: TVMazeShow): string {
+export function extractShowSummary(show: TVMazeShow): string {
   if (isValidObject(show._embedded?.show) && isValidString(show._embedded.show.summary)) {
     return show._embedded.show.summary;
   }
@@ -350,7 +350,7 @@ interface ShowDetails {
  * @param filters Filter criteria
  * @returns Filtered list of shows
  */
-function applyShowFilters(
+export function applyShowFilters(
   shows: Show[],
   filters: {
     types?: string[];
