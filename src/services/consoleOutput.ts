@@ -51,7 +51,7 @@ export function parseArgs(args: string[] = process.argv.slice(2)): CliArgs {
       alias: 'n',
       describe: 'Networks to include',
       type: 'array',
-      default: []
+      default: config.networks
     })
     .option('genres', {
       alias: 'g',
