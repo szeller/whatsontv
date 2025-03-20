@@ -1,6 +1,6 @@
-import axios from 'axios';
-
 import type { Show, TVMazeShow, Network, Image } from '../types/tvmaze.js';
+import { GotHttpClient } from '../utils/gotHttpClient.js';
+import { HttpClient } from '../utils/httpClient.js';
 import { generateId } from '../utils/ids.js';
 
 export const TVMAZE_API = {
@@ -9,21 +9,25 @@ export const TVMAZE_API = {
   WEB_SCHEDULE: '/schedule/web'
 } as const;
 
-// Configure axios with base URL
-export const api = axios.create({
-  baseURL: TVMAZE_API.BASE_URL
+// Create HTTP client with base URL
+let apiClient: HttpClient = new GotHttpClient({
+  baseUrl: TVMAZE_API.BASE_URL
 });
 
-interface ShowDetails {
-  id?: string | number;
-  name: string;
-  type: string;
-  language: string | null;
-  genres: string[];
-  network: Network | null;
-  webChannel: Network | null;
-  image: Image | null;
-  summary: string;
+/**
+ * Get the API client instance
+ * @returns The current HTTP client
+ */
+export function _getApiClient(): HttpClient {
+  return apiClient;
+}
+
+/**
+ * Set the API client instance (for testing)
+ * @param client The client to use
+ */
+export function setApiClient(client: HttpClient): void {
+  apiClient = client;
 }
 
 /**
@@ -140,6 +144,18 @@ export function normalizeShowData(show: TVMazeShow | null): Show | null {
     number: show.number !== undefined && show.number !== '' ? show.number : '',
     show: showDetails
   };
+}
+
+interface ShowDetails {
+  id?: string | number;
+  name: string;
+  type: string;
+  language: string | null;
+  genres: string[];
+  network: Network | null;
+  webChannel: Network | null;
+  image: Image | null;
+  summary: string;
 }
 
 /**
@@ -272,8 +288,8 @@ export async function fetchTvShows(options: FetchOptions = {}): Promise<Show[]> 
 
     // Fetch shows from both TV and web schedules
     const [tvResponse, webResponse] = await Promise.all([
-      api.get<TVMazeShow[]>(TVMAZE_API.TV_SCHEDULE, { params }),
-      api.get<TVMazeShow[]>(TVMAZE_API.WEB_SCHEDULE, { params: { date } })
+      _getApiClient().get<TVMazeShow[]>(TVMAZE_API.TV_SCHEDULE, params),
+      _getApiClient().get<TVMazeShow[]>(TVMAZE_API.WEB_SCHEDULE, { date })
     ]);
 
     // Normalize and combine show data

@@ -1,9 +1,9 @@
 import { jest, describe, it } from '@jest/globals';
-import MockAdapter from 'axios-mock-adapter';
+
 
 import {
-  api,
   TVMAZE_API,
+  setApiClient,
   normalizeShowData,
   isUSPlatform,
   groupShowsByNetwork,
@@ -12,8 +12,10 @@ import {
   fetchTvShows
 } from '../../services/tvShowService.js';
 import type { Show, TVMazeShow } from '../../types/tvmaze.js';
+import { MockHttpClient } from '../utils/mockHttpClient.js';
 
-const mock = new MockAdapter(api);
+// Create a mock HTTP client
+let mockClient: MockHttpClient;
 
 const usCountry = {
   name: 'United States',
@@ -98,7 +100,9 @@ const mockSpanishShow: TVMazeShow = {
 
 describe('tvShowService', () => {
   beforeEach(() => {
-    mock.reset();
+    // Reset the mock client and replace the real client with our mock
+    mockClient = new MockHttpClient();
+    setApiClient(mockClient);
     jest.clearAllMocks();
   });
 
@@ -106,8 +110,17 @@ describe('tvShowService', () => {
     const mockDate = '2025-03-18';
 
     it('fetches and combines shows from both TV and web schedules', async () => {
-      mock.onGet(TVMAZE_API.TV_SCHEDULE).reply(200, [mockTvShow]);
-      mock.onGet(TVMAZE_API.WEB_SCHEDULE).reply(200, [mockWebShow]);
+      mockClient.mockGet(TVMAZE_API.TV_SCHEDULE, {
+        data: [mockTvShow],
+        status: 200,
+        headers: {}
+      });
+      
+      mockClient.mockGet(TVMAZE_API.WEB_SCHEDULE, {
+        data: [mockWebShow],
+        status: 200,
+        headers: {}
+      });
 
       const shows = await fetchTvShows({ date: mockDate });
       expect(shows).toHaveLength(2);
@@ -116,8 +129,8 @@ describe('tvShowService', () => {
     });
 
     it('handles API errors gracefully', async () => {
-      mock.onGet(TVMAZE_API.TV_SCHEDULE).networkError();
-      mock.onGet(TVMAZE_API.WEB_SCHEDULE).networkError();
+      mockClient.mockGetError(TVMAZE_API.TV_SCHEDULE, new Error('Network error'));
+      mockClient.mockGetError(TVMAZE_API.WEB_SCHEDULE, new Error('Network error'));
 
       await expect(fetchTvShows()).rejects.toThrow('Failed to fetch TV shows');
     });
