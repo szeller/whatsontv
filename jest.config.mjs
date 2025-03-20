@@ -25,7 +25,9 @@ const config = {
     '<rootDir>/dist/',
     '\\.test\\.ts$',
     '<rootDir>/src/types/',
-    '<rootDir>/scripts/'
+    '<rootDir>/scripts/',
+    '<rootDir>/src/tests/utils/mockHttpClient.ts',
+    '<rootDir>/src/tests/helpers/'
   ],
   
   // Generate various coverage report formats

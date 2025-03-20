@@ -60,6 +60,49 @@ describe('Console Utilities', () => {
       // Assert
       expect(console.error).toHaveBeenCalledWith(undefined, ...args);
     });
+
+    it('should log with level "log" correctly', () => {
+      // Arrange
+      const message = 'log level message';
+
+      // Act
+      consoleOutput.logWithLevel('log', message);
+
+      // Assert
+      expect(console.error).toHaveBeenCalledWith(message);
+      expect(console.log).not.toHaveBeenCalled();
+    });
+
+    it('should log with level "error" correctly', () => {
+      // Arrange
+      const message = 'error level message';
+      const args = ['detail1', 'detail2'];
+
+      // Act
+      consoleOutput.logWithLevel('error', message, ...args);
+
+      // Assert
+      expect(console.error).toHaveBeenCalledWith(message, ...args);
+    });
+
+    it('should handle undefined messages with logWithLevel for "log" level', () => {
+      // Act
+      consoleOutput.logWithLevel('log', undefined);
+
+      // Assert
+      expect(console.error).toHaveBeenCalledWith(undefined);
+    });
+
+    it('should handle undefined messages with logWithLevel for "error" level', () => {
+      // Arrange
+      const args = ['detail'];
+
+      // Act
+      consoleOutput.logWithLevel('error', undefined, ...args);
+
+      // Assert
+      expect(console.error).toHaveBeenCalledWith(undefined, ...args);
+    });
   });
 
   describe('createMockConsole', () => {
@@ -116,6 +159,56 @@ describe('Console Utilities', () => {
       // Assert
       const output = mockConsole.getOutput();
       expect(output.errors).toEqual([' arg1']);
+    });
+
+    it('should capture log level messages with logWithLevel', () => {
+      // Arrange
+      const mockConsole = createMockConsole();
+
+      // Act
+      mockConsole.logWithLevel('log', 'log message');
+
+      // Assert
+      const output = mockConsole.getOutput();
+      expect(output.logs).toEqual(['log message']);
+      expect(output.errors).toEqual([]);
+    });
+
+    it('should capture error level messages with logWithLevel', () => {
+      // Arrange
+      const mockConsole = createMockConsole();
+
+      // Act
+      mockConsole.logWithLevel('error', 'error message', 'detail');
+
+      // Assert
+      const output = mockConsole.getOutput();
+      expect(output.logs).toEqual([]);
+      expect(output.errors).toEqual(['error message detail']);
+    });
+
+    it('should handle undefined messages with logWithLevel for "log" level', () => {
+      // Arrange
+      const mockConsole = createMockConsole();
+
+      // Act
+      mockConsole.logWithLevel('log', undefined);
+
+      // Assert
+      const output = mockConsole.getOutput();
+      expect(output.logs).toEqual(['']);
+    });
+
+    it('should handle undefined messages with logWithLevel for "error" level', () => {
+      // Arrange
+      const mockConsole = createMockConsole();
+
+      // Act
+      mockConsole.logWithLevel('error', undefined, 'detail');
+
+      // Assert
+      const output = mockConsole.getOutput();
+      expect(output.errors).toEqual([' detail']);
     });
   });
 });

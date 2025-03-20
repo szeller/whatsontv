@@ -9,7 +9,8 @@ import {
   groupShowsByNetwork,
   sortShowsByTime,
   getShowDetails,
-  fetchTvShows
+  fetchTvShows,
+  applyShowFilters
 } from '../../services/tvShowService.js';
 import type { Show, TVMazeShow } from '../../types/tvmaze.js';
 import { MockHttpClient } from '../utils/mockHttpClient.js';
@@ -336,6 +337,184 @@ describe('tvShowService', () => {
 
       const result = getShowDetails(showWithMissingFields);
       expect(result).toEqual(showWithMissingFields.show);
+    });
+  });
+
+  describe('applyShowFilters', () => {
+    // Create a set of test shows with various properties
+    const testShows: Show[] = [
+      // US Network drama show
+      {
+        airtime: '20:00',
+        name: 'Drama Show',
+        season: 1,
+        number: 1,
+        show: {
+          id: 101,
+          name: 'Drama Show',
+          type: 'Scripted',
+          network: {
+            id: 1,
+            name: 'CBS',
+            country: usCountry
+          },
+          webChannel: null,
+          genres: ['Drama'],
+          language: 'English',
+          image: null,
+          summary: 'A drama show'
+        }
+      },
+      // Comedy show on streaming
+      {
+        airtime: '21:00',
+        name: 'Comedy Show',
+        season: 2,
+        number: 5,
+        show: {
+          id: 102,
+          name: 'Comedy Show',
+          type: 'Scripted',
+          network: null,
+          webChannel: {
+            id: 2,
+            name: 'Netflix',
+            country: usCountry
+          },
+          genres: ['Comedy'],
+          language: 'English',
+          image: null,
+          summary: 'A comedy show'
+        }
+      },
+      // Reality show
+      {
+        airtime: '19:00',
+        name: 'Reality Show',
+        season: 5,
+        number: 10,
+        show: {
+          id: 103,
+          name: 'Reality Show',
+          type: 'Reality',
+          network: {
+            id: 3,
+            name: 'ABC',
+            country: usCountry
+          },
+          webChannel: null,
+          genres: ['Reality'],
+          language: 'English',
+          image: null,
+          summary: 'A reality show'
+        }
+      },
+      // Spanish drama
+      {
+        airtime: '22:00',
+        name: 'Spanish Drama',
+        season: 1,
+        number: 3,
+        show: {
+          id: 104,
+          name: 'Spanish Drama',
+          type: 'Scripted',
+          network: {
+            id: 4,
+            name: 'Telemundo',
+            country: usCountry
+          },
+          webChannel: null,
+          genres: ['Drama', 'Thriller'],
+          language: 'Spanish',
+          image: null,
+          summary: 'A Spanish drama'
+        }
+      },
+      // Show with missing data
+      {
+        airtime: '18:00',
+        name: 'Incomplete Show',
+        season: 1,
+        number: 1,
+        show: {
+          id: 105,
+          name: 'Incomplete Show',
+          type: '',
+          network: null,
+          webChannel: null,
+          genres: [],
+          language: '',
+          image: null,
+          summary: ''
+        }
+      }
+    ];
+
+    it('filters shows by type', () => {
+      const result = applyShowFilters(testShows, { types: ['Scripted'] });
+      expect(result).toHaveLength(3);
+      expect(result.map(show => show.show.name)).toContain('Drama Show');
+      expect(result.map(show => show.show.name)).toContain('Comedy Show');
+      expect(result.map(show => show.show.name)).toContain('Spanish Drama');
+      expect(result.map(show => show.show.name)).not.toContain('Reality Show');
+    });
+
+    it('filters shows by network', () => {
+      const result = applyShowFilters(testShows, { networks: ['CBS'] });
+      expect(result).toHaveLength(1);
+      expect(result[0].show.name).toBe('Drama Show');
+    });
+
+    it('filters shows by web channel', () => {
+      const result = applyShowFilters(testShows, { networks: ['Netflix'] });
+      expect(result).toHaveLength(1);
+      expect(result[0].show.name).toBe('Comedy Show');
+    });
+
+    it('filters shows by genre', () => {
+      const result = applyShowFilters(testShows, { genres: ['Thriller'] });
+      expect(result).toHaveLength(1);
+      expect(result[0].show.name).toBe('Spanish Drama');
+    });
+
+    it('filters shows by language', () => {
+      const result = applyShowFilters(testShows, { languages: ['Spanish'] });
+      expect(result).toHaveLength(1);
+      expect(result[0].show.name).toBe('Spanish Drama');
+    });
+
+    it('applies multiple filters with AND logic', () => {
+      const result = applyShowFilters(testShows, { 
+        types: ['Scripted'], 
+        genres: ['Drama'],
+        languages: ['English']
+      });
+      expect(result).toHaveLength(1);
+      expect(result[0].show.name).toBe('Drama Show');
+    });
+
+    it('returns all shows when no filters are provided', () => {
+      const result = applyShowFilters(testShows, {});
+      expect(result).toHaveLength(testShows.length);
+    });
+
+    it('handles case-insensitive filtering', () => {
+      const result = applyShowFilters(testShows, { networks: ['cbs'] });
+      expect(result).toHaveLength(1);
+      expect(result[0].show.name).toBe('Drama Show');
+    });
+
+    it('handles shows with missing properties', () => {
+      const result = applyShowFilters(testShows, { types: [''] });
+      expect(result).toHaveLength(1);
+      expect(result[0].show.name).toBe('Incomplete Show');
+    });
+
+    it('handles partial matches in network names', () => {
+      const result = applyShowFilters(testShows, { networks: ['mun'] }); // Should match "Telemundo"
+      expect(result).toHaveLength(1);
+      expect(result[0].show.name).toBe('Spanish Drama');
     });
   });
 });

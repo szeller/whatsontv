@@ -350,7 +350,7 @@ interface ShowDetails {
  * @param filters Filter criteria
  * @returns Filtered list of shows
  */
-function applyShowFilters(
+export function applyShowFilters(
   shows: Show[],
   filters: {
     types?: string[];
