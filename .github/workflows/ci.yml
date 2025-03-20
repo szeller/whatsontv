@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: ['*']
   pull_request:
     branches: [ main ]
 
@@ -34,3 +34,13 @@ jobs:
       
     - name: Run Validation
       run: npm run ci
+
+    - name: Run tests with coverage
+      run: npm test -- --coverage
+      
+    - name: Upload coverage artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: coverage/
+        retention-days: 14

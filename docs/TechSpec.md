@@ -278,20 +278,98 @@ jest.spyOn(element, 'addEventListener');
 
 ## Development Workflow
 
-1. **Local Development**
-   - TypeScript compilation via `tsc --noEmit`
-   - ESLint for code quality and formatting
-   - Jest for unit testing
-   - Pre-commit hooks:
-     - ESLint with --fix via lint-staged
-     - Jest tests on changed files without coverage checks
-   - Common commands:
-     - `npm run ci`: Run type checking, tests, and linting
-     - `npm test`: Run tests
-     - `npm run lint`: Run ESLint
-     - `npm run lint:fix`: Run ESLint with auto-fix
-     - `npm run test:watch`: Run tests in watch mode
-     - `npm run test:changed`: Run tests on changed files only
+### 1. Continuous Integration and Deployment
+
+#### CI/CD Philosophy
+- Automated testing and validation for all code changes
+- Enforce code quality standards through automated checks
+- Maintain high test coverage across the codebase
+- Provide rapid feedback to developers
+- Enable confident dependency updates
+- Support streamlined deployment process
+
+#### GitHub Actions Workflows
+
+1. **Main CI Workflow** (`ci.yml`)
+   - Triggers:
+     - Push to any branch (including main)
+     - Pull requests to main
+   - Environment:
+     - Ubuntu latest with Node.js 20.x
+   - Steps:
+     - Checkout code
+     - Setup Node.js with npm cache
+     - Verify package-lock.json integrity
+     - Install dependencies
+     - Run type checking
+     - Run ESLint validation
+     - Run tests with coverage reporting
+     - Store coverage artifacts
+     - Report coverage metrics
+
+2. **Dependency Update Test** (`dependency-update-test.yml`)
+   - Triggers:
+     - Pull requests that modify package.json or package-lock.json
+   - Environment:
+     - Ubuntu latest with Node.js 20.x
+   - Steps:
+     - Checkout code
+     - Setup Node.js with npm cache
+     - Install dependencies
+     - Run ESLint validation
+     - Run type checking
+     - Run tests with coverage
+     - Check for ESLint peer dependency warnings
+     - Validate ESLint configuration
+
+#### Branch Protection Rules
+- Required status checks:
+  - All GitHub Actions workflows must pass
+  - Code review required for PRs to main
+  - No direct pushes to main branch
+- Coverage requirements:
+  - Maintain minimum 80% coverage for statements, branches, functions, and lines
+  - Block PRs that decrease coverage below thresholds
+- Merge requirements:
+  - Linear history (rebase and merge)
+  - No merge commits
+  - Clean commit history
+
+#### Coverage Reporting
+- Jest configured to generate coverage reports
+- Coverage artifacts stored in GitHub Actions
+- Coverage badge in README.md showing current coverage percentage
+- Coverage thresholds enforced:
+  - Statements: 80%
+  - Branches: 80%
+  - Functions: 80%
+  - Lines: 80%
+
+#### Notifications
+- GitHub notifications for workflow failures
+- Integration with team communication tools for CI status updates
+- Automated comments on PRs with test results and coverage changes
+
+#### Deployment Process
+- Automated deployment triggered on release creation
+- Semantic versioning enforced
+- Release notes generated from PR descriptions
+- Package published to npm registry with appropriate tags
+
+### 2. Pre-commit Hooks
+- Type checking runs first
+- ESLint with --fix via lint-staged
+- Unit tests for changed files without coverage checks
+- Consistent with CI validation
+
+### 3. Development Commands
+- `npm test`: Run tests
+- `npm run type-check`: TypeScript validation
+- `npm run lint`: Run ESLint checks
+- `npm run lint:fix`: Run ESLint with auto-fix
+- `npm run ci`: Full CI validation suite (type-check, test, lint)
+- `npm run test:watch`: Run tests in watch mode
+- `npm run test:changed`: Run tests on changed files only
 
 ## Documentation
 
