@@ -93,9 +93,9 @@ export async function sendTvShowNotifications(timeSort = false): Promise<void> {
         });
 
       // Format shows by network
-      messageBlocks.forEach((block: MessageBlock): void => {
+      for (const block of messageBlocks) {
         message += block.text.text + '\n\n';
-      });
+      }
 
       blocks = messageBlocks;
     }
@@ -140,19 +140,22 @@ export function startTvShowNotifier(): void {
  * @returns Shows grouped by network
  */
 function groupShowsByNetwork(shows: Show[]): Record<string, Show[]> {
-  return shows.reduce<Record<string, Show[]>>((acc, show) => {
+  const showMap = shows.reduce<Map<string, Show[]>>((acc, show) => {
     const network: string = (
       show.show.network?.name !== undefined && show.show.network.name !== ''
-    ) ? show.show.network.name : (
+    ) ? show.show.network.name : ((
         show.show.webChannel?.name !== undefined && show.show.webChannel.name !== ''
-      ) ? show.show.webChannel.name : 'N/A';
+      ) ? show.show.webChannel.name : 'N/A');
     
-    if (acc[network] === undefined) {
-      acc[network] = [];
+    if (!acc.has(network)) {
+      acc.set(network, []);
     }
-    acc[network].push(show);
+    acc.get(network)?.push(show);
     return acc;
-  }, {} as Record<string, Show[]>);
+  }, new Map<string, Show[]>());
+  
+  // Convert Map back to Record to maintain the same return type
+  return Object.fromEntries(showMap);
 }
 
 /**

@@ -53,7 +53,7 @@ export class GotHttpClient implements HttpClient {
   async get<T>(url: string, params?: Record<string, string>): Promise<HttpResponse<T>> {
     try {
       // Remove leading slash if present (Got's prefixUrl requires this)
-      const normalizedUrl = url.startsWith('/') ? url.substring(1) : url;
+      const normalizedUrl = url.startsWith('/') ? url.slice(1) : url;
       this.log('log', `Making GET request to: ${normalizedUrl}`);
       
       // Type assertion for the response
@@ -87,7 +87,7 @@ export class GotHttpClient implements HttpClient {
   ): Promise<HttpResponse<T>> {
     try {
       // Remove leading slash if present (Got's prefixUrl requires this)
-      const normalizedUrl = url.startsWith('/') ? url.substring(1) : url;
+      const normalizedUrl = url.startsWith('/') ? url.slice(1) : url;
       this.log('log', `Making POST request to: ${normalizedUrl}`);
       
       // Type assertion for the response
@@ -120,13 +120,10 @@ export class GotHttpClient implements HttpClient {
       // Check content type to determine how to handle the response
       const contentType = response.headers['content-type'] ?? '';
       
-      if (contentType.includes('application/json')) {
-        // Try to parse as JSON
-        data = JSON.parse(response.body) as T;
-      } else {
-        // Use the raw string for non-JSON responses
-        data = response.body as unknown as T;
-      }
+      // Convert if/else to ternary expression
+      data = contentType.includes('application/json')
+        ? JSON.parse(response.body) as T
+        : response.body as unknown as T;
       
       return {
         data,

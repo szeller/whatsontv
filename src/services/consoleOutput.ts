@@ -92,19 +92,19 @@ export function displayShows(shows: Show[], timeSort: boolean): void {
     const sortedShows = sortShowsByTime(shows);
     
     // Display shows sorted by time
-    sortedShows.forEach(show => {
+    for (const show of sortedShows) {
       consoleOutput.log(formatShowDetails(show));
-    });
+    }
   } else {
     // Group shows by network
     const networkGroups = groupShowsByNetwork(shows);
     
     // Display shows grouped by network
-    Object.entries(networkGroups).forEach(([network, shows]) => {
+    for (const [network, shows] of Object.entries(networkGroups)) {
       consoleOutput.log(`\n${network}:`);
-      shows.forEach(show => {
+      for (const show of shows) {
         consoleOutput.log(formatShowDetails(show));
-      });
-    });
+      }
+    }
   }
 }

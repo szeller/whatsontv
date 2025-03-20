@@ -422,7 +422,7 @@ export function sortShowsByTime(shows: Show[]): Show[] {
  * @returns Shows grouped by network
  */
 export function groupShowsByNetwork(shows: Show[]): Record<string, Show[]> {
-  return shows.reduce((groups: Record<string, Show[]>, show: Show) => {
+  const showMap = shows.reduce((groups: Map<string, Show[]>, show: Show) => {
     const network = show.show.network?.name;
     const webChannel = show.show.webChannel?.name;
     
@@ -433,12 +433,15 @@ export function groupShowsByNetwork(shows: Show[]): Record<string, Show[]> {
         ? webChannel 
         : 'Unknown');
 
-    if (groups[networkName] === undefined) {
-      groups[networkName] = [];
+    if (!groups.has(networkName)) {
+      groups.set(networkName, []);
     }
-    groups[networkName].push(show);
+    groups.get(networkName)?.push(show);
     return groups;
-  }, {});
+  }, new Map<string, Show[]>());
+  
+  // Convert Map back to Record to maintain the same return type
+  return Object.fromEntries(showMap);
 }
 
 /**

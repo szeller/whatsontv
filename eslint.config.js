@@ -2,6 +2,10 @@ import eslint from '@eslint/js';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tseslintParser from '@typescript-eslint/parser';
 import importPlugin from 'eslint-plugin-import';
+import securityPlugin from 'eslint-plugin-security';
+import sonarjsPlugin from 'eslint-plugin-sonarjs';
+import promisePlugin from 'eslint-plugin-promise';
+import unicornPlugin from 'eslint-plugin-unicorn';
 
 /**
  * ESLint v9 configuration with TypeScript-ESLint v8.x
@@ -10,6 +14,12 @@ import importPlugin from 'eslint-plugin-import';
  * - Single quotes, semicolons required, no trailing commas, 2-space indent, 100 char width
  * - Strict type system with explicit function return types
  * - No floating promises or non-null assertions
+ * 
+ * Enhanced with additional plugins for:
+ * - Security (eslint-plugin-security)
+ * - Code quality (eslint-plugin-sonarjs)
+ * - Promise handling (eslint-plugin-promise)
+ * - Modern JavaScript practices (eslint-plugin-unicorn)
  */
 export default [
   eslint.configs.recommended,
@@ -34,7 +44,11 @@ export default [
     },
     plugins: {
       '@typescript-eslint': tseslint,
-      'import': importPlugin
+      'import': importPlugin,
+      'security': securityPlugin,
+      'sonarjs': sonarjsPlugin,
+      'promise': promisePlugin,
+      'unicorn': unicornPlugin
     },
     rules: {
       // TypeScript-specific rules
@@ -76,6 +90,58 @@ export default [
       }],
       'import/no-duplicates': 'error',
       'import/no-cycle': 'error',
+      
+      // Security rules
+      'security/detect-object-injection': 'warn',
+      'security/detect-non-literal-regexp': 'warn',
+      'security/detect-non-literal-fs-filename': 'warn',
+      'security/detect-eval-with-expression': 'error',
+      'security/detect-buffer-noassert': 'error',
+      'security/detect-unsafe-regex': 'warn',
+      'security/detect-new-buffer': 'error',
+      
+      // SonarJS rules for code quality
+      'sonarjs/no-identical-expressions': 'error',
+      'sonarjs/no-identical-conditions': 'error',
+      'sonarjs/no-inverted-boolean-check': 'warn',
+      'sonarjs/no-redundant-boolean': 'warn',
+      'sonarjs/no-unused-collection': 'warn',
+      'sonarjs/no-use-of-empty-return-value': 'error',
+      'sonarjs/no-duplicate-string': ['warn', { 'threshold': 3 }],
+      'sonarjs/prefer-immediate-return': 'warn',
+      'sonarjs/prefer-object-literal': 'warn',
+      'sonarjs/prefer-single-boolean-return': 'warn',
+      'sonarjs/no-small-switch': 'warn',
+      'sonarjs/no-gratuitous-expressions': 'error',
+      
+      // Promise handling rules
+      'promise/catch-or-return': 'error',
+      'promise/no-return-wrap': 'error',
+      'promise/param-names': 'error',
+      'promise/no-nesting': 'warn',
+      'promise/no-promise-in-callback': 'warn',
+      'promise/no-callback-in-promise': 'warn',
+      'promise/avoid-new': 'warn',
+      'promise/no-new-statics': 'error',
+      'promise/valid-params': 'error',
+      
+      // Unicorn rules for modern JavaScript practices
+      'unicorn/better-regex': 'warn',
+      'unicorn/catch-error-name': 'warn',
+      'unicorn/consistent-destructuring': 'warn',
+      'unicorn/error-message': 'error',
+      'unicorn/no-array-for-each': 'warn',
+      'unicorn/no-for-loop': 'warn',
+      'unicorn/no-lonely-if': 'warn',
+      'unicorn/no-nested-ternary': 'warn',
+      'unicorn/no-null': 'off', // Conflicts with TypeScript patterns
+      'unicorn/no-useless-undefined': 'warn',
+      'unicorn/prefer-array-find': 'warn',
+      'unicorn/prefer-array-flat-map': 'warn',
+      'unicorn/prefer-includes': 'warn',
+      'unicorn/prefer-string-slice': 'warn',
+      'unicorn/prefer-ternary': 'warn',
+      'unicorn/prevent-abbreviations': 'off', // Too aggressive for our codebase
       
       // Formatting rules (aligned with project standards)
       'semi': ['error', 'always'],
@@ -127,7 +193,11 @@ export default [
     },
     plugins: {
       '@typescript-eslint': tseslint,
-      'import': importPlugin
+      'import': importPlugin,
+      'security': securityPlugin,
+      'sonarjs': sonarjsPlugin,
+      'promise': promisePlugin,
+      'unicorn': unicornPlugin
     },
     rules: {
       // TypeScript-specific rules
@@ -167,6 +237,31 @@ export default [
           'caseInsensitive': true
         }
       }],
+      
+      // Security rules - relaxed for tests
+      'security/detect-object-injection': 'off',
+      'security/detect-non-literal-regexp': 'off',
+      'security/detect-non-literal-fs-filename': 'off',
+      'security/detect-eval-with-expression': 'error',
+      'security/detect-buffer-noassert': 'error',
+      
+      // SonarJS rules - relaxed for tests
+      'sonarjs/no-identical-expressions': 'error',
+      'sonarjs/no-identical-conditions': 'error',
+      'sonarjs/no-duplicate-string': 'off',
+      'sonarjs/no-small-switch': 'off',
+      
+      // Promise rules - relaxed for tests
+      'promise/catch-or-return': 'off',
+      'promise/no-nesting': 'off',
+      'promise/no-promise-in-callback': 'off',
+      'promise/no-callback-in-promise': 'off',
+      'promise/avoid-new': 'off',
+      
+      // Unicorn rules - relaxed for tests
+      'unicorn/consistent-destructuring': 'off',
+      'unicorn/no-array-for-each': 'off',
+      'unicorn/no-for-loop': 'off',
       
       // Formatting and code quality rules
       'semi': ['error', 'always'],
