@@ -180,6 +180,37 @@ npm run shows -- --help
    ```
 4. Create a pull request for review
 
+### Dependency Maintenance
+This project uses Dependabot to automate dependency updates with the following strategy:
+
+#### Automated Updates
+- **Weekly npm dependency checks** - PRs created for minor and patch updates
+- **Monthly GitHub Actions checks** - Keeps CI workflows up to date
+- **Intelligent dependency grouping**:
+  - ESLint ecosystem (eslint, @eslint/*, @typescript-eslint/*, plugins)
+  - TypeScript ecosystem (typescript, ts-*, @types/*)
+  - Testing tools (jest, @jest/*, nock, supertest)
+  - HTTP clients (got, axios, node-fetch)
+  - Production dependencies (grouped separately)
+
+#### Handling Updates
+1. **Automated PRs**: Dependabot creates PRs for compatible updates
+2. **Review Process**:
+   - Check that all tests pass in the PR
+   - Verify ESLint configuration still works
+   - Look for peer dependency warnings (expected for TypeScript-ESLint with ESLint v9)
+3. **Version Constraints**:
+   - Major version updates require manual review
+   - TypeScript and ESLint ecosystem have special compatibility requirements
+   - Always update related packages together (e.g., parser and plugin)
+
+#### Special Considerations
+- **ESLint Ecosystem**: Maintain single source of truth for code quality and formatting
+- **Peer Dependencies**: Some expected warnings from TypeScript-ESLint are normal
+- **Documentation**: Version constraints are documented in `docs/TechSpec.md#version-constraints-and-dependencies`.
+
+For detailed information about dependency constraints and compatibility, see the [Technical Specification](docs/TechSpec.md#version-constraints-and-dependencies).
+
 ### Running Tests
 ```bash
 # Run all tests
@@ -208,5 +239,3 @@ npm run test:changed
 Watch for changes during development:
 ```bash
 npm run dev
-
-```

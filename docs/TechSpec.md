@@ -308,9 +308,17 @@ jest.spyOn(element, 'addEventListener');
 ## Maintenance
 
 1. **Dependency Management**
-   - Regular updates of dependencies
-   - Security vulnerability monitoring
-   - Compatibility testing
+   - Automated dependency updates via Dependabot
+     - Weekly checks for npm dependencies
+     - Monthly checks for GitHub Actions
+     - Intelligent grouping of related dependencies
+     - Automated PR creation with appropriate labels
+   - Version constraints and compatibility management
+     - Minor and patch updates automated
+     - Major updates require manual review
+     - Special handling for TypeScript and ESLint ecosystem
+   - Security vulnerability monitoring and patching
+   - Comprehensive testing for dependency updates
 
 2. **Monitoring**
    - Error logging
@@ -333,8 +341,17 @@ This section tracks specific version constraints and dependencies that require c
   - Single source of truth for code quality and formatting
   - Related dependencies:
     - `@eslint/js`: v9.x.x for JavaScript configurations
-    - `@typescript-eslint/parser`: v7.x.x for TypeScript parsing
-    - `@typescript-eslint/eslint-plugin`: v7.x.x for TypeScript-specific rules
+    - `@typescript-eslint/parser`: v8.x.x for TypeScript parsing
+    - `@typescript-eslint/eslint-plugin`: v8.x.x for TypeScript-specific rules
+  - **Compatibility Notes**:
+    - TypeScript ESLint plugins have peer dependencies on ESLint v8, but work with v9
+    - Peer dependency warnings are expected and can be safely ignored
+    - Version mismatches between parser and plugin can cause issues
+  - **Update Strategy**:
+    - Dependabot configured to group all ESLint-related updates together
+    - Minor/patch updates automated via weekly PRs
+    - Major version updates require manual review and testing
+    - Always update parser and plugin together to maintain compatibility
 
 ### TypeScript
 - **TypeScript**: Using v5.5.2 with full ESM support

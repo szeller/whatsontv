@@ -1,0 +1,108 @@
+version: 2
+updates:
+  # Main npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    # Group related dependencies together
+    groups:
+      # ESLint ecosystem dependencies
+      eslint:
+        patterns:
+          - "eslint"
+          - "@eslint/*"
+          - "@typescript-eslint/*"
+          - "eslint-plugin-*"
+        update-types:
+          - "minor"
+          - "patch"
+      # TypeScript ecosystem dependencies
+      typescript:
+        patterns:
+          - "typescript"
+          - "ts-*"
+          - "@types/*"
+        update-types:
+          - "minor"
+          - "patch"
+      # Testing dependencies
+      testing:
+        patterns:
+          - "jest"
+          - "@jest/*"
+          - "nock"
+          - "supertest"
+        update-types:
+          - "minor"
+          - "patch"
+      # HTTP client dependencies
+      http-clients:
+        patterns:
+          - "got"
+          - "axios"
+          - "node-fetch"
+        update-types:
+          - "minor"
+          - "patch"
+      # Production dependencies - keep these separate
+      production:
+        dependencies-type: "production"
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "eslint"
+          - "@eslint/*"
+          - "@typescript-eslint/*"
+          - "eslint-plugin-*"
+          - "typescript"
+          - "ts-*"
+          - "@types/*"
+          - "jest"
+          - "@jest/*"
+          - "nock"
+          - "supertest"
+          - "got"
+          - "axios"
+          - "node-fetch"
+        update-types:
+          - "minor"
+          - "patch"
+    # Specify version update preferences
+    versioning-strategy: "auto"
+    # Set reviewers for pull requests
+    reviewers:
+      - "szeller"
+    # Limit the number of open pull requests
+    open-pull-requests-limit: 10
+    # Configure commit message
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    # Pull request branch naming
+    pull-request-branch-name:
+      separator: "/"
+    # Labels on pull requests
+    labels:
+      - "dependencies"
+    # Allow major version updates for development dependencies only
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
