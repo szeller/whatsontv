@@ -21,6 +21,7 @@ src/
   interfaces/
     outputService.ts     # Common interface for output services
     showFormatter.ts     # Common interface for formatters
+    consoleOutput.ts     # Interface for low-level console operations
 ```
 
 ### Formatters
@@ -37,8 +38,16 @@ src/
 ```
 src/
   services/
-    consoleOutput.ts     # Console output service
-    slackOutput.ts       # Slack output service
+    consoleOutputService.ts     # Console output service
+    slackOutputService.ts       # Slack output service
+```
+
+### Utilities
+
+```
+src/
+  utils/
+    consoleOutput.ts     # Implementation of low-level console operations
 ```
 
 ## Interface Definitions
@@ -117,6 +126,38 @@ export interface ShowFormatter {
 }
 ```
 
+### ConsoleOutput Interface
+
+```typescript
+// src/interfaces/consoleOutput.ts
+/**
+ * Interface for low-level console operations
+ * Provides a wrapper around console functions for better testability
+ */
+export interface ConsoleOutput {
+  /**
+   * Log a message to the console
+   * @param message Message to log
+   */
+  log: (message?: string) => void;
+  
+  /**
+   * Log an error message to the console
+   * @param message Error message
+   * @param args Additional arguments
+   */
+  error: (message?: string, ...args: unknown[]) => void;
+  
+  /**
+   * Log a message with a specific level
+   * @param level Log level (log or error)
+   * @param message Message to log
+   * @param args Additional arguments
+   */
+  logWithLevel: (level: 'log' | 'error', message?: string, ...args: unknown[]) => void;
+}
+```
+
 ## TV Show Display Cases
 
 The formatters will handle three distinct display cases:
@@ -146,97 +187,98 @@ The formatters will handle three distinct display cases:
 1. Create interface files:
    - `src/interfaces/outputService.ts`
    - `src/interfaces/showFormatter.ts`
+   - `src/interfaces/consoleOutput.ts`
    - `src/types/slack.ts`
 
 2. Create formatter classes:
    - `src/formatters/consoleFormatter.ts`
    - `src/formatters/slackFormatter.ts`
 
-### Phase 2: Refactor Console Implementation
+3. Create output service classes:
+   - `src/services/consoleOutputService.ts`
+   - `src/services/slackOutputService.ts`
 
-1. Refactor `src/utils/formatting.ts` to use the new formatter class
-2. Create `src/services/consoleOutput.ts` implementing the OutputService interface
-3. Update `src/cli.ts` to use the new service
+4. Create utility implementations:
+   - `src/utils/consoleOutput.ts`
 
-### Phase 3: Implement Slack Output
+### Phase 2: Console Refactoring
 
-1. Create `src/services/slackOutput.ts` implementing the OutputService interface
-2. Refactor `src/slack.ts` to use the new service
-3. Remove duplicated code from the original implementation
+1. Move the `ConsoleOutput` interface from `utils/console.ts` to `interfaces/consoleOutput.ts`
+2. Move the implementation from `console.ts` to `utils/consoleOutput.ts`
+3. Update the `ConsoleOutputService` to use the new interface
+4. Migrate functionality from the old `consoleOutput.ts` to appropriate classes
+5. Remove the old `console.ts` and `consoleOutput.ts` files
 
-### Phase 4: Testing
+### Phase 3: Slack Integration
 
-1. Create unit tests for formatter classes:
-   - `src/tests/formatters/consoleFormatter.test.ts`
-   - `src/tests/formatters/slackFormatter.test.ts`
+1. Implement the Slack formatter and output service
+2. Add Slack-specific configuration
+3. Integrate with the main application
 
-2. Create unit tests for output services:
-   - `src/tests/services/consoleOutput.test.ts`
-   - `src/tests/services/slackOutput.test.ts`
+## Console-Related Refactoring
+
+To address naming inconsistencies in the console-related classes, we will perform the following steps:
+
+1. Rename `consoleOutput.ts` to `consoleUtils.ts` to better reflect its utility nature.
+2. Update all references to `consoleOutput.ts` to use the new name `consoleUtils.ts`.
+3. Review and refactor any inconsistent naming conventions in the console-related classes.
 
 ## Benefits
 
-1. **Consistent Interface**: Both output mechanisms implement the same interfaces
+1. **Consistent Architecture**: All output mechanisms follow the same pattern
 2. **Improved Testability**: Classes can be tested in isolation
 3. **Separation of Concerns**: Clear separation between formatting and output logic
 4. **Reduced Duplication**: Common code is shared through interfaces
 5. **Extensibility**: New output formats can be added by implementing the same interfaces
 
-## Testing Strategy
+## Implementation Notes
 
-- Unit test formatters with sample show data
-- Unit test output services with mocked formatters
-- Integration test the end-to-end flow with minimal mocking
+### Dependency Injection
 
-This approach aligns with our goal of testing without excessive mocking while ensuring good test coverage.
+We'll use tsyringe for dependency injection to make testing easier:
 
-## Detailed Implementation Plan for Console Classes
+```typescript
+// Example DI setup
+import { container } from 'tsyringe';
+import { ConsoleFormatter } from './formatters/consoleFormatter.js';
+import { ConsoleOutputService } from './services/consoleOutputService.js';
+import { consoleOutput } from './utils/consoleOutput.js';
+import { TvMazeService } from './services/tvMazeService.js';
 
-### 1. StyleService Abstraction
+// Register implementations
+container.register('ConsoleOutput', { useValue: consoleOutput });
+container.register('ShowFormatter', { useClass: ConsoleFormatter });
+container.register('OutputService', { useClass: ConsoleOutputService });
+container.register('TvShowService', { useClass: TvMazeService });
+```
 
-To improve testability and maintainability of the console-related classes, we'll introduce a StyleService abstraction:
+### Testing
 
-1. Create a `StyleService` interface that abstracts text styling operations:
-   - `src/utils/styleService.ts` will define the interface and implementations
-   - Include methods for all styling operations (bold, color, dim, etc.)
-   - Provide two implementations:
-     - `ChalkStyleService`: Production implementation using the chalk library
-     - `PlainStyleService`: Test-friendly implementation with no styling (for assertions)
+The new architecture makes testing much easier:
 
-2. Update `ConsoleFormatter` to use the StyleService:
-   - Inject StyleService via constructor (with default to production implementation)
-   - Replace direct chalk usage with StyleService methods
-   - This allows tests to provide a PlainStyleService for predictable output
+```typescript
+// Example test
+import { ConsoleOutputService } from '../services/consoleOutputService';
+import { createMockConsole } from '../utils/consoleOutput';
 
-### 2. ConsoleFormatter Enhancements
-
-1. Improve handling of different show types:
-   - Shows with web channels instead of networks
-   - Shows with no network or web channel information
-   - Multiple episodes of the same show
-
-2. Standardize formatting patterns:
-   - Consistent padding and alignment
-   - Clear visual hierarchy for network groups
-   - Improved readability for multiple episodes
-
-### 3. ConsoleOutputService Improvements
-
-1. Ensure proper separation of concerns:
-   - ConsoleOutputService handles display logic and user interaction
-   - ConsoleFormatter handles only formatting of show data
-   - StyleService handles only text styling
-
-2. Improve test coverage:
-   - Test with real formatters and mock StyleService
-   - Test all edge cases (empty shows, multiple episodes, etc.)
-   - Avoid mocking core services like tvShowService
-
-### 4. Module Import Handling
-
-Address ESM module import issues in tests:
-   - Ensure proper mocking approach compatible with ESM
-   - Use Jest's spyOn for console output functions
-   - Avoid direct mocking of core services
-
-This detailed plan builds on our existing architecture while addressing the specific challenges we've encountered with testing and maintainability.
+describe('ConsoleOutputService', () => {
+  it('should display shows correctly', async () => {
+    // Create mocks
+    const mockConsole = createMockConsole();
+    const mockFormatter = { formatNetworkGroups: jest.fn().mockReturnValue('formatted output') };
+    const mockTvService = { groupShowsByNetwork: jest.fn().mockReturnValue({}) };
+    
+    // Create service with mocks
+    const service = new ConsoleOutputService(
+      mockFormatter as any,
+      mockConsole as any,
+      mockTvService as any
+    );
+    
+    // Test the service
+    await service.displayShows([]);
+    
+    // Verify output
+    expect(mockConsole.getOutput()).toContain('formatted output');
+  });
+});

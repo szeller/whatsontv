@@ -1,109 +1,82 @@
 import yargs from 'yargs';
-import type { Arguments } from 'yargs';
 
-import config from '../config.js';
 import type { Show } from '../types/tvmaze.js';
-import { consoleOutput } from '../utils/console.js';
+import { consoleOutput } from '../utils/consoleOutput.js';
 import { formatShowDetails } from '../utils/formatting.js';
+import { groupShowsByNetwork, sortShowsByTime, getTodayDate } from '../utils/showUtils.js';
 
-import { groupShowsByNetwork, sortShowsByTime, getTodayDate } from './tvShowService.js';
 
 /**
- * CLI arguments interface
+ * Command line arguments for the TV show application
  */
-export interface CliArgs extends Arguments {
-  date: string;
-  country: string;
-  types: string[];
-  networks: string[];
-  genres: string[];
-  languages: string[];
-  timeSort: boolean;
+export interface CliArgs {
+  date?: string;
+  search?: string;
+  show?: number;
+  time?: boolean;
 }
 
 /**
- * Parse command line arguments with type safety.
- * @param args Command line arguments to parse
- * @returns Parsed CLI arguments with proper types
+ * Configure and parse command line arguments
+ * @returns Parsed command line arguments
  */
-export function parseArgs(args: string[] = process.argv.slice(2)): CliArgs {
-  return yargs(args)
-    .usage('Usage: $0 [options]')
-    .option('date', {
-      alias: 'd',
-      describe: 'Date to get shows for (YYYY-MM-DD)',
-      type: 'string',
-      default: getTodayDate()
-    })
-    .option('country', {
-      alias: 'c',
-      describe: 'Country code to get shows for',
-      type: 'string',
-      default: 'US'
-    })
-    .option('types', {
-      alias: 't',
-      describe: 'Show types to include',
-      type: 'array',
-      default: config.types
-    })
-    .option('networks', {
-      alias: 'n',
-      describe: 'Networks to include',
-      type: 'array',
-      default: config.networks
-    })
-    .option('genres', {
-      alias: 'g',
-      describe: 'Genres to include',
-      type: 'array',
-      default: config.genres
-    })
-    .option('languages', {
-      alias: 'l',
-      describe: 'Languages to include',
-      type: 'array',
-      default: []
-    })
-    .option('time-sort', {
-      alias: 's',
-      describe: 'Sort by airtime instead of grouping by network',
-      type: 'boolean',
-      default: false
+export function parseArgs(): CliArgs {
+  return yargs(process.argv.slice(2))
+    .options({
+      date: {
+        alias: 'd',
+        describe: 'Date to show TV schedule for (YYYY-MM-DD)',
+        type: 'string',
+        default: getTodayDate()
+      },
+      search: {
+        alias: 's',
+        describe: 'Search for TV shows by name',
+        type: 'string'
+      },
+      show: {
+        describe: 'Show episodes for a specific show ID',
+        type: 'number'
+      },
+      time: {
+        alias: 't',
+        describe: 'Sort shows by time',
+        type: 'boolean',
+        default: false
+      }
     })
     .help()
     .alias('help', 'h')
-    .parseSync() as CliArgs;
+    .parseSync();
 }
 
 /**
- * Display TV shows based on the timeSort option
+ * Display TV shows in the console
  * @param shows - Array of TV shows to display
- * @param timeSort - Whether to sort shows by time (true) or group by network (false)
+ * @param timeSort - Whether to sort shows by time
  */
-export function displayShows(shows: Show[], timeSort: boolean): void {
+export function displayShows(shows: Show[], timeSort: boolean = false): void {
   if (shows.length === 0) {
     consoleOutput.log('No shows found for the specified criteria.');
     return;
   }
 
-  if (timeSort) {
-    // Sort shows by time
-    const sortedShows = sortShowsByTime(shows);
-    
-    // Display shows sorted by time
-    for (const show of sortedShows) {
-      consoleOutput.log(formatShowDetails(show));
-    }
-  } else {
-    // Group shows by network
-    const networkGroups = groupShowsByNetwork(shows);
-    
-    // Display shows grouped by network
-    for (const [network, shows] of Object.entries(networkGroups)) {
-      consoleOutput.log(`\n${network}:`);
-      for (const show of shows) {
-        consoleOutput.log(formatShowDetails(show));
+  const networkGroups = groupShowsByNetwork(shows);
+  
+  for (const networkName in networkGroups) {
+    if (Object.prototype.hasOwnProperty.call(networkGroups, networkName)) {
+      const networkShows = networkGroups[networkName];
+      
+      // Sort shows by time if requested
+      const sortedShows = timeSort ? sortShowsByTime(networkShows) : networkShows;
+      
+      // Display network name
+      consoleOutput.log(`\n${networkName}:`);
+      
+      // Display shows
+      for (const show of sortedShows) {
+        const formattedShow = formatShowDetails(show);
+        consoleOutput.log(formattedShow);
       }
     }
   }

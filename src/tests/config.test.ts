@@ -30,7 +30,10 @@ describe('config', () => {
       enabled: true,
       botToken: undefined,
       channel: undefined
-    }
+    },
+    appName: 'WhatsOnTV',
+    version: '1.0.0',
+    apiUrl: 'https://api.tvmaze.com'
   };
 
   beforeEach((): void => {

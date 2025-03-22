@@ -1,14 +1,15 @@
+import 'reflect-metadata';
+import { inject, injectable } from 'tsyringe';
 import yargs from 'yargs';
 import type { Arguments } from 'yargs';
 
 import config from '../config.js';
-import { ConsoleFormatter } from '../formatters/consoleFormatter.js';
+import type { ConsoleOutput } from '../interfaces/consoleOutput.js';
 import type { OutputService } from '../interfaces/outputService.js';
 import type { ShowFormatter } from '../interfaces/showFormatter.js';
+import type { NetworkGroups } from '../types/app.js';
 import type { Show } from '../types/tvmaze.js';
-import { consoleOutput } from '../utils/console.js';
-
-import { groupShowsByNetwork, sortShowsByTime, getTodayDate } from './tvShowService.js';
+import { getTodayDate, groupShowsByNetwork } from '../utils/showUtils.js';
 
 /**
  * CLI arguments interface
@@ -21,22 +22,24 @@ export interface CliArgs extends Arguments {
   genres: string[];
   languages: string[];
   timeSort: boolean;
+  debug: boolean;
 }
 
 /**
  * Console output service for displaying TV show information
  * Implements the OutputService interface
  */
+@injectable()
 export class ConsoleOutputService implements OutputService {
-  private formatter: ShowFormatter;
-
   /**
    * Create a new ConsoleOutputService
-   * @param formatter Optional custom formatter (defaults to ConsoleFormatter)
+   * @param formatter Formatter for TV show output
+   * @param output Console output utility
    */
-  constructor(formatter?: ShowFormatter) {
-    this.formatter = formatter || new ConsoleFormatter();
-  }
+  constructor(
+    @inject('ShowFormatter') protected readonly formatter: ShowFormatter,
+    @inject('ConsoleOutput') protected readonly output: ConsoleOutput
+  ) {}
 
   /**
    * Display TV shows based on the timeSort option
@@ -46,96 +49,98 @@ export class ConsoleOutputService implements OutputService {
    */
   public async displayShows(shows: Show[], timeSort: boolean = false): Promise<void> {
     if (shows.length === 0) {
-      consoleOutput.log('No shows found for the specified criteria.');
+      this.output.log('No shows found for the specified criteria.');
       return;
     }
 
-    if (timeSort) {
-      // Sort shows by time
-      const sortedShows = sortShowsByTime(shows);
-      
-      // Group shows with the same name and no airtime
-      const groupedShows = this.groupShowsByNameAndAirtime(sortedShows);
-      
-      // Display shows sorted by time
-      for (const showGroup of groupedShows) {
-        if (showGroup.length === 1 || showGroup[0].airtime) {
-          // Single show or shows with airtime
-          consoleOutput.log(this.formatter.formatShow(showGroup[0]));
-        } else {
-          // Multiple episodes of the same show with no airtime
-          consoleOutput.log(this.formatter.formatMultipleEpisodes(showGroup));
-        }
-      }
-    } else {
-      // Group shows by network
-      const networkGroups = groupShowsByNetwork(shows);
-      
-      // Format and display shows grouped by network
-      const formattedOutput = this.formatter.formatNetworkGroups(networkGroups, timeSort);
-      for (const line of formattedOutput) {
-        consoleOutput.log(line);
-      }
+    // Group shows by network and format them
+    const networkGroups = groupShowsByNetwork(shows);
+    const formattedOutput = this.formatter.formatNetworkGroups(networkGroups, timeSort);
+    
+    for (const line of formattedOutput) {
+      this.output.log(line);
     }
   }
 
   /**
-   * Check if the output service is properly initialized
-   * @returns Always true for console output
+   * Display shows grouped by network
+   * @param networkGroups Shows grouped by network
+   * @param timeSort Whether to sort shows by time within each network
    */
-  public isInitialized(): boolean {
-    return true;
+  public async displayNetworkGroups(
+    networkGroups: NetworkGroups,
+    timeSort: boolean = false
+  ): Promise<void> {
+    const formattedOutput = this.formatter.formatNetworkGroups(
+      networkGroups,
+      timeSort
+    );
+    
+    for (const line of formattedOutput) {
+      this.output.log(line);
+    }
   }
 
   /**
-   * Parse command line arguments with type safety.
-   * @param args Command line arguments to parse
-   * @returns Parsed CLI arguments with proper types
+   * Check if the service is properly initialized
+   * @returns True if the service is ready to use
    */
-  public parseArgs(args: string[] = process.argv.slice(2)): CliArgs {
-    return yargs(args)
-      .usage('Usage: $0 [options]')
-      .option('date', {
-        alias: 'd',
-        describe: 'Date to get shows for (YYYY-MM-DD)',
-        type: 'string',
-        default: getTodayDate()
-      })
-      .option('country', {
-        alias: 'c',
-        describe: 'Country code to get shows for',
-        type: 'string',
-        default: 'US'
-      })
-      .option('types', {
-        alias: 't',
-        describe: 'Show types to include',
-        type: 'array',
-        default: config.types
-      })
-      .option('networks', {
-        alias: 'n',
-        describe: 'Networks to include',
-        type: 'array',
-        default: config.networks
-      })
-      .option('genres', {
-        alias: 'g',
-        describe: 'Genres to include',
-        type: 'array',
-        default: config.genres
-      })
-      .option('languages', {
-        alias: 'l',
-        describe: 'Languages to include',
-        type: 'array',
-        default: []
-      })
-      .option('time-sort', {
-        alias: 's',
-        describe: 'Sort by airtime instead of grouping by network',
-        type: 'boolean',
-        default: false
+  public isInitialized(): boolean {
+    return this.output !== null && this.output !== undefined && 
+           this.formatter !== null && this.formatter !== undefined;
+  }
+
+  /**
+   * Parse command line arguments
+   * @returns Parsed command line arguments
+   */
+  public parseArgs(): CliArgs {
+    return yargs(process.argv.slice(2))
+      .options({
+        date: {
+          alias: 'd',
+          describe: 'Date to show TV schedule for (YYYY-MM-DD)',
+          type: 'string',
+          default: getTodayDate()
+        },
+        country: {
+          alias: 'c',
+          describe: 'Country code (e.g., US, GB)',
+          type: 'string',
+          default: 'US'
+        },
+        types: {
+          describe: 'Show types to include (e.g., Scripted,Reality)',
+          type: 'string',
+          coerce: (arg: string) => arg.split(',')
+        },
+        networks: {
+          describe: 'Networks to include (e.g., HBO,Netflix)',
+          type: 'string',
+          coerce: (arg: string) => arg.split(',')
+        },
+        genres: {
+          describe: 'Genres to include (e.g., Drama,Comedy)',
+          type: 'string',
+          coerce: (arg: string) => arg.split(',')
+        },
+        languages: {
+          describe: 'Languages to include (e.g., English,Spanish)',
+          type: 'string',
+          coerce: (arg: string) => arg.split(',')
+        },
+        timeSort: {
+          alias: 't',
+          describe: 'Sort shows by time',
+          type: 'boolean',
+          default: false
+        },
+        debug: {
+          alias: 'D',
+          describe: 'Enable debug mode',
+          type: 'boolean',
+          default: false
+        }
       })
       .help()
       .alias('help', 'h')
@@ -143,38 +148,18 @@ export class ConsoleOutputService implements OutputService {
   }
 
   /**
-   * Group shows by name and airtime status
-   * This helps identify multiple episodes of the same show with no airtime
-   * @param shows Shows to group
-   * @returns Array of show groups
+   * Display application header
    */
-  private groupShowsByNameAndAirtime(shows: Show[]): Show[][] {
-    const result: Show[][] = [];
-    let currentGroup: Show[] = [];
-    
-    for (const show of shows) {
-      if (currentGroup.length === 0) {
-        // Start a new group
-        currentGroup.push(show);
-      } else if (
-        currentGroup[0].show.name === show.show.name && 
-        !currentGroup[0].airtime && 
-        !show.airtime
-      ) {
-        // Add to current group if same show name and both have no airtime
-        currentGroup.push(show);
-      } else {
-        // Start a new group
-        result.push(currentGroup);
-        currentGroup = [show];
-      }
-    }
-    
-    // Add the last group if not empty
-    if (currentGroup.length > 0) {
-      result.push(currentGroup);
-    }
-    
-    return result;
+  public displayHeader(): void {
+    this.output.log(`\n${config.appName} v${config.version}`);
+    this.output.log('='.repeat(30));
+  }
+
+  /**
+   * Display application footer
+   */
+  public displayFooter(): void {
+    this.output.log('\n' + '='.repeat(30));
+    this.output.log(`Data provided by TVMaze API (${config.apiUrl})`);
   }
 }

@@ -32,7 +32,7 @@ export interface HttpClient {
    */
   get<T>(
     url: string, 
-    params?: Record<string, string>
+    params?: Record<string, string> | { searchParams: Record<string, string> }
   ): 
   Promise<HttpResponse<T>>;
 

@@ -1,9 +1,8 @@
 import { jest } from '@jest/globals';
 import type { Arguments } from 'yargs';
 
-import config from '../../config.js';
 import type { CliArgs } from '../../services/consoleOutput.js';
-import { getTodayDate } from '../../services/tvShowService.js';
+import { getTodayDate } from '../../utils/showUtils.js';
 
 interface YargsOptions {
   alias?: string;
@@ -28,22 +27,11 @@ export interface MockYargsInstance {
   argv: Record<string, unknown>;
 }
 
-const defaultArgs: CliArgs = {
+// Only include properties that exist in the CliArgs interface
+const defaultArgs: CliArgs & Record<string, unknown> = {
   date: getTodayDate(),
-  d: getTodayDate(),
-  country: config.country,
-  c: config.country,
-  types: config.types,
-  t: config.types,
-  networks: config.networks,
-  n: config.networks,
-  genres: config.genres,
-  g: config.genres,
-  languages: config.languages,
-  l: config.languages,
-  timeSort: false,
-  's': false,
-  'time-sort': false,
+  time: false,
+  // Include these as extra properties for the tests
   _: [],
   $0: 'test'
 };

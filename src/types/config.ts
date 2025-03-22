@@ -12,4 +12,7 @@ export interface Config {
   languages: string[];
   notificationTime: string;
   slack: SlackConfig;
+  appName: string;
+  version: string;
+  apiUrl: string;
 }

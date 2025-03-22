@@ -1,10 +1,12 @@
 import { WebClient } from '@slack/web-api';
 import schedule from 'node-schedule';
+import { container } from 'tsyringe';
 
 import config from './config.js';
-import { fetchTvShows, getTodayDate } from './services/tvShowService.js';
+import type { TvShowService } from './interfaces/tvShowService.js';
 import type { Show } from './types/tvmaze.js';
-import { consoleOutput } from './utils/console.js';
+import { consoleOutput } from './utils/consoleOutput.js';
+import { getTodayDate } from './utils/showUtils.js';
 
 interface SlackMessage {
   channel: string;
@@ -45,7 +47,8 @@ export async function sendTvShowNotifications(timeSort = false): Promise<void> {
       throw new Error('Slack channel not configured.');
     }
 
-    const shows: Show[] = await fetchTvShows({
+    const tvShowService = container.resolve<TvShowService>('TvShowService');
+    const shows: Show[] = await tvShowService.fetchShowsWithOptions({
       types: config.types,
       networks: config.networks,
       genres: config.genres,

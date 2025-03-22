@@ -3,12 +3,12 @@
  * Console output wrapper for better testability.
  * Allows mocking of console output in tests while maintaining type safety.
  */
-export interface ConsoleOutput {
-  log: (message?: string) => void;
-  error: (message?: string, ...args: unknown[]) => void;
-  logWithLevel: (level: 'log' | 'error', message?: string, ...args: unknown[]) => void;
-}
+import type { ConsoleOutput } from '../interfaces/consoleOutput.js';
 
+/**
+ * Implementation of the ConsoleOutput interface
+ * Provides a wrapper around native console functions
+ */
 export const consoleOutput: ConsoleOutput = {
   log: (message?: string): void => {
     console.log(message);
@@ -18,8 +18,7 @@ export const consoleOutput: ConsoleOutput = {
   },
   logWithLevel: (level: 'log' | 'error', message?: string, ...args: unknown[]): void => {
     if (level === 'log') {
-      // Using error instead of log to comply with project standards
-      console.error(message);
+      console.log(message);
     } else {
       console.error(message, ...args);
     }
@@ -29,27 +28,31 @@ export const consoleOutput: ConsoleOutput = {
 /**
  * Creates a mock console for testing.
  * Captures all output for verification in tests.
+ * @returns Mock console implementation with getOutput method
  */
-export const createMockConsole = (): ConsoleOutput & { 
-  getOutput: () => { logs: string[]; errors: string[] } 
-} => {
-  const logs: string[] = [];
-  const errors: string[] = [];
-
+export function createMockConsole(): ConsoleOutput & { getOutput: () => string[] } {
+  const output: string[] = [];
+  
   return {
     log: (message?: string): void => {
-      logs.push(message ?? '');
-    },
-    error: (message?: string, ...args: unknown[]): void => {
-      errors.push(`${message ?? ''} ${args.join(' ')}`);
-    },
-    logWithLevel: (level: 'log' | 'error', message?: string, ...args: unknown[]): void => {
-      if (level === 'log') {
-        logs.push(message ?? '');
-      } else {
-        errors.push(`${message ?? ''} ${args.join(' ')}`);
+      if (message !== undefined) {
+        output.push(message);
       }
     },
-    getOutput: () => ({ logs, errors })
+    error: (message?: string, ...args: unknown[]): void => {
+      if (message !== undefined) {
+        output.push(`ERROR: ${message} ${args.join(' ')}`);
+      }
+    },
+    logWithLevel: (level: 'log' | 'error', message?: string, ...args: unknown[]): void => {
+      if (message !== undefined) {
+        if (level === 'log') {
+          output.push(message);
+        } else {
+          output.push(`ERROR: ${message} ${args.join(' ')}`);
+        }
+      }
+    },
+    getOutput: (): string[] => output
   };
-};
+}

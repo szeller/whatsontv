@@ -47,7 +47,9 @@
     "dotenv": "^16.4.7",
     "got": "^14.4.6",
     "node-schedule": "^2.1.1",
+    "reflect-metadata": "^0.2.2",
     "ts-node": "^10.9.2",
+    "tsyringe": "^4.8.0",
     "yargs": "^17.7.2"
   },
   "devDependencies": {

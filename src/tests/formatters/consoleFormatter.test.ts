@@ -1,34 +1,36 @@
+import 'reflect-metadata';
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
+import { container } from 'tsyringe';
 
-import { ConsoleFormatter } from '../../formatters/consoleFormatter';
-import type { Show } from '../../types/tvmaze';
-
-// Mock chalk to prevent ANSI color codes in tests
-jest.mock('chalk', () => ({
-  __esModule: true,
-  default: Object.assign(
-    (str: string): string => str,
-    {
-      bold: {
-        cyan: (str: string): string => str,
-        green: (str: string): string => str
-      },
-      cyan: (str: string): string => str,
-      magenta: (str: string): string => str,
-      green: (str: string): string => str,
-      yellow: (str: string): string => str,
-      dim: (str: string): string => str
-    }
-  )
-}));
+import { ConsoleFormatter } from '../../formatters/consoleFormatter.js';
+import { createMockTvShowService } from '../utils/testHelpers.js';
+import type { Show } from '../../types/tvmaze.js';
+import type { TvShowService } from '../../interfaces/tvShowService.js';
+import { PlainStyleService } from '../../utils/styleService.js';
 
 describe('ConsoleFormatter', () => {
   let formatter: ConsoleFormatter;
   let mockShow: Show;
   let mockShowNoAirtime: Show;
+  let mockTvShowService: TvShowService;
 
   beforeEach(() => {
-    formatter = new ConsoleFormatter();
+    // Reset container for each test
+    container.clearInstances();
+    
+    // Register the PlainStyleService for testing
+    container.register('StyleService', {
+      useValue: new PlainStyleService()
+    });
+    
+    // Create and register mock TvShowService
+    mockTvShowService = createMockTvShowService();
+    container.register('TvShowService', {
+      useValue: mockTvShowService
+    });
+    
+    // Create formatter with DI
+    formatter = container.resolve(ConsoleFormatter);
     
     // Create a complete mock show with all required properties
     mockShow = {
@@ -73,8 +75,8 @@ describe('ConsoleFormatter', () => {
     });
   });
 
-  // Skip detailed formatting tests for now to focus on fixing module import issues
-  describe.skip('formatTimedShow', () => {
+  // Remove the .skip to enable these tests
+  describe('formatTimedShow', () => {
     it('should format a show with airtime correctly', () => {
       const result = formatter.formatTimedShow(mockShow);
       expect(result).toContain('20:00');
@@ -111,7 +113,7 @@ describe('ConsoleFormatter', () => {
     });
   });
 
-  describe.skip('formatUntimedShow', () => {
+  describe('formatUntimedShow', () => {
     it('should format a show without airtime correctly', () => {
       const result = formatter.formatUntimedShow(mockShowNoAirtime);
       expect(result).toContain('TBA');
@@ -123,7 +125,7 @@ describe('ConsoleFormatter', () => {
     });
   });
 
-  describe.skip('formatMultipleEpisodes', () => {
+  describe('formatMultipleEpisodes', () => {
     it('should format multiple episodes of the same show correctly', () => {
       const episodes = [
         {
@@ -189,27 +191,38 @@ describe('ConsoleFormatter', () => {
       
       // Should have 4 elements: 2 networks with header + 1 show each
       expect(result.length).toBe(4);
-      expect(result[0]).toBe('\nTest Network:');
-      expect(result[2]).toBe('\nAnother Network:');
+      
+      // Check that both network headers are present, but don't rely on specific order
+      const networkHeaders = result.filter(line => line.startsWith('\n'));
+      expect(networkHeaders).toHaveLength(2);
+      expect(networkHeaders).toContain('\nTest Network:');
+      expect(networkHeaders).toContain('\nAnother Network:');
     });
 
     it('should sort shows by time when timeSort is true', () => {
-      const spy = jest.spyOn(formatter, 'formatShow');
-      const networkGroups = {
-        'Test Network': [
-          mockShow,
-          {
-            ...mockShow,
-            airtime: '21:00',
-            name: 'Later Episode'
-          }
-        ]
+      // Create shows with different airtimes
+      const earlyShow = {
+        ...mockShow,
+        airtime: '08:00'
       };
       
+      const lateShow = {
+        ...mockShow,
+        airtime: '20:00'
+      };
+      
+      const networkGroups = {
+        'Test Network': [lateShow, earlyShow]
+      };
+      
+      // Mock the tvShowService.sortShowsByTime method
+      const sortSpy = jest.spyOn(mockTvShowService, 'sortShowsByTime');
+      
+      // Call the method with timeSort = true
       formatter.formatNetworkGroups(networkGroups, true);
       
-      // Should call formatShow twice
-      expect(spy).toHaveBeenCalledTimes(2);
+      // Verify the sort method was called
+      expect(sortSpy).toHaveBeenCalled();
     });
   });
 });

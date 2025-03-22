@@ -1,6 +1,6 @@
 import got, { Got, Options as GotOptions, Response } from 'got';
 
-import { consoleOutput } from './console.js';
+import { consoleOutput } from './consoleOutput.js';
 import { HttpClient, HttpClientOptions, HttpResponse } from './httpClient.js';
 
 /**

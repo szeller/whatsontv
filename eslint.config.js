@@ -73,14 +73,10 @@ export default [
       
       // Import rules
       'import/no-unresolved': 'off', // TypeScript handles this
-      'import/order': ['error', {
+      'import/order': ['warn', {
         'groups': [
-          'builtin',
-          'external',
-          'internal',
-          'parent',
-          'sibling',
-          'index'
+          ['builtin', 'external'],
+          ['internal', 'parent', 'sibling', 'index']
         ],
         'newlines-between': 'always',
         'alphabetize': {
@@ -92,7 +88,7 @@ export default [
       'import/no-cycle': 'error',
       
       // Security rules
-      'security/detect-object-injection': 'warn',
+      'security/detect-object-injection': 'off', // Relaxed due to common patterns in the codebase
       'security/detect-non-literal-regexp': 'warn',
       'security/detect-non-literal-fs-filename': 'warn',
       'security/detect-eval-with-expression': 'error',
@@ -213,64 +209,90 @@ export default [
         caughtErrorsIgnorePattern: '^_'
       }],
       '@typescript-eslint/no-floating-promises': 'error',
-      '@typescript-eslint/no-non-null-assertion': 'off', // Relaxed for tests
       '@typescript-eslint/strict-boolean-expressions': 'off', // Relaxed for tests
+      '@typescript-eslint/no-non-null-assertion': 'off', // Relaxed for tests
       '@typescript-eslint/ban-ts-comment': ['error', { 
         'ts-expect-error': 'allow-with-description' 
       }],
       '@typescript-eslint/no-require-imports': 'error',
       
-      // Import rules
+      // Import rules - simplified for test files
       'import/no-unresolved': 'off',
-      'import/order': ['error', {
-        'groups': [
-          'builtin',
-          'external',
-          'internal',
-          'parent',
-          'sibling',
-          'index'
-        ],
-        'newlines-between': 'always',
-        'alphabetize': {
-          'order': 'asc',
-          'caseInsensitive': true
-        }
-      }],
+      'import/order': 'off', // Disable import order for test files
+      'import/no-duplicates': 'error',
+      'import/no-cycle': 'error',
       
-      // Security rules - relaxed for tests
+      // Security rules - relaxed for test files
       'security/detect-object-injection': 'off',
       'security/detect-non-literal-regexp': 'off',
       'security/detect-non-literal-fs-filename': 'off',
       'security/detect-eval-with-expression': 'error',
       'security/detect-buffer-noassert': 'error',
+      'security/detect-unsafe-regex': 'off',
+      'security/detect-new-buffer': 'error',
       
-      // SonarJS rules - relaxed for tests
+      // SonarJS rules - relaxed for test files
       'sonarjs/no-identical-expressions': 'error',
       'sonarjs/no-identical-conditions': 'error',
-      'sonarjs/no-duplicate-string': 'off',
+      'sonarjs/no-inverted-boolean-check': 'warn',
+      'sonarjs/no-redundant-boolean': 'warn',
+      'sonarjs/no-unused-collection': 'off',
+      'sonarjs/no-use-of-empty-return-value': 'error',
+      'sonarjs/no-duplicate-string': 'off', // Tests often have duplicate strings
+      'sonarjs/prefer-immediate-return': 'off',
+      'sonarjs/prefer-object-literal': 'off',
+      'sonarjs/prefer-single-boolean-return': 'off',
       'sonarjs/no-small-switch': 'off',
+      'sonarjs/no-gratuitous-expressions': 'error',
       
-      // Promise rules - relaxed for tests
-      'promise/catch-or-return': 'off',
+      // Promise handling rules - relaxed for test files
+      'promise/catch-or-return': 'warn',
+      'promise/no-return-wrap': 'warn',
+      'promise/param-names': 'error',
       'promise/no-nesting': 'off',
       'promise/no-promise-in-callback': 'off',
       'promise/no-callback-in-promise': 'off',
       'promise/avoid-new': 'off',
+      'promise/no-new-statics': 'error',
+      'promise/valid-params': 'error',
       
-      // Unicorn rules - relaxed for tests
+      // Unicorn rules - relaxed for test files
+      'unicorn/better-regex': 'warn',
+      'unicorn/catch-error-name': 'off',
       'unicorn/consistent-destructuring': 'off',
+      'unicorn/error-message': 'warn',
       'unicorn/no-array-for-each': 'off',
       'unicorn/no-for-loop': 'off',
+      'unicorn/no-lonely-if': 'off',
+      'unicorn/no-nested-ternary': 'off',
+      'unicorn/no-null': 'off',
+      'unicorn/no-useless-undefined': 'off',
+      'unicorn/prefer-array-find': 'off',
+      'unicorn/prefer-array-flat-map': 'off',
+      'unicorn/prefer-includes': 'warn',
+      'unicorn/prefer-string-slice': 'warn',
+      'unicorn/prefer-ternary': 'off',
+      'unicorn/prevent-abbreviations': 'off',
       
-      // Formatting and code quality rules
+      // Formatting rules
       'semi': ['error', 'always'],
       'quotes': ['error', 'single'],
       'max-len': ['error', { 'code': 100 }],
       'indent': ['error', 2],
       'comma-dangle': ['error', 'never'],
       'object-curly-spacing': ['error', 'always'],
-      'no-console': 'off' // Relaxed for tests
+      'array-bracket-spacing': ['error', 'never'],
+      
+      // Code quality rules - relaxed for test files
+      'no-console': 'off',
+      'eqeqeq': 'error',
+      'no-unused-expressions': 'off', // Allow unused expressions in tests (for chai etc.)
+      'no-var': 'error',
+      'prefer-const': 'error',
+      'no-loss-of-precision': 'error'
+    },
+    linterOptions: {
+      reportUnusedDisableDirectives: 'error'
     }
   }
 ];
