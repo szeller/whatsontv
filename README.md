@@ -46,11 +46,8 @@ A TypeScript application that fetches TV shows for the current day and sends not
    }
    ```
 
-5. Build and run the application:
+5. Run the application:
    ```bash
-   # Build TypeScript files
-   npm run build
-
    # Run as CLI tool
    npm run shows
 
@@ -150,57 +147,22 @@ The application uses tsyringe for dependency injection:
 ### Directory Structure
 ```
 src/
-│
-├── interfaces/                             # All interface definitions
-│   ├── consoleOutput.ts                    # Interface for low-level console operations
-│   ├── httpClient.ts                       # Interface for HTTP client operations
-│   ├── outputService.ts                    # Common interface for output services
-│   ├── showFormatter.ts                    # Interface for formatting show data
-│   └── tvShowService.ts                    # Interface for TV show data retrieval
-│
-├── implementations/                        # All concrete implementations
-│   ├── gotHttpClientImpl.ts                # HTTP client implementation using got
-│   ├── styleServiceImpl.ts                 # Styling service implementation
-│   ├── tvMazeServiceImpl.ts                # TVMaze API implementation
-│   │
-│   ├── console/                            # Console-specific implementations
-│   │   ├── consoleFormatterImpl.ts         # Console-specific formatting
-│   │   ├── consoleOutputImpl.ts            # Low-level console operations
-│   │   └── consoleOutputServiceImpl.ts     # Console output service
-│   │
-│   └── slack/                              # Slack-specific implementations
-│       ├── slackFormatterImpl.ts           # Slack-specific formatting
-│       └── slackOutputServiceImpl.ts       # Slack output service
-│
-├── utils/                                  # Utility functions and helpers
-│   ├── dateUtils.ts                        # Date-related utility functions
-│   ├── formatting.ts                       # General text formatting utilities
-│   ├── ids.ts                              # ID generation utilities
-│   ├── showUtils.ts                        # Show data manipulation functions
-│   └── styleUtils.ts                       # Styling utility functions
-│
-├── cli.ts                                  # CLI entry point
-├── slack.ts                                # Slack entry point
-└── index.ts                                # Main application entry point
+├── interfaces/                # All interface definitions
+├── implementations/           # All concrete implementations
+│   ├── console/               # Console-specific implementations
+│   └── slack/                 # Slack-specific implementations
+├── utils/                     # Utility functions and helpers
+├── cli.ts                     # CLI entry point
+└── slack.ts                   # Slack entry point
 ```
 
 ## Documentation
 
-### Project Documentation
-- `README.md`: User guide and quick start
-- `docs/techspec.md`: Technical documentation including:
-  - Architecture and design decisions
-  - Development workflow
-  - Testing strategy
-  - Version constraints
-  - Code style guidelines
-- `docs/refactoring-plan.md`: Detailed plan for the refactoring process
-- `docs/TVMaze.md`: Complete TVMaze API reference
+The project documentation is organized into the following structure:
 
-### Code Documentation
-- TSDoc comments for public APIs
-- Clear function and type documentation
-- Examples in comments for complex logic
+- [Architecture Documentation](docs/architecture/): System design, architecture decisions, and API references
+- [Development Documentation](docs/development/): Development guides, standards, and processes
+- [Archive](docs/archive/): Historical documentation for completed work
 
 ## Development
 - Written in TypeScript 5.8.2 with strict mode enabled
