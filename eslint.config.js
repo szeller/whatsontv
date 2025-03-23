@@ -117,16 +117,16 @@ export default [
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
       
-      // Temporarily warn-only rules for gradual adoption
-      '@typescript-eslint/no-unsafe-argument': 'warn',
-      '@typescript-eslint/no-unsafe-return': 'warn',
-      '@typescript-eslint/require-await': 'warn',
-      '@typescript-eslint/only-throw-error': 'warn',
+      // Strict type checking rules - previously warnings, now errors
+      '@typescript-eslint/no-unsafe-argument': 'error',
+      '@typescript-eslint/no-unsafe-return': 'error',
+      '@typescript-eslint/require-await': 'error',
+      '@typescript-eslint/only-throw-error': 'error',
       
       // Security rules (selected subset)
       'security/detect-eval-with-expression': 'error',
       'security/detect-buffer-noassert': 'error',
-      'security/detect-unsafe-regex': 'warn',
+      'security/detect-unsafe-regex': 'error',
       'security/detect-new-buffer': 'error',
       
       // SonarJS rules (selected subset)
@@ -147,7 +147,7 @@ export default [
       'unicorn/prevent-abbreviations': 'off', // Too aggressive for our codebase
       
       // Console rules
-      'no-console': ['warn', { allow: ['warn', 'error'] }]
+      'no-console': ['error', { allow: ['warn', 'error'] }]
     },
     linterOptions: {
       reportUnusedDisableDirectives: 'error'
