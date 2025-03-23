@@ -1,4 +1,5 @@
-import { HttpClient, HttpResponse } from '../../utils/httpClient.js';
+import type { HttpClient, HttpResponse } from '../../interfaces/httpClient.js';
+import { setTimeout } from 'timers/promises';
 
 /**
  * Mock HTTP client for testing
@@ -77,6 +78,9 @@ export class MockHttpClient implements HttpClient {
     // Track the last URL requested
     this.lastUrl = url;
     
+    // Add a small delay to simulate network latency
+    await setTimeout(1);
+    
     if (this.mockErrors.has(url)) {
       throw this.mockErrors.get(url)!;
     }
@@ -106,6 +110,9 @@ export class MockHttpClient implements HttpClient {
   ): Promise<HttpResponse<T>> {
     // Track the last URL requested
     this.lastUrl = url;
+    
+    // Add a small delay to simulate network latency
+    await setTimeout(1);
     
     const postUrl = `POST:${url}`;
     if (this.mockErrors.has(postUrl)) {

@@ -63,9 +63,10 @@ export class ConsoleOutputServiceImpl implements OutputService {
     const networkGroups = groupShowsByNetwork(shows);
     const formattedOutput = this.formatter.formatNetworkGroups(networkGroups, timeSort);
     
-    for (const line of formattedOutput) {
-      this.output.log(line);
-    }
+    // Use Promise.all to properly utilize async/await
+    await Promise.all(
+      formattedOutput.map(line => Promise.resolve(this.output.log(line)))
+    );
   }
 
   /**
@@ -82,9 +83,10 @@ export class ConsoleOutputServiceImpl implements OutputService {
       timeSort
     );
     
-    for (const line of formattedOutput) {
-      this.output.log(line);
-    }
+    // Use Promise.all to properly utilize async/await
+    await Promise.all(
+      formattedOutput.map(line => Promise.resolve(this.output.log(line)))
+    );
   }
 
   /**

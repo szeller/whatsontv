@@ -1,5 +1,5 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
-import { container } from 'tsyringe';
+import { container, InjectionToken } from 'tsyringe';
 
 import { ConsoleFormatterImpl } from '../../implementations/console/consoleFormatterImpl';
 import { createMockTvShowService } from '../utils/testHelpers';
@@ -25,8 +25,8 @@ describe('ConsoleFormatterImpl', () => {
     mockTvShowService = createMockTvShowService();
     container.registerInstance<TvShowService>('TvShowService', mockTvShowService);
     
-    // Create the formatter instance
-    formatter = container.resolve(ConsoleFormatterImpl);
+    // Create the formatter instance with proper type casting
+    formatter = container.resolve(ConsoleFormatterImpl as InjectionToken<ConsoleFormatterImpl>);
     
     // Create mock show data
     mockShow = {

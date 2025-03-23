@@ -42,9 +42,10 @@ class TestConsoleOutputService extends ConsoleOutputServiceImpl {
     // Use our mock network groups instead of calling the real function
     const formattedOutput = this.formatter.formatNetworkGroups(this.mockNetworkGroups, timeSort);
     
-    for (const line of formattedOutput) {
-      this.output.log(line);
-    }
+    // Use Promise.all to properly utilize async/await
+    await Promise.all(
+      formattedOutput.map(line => Promise.resolve(this.output.log(line)))
+    );
   }
 
   // Method to check if groupShowsByNetwork was called with specific shows
