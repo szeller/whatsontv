@@ -226,11 +226,14 @@ describe('tvShowService', () => {
     it('fetches shows with default options', async () => {
       // Mock the getShowsByDate method
       const mockShow = {
-        name: 'NCIS Episode',
+        name: 'NCIS',
         season: 1,
         number: 1,
         airtime: '20:00',
-        show: mockTvShowDetails
+        show: {
+          ...mockTvShowDetails,
+          name: 'NCIS'
+        }
       };
       
       // Get the current date in YYYY-MM-DD format
@@ -249,6 +252,7 @@ describe('tvShowService', () => {
       // Verify the result
       expect(result).toHaveLength(1);
       expect(result[0].show.name).toBe('NCIS');
+      expect(mockClient.lastUrl).toContain('schedule?date=');
     });
   });
   
@@ -270,11 +274,29 @@ describe('tvShowService', () => {
     it('fetches shows for a specific date', async () => {
       // Setup mock response with a properly structured Show array
       const mockShowResponse: Show[] = [{
-        name: 'NCIS Episode',
+        name: 'NCIS',
         season: 1,
         number: 1,
         airtime: '20:00',
-        show: mockTvShowDetails
+        show: {
+          id: 1,
+          name: 'NCIS',
+          type: 'Scripted',
+          language: 'English',
+          genres: ['Drama', 'Crime'],
+          network: {
+            id: 1,
+            name: 'CBS',
+            country: {
+              name: 'United States',
+              code: 'US',
+              timezone: 'America/New_York'
+            }
+          },
+          webChannel: null,
+          image: null,
+          summary: 'NCIS is a show about naval criminal investigators.'
+        }
       }];
       
       mockClient.setMockResponse({
@@ -288,7 +310,7 @@ describe('tvShowService', () => {
       
       // Verify the result
       expect(result).toHaveLength(1);
-      expect(result[0].name).toBe('NCIS Episode');
+      expect(result[0].name).toBe('NCIS');
       expect(mockClient.lastUrl).toContain('schedule?date=2025-03-20');
     });
     

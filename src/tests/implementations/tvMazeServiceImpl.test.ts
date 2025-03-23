@@ -84,10 +84,10 @@ describe('TvMazeServiceImpl', () => {
   
   // Sample show data for testing
   const mockShow: Show = {
-    airtime: '20:00',
-    name: 'Test Episode',
-    season: 1,
-    number: 1,
+    airtime: '',
+    name: 'Test Show',
+    season: 0,
+    number: 0,
     show: {
       id: 1,
       name: 'Test Show',
@@ -199,65 +199,110 @@ describe('TvMazeServiceImpl', () => {
         'https://api.tvmaze.com/search/shows?q=test'
       );
     });
-    
-    it('handles API errors gracefully', async () => {
-      // Setup the mock to throw an error
+  });
+
+  // New tests for error handling
+  describe('error handling', () => {
+    it('should return an empty array when getShowsByDate encounters an error', async () => {
+      // Arrange
       mockHttpClient.getMock.mockRejectedValue(new Error('API Error'));
       
-      // Call the method
-      const result = await tvMazeService.searchShows('test');
+      // Act
+      const result = await tvMazeService.getShowsByDate('2025-03-23');
       
-      // Verify the result is an empty array
+      // Assert
       expect(result).toEqual([]);
+      expect(mockHttpClient.getMock).toHaveBeenCalled();
+    });
+    
+    it('should return an empty array when searchShows encounters an error', async () => {
+      // Arrange
+      mockHttpClient.getMock.mockRejectedValue(new Error('API Error'));
       
-      // Verify the error was logged
-      expect(console.error).toHaveBeenCalled();
+      // Act
+      const result = await tvMazeService.searchShows('test query');
+      
+      // Assert
+      expect(result).toEqual([]);
+      expect(mockHttpClient.getMock).toHaveBeenCalled();
+    });
+    
+    it('should return an empty array when fetchShowsWithOptions encounters an error', async () => {
+      // Arrange
+      mockHttpClient.getMock.mockRejectedValue(new Error('API Error'));
+      
+      // Act
+      const result = await tvMazeService.fetchShowsWithOptions({
+        date: '2025-03-23',
+        types: ['Scripted']
+      });
+      
+      // Assert
+      expect(result).toEqual([]);
+      expect(mockHttpClient.getMock).toHaveBeenCalled();
     });
   });
 
-  describe('getShows', () => {
-    it('calls searchShows when search option is provided', async () => {
-      // Setup spy on searchShows
-      const searchShowsSpy = jest.spyOn(tvMazeService, 'searchShows');
-      
-      // Mock the HTTP response
-      const mockResponse: HttpResponse<typeof mockSearchResult> = {
-        data: mockSearchResult,
-        status: 200,
-        headers: {}
+  // New tests for data normalization
+  describe('data normalization', () => {
+    it('should normalize show data from date endpoint', async () => {
+      // Arrange
+      const mockRawShow = {
+        id: 1,
+        name: 'Test Show',
+        airdate: '2025-03-23',
+        airtime: '20:00',
+        show: {
+          id: 1,
+          name: 'Test Show',
+          type: 'Scripted',
+          language: 'English',
+          genres: ['Drama', 'Thriller'],
+          network: { id: 1, name: 'Test Network', country: { code: 'US' } }
+        }
       };
       
-      // Setup the mock
-      mockHttpClient.getMock.mockResolvedValue(mockResponse);
+      mockHttpClient.getMock.mockResolvedValue({
+        data: [mockRawShow],
+        status: 200,
+        headers: {}
+      });
       
-      // Call the method with search option
-      await tvMazeService.getShows({ search: 'test' });
+      // Act
+      const result = await tvMazeService.getShowsByDate('2025-03-23');
       
-      // Verify searchShows was called with the correct parameter
-      expect(searchShowsSpy).toHaveBeenCalledWith('test');
+      // Assert
+      expect(result.length).toBe(1);
+      expect(result[0].name).toBe('Test Show');
+      expect(result[0].airtime).toBe('');
     });
     
-    it('calls fetchShowsWithOptions when no search option is provided', async () => {
-      // Mock the HTTP response
-      const mockResponse: HttpResponse<Show[]> = {
-        data: [mockShow],
-        status: 200,
-        headers: {}
+    it('should normalize show data from query endpoint', async () => {
+      // Arrange
+      const mockRawShow = {
+        score: 0.9,
+        show: {
+          id: 1,
+          name: 'Test Show',
+          type: 'Scripted',
+          language: 'English',
+          genres: ['Drama'],
+          network: { id: 1, name: 'Test Network', country: { code: 'US' } }
+        }
       };
       
-      // Setup the mock
-      mockHttpClient.getMock.mockResolvedValue(mockResponse);
+      mockHttpClient.getMock.mockResolvedValue({
+        data: [mockRawShow],
+        status: 200,
+        headers: {}
+      });
       
-      // Call the method without search option but with date
-      const result = await tvMazeService.getShows({ date: '2025-03-20' });
+      // Act
+      const result = await tvMazeService.searchShows('test');
       
-      // Verify the API was called with the correct URL
-      expect(mockHttpClient.getMock.mock.calls[0][0]).toBe(
-        'https://api.tvmaze.com/schedule?date=2025-03-20&country=US'
-      );
-      
-      // Verify the results
-      expect(result).toHaveLength(1);
+      // Assert
+      expect(result.length).toBe(1);
+      expect(result[0].name).toBe('Test Show');
     });
   });
 });

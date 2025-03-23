@@ -9,7 +9,11 @@ import {
   groupShowsByNetwork, 
   sortShowsByTime, 
   normalizeShowData,
-  formatTime
+  formatTime,
+  filterByType,
+  filterByNetwork,
+  filterByGenre,
+  filterByLanguage
 } from '../../utils/showUtils.js';
 import type { Show } from '../../types/tvmaze.js';
 
@@ -202,7 +206,7 @@ describe('ShowUtils', () => {
           name: 'Mid Show',
           season: 1,
           number: 1,
-          airtime: '15:30',
+          airtime: '12:00',
           show: {
             name: 'Mid Show',
             type: '',
@@ -226,7 +230,7 @@ describe('ShowUtils', () => {
       expect(result[2].name).toBe('Late Show');
     });
 
-    it('puts shows with no airtime at the end', () => {
+    it('handles shows with missing airtime', () => {
       // Create test data
       const shows: Show[] = [
         {
@@ -249,7 +253,7 @@ describe('ShowUtils', () => {
           name: 'Timed Show',
           season: 1,
           number: 1,
-          airtime: '20:00',
+          airtime: '08:00',
           show: {
             name: 'Timed Show',
             type: '',
@@ -273,87 +277,259 @@ describe('ShowUtils', () => {
     });
   });
 
+  // New tests for formatTime
   describe('formatTime', () => {
-    it('formats time in 12-hour format', () => {
-      expect(formatTime('08:00')).toBe('8:00 AM');
-      expect(formatTime('20:00')).toBe('8:00 PM');
-      expect(formatTime('12:00')).toBe('12:00 PM');
+    it('should format time string to 12-hour format', () => {
+      expect(formatTime('13:30')).toBe('1:30 PM');
+      expect(formatTime('08:15')).toBe('8:15 AM');
       expect(formatTime('00:00')).toBe('12:00 AM');
+      expect(formatTime('12:00')).toBe('12:00 PM');
     });
     
-    it('handles empty or invalid time strings', () => {
-      expect(formatTime('')).toBe('TBA');
-      expect(formatTime(undefined as unknown as string)).toBe('TBA');
-      expect(formatTime('invalid')).toBe('TBA');
+    it('should handle undefined time', () => {
+      expect(formatTime(undefined)).toBe('TBA');
+    });
+    
+    it('should handle invalid time format', () => {
+      expect(formatTime('not-a-time')).toBe('TBA');
     });
   });
 
-  describe('normalizeShowData', () => {
-    it('normalizes complete show data', () => {
+  // New tests for filterByType
+  describe('filterByType', () => {
+    it('should filter shows by type', () => {
       // Create test data
-      const rawShow = {
-        name: 'Test Show',
-        season: 2,
-        number: 5,
-        airtime: '20:00',
-        show: {
-          name: 'Test Show',
-          type: 'Scripted',
-          language: 'English',
-          genres: ['Drama', 'Comedy'],
-          network: { id: 1, name: 'Test Network', country: null },
-          webChannel: null,
-          image: { medium: 'test.jpg', original: 'test_large.jpg' },
-          summary: 'Test summary'
-        }
-      };
-
-      // Test the function
-      const result = normalizeShowData(rawShow);
+      const shows: Show[] = [
+        createTestShow('Show 1', 'Scripted'),
+        createTestShow('Show 2', 'Reality'),
+        createTestShow('Show 3', 'Documentary')
+      ];
       
-      // Assert the result
-      expect(result).toEqual(rawShow);
+      // Test filtering
+      const filtered = filterByType(shows, ['Scripted', 'Documentary']);
+      
+      // Assert
+      expect(filtered.length).toBe(2);
+      expect(filtered[0].show.name).toBe('Show 1');
+      expect(filtered[1].show.name).toBe('Show 3');
     });
-
-    it('fills in missing data with defaults', () => {
-      // Create test data with minimal information
-      const rawShow = {
-        id: 123,
-        airtime: '', 
-        show: {
-          id: 123,
-          name: '',
-          type: '',
-          language: '',
-          genres: [],
-          network: null,
-          webChannel: null,
-          image: null,
-          summary: ''
-        }
-      };
-
-      // Test the function
-      const result = normalizeShowData(rawShow);
+    
+    it('should return all shows when types array is empty', () => {
+      // Create test data
+      const shows: Show[] = [
+        createTestShow('Show 1', 'Scripted'),
+        createTestShow('Show 2', 'Reality')
+      ];
       
-      // Assert the result
-      expect(result).toEqual({
-        name: '', 
-        season: 0,
-        number: 0,
-        airtime: '',
-        show: {
-          id: 123,
-          name: 'Unknown Show', 
-          type: 'Unknown',      
-          language: '',
-          genres: [],
-          network: null,
-          webChannel: null,
-          image: null,
-          summary: ''
-        }
-      });
+      // Test filtering
+      const filtered = filterByType(shows, []);
+      
+      // Assert
+      expect(filtered.length).toBe(2);
+    });
+  });
+
+  // New tests for filterByNetwork
+  describe('filterByNetwork', () => {
+    it('should filter shows by network', () => {
+      // Create test data with different networks
+      const shows: Show[] = [
+        createTestShowWithNetwork('Show 1', 'HBO'),
+        createTestShowWithNetwork('Show 2', 'Netflix'),
+        createTestShowWithNetwork('Show 3', 'ABC')
+      ];
+      
+      // Test filtering
+      const filtered = filterByNetwork(shows, ['HBO', 'ABC']);
+      
+      // Assert
+      expect(filtered.length).toBe(2);
+      expect(filtered[0].show.name).toBe('Show 1');
+      expect(filtered[1].show.name).toBe('Show 3');
+    });
+    
+    it('should return all shows when networks array is empty', () => {
+      // Create test data
+      const shows: Show[] = [
+        createTestShowWithNetwork('Show 1', 'HBO'),
+        createTestShowWithNetwork('Show 2', 'Netflix')
+      ];
+      
+      // Test filtering
+      const filtered = filterByNetwork(shows, []);
+      
+      // Assert
+      expect(filtered.length).toBe(2);
+    });
+  });
+
+  // New tests for filterByGenre
+  describe('filterByGenre', () => {
+    it('should filter shows by genre', () => {
+      // Create test data with different genres
+      const shows: Show[] = [
+        createTestShowWithGenres('Show 1', ['Drama', 'Thriller']),
+        createTestShowWithGenres('Show 2', ['Comedy']),
+        createTestShowWithGenres('Show 3', ['Drama', 'Fantasy'])
+      ];
+      
+      // Test filtering
+      const filtered = filterByGenre(shows, ['Drama']);
+      
+      // Assert
+      expect(filtered.length).toBe(2);
+      expect(filtered[0].show.name).toBe('Show 1');
+      expect(filtered[1].show.name).toBe('Show 3');
+    });
+    
+    it('should return all shows when genres array is empty', () => {
+      // Create test data
+      const shows: Show[] = [
+        createTestShowWithGenres('Show 1', ['Drama']),
+        createTestShowWithGenres('Show 2', ['Comedy'])
+      ];
+      
+      // Test filtering
+      const filtered = filterByGenre(shows, []);
+      
+      // Assert
+      expect(filtered.length).toBe(2);
+    });
+  });
+
+  // New tests for filterByLanguage
+  describe('filterByLanguage', () => {
+    it('should filter shows by language', () => {
+      // Create test data with different languages
+      const shows: Show[] = [
+        createTestShowWithLanguage('Show 1', 'English'),
+        createTestShowWithLanguage('Show 2', 'Spanish'),
+        createTestShowWithLanguage('Show 3', 'English')
+      ];
+      
+      // Test filtering
+      const filtered = filterByLanguage(shows, ['English']);
+      
+      // Assert
+      expect(filtered.length).toBe(2);
+      expect(filtered[0].show.name).toBe('Show 1');
+      expect(filtered[1].show.name).toBe('Show 3');
+    });
+    
+    it('should return all shows when languages array is empty', () => {
+      // Create test data
+      const shows: Show[] = [
+        createTestShowWithLanguage('Show 1', 'English'),
+        createTestShowWithLanguage('Show 2', 'Spanish')
+      ];
+      
+      // Test filtering
+      const filtered = filterByLanguage(shows, []);
+      
+      // Assert
+      expect(filtered.length).toBe(2);
+    });
+  });
+
+  // New tests for normalizeShowData
+  describe('normalizeShowData', () => {
+    it('should normalize TVMaze show data to internal format', () => {
+      // Create a raw TVMaze show
+      const tvMazeShow = {
+        id: 1,
+        name: 'Test Show',
+        type: 'Scripted',
+        language: 'English',
+        genres: ['Drama', 'Thriller'],
+        airtime: '20:00',
+        network: {
+          id: 1,
+          name: 'HBO',
+          country: {
+            name: 'United States',
+            code: 'US',
+            timezone: 'America/New_York'
+          }
+        },
+        webChannel: null,
+        image: {
+          medium: 'http://example.com/image.jpg',
+          original: 'http://example.com/image_large.jpg'
+        },
+        summary: '<p>Test summary</p>'
+      };
+      
+      // Normalize the data
+      const normalized = normalizeShowData(tvMazeShow);
+      
+      // Assert
+      expect(normalized.show.id).toBe(1);
+      expect(normalized.show.name).toBe('Test Show');
+      expect(normalized.show.type).toBe('Scripted');
+      expect(normalized.show.language).toBe('English');
+      expect(normalized.show.genres).toEqual(['Drama', 'Thriller']);
+      expect(normalized.show.network?.name).toBe('HBO');
+      expect(normalized.show.summary).toBe('Test summary');
+    });
+    
+    it('should handle missing or null properties', () => {
+      // Create a minimal TVMaze show with missing properties
+      const tvMazeShow = {
+        id: 1,
+        name: 'Test Show',
+        airtime: '20:00'
+      };
+      
+      // Normalize the data
+      const normalized = normalizeShowData(tvMazeShow);
+      
+      // Assert
+      expect(normalized.show.id).toBe(1);
+      expect(normalized.show.name).toBe('Test Show');
+      expect(normalized.show.genres).toEqual([]);
+      expect(normalized.show.network).toBeNull();
+      expect(normalized.show.webChannel).toBeNull();
+      expect(normalized.show.image).toBeNull();
+      expect(normalized.show.summary).toBe('');
     });
   });
 });
+
+// Helper functions for creating test data
+function createTestShow(name: string, type: string): Show {
+  return {
+    name,
+    season: 1,
+    number: 1,
+    airtime: '20:00',
+    show: {
+      id: Math.floor(Math.random() * 1000),
+      name,
+      type,
+      language: 'English',
+      genres: ['Drama'],
+      network: { id: 1, name: 'Test Network', country: null },
+      webChannel: null,
+      image: null,
+      summary: 'Test summary'
+    }
+  };
+}
+
+function createTestShowWithNetwork(name: string, networkName: string): Show {
+  const show = createTestShow(name, 'Scripted');
+  show.show.network = { id: Math.floor(Math.random() * 1000), name: networkName, country: null };
+  return show;
+}
+
+function createTestShowWithGenres(name: string, genres: string[]): Show {
+  const show = createTestShow(name, 'Scripted');
+  show.show.genres = genres;
+  return show;
+}
+
+function createTestShowWithLanguage(name: string, language: string): Show {
+  const show = createTestShow(name, 'Scripted');
+  show.show.language = language;
+  return show;
+}

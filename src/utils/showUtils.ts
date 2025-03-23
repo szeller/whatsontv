@@ -4,7 +4,7 @@
  */
 
 import type { NetworkGroups } from '../types/app.js';
-import type { Show, TVMazeShow } from '../types/tvmaze.js';
+import type { Show, TVMazeShow, ShowDetails } from '../types/tvmaze.js';
 
 /**
  * Get today's date in YYYY-MM-DD format
@@ -179,68 +179,93 @@ export function filterByLanguage(shows: Show[], languages: string[]): Show[] {
 
 /**
  * Normalize TVMaze show data to our internal Show format
- * @param tvMazeShow - Raw TVMaze show data
+ * @param tvMazeData - Raw TVMaze show data
  * @returns Normalized Show object
  */
-export function normalizeShowData(tvMazeShow: TVMazeShow): Show {
-  // Ensure show property exists
-  if (!tvMazeShow.show) {
-    throw new Error('Invalid TVMaze show data: show property is missing');
+export function normalizeShowData(tvMazeData: TVMazeShow | { show: TVMazeShow }): Show {
+  // Determine if we're dealing with a direct show object or one with a show property
+  const rawData = ('show' in tvMazeData ? tvMazeData.show : tvMazeData) as TVMazeShow;
+
+  // Create a default show object for cases where data is missing
+  const defaultShow: Show = {
+    airtime: '',
+    name: '',
+    season: 0,
+    number: 0,
+    show: {
+      id: 0,
+      name: '',
+      type: '',
+      language: '',
+      genres: [],
+      network: null,
+      webChannel: null,
+      image: null,
+      summary: ''
+    }
+  };
+
+  // Handle the case where rawData might be undefined or null
+  if (rawData === null || rawData === undefined) {
+    return defaultShow;
   }
+
+  // Extract the show details - either from the show property or from the raw data itself
+  const showDetails: ShowDetails = {
+    id: typeof rawData.id === 'number' 
+      ? rawData.id 
+      : (typeof rawData.id === 'string' && rawData.id !== '' 
+        ? parseInt(rawData.id, 10) 
+        : 0),
+    name: rawData.name !== undefined && rawData.name !== null && 
+      rawData.name !== '' 
+      ? String(rawData.name) 
+      : '',
+    type: rawData.type !== undefined && rawData.type !== null &&
+      rawData.type !== ''
+      ? String(rawData.type)
+      : '',
+    language: rawData.language !== undefined && rawData.language !== null
+      ? rawData.language
+      : '',
+    genres: Array.isArray(rawData.genres) ? rawData.genres : [],
+    network: rawData.network !== undefined && rawData.network !== null
+      ? rawData.network
+      : null,
+    webChannel: rawData.webChannel !== undefined && rawData.webChannel !== null
+      ? rawData.webChannel
+      : null,
+    image: rawData.image !== undefined && rawData.image !== null
+      ? rawData.image
+      : null,
+    summary: rawData.summary !== undefined &&
+      rawData.summary !== null && rawData.summary !== ''
+      ? rawData.summary.replace(/<\/?[^>]+(>|$)/g, '') // Strip HTML tags
+      : ''
+  };
 
   // Create a normalized copy of the show data
   const normalizedShow: Show = {
     // Ensure required string properties are never undefined
-    airtime: tvMazeShow.airtime !== undefined && tvMazeShow.airtime !== null && 
-      tvMazeShow.airtime !== '' 
-      ? tvMazeShow.airtime 
+    airtime: rawData.airtime !== undefined && rawData.airtime !== null && 
+      rawData.airtime !== '' 
+      ? String(rawData.airtime) 
       : '',
-    name: tvMazeShow.name !== undefined && tvMazeShow.name !== null && 
-      tvMazeShow.name !== '' 
-      ? tvMazeShow.name 
+    name: rawData.name !== undefined && rawData.name !== null && 
+      rawData.name !== '' 
+      ? String(rawData.name) 
       : '',
-    season: typeof tvMazeShow.season === 'number' 
-      ? tvMazeShow.season 
-      : (typeof tvMazeShow.season === 'string' && tvMazeShow.season !== '' 
-        ? parseInt(tvMazeShow.season, 10) 
+    season: typeof rawData.season === 'number' 
+      ? rawData.season 
+      : (typeof rawData.season === 'string' && rawData.season !== '' 
+        ? parseInt(rawData.season, 10) 
         : 0),
-    number: typeof tvMazeShow.number === 'number' 
-      ? tvMazeShow.number 
-      : (typeof tvMazeShow.number === 'string' && tvMazeShow.number !== '' 
-        ? parseInt(tvMazeShow.number, 10) 
+    number: typeof rawData.number === 'number' 
+      ? rawData.number 
+      : (typeof rawData.number === 'string' && rawData.number !== '' 
+        ? parseInt(rawData.number, 10) 
         : 0),
-    show: {
-      ...tvMazeShow.show,
-      // Ensure consistent data structure even when fields are missing
-      network: tvMazeShow.show.network !== undefined && tvMazeShow.show.network !== null 
-        ? tvMazeShow.show.network 
-        : null,
-      webChannel: tvMazeShow.show.webChannel !== undefined && 
-        tvMazeShow.show.webChannel !== null 
-        ? tvMazeShow.show.webChannel 
-        : null,
-      type: tvMazeShow.show.type !== undefined && tvMazeShow.show.type !== null && 
-        tvMazeShow.show.type !== '' 
-        ? tvMazeShow.show.type 
-        : 'Unknown',
-      name: tvMazeShow.show.name !== undefined && tvMazeShow.show.name !== null && 
-        tvMazeShow.show.name !== '' 
-        ? tvMazeShow.show.name 
-        : 'Unknown Show',
-      // Ensure language is either a string or null, not undefined
-      language: tvMazeShow.show.language !== undefined && tvMazeShow.show.language !== null 
-        ? tvMazeShow.show.language 
-        : null,
-      // Ensure other required properties are never undefined
-      genres: Array.isArray(tvMazeShow.show.genres) ? tvMazeShow.show.genres : [],
-      image: tvMazeShow.show.image !== undefined && tvMazeShow.show.image !== null 
-        ? tvMazeShow.show.image 
-        : null,
-      summary: tvMazeShow.show.summary !== undefined && 
-        tvMazeShow.show.summary !== null && tvMazeShow.show.summary !== '' 
-        ? tvMazeShow.show.summary 
-        : ''
-    }
+    show: showDetails
   };
 
   return normalizedShow;
