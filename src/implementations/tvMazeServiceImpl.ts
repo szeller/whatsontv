@@ -6,7 +6,6 @@ import { inject, injectable } from 'tsyringe';
 
 // Type imports
 import type { TvShowService } from '../interfaces/tvShowService.js';
-import type { NetworkGroups } from '../types/app.js';
 import type { Episode, Show, ShowDetails, TVMazeShow } from '../types/tvmaze.js';
 import type { HttpClient } from '../interfaces/httpClient.js';
 import { 
@@ -16,7 +15,6 @@ import {
   filterByType, 
   formatTime as formatTimeUtil,
   getTodayDate,
-  groupShowsByNetwork as groupShowsByNetworkUtil,
   normalizeShowData,
   sortShowsByTime as sortShowsByTimeUtil
 } from '../utils/showUtils.js';
@@ -256,15 +254,6 @@ export class TvMazeServiceImpl implements TvShowService {
       console.error(`Error fetching show details for ${showId}:`, error);
       return null;
     }
-  }
-
-  /**
-   * Group shows by network
-   * @param shows - Array of shows to group
-   * @returns Object with network names as keys and arrays of shows as values
-   */
-  groupShowsByNetwork(shows: Show[]): NetworkGroups {
-    return groupShowsByNetworkUtil(shows);
   }
 
   /**

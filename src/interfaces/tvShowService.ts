@@ -2,7 +2,6 @@
  * Interface for TV show service operations
  * Responsible for fetching TV show data from external APIs
  */
-import type { NetworkGroups } from '../types/app.js';
 import type { Show } from '../types/tvmaze.js';
 
 export interface TvShowService {
@@ -51,11 +50,4 @@ export interface TvShowService {
     genres?: string[];
     languages?: string[];
   }): Promise<Show[]>;
-
-  /**
-   * Group shows by network
-   * @param shows Array of shows to group
-   * @returns Object with network names as keys and arrays of shows as values
-   */
-  groupShowsByNetwork(shows: Show[]): NetworkGroups;
 }

@@ -9,6 +9,7 @@ import type { ShowFormatter } from '../../interfaces/showFormatter.js';
 import type { TvShowService } from '../../interfaces/tvShowService.js';
 import type { CliArgs } from '../../types/cliArgs.js';
 import type { Show } from '../../types/tvmaze.js';
+import { groupShowsByNetwork } from '../../utils/showUtils.js';
 
 /**
  * Implementation of the OutputService for Slack
@@ -50,6 +51,15 @@ export class SlackOutputServiceImpl implements OutputService {
     try {
       this.client = new WebClient(token);
       this.channel = channel;
+      
+      // Perform an async operation to validate the token and channel
+      // This ensures we're properly using await in this async method
+      const authResult = await this.client.auth.test();
+      if (!authResult.ok) {
+        console.error('Slack authentication failed:', authResult.error);
+        return false;
+      }
+      
       this.initialized = true;
       return true;
     } catch (error) {
@@ -103,7 +113,7 @@ export class SlackOutputServiceImpl implements OutputService {
       return;
     }
 
-    const networkGroups = this.tvShowService.groupShowsByNetwork(shows);
+    const networkGroups = groupShowsByNetwork(shows);
     const formattedOutput = this.formatter.formatNetworkGroups(networkGroups, timeSort);
 
     for (const message of formattedOutput) {

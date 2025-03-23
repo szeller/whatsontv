@@ -3,27 +3,28 @@
  */
 import 'reflect-metadata';
 import { describe, it, beforeEach, expect, afterEach, jest } from '@jest/globals';
-import { container } from 'tsyringe';
+import { container, InjectionToken } from 'tsyringe';
 
 import { TvMazeServiceImpl } from '../../implementations/tvMazeServiceImpl';
 import type { Show, ShowDetails } from '../../types/tvmaze';
 import { MockHttpClient } from '../utils/mockHttpClient';
+import { groupShowsByNetwork } from '../../utils/showUtils';
 
 // Create a mock HTTP client and service instance
 let mockClient: MockHttpClient;
 let tvShowService: TvMazeServiceImpl;
 
-const usCountry = {
-  name: 'United States',
-  code: 'US',
-  timezone: 'America/New_York'
-};
+// Type-safe way to check if a network exists in the groups and get its shows
+function hasNetwork(groups: Record<string, Show[]>, network: string): boolean {
+  return Object.prototype.hasOwnProperty.call(groups, network);
+}
 
-const ukCountry = {
-  name: 'United Kingdom',
-  code: 'GB',
-  timezone: 'Europe/London'
-};
+function getShowsCount(groups: Record<string, Show[]>, network: string): number {
+  if (hasNetwork(groups, network)) {
+    return groups[network].length;
+  }
+  return 0;
+}
 
 // Create a mock TV show that matches ShowDetails type
 const mockTvShowDetails: ShowDetails = {
@@ -35,7 +36,11 @@ const mockTvShowDetails: ShowDetails = {
   network: {
     id: 1,
     name: 'CBS',
-    country: usCountry
+    country: {
+      name: 'United States',
+      code: 'US',
+      timezone: 'America/New_York'
+    }
   },
   webChannel: null,
   image: null,
@@ -82,7 +87,11 @@ const _mockSpanishShow: Show = {
     network: {
       id: 3,
       name: 'Telemundo',
-      country: usCountry
+      country: {
+        name: 'United States',
+        code: 'US',
+        timezone: 'America/New_York'
+      }
     },
     webChannel: null,
     image: null,
@@ -104,7 +113,11 @@ const _mockUKShow: Show = {
     network: {
       id: 4,
       name: 'BBC',
-      country: ukCountry
+      country: {
+        name: 'United Kingdom',
+        code: 'GB',
+        timezone: 'Europe/London'
+      }
     },
     webChannel: null,
     image: null,
@@ -123,7 +136,7 @@ describe('tvShowService', () => {
     });
     
     // Create the service
-    tvShowService = container.resolve(TvMazeServiceImpl);
+    tvShowService = container.resolve(TvMazeServiceImpl as InjectionToken<TvMazeServiceImpl>);
   });
   
   describe('groupShowsByNetwork', () => {
@@ -139,12 +152,14 @@ describe('tvShowService', () => {
         }
       ];
       
-      // Call the method
-      const result = tvShowService.groupShowsByNetwork(shows);
+      // Call the utility function directly instead of going through the service
+      const result = groupShowsByNetwork(shows);
       
-      // Verify the result
-      expect(Object.keys(result)).toContain('CBS');
-      expect(result['CBS'].length).toBe(1);
+      // Use our type-safe helper functions to verify the result
+      expect(hasNetwork(result as Record<string, Show[]>, 'CBS')).toBe(true);
+      expect(getShowsCount(result as Record<string, Show[]>, 'CBS')).toBe(1);
+      expect(hasNetwork(result as Record<string, Show[]>, 'Unknown Network')).toBe(false);
+      expect(getShowsCount(result as Record<string, Show[]>, 'Unknown Network')).toBe(0);
     });
     
     it('handles shows with no network', () => {
@@ -162,12 +177,12 @@ describe('tvShowService', () => {
         }
       ];
       
-      // Call the method
-      const result = tvShowService.groupShowsByNetwork(shows);
+      // Call the utility function directly instead of going through the service
+      const result = groupShowsByNetwork(shows);
       
-      // Verify the result
-      expect(Object.keys(result)).toContain('Unknown Network');
-      expect(result['Unknown Network'].length).toBe(1);
+      // Use our type-safe helper functions to verify the result
+      expect(hasNetwork(result as Record<string, Show[]>, 'Unknown Network')).toBe(true);
+      expect(getShowsCount(result as Record<string, Show[]>, 'Unknown Network')).toBe(1);
     });
     
     it('handles web channel shows', () => {
@@ -196,14 +211,14 @@ describe('tvShowService', () => {
         show: mockTvShowDetails
       };
       
-      // Call the method with both shows
-      const result = tvShowService.groupShowsByNetwork([webChannelShow, regularShow]);
+      // Call the utility function directly instead of going through the service
+      const result = groupShowsByNetwork([webChannelShow, regularShow]);
       
-      // Verify the result - webChannel shows are now handled properly
-      // and will appear under their webChannel name
-      expect(Object.keys(result).sort()).toEqual(['CBS', 'Netflix'].sort());
-      expect(result['Netflix'].length).toBe(1);
-      expect(result['CBS'].length).toBe(1);
+      // Use our type-safe helper functions to verify the result
+      const networks = Object.keys(result as Record<string, Show[]>).sort();
+      expect(networks).toEqual(['CBS', 'Netflix'].sort());
+      expect(getShowsCount(result as Record<string, Show[]>, 'Netflix')).toBe(1);
+      expect(getShowsCount(result as Record<string, Show[]>, 'CBS')).toBe(1);
     });
   });
   
