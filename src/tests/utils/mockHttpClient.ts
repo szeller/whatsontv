@@ -82,7 +82,8 @@ export class MockHttpClient implements HttpClient {
     await setTimeout(1);
     
     if (this.mockErrors.has(url)) {
-      throw this.mockErrors.get(url)!;
+      const error = this.mockErrors.get(url);
+      if (error) throw error;
     }
     if (this.mockResponses.has(url)) {
       return this.mockResponses.get(url) as HttpResponse<T>;
@@ -91,7 +92,8 @@ export class MockHttpClient implements HttpClient {
       return this.mockResponses.get('*') as HttpResponse<T>;
     }
     if (this.mockErrors.has('*')) {
-      throw this.mockErrors.get('*')!;
+      const error = this.mockErrors.get('*');
+      if (error) throw error;
     }
     throw new Error(`No mock response or error set for URL: ${url}`);
   }
@@ -116,7 +118,8 @@ export class MockHttpClient implements HttpClient {
     
     const postUrl = `POST:${url}`;
     if (this.mockErrors.has(postUrl)) {
-      throw this.mockErrors.get(postUrl)!;
+      const error = this.mockErrors.get(postUrl);
+      if (error) throw error;
     }
     if (this.mockResponses.has(postUrl)) {
       return this.mockResponses.get(postUrl) as HttpResponse<T>;
@@ -125,7 +128,8 @@ export class MockHttpClient implements HttpClient {
       return this.mockResponses.get('*') as HttpResponse<T>;
     }
     if (this.mockErrors.has('*')) {
-      throw this.mockErrors.get('*')!;
+      const error = this.mockErrors.get('*');
+      if (error) throw error;
     }
     throw new Error(`No mock response or error set for URL: ${url}`);
   }
