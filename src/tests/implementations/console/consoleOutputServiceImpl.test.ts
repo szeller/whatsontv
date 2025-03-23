@@ -81,12 +81,8 @@ describe('ConsoleOutputServiceImpl', () => {
       // Act
       await service.displayShows(mockShows, false);
       
-      // Assert - use a local variable to avoid unbound method reference
-      const formatNetworkGroupsFn = mockShowFormatter.formatNetworkGroups;
-      // Use a separate variable to store the function result
-      const wasCalled = jest.isMockFunction(formatNetworkGroupsFn) && 
-        formatNetworkGroupsFn.mock.calls.length > 0;
-      expect(wasCalled).toBe(true);
+      // Assert
+      expect(mockShowFormatter.formatNetworkGroups.mock.calls.length).toBeGreaterThan(0);
       expect(mockConsoleOutput.log).toHaveBeenCalledWith('Formatted network output');
     });
     
@@ -94,15 +90,10 @@ describe('ConsoleOutputServiceImpl', () => {
       // Act
       await service.displayShows(mockShows, true);
       
-      // Assert - use a local variable to avoid unbound method reference
-      const formatNetworkGroupsFn = mockShowFormatter.formatNetworkGroups;
-      // Check if the function was called with the right parameters
-      const wasCalled = jest.isMockFunction(formatNetworkGroupsFn) && 
-        formatNetworkGroupsFn.mock.calls.length > 0;
-      expect(wasCalled).toBe(true);
-      
-      if (formatNetworkGroupsFn.mock.calls.length > 0) {
-        const callArgs = formatNetworkGroupsFn.mock.calls[0];
+      // Assert
+      expect(mockShowFormatter.formatNetworkGroups.mock.calls.length).toBeGreaterThan(0);
+      if (mockShowFormatter.formatNetworkGroups.mock.calls.length > 0) {
+        const callArgs = mockShowFormatter.formatNetworkGroups.mock.calls[0];
         expect(callArgs[1]).toBe(true); // Second argument should be true (timeSort)
       }
       expect(mockConsoleOutput.log).toHaveBeenCalledWith('Formatted network output');

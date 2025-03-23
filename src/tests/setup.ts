@@ -12,15 +12,8 @@ import { createMockYargs, mockYargs } from './helpers/yargsHelper.js';
 const yargsInstance = createMockYargs();
 mockYargs(yargsInstance);
 
-// Mock console output utility module
-jest.mock('../utils/consoleOutput', () => ({
-  __esModule: true,
-  consoleOutput: {
-    log: jest.fn(),
-    error: jest.fn(),
-    logWithLevel: jest.fn()
-  }
-}));
+// No longer mocking consoleOutput as it's been removed
+// Use consoleTestHelpers.ts instead for console mocking
 
 // Mock chalk for consistent output
 jest.mock('chalk', () => ({

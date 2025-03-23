@@ -33,7 +33,11 @@ container.registerSingleton<ShowFormatter>('ShowFormatter', ConsoleFormatterImpl
 container.registerSingleton<TvShowService>('TvShowService', TvMazeServiceImpl);
 container.registerSingleton<OutputService>('OutputService', ConsoleOutputServiceImpl);
 container.registerSingleton<ConsoleOutput>('ConsoleOutput', ConsoleOutputImpl);
-container.registerSingleton<HttpClient>('HttpClient', GotHttpClientImpl);
+
+// Register HttpClient with factory to provide empty options object
+container.register<HttpClient>('HttpClient', {
+  useFactory: () => new GotHttpClientImpl({})
+});
 
 // Register named implementations for specific platforms
 container.register('ConsoleFormatter', { useClass: ConsoleFormatterImpl });

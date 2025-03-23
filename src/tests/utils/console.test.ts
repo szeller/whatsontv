@@ -1,11 +1,11 @@
 /**
- * Tests for the console output utility
+ * Tests for the console test helpers
  */
 import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
-import { consoleOutput, createMockConsole } from '../../utils/consoleOutput.js';
+import { createMockConsole } from './consoleTestHelpers.js';
 
-describe('Console Utilities', () => {
-  describe('consoleOutput', () => {
+describe('Console Test Helpers', () => {
+  describe('createMockConsole', () => {
     const originalConsole = {
       log: console.log,
       error: console.error
@@ -21,62 +21,6 @@ describe('Console Utilities', () => {
       console.error = originalConsole.error;
     });
 
-    it('should log messages correctly', () => {
-      // Arrange
-      const message = 'test message';
-
-      // Act
-      consoleOutput.log(message);
-
-      // Assert
-      expect(console.log).toHaveBeenCalledWith(message);
-    });
-
-    it('should handle undefined log messages', () => {
-      // Act
-      consoleOutput.log(undefined);
-
-      // Assert
-      expect(console.log).toHaveBeenCalledWith(undefined);
-    });
-
-    it('should log errors correctly', () => {
-      // Arrange
-      const message = 'error message';
-      const args = ['arg1', 'arg2'];
-
-      // Act
-      consoleOutput.error(message, ...args);
-
-      // Assert
-      expect(console.error).toHaveBeenCalledWith(message, ...args);
-    });
-    
-    it('should log with level "log" correctly', () => {
-      // Arrange
-      const message = 'log level message';
-
-      // Act
-      consoleOutput.logWithLevel('log', message);
-
-      // Assert
-      expect(console.log).toHaveBeenCalledWith(message);
-    });
-
-    it('should log with level "error" correctly', () => {
-      // Arrange
-      const message = 'error level message';
-      const args = ['detail1', 'detail2'];
-
-      // Act
-      consoleOutput.logWithLevel('error', message, ...args);
-
-      // Assert
-      expect(console.error).toHaveBeenCalledWith(message, ...args);
-    });
-  });
-
-  describe('createMockConsole', () => {
     it('should capture log messages', () => {
       // Arrange
       const mockConsole = createMockConsole();

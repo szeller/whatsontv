@@ -39,20 +39,25 @@ export class TvMazeServiceImpl implements TvShowService {
    */
   async getShowsByDate(date: string): Promise<Show[]> {
     try {
-      const response = await this._apiClient.get<TVMazeShow[]>(
-        `${TV_MAZE_API}/schedule?date=${date}`
-      );
-
-      // Check if data exists and has length
-      if (Array.isArray(response.data) && response.data.length === 0) {
-        console.error(`Error fetching shows for date ${date}: ${NO_DATA_MESSAGE}`);
-        return [];
+      // console.warn(`TvMazeServiceImpl: Fetching shows for date ${date}`); 
+      const endpoint = `${TV_MAZE_API}/schedule?date=${date}&country=US`;
+      
+      // Make the API request
+      const response = await this._apiClient.get<TVMazeShow[]>(endpoint);
+      
+      // console.warn(`TvMazeServiceImpl: Received ${response.data?.length || 0} shows from API`);
+      
+      // If no data is returned, throw an error
+      if (!Array.isArray(response.data) || response.data.length === 0) {
+        throw new Error(NO_DATA_MESSAGE);
       }
-
-      // Transform the API response to our Show type
+      
+      // Normalize the data
       return response.data.map(show => normalizeShowData(show));
     } catch (error) {
-      console.error(`Error fetching shows for date ${date}:`, error);
+      console.error('TvMazeServiceImpl.getShowsByDate error:', error);
+      
+      // Return empty array instead of rethrowing
       return [];
     }
   }

@@ -16,8 +16,8 @@ import type { ShowFormatter } from '../../interfaces/showFormatter.js';
 import type { TvShowService } from '../../interfaces/tvShowService.js';
 import type { NetworkGroups } from '../../types/app.js';
 import type { Show } from '../../types/tvmaze.js';
-import { PlainStyleService } from '../../utils/styleService.js';
-import type { StyleService } from '../../utils/styleService.js';
+import { PlainStyleServiceImpl } from '../../implementations/test/plainStyleServiceImpl.js';
+import type { StyleService } from '../../interfaces/styleService.js';
 
 /**
  * Create a mock console output object for testing
@@ -95,7 +95,7 @@ export function createTestContainer(): DependencyContainer {
   
   // Use real style service with plain styling
   testContainer.register<StyleService>('StyleService', { 
-    useClass: PlainStyleService 
+    useClass: PlainStyleServiceImpl 
   });
   
   return testContainer;
@@ -119,6 +119,6 @@ export function resetContainer(): void {
     useValue: createMockTvShowService() 
   });
   container.register<StyleService>('StyleService', { 
-    useClass: PlainStyleService 
+    useClass: PlainStyleServiceImpl 
   });
 }

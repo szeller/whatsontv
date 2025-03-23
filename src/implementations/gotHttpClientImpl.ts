@@ -43,9 +43,17 @@ export class GotHttpClientImpl implements HttpClient {
   private log(level: 'log' | 'error', message: string, data?: unknown): void {
     if (!this.isTestEnvironment) {
       if (level === 'log') {
-        console.warn(message, data);
+        if (data !== undefined) {
+          console.warn(message, data);
+        } else {
+          console.warn(message);
+        }
       } else {
-        console.error(message, data);
+        if (data !== undefined) {
+          console.error(message, data);
+        } else {
+          console.error(message);
+        }
       }
     }
   }
@@ -77,7 +85,32 @@ export class GotHttpClientImpl implements HttpClient {
       return this.transformResponse<T>(response);
     } catch (error) {
       this.log('error', 'GET request error:', error);
-      throw this.handleError(error);
+      
+      // If the error is from Got and has a response property, handle it
+      if (error !== null && typeof error === 'object' && 'response' in error) {
+        const errorResponse = error.response as Response;
+        if (
+          errorResponse !== null && 
+          typeof errorResponse === 'object' && 
+          'statusCode' in errorResponse && 
+          errorResponse.statusCode !== undefined
+        ) {
+          const statusCode = errorResponse.statusCode;
+          const statusText = typeof errorResponse.body === 'string' ? 
+            errorResponse.body : 'Not Found';
+          throw new Error(
+            `Request Error: HTTP Error ${statusCode}: ${statusText}`
+          );
+        }
+      }
+      
+      // Check if the error message already contains HTTP Error
+      if (error instanceof Error && error.message.includes('HTTP Error')) {
+        throw new Error(`Request Error: ${error.message}`);
+      }
+      
+      // For network errors or other types of errors, use our generic handler
+      throw new Error(`Network Error: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -119,26 +152,24 @@ export class GotHttpClientImpl implements HttpClient {
   }
 
   /**
-   * Transform a Got response to our standard HttpResponse format
+   * Transform Got response to our HttpResponse format
    * @param response The Got response
-   * @returns Standardized HTTP response
+   * @returns Transformed response
    */
-  private transformResponse<T>(response: Response<string>): HttpResponse<T> {
-    let data: T;
-    
+  private transformResponse<T>(response: Response): HttpResponse<T> {
     try {
-      // Check content type to determine how to handle the response
-      const contentType = response.headers['content-type'] ?? '';
+      // Get the content type from the headers
+      const contentType = response.headers['content-type'] || '';
+      const responseBody = String(response.body); // Convert to string explicitly
       
-      // Convert if/else to ternary expression
-      data = contentType.includes('application/json')
-        ? JSON.parse(response.body) as T
+      const data: T = contentType.includes('application/json')
+        ? JSON.parse(responseBody) as T
         : response.body as unknown as T;
       
       return {
         data,
         status: response.statusCode,
-        headers: response.headers
+        headers: response.headers as unknown as Record<string, string>
       };
     } catch (error) {
       this.log('error', 'Error transforming response:', error);
@@ -146,7 +177,7 @@ export class GotHttpClientImpl implements HttpClient {
       return {
         data: response.body as unknown as T,
         status: response.statusCode,
-        headers: response.headers
+        headers: response.headers as unknown as Record<string, string>
       };
     }
   }
@@ -163,21 +194,25 @@ export class GotHttpClientImpl implements HttpClient {
       // Handle Got errors
       if ('response' in error && error.response !== null && error.response !== undefined) {
         const response = error.response as Response;
-        return new Error(`HTTP Error: ${response.statusCode}`);
+        const statusText = typeof response.body === 'string' ? 
+          response.body : 'Not Found';
+        return new Error(
+          `Request Error: HTTP Error ${response.statusCode}: ${statusText}`
+        );
+      }
+      
+      // Handle HTTP errors that are already formatted
+      if (error instanceof Error && error.message.includes('HTTP Error')) {
+        return new Error(`Request Error: ${error.message}`);
       }
       
       // Handle network errors
       if ('code' in error && typeof error.code === 'string' && error.code !== '') {
         return new Error(`Network Error: ${error.code}`);
       }
-      
-      // Handle other errors with message property
-      if ('message' in error && typeof error.message === 'string' && error.message !== '') {
-        return new Error(`Request Error: ${error.message}`);
-      }
     }
     
-    // Fallback for unknown errors
-    return new Error('Unknown error occurred');
+    // Handle any other errors
+    return new Error(`Network Error: ${error instanceof Error ? error.message : String(error)}`);
   }
 }

@@ -159,13 +159,13 @@ describe('TvMazeServiceImpl', () => {
       
       // Verify the API was called correctly - check first argument only
       expect(mockHttpClient.getMock.mock.calls[0][0]).toBe(
-        'https://api.tvmaze.com/schedule?date=2025-03-20'
+        'https://api.tvmaze.com/schedule?date=2025-03-20&country=US'
       );
     });
     
     it('handles API errors gracefully', async () => {
       // Setup the mock to throw an error
-      mockHttpClient.getMock.mockRejectedValue(new Error('API Error'));
+      mockHttpClient.getMock.mockRejectedValue(new Error('Network Error: API Error'));
       
       // Call the method
       const result = await tvMazeService.getShowsByDate('2025-03-20');
@@ -253,7 +253,7 @@ describe('TvMazeServiceImpl', () => {
       
       // Verify the API was called with the correct URL
       expect(mockHttpClient.getMock.mock.calls[0][0]).toBe(
-        'https://api.tvmaze.com/schedule?date=2025-03-20'
+        'https://api.tvmaze.com/schedule?date=2025-03-20&country=US'
       );
       
       // Verify the results

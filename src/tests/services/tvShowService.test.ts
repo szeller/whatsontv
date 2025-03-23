@@ -237,7 +237,7 @@ describe('tvShowService', () => {
       const today = new Date().toISOString().split('T')[0];
       
       // Set up the mock response for the HTTP client
-      mockClient.mockGet(`https://api.tvmaze.com/schedule?date=${today}`, {
+      mockClient.mockGet(`https://api.tvmaze.com/schedule?date=${today}&country=US`, {
         data: [mockShow],
         status: 200,
         headers: {}
@@ -294,7 +294,7 @@ describe('tvShowService', () => {
     
     it('handles API errors gracefully', async () => {
       // Setup mock error response
-      mockClient.setMockError(new Error('API Error'));
+      mockClient.setMockError(new Error('Network Error: API Error'));
       
       const result = await tvShowService.getShowsByDate('2025-03-20');
       

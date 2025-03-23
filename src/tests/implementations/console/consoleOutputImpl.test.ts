@@ -1,29 +1,31 @@
 /**
- * Tests for the console output utility implementation
+ * Tests for the console output implementation
  */
 import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
-import { consoleOutput, createMockConsole } from '../../../utils/consoleOutput.js';
+import { createMockConsole } from '../../utils/consoleTestHelpers.js';
+import { ConsoleOutputImpl } from '../../../implementations/console/consoleOutputImpl.js';
 
-describe('Console Output Implementation', () => {
+describe('ConsoleOutputImpl', () => {
+  const originalConsole = {
+    log: console.log,
+    error: console.error
+  };
+
+  beforeEach(() => {
+    console.log = jest.fn();
+    console.error = jest.fn();
+  });
+
+  afterEach(() => {
+    console.log = originalConsole.log;
+    console.error = originalConsole.error;
+  });
+
   describe('consoleOutput', () => {
-    const originalConsole = {
-      log: console.log,
-      error: console.error
-    };
-
-    beforeEach(() => {
-      console.log = jest.fn();
-      console.error = jest.fn();
-    });
-
-    afterEach(() => {
-      console.log = originalConsole.log;
-      console.error = originalConsole.error;
-    });
-
     it('should log messages correctly', () => {
       // Arrange
       const message = 'test message';
+      const consoleOutput = new ConsoleOutputImpl();
 
       // Act
       consoleOutput.log(message);
@@ -33,6 +35,9 @@ describe('Console Output Implementation', () => {
     });
 
     it('should handle undefined log messages', () => {
+      // Arrange
+      const consoleOutput = new ConsoleOutputImpl();
+
       // Act
       consoleOutput.log(undefined);
 
@@ -44,6 +49,7 @@ describe('Console Output Implementation', () => {
       // Arrange
       const message = 'error message';
       const args = ['arg1', 'arg2'];
+      const consoleOutput = new ConsoleOutputImpl();
 
       // Act
       consoleOutput.error(message, ...args);
@@ -55,6 +61,7 @@ describe('Console Output Implementation', () => {
     it('should log with level "log" correctly', () => {
       // Arrange
       const message = 'log level message';
+      const consoleOutput = new ConsoleOutputImpl();
 
       // Act
       consoleOutput.logWithLevel('log', message);
@@ -67,6 +74,7 @@ describe('Console Output Implementation', () => {
       // Arrange
       const message = 'error level message';
       const args = ['detail1', 'detail2'];
+      const consoleOutput = new ConsoleOutputImpl();
 
       // Act
       consoleOutput.logWithLevel('error', message, ...args);

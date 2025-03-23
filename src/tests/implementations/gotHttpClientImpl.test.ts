@@ -97,7 +97,10 @@ describe('GotHttpClient', () => {
       jest.setTimeout(10000);
       
       // Verify the error is thrown correctly
-      await expect(badClient.get<unknown>('/test')).rejects.toThrow('Network Error:');
+      await expect(badClient.get<unknown>('/test')).rejects.toThrow(
+        'Network Error: getaddrinfo ENOTFOUND ' +
+        'non-existent-domain-that-will-fail.example'
+      );
       
       // Reset the timeout
       jest.setTimeout(5000);
