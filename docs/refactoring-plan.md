@@ -415,3 +415,74 @@ export interface ShowFormatter {
 8. **Proper Dependency Injection**: Consistent use of DI throughout the application
 9. **Type Safety**: Strong typing across all interfaces and implementations
 10. **Simplified Testing**: Better mocking and test organization
+
+## Refactoring Status (Updated 2025-03-22)
+
+### Completed Items
+
+1. ✅ Created the new directory structure for source code
+   - Created `src/implementations` directory with console and slack subdirectories
+   - Created `src/interfaces` directory for all interfaces
+   - Created `src/types` directory for type definitions
+
+2. ✅ Renamed and moved implementation files
+   - Moved and renamed implementation files to follow the `*Impl.ts` naming convention
+   - Created proper implementations for console and slack
+
+3. ✅ Updated the container registrations
+   - Updated container.ts to use the new implementation paths
+   - Registered both default and named implementations
+   - Used consistent registration patterns
+
+4. ✅ Implemented proper dependency injection
+   - Used tsyringe for dependency injection throughout the application
+   - Ensured all services are properly registered in the container
+   - Implemented constructor injection for all services
+
+5. ✅ Prepared for Slack integration
+   - Created placeholder implementations for Slack
+   - Ensured interfaces are general enough for both console and Slack
+
+### Remaining Items
+
+1. 🔄 Test File Refactoring
+   - Several test files still reference old file paths and need to be updated:
+     - `src/tests/services/consoleOutputService.test.ts` → Move to `src/tests/implementations/console/consoleOutputServiceImpl.test.ts`
+     - `src/tests/services/tvMazeService.test.ts` → Remove or merge with `tvMazeServiceImpl.test.ts`
+     - `src/tests/services/tvShowService.test.ts` → Update to use new implementation paths
+     - `src/tests/formatters/consoleFormatter.test.ts` → Move to `src/tests/implementations/console/consoleFormatterImpl.test.ts`
+     - `src/tests/utils/console.test.ts` → Move to `src/tests/implementations/console/consoleOutputImpl.test.ts`
+     - `src/tests/utils/gotHttpClient.test.ts` → Move to `src/tests/implementations/gotHttpClientImpl.test.ts`
+
+2. 🔄 Fix Import Paths in Tests
+   - Update all import statements in test files to use the new file paths
+   - Ensure tests are using the correct implementations
+   - Fix type errors related to mocking interfaces
+
+3. 🔄 Clean Up Empty Directories
+   - Remove empty `src/services` directory
+   - Remove empty `src/formatters` directory
+
+4. 🔄 Update CLI Entry Point
+   - Ensure `cli.ts` is using the container properly
+   - Remove any direct instantiation of services
+
+5. 🔄 Update Slack Entry Point
+   - Ensure `slack.ts` is using the container properly
+   - Remove any direct instantiation of services
+
+6. 🔄 Improve Test Mocking
+   - Simplify mocking approach in tests
+   - Use consistent patterns for mocking across all tests
+   - Fix TypeScript errors in test files
+
+### Next Steps
+
+1. Complete the test file refactoring by moving and renaming test files to match the new structure
+2. Update import paths in all test files to use the new file paths
+3. Fix TypeScript errors in test files, particularly related to mocking
+4. Remove empty directories that are no longer needed
+5. Run the full test suite to ensure all tests pass with the new structure
+6. Clean up any remaining references to old file paths or structures
+
+This refactoring is approximately 70% complete, with the main application code structure in place but test files still needing updates to align with the new structure.

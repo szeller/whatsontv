@@ -1,12 +1,14 @@
+import 'reflect-metadata';
 import got, { Got, Options as GotOptions, Response } from 'got';
+import { injectable } from 'tsyringe';
 
-import { consoleOutput } from './consoleOutput.js';
-import { HttpClient, HttpClientOptions, HttpResponse } from './httpClient.js';
+import { HttpClient, HttpClientOptions, HttpResponse } from '../interfaces/httpClient.js';
 
 /**
  * Implementation of the HttpClient interface using Got
  */
-export class GotHttpClient implements HttpClient {
+@injectable()
+export class GotHttpClientImpl implements HttpClient {
   private client: Got;
   private isTestEnvironment: boolean;
 
@@ -40,7 +42,11 @@ export class GotHttpClient implements HttpClient {
    */
   private log(level: 'log' | 'error', message: string, data?: unknown): void {
     if (!this.isTestEnvironment) {
-      consoleOutput.logWithLevel(level, message, data);
+      if (level === 'log') {
+        console.warn(message, data);
+      } else {
+        console.error(message, data);
+      }
     }
   }
 

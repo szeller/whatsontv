@@ -5,7 +5,7 @@
 
 import 'reflect-metadata';
 import chalk from 'chalk';
-import { injectable, container } from 'tsyringe';
+import { container, injectable } from 'tsyringe';
 
 /**
  * Interface defining text styling operations

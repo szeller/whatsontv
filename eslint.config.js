@@ -73,16 +73,14 @@ export default [
       
       // Import rules
       'import/no-unresolved': 'off', // TypeScript handles this
-      'import/order': ['warn', {
-        'groups': [
-          ['builtin', 'external'],
-          ['internal', 'parent', 'sibling', 'index']
-        ],
-        'newlines-between': 'always',
-        'alphabetize': {
-          'order': 'asc',
-          'caseInsensitive': true
-        }
+      // Disable import/order rule completely to allow for logical grouping with empty lines
+      'import/order': 'off',
+      // Add a custom rule for import ordering that doesn't check for empty lines
+      'sort-imports': ['warn', {
+        'ignoreCase': true,
+        'ignoreDeclarationSort': true, // Don't check the order of import statements
+        'ignoreMemberSort': false, // Do check the order of members in a single import
+        'allowSeparatedGroups': true // Allow empty lines between import groups
       }],
       'import/no-duplicates': 'error',
       'import/no-cycle': 'error',
@@ -148,8 +146,10 @@ export default [
       'object-curly-spacing': ['error', 'always'],
       'array-bracket-spacing': ['error', 'never'],
       
-      // Code quality rules
+      // Console rules
       'no-console': ['warn', { allow: ['warn', 'error'] }],
+      
+      // Code quality rules
       'eqeqeq': 'error',
       'no-unused-expressions': 'error',
       'no-var': 'error',

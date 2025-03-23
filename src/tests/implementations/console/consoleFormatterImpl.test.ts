@@ -1,12 +1,12 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import { container } from 'tsyringe';
 
-import { ConsoleFormatterImpl } from '../../implementations/console/consoleFormatterImpl';
-import { createMockTvShowService } from '../utils/testHelpers';
-import type { Show } from '../../types/tvmaze';
-import type { TvShowService } from '../../interfaces/tvShowService';
-import type { StyleService } from '../../interfaces/styleService';
-import { PlainStyleServiceImpl } from '../../implementations/test/plainStyleServiceImpl';
+import { ConsoleFormatterImpl } from '../../../implementations/console/consoleFormatterImpl';
+import { createMockTvShowService } from '../../utils/testHelpers';
+import type { Show } from '../../../types/tvmaze';
+import type { TvShowService } from '../../../interfaces/tvShowService';
+import type { StyleService } from '../../../interfaces/styleService';
+import { PlainStyleServiceImpl } from '../../../implementations/test/plainStyleServiceImpl';
 
 describe('ConsoleFormatterImpl', () => {
   let formatter: ConsoleFormatterImpl;

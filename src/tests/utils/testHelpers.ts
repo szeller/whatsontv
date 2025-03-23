@@ -14,8 +14,8 @@ import { container, DependencyContainer } from 'tsyringe';
 import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
 import type { ShowFormatter } from '../../interfaces/showFormatter.js';
 import type { TvShowService } from '../../interfaces/tvShowService.js';
-import type { Show } from '../../types/tvmaze.js';
 import type { NetworkGroups } from '../../types/app.js';
+import type { Show } from '../../types/tvmaze.js';
 import { PlainStyleService } from '../../utils/styleService.js';
 import type { StyleService } from '../../utils/styleService.js';
 
@@ -43,7 +43,7 @@ export function createMockShowFormatter(): ShowFormatter {
       .mockReturnValue('Formatted multiple episodes'),
     formatNetworkGroups: jest.fn<
       (
-        networkGroups: Record<string, Show[]>,
+        networkGroups: NetworkGroups,
         timeSort?: boolean
       ) => string[]
     >()
@@ -64,15 +64,17 @@ export function createMockTvShowService(): TvShowService {
       date?: string; 
       search?: string; 
       show?: number;
+      genres?: string[];
+      languages?: string[];
     }) => Promise<Show[]>>().mockResolvedValue([]),
-    formatTime: jest.fn<(time: string) => string>().mockReturnValue(''),
-    sortShowsByTime: jest.fn<(shows: Show[]) => Show[]>().mockReturnValue([]),
+    groupShowsByNetwork: jest.fn<(shows: Show[]) => NetworkGroups>().mockReturnValue({}),
+    // Removed non-interface methods
     fetchShowsWithOptions: jest.fn<(options: {
       date?: string;
       search?: string;
       show?: number;
-    }) => Promise<Show[]>>().mockResolvedValue([]),
-    groupShowsByNetwork: jest.fn<(shows: Show[]) => NetworkGroups>().mockReturnValue({})
+    }) => Promise<Show[]>>().mockResolvedValue([])
+    // Removed groupShowsByNetwork as it's not part of the TvShowService interface
   };
 }
 

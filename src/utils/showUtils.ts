@@ -57,18 +57,20 @@ export function groupShowsByNetwork(shows: Show[]): NetworkGroups {
  */
 export function sortShowsByTime(shows: Show[]): Show[] {
   return [...shows].sort((a, b) => {
-    // Handle shows with no airtime
+    // Handle undefined or null airtimes
     if (!a.airtime && !b.airtime) return 0;
     if (!a.airtime) return 1;
     if (!b.airtime) return -1;
     
-    // Convert airtime to minutes for comparison
-    const getMinutes = (time: string): number => {
-      const [hours, minutes] = time.split(':').map(Number);
-      return hours * 60 + minutes;
-    };
-
-    return getMinutes(a.airtime) - getMinutes(b.airtime);
+    // Parse time strings into comparable values
+    const [aHours, aMinutes] = a.airtime.split(':').map(Number);
+    const [bHours, bMinutes] = b.airtime.split(':').map(Number);
+    
+    // Compare hours first, then minutes
+    if (aHours !== bHours) {
+      return aHours - bHours;
+    }
+    return aMinutes - bMinutes;
   });
 }
 
@@ -176,39 +178,70 @@ export function filterByLanguage(shows: Show[], languages: string[]): Show[] {
 }
 
 /**
- * Normalize show data to a consistent format
- * @param show - Show data to normalize
- * @returns Normalized show data
+ * Normalize TVMaze show data to our internal Show format
+ * @param tvMazeShow - Raw TVMaze show data
+ * @returns Normalized Show object
  */
-export function normalizeShowData(show: Partial<TVMazeShow>): Show {
-  // If the show already has a complete structure, preserve it
-  if (
-    show.name !== undefined && 
-    show.season !== undefined && 
-    show.number !== undefined && 
-    show.airtime !== undefined && 
-    show.show !== undefined
-  ) {
-    return show as Show;
+export function normalizeShowData(tvMazeShow: TVMazeShow): Show {
+  // Ensure show property exists
+  if (!tvMazeShow.show) {
+    throw new Error('Invalid TVMaze show data: show property is missing');
   }
 
-  // Otherwise, fill in missing data with defaults
-  return {
-    name: show.name !== undefined && show.name !== null ? show.name : '',
-    season: show.season !== undefined && show.season !== null ? Number(show.season) : 0,
-    number: show.number !== undefined && show.number !== null ? Number(show.number) : 0,
-    airtime: show.airtime !== undefined && show.airtime !== null ? show.airtime : '',
-    show: show.show !== undefined && show.show !== null ? show.show : {
-      name: show.name !== undefined && show.name !== null ? show.name : '',
-      type: show.type !== undefined && show.type !== null ? show.type : '',
-      language: show.language !== undefined && show.language !== null ? show.language : '',
-      genres: show.genres !== undefined && show.genres !== null ? show.genres : [],
-      network: show.network !== undefined && show.network !== null ? show.network : null,
-      webChannel: 
-        show.webChannel !== undefined && show.webChannel !== null ? 
-          show.webChannel : null,
-      image: show.image !== undefined && show.image !== null ? show.image : null,
-      summary: show.summary !== undefined && show.summary !== null ? show.summary : ''
+  // Create a normalized copy of the show data
+  const normalizedShow: Show = {
+    // Ensure required string properties are never undefined
+    airtime: tvMazeShow.airtime !== undefined && tvMazeShow.airtime !== null && 
+      tvMazeShow.airtime !== '' 
+      ? tvMazeShow.airtime 
+      : '',
+    name: tvMazeShow.name !== undefined && tvMazeShow.name !== null && 
+      tvMazeShow.name !== '' 
+      ? tvMazeShow.name 
+      : '',
+    season: typeof tvMazeShow.season === 'number' 
+      ? tvMazeShow.season 
+      : (typeof tvMazeShow.season === 'string' && tvMazeShow.season !== '' 
+        ? parseInt(tvMazeShow.season, 10) 
+        : 0),
+    number: typeof tvMazeShow.number === 'number' 
+      ? tvMazeShow.number 
+      : (typeof tvMazeShow.number === 'string' && tvMazeShow.number !== '' 
+        ? parseInt(tvMazeShow.number, 10) 
+        : 0),
+    show: {
+      ...tvMazeShow.show,
+      // Ensure consistent data structure even when fields are missing
+      network: tvMazeShow.show.network !== undefined && tvMazeShow.show.network !== null 
+        ? tvMazeShow.show.network 
+        : null,
+      webChannel: tvMazeShow.show.webChannel !== undefined && 
+        tvMazeShow.show.webChannel !== null 
+        ? tvMazeShow.show.webChannel 
+        : null,
+      type: tvMazeShow.show.type !== undefined && tvMazeShow.show.type !== null && 
+        tvMazeShow.show.type !== '' 
+        ? tvMazeShow.show.type 
+        : 'Unknown',
+      name: tvMazeShow.show.name !== undefined && tvMazeShow.show.name !== null && 
+        tvMazeShow.show.name !== '' 
+        ? tvMazeShow.show.name 
+        : 'Unknown Show',
+      // Ensure language is either a string or null, not undefined
+      language: tvMazeShow.show.language !== undefined && tvMazeShow.show.language !== null 
+        ? tvMazeShow.show.language 
+        : null,
+      // Ensure other required properties are never undefined
+      genres: Array.isArray(tvMazeShow.show.genres) ? tvMazeShow.show.genres : [],
+      image: tvMazeShow.show.image !== undefined && tvMazeShow.show.image !== null 
+        ? tvMazeShow.show.image 
+        : null,
+      summary: tvMazeShow.show.summary !== undefined && 
+        tvMazeShow.show.summary !== null && tvMazeShow.show.summary !== '' 
+        ? tvMazeShow.show.summary 
+        : ''
     }
   };
+
+  return normalizedShow;
 }

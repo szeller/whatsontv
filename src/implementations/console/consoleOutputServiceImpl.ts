@@ -3,13 +3,13 @@ import { inject, injectable } from 'tsyringe';
 import yargs from 'yargs';
 import type { Arguments } from 'yargs';
 
-import config from '../config.js';
-import type { ConsoleOutput } from '../interfaces/consoleOutput.js';
-import type { OutputService } from '../interfaces/outputService.js';
-import type { ShowFormatter } from '../interfaces/showFormatter.js';
-import type { NetworkGroups } from '../types/app.js';
-import type { Show } from '../types/tvmaze.js';
-import { getTodayDate, groupShowsByNetwork } from '../utils/showUtils.js';
+import config from '../../config.js';
+import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
+import type { OutputService } from '../../interfaces/outputService.js';
+import type { ShowFormatter } from '../../interfaces/showFormatter.js';
+import type { NetworkGroups } from '../../types/app.js';
+import type { Show } from '../../types/tvmaze.js';
+import { getTodayDate, groupShowsByNetwork } from '../../utils/showUtils.js';
 
 /**
  * CLI arguments interface
@@ -22,6 +22,12 @@ export interface CliArgs extends Arguments {
   genres: string[];
   languages: string[];
   timeSort: boolean;
+  query: string;
+  slack: boolean;
+  showId: number;
+  limit: number;
+  help: boolean;
+  version: boolean;
   debug: boolean;
 }
 
@@ -30,7 +36,7 @@ export interface CliArgs extends Arguments {
  * Implements the OutputService interface
  */
 @injectable()
-export class ConsoleOutputService implements OutputService {
+export class ConsoleOutputServiceImpl implements OutputService {
   /**
    * Create a new ConsoleOutputService
    * @param formatter Formatter for TV show output
@@ -92,10 +98,11 @@ export class ConsoleOutputService implements OutputService {
 
   /**
    * Parse command line arguments
+   * @param args Command line arguments (optional)
    * @returns Parsed command line arguments
    */
-  public parseArgs(): CliArgs {
-    return yargs(process.argv.slice(2))
+  public parseArgs(args?: string[]): CliArgs {
+    return yargs(args || process.argv.slice(2))
       .options({
         date: {
           alias: 'd',
@@ -135,6 +142,29 @@ export class ConsoleOutputService implements OutputService {
           type: 'boolean',
           default: false
         },
+        query: {
+          alias: 'q',
+          describe: 'Search query for shows',
+          type: 'string',
+          default: ''
+        },
+        slack: {
+          alias: 's',
+          describe: 'Output to Slack',
+          type: 'boolean',
+          default: false
+        },
+        showId: {
+          describe: 'Show ID to get episodes for',
+          type: 'number',
+          default: 0
+        },
+        limit: {
+          alias: 'l',
+          describe: 'Maximum number of shows to display',
+          type: 'number',
+          default: 0
+        },
         debug: {
           alias: 'D',
           describe: 'Enable debug mode',
@@ -144,6 +174,8 @@ export class ConsoleOutputService implements OutputService {
       })
       .help()
       .alias('help', 'h')
+      .version()
+      .alias('version', 'v')
       .parseSync() as CliArgs;
   }
 

@@ -6,7 +6,7 @@ import { container } from './container.js';
 import type { ConsoleOutput } from './interfaces/consoleOutput.js';
 import type { OutputService } from './interfaces/outputService.js';
 import type { TvShowService } from './interfaces/tvShowService.js';
-import type { CliArgs } from './services/consoleOutputService.js';
+import type { CliArgs } from './types/cliArgs.js';
 
 /**
  * Main function to run the CLI application
@@ -20,16 +20,16 @@ export async function main(args?: CliArgs): Promise<void> {
     const consoleOutput = container.resolve<ConsoleOutput>('ConsoleOutput');
     
     // Parse command line arguments
-    const parsedArgs = args || outputService.parseArgs();
+    const parsedArgs = args !== undefined ? args : outputService.parseArgs();
     
     // Display header
     outputService.displayHeader();
     
     // Use config values as defaults when CLI arguments aren't provided
-    const types = parsedArgs.types?.length ? parsedArgs.types : config.types;
-    const networks = parsedArgs.networks?.length ? parsedArgs.networks : config.networks;
-    const genres = parsedArgs.genres?.length ? parsedArgs.genres : config.genres;
-    const languages = parsedArgs.languages?.length ? parsedArgs.languages : config.languages;
+    const types = parsedArgs.types?.length > 0 ? parsedArgs.types : config.types;
+    const networks = parsedArgs.networks?.length > 0 ? parsedArgs.networks : config.networks;
+    const genres = parsedArgs.genres?.length > 0 ? parsedArgs.genres : config.genres;
+    const languages = parsedArgs.languages?.length > 0 ? parsedArgs.languages : config.languages;
     
     consoleOutput.log(
       `Making GET request to: ${config.apiUrl}/schedule?date=${parsedArgs.date}` +
@@ -47,7 +47,7 @@ export async function main(args?: CliArgs): Promise<void> {
     });
 
     // Debug: Print all unique networks and web channels
-    if (parsedArgs.debug) {
+    if (parsedArgs.debug === true) {
       const uniqueNetworks = new Set<string>();
       const uniqueWebChannels = new Set<string>();
       

@@ -302,7 +302,19 @@ describe('ShowUtils', () => {
     it('fills in missing data with defaults', () => {
       // Create test data with minimal information
       const rawShow = {
-        id: 123
+        id: 123,
+        airtime: '', 
+        show: {
+          id: 123,
+          name: '',
+          type: '',
+          language: '',
+          genres: [],
+          network: null,
+          webChannel: null,
+          image: null,
+          summary: ''
+        }
       };
 
       // Test the function
@@ -310,13 +322,14 @@ describe('ShowUtils', () => {
       
       // Assert the result
       expect(result).toEqual({
-        name: '',
+        name: '', 
         season: 0,
         number: 0,
         airtime: '',
         show: {
-          name: '',
-          type: '',
+          id: 123,
+          name: 'Unknown Show', 
+          type: 'Unknown',      
           language: '',
           genres: [],
           network: null,

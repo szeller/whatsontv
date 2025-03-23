@@ -37,25 +37,6 @@ export interface TvShowService {
     search?: string; 
     show?: number;
   }): Promise<Show[]>;
-  
-  /**
-   * Group shows by network
-   * @param shows Array of shows to group
-   * @returns Object with networks as keys and arrays of shows as values
-   */
-  groupShowsByNetwork(shows: Show[]): NetworkGroups;
-
-  /**
-   * Format time string to 12-hour format
-   * @param time Time string in HH:MM format
-   */
-  formatTime(time: string | undefined): string;
-  
-  /**
-   * Sort shows by airtime
-   * @param shows List of shows to sort
-   */
-  sortShowsByTime(shows: Show[]): Show[];
 
   /**
    * Fetch shows with advanced filtering options
@@ -70,4 +51,11 @@ export interface TvShowService {
     genres?: string[];
     languages?: string[];
   }): Promise<Show[]>;
+
+  /**
+   * Group shows by network
+   * @param shows Array of shows to group
+   * @returns Object with network names as keys and arrays of shows as values
+   */
+  groupShowsByNetwork(shows: Show[]): NetworkGroups;
 }

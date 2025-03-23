@@ -7,16 +7,13 @@ import 'reflect-metadata';
 import { jest } from '@jest/globals';
 import { container, DependencyContainer } from 'tsyringe';
 
-import { ConsoleFormatter } from '../../formatters/consoleFormatter.js';
-import { ConsoleOutputService } from '../../services/consoleOutputService.js';
-import { TvShowServiceImpl } from '../../services/tvShowService.js';
-import { PlainStyleService } from '../../utils/styleService.js';
+import { ConsoleFormatterImpl } from '../../implementations/console/consoleFormatterImpl.js';
+import { ConsoleOutputServiceImpl } from 
+  '../../implementations/console/consoleOutputServiceImpl.js';
+import { TvMazeServiceImpl } from '../../implementations/tvMazeServiceImpl.js';
+import { PlainStyleServiceImpl } from '../../implementations/test/plainStyleServiceImpl.js';
 
-import type { HttpClient, HttpResponse } from '../../utils/httpClient.js';
-import type { OutputService } from '../../interfaces/outputService.js';
-import type { ShowFormatter } from '../../interfaces/showFormatter.js';
-import type { StyleService } from '../../utils/styleService.js';
-import type { TvShowService } from '../../interfaces/tvShowService.js';
+import type { HttpClient, HttpResponse } from '../../interfaces/httpClient.js';
 
 /**
  * Create a mock HTTP client for testing
@@ -68,13 +65,13 @@ export function createTestContainer(mockConsole: Console): DependencyContainer {
   testContainer.register('ConsoleOutput', { useValue: mockConsole });
   
   // Register real services with mocked dependencies
-  testContainer.register<StyleService>('StyleService', { useClass: PlainStyleService });
-  testContainer.register<ShowFormatter>('ShowFormatter', { useClass: ConsoleFormatter });
-  testContainer.register<TvShowService>('TvShowService', { useClass: TvShowServiceImpl });
-  testContainer.register<OutputService>('OutputService', { useClass: ConsoleOutputService });
+  testContainer.register('StyleService', { useClass: PlainStyleServiceImpl });
+  testContainer.register('ShowFormatter', { useClass: ConsoleFormatterImpl });
+  testContainer.register('TvShowService', { useClass: TvMazeServiceImpl });
+  testContainer.register('OutputService', { useClass: ConsoleOutputServiceImpl });
   
   // Register mock HTTP client
-  testContainer.register<HttpClient>('HttpClient', { useValue: createMockHttpClient() });
+  testContainer.register('HttpClient', { useValue: createMockHttpClient() });
   
   return testContainer;
 }

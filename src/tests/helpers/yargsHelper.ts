@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals';
 import type { Arguments } from 'yargs';
 
-import type { CliArgs } from '../../services/consoleOutput.js';
+import type { CliArgs } from '../../types/cliArgs.js';
 import { getTodayDate } from '../../utils/showUtils.js';
 
 interface YargsOptions {
@@ -30,6 +30,18 @@ export interface MockYargsInstance {
 // Only include properties that exist in the CliArgs interface
 const defaultArgs: CliArgs & Record<string, unknown> = {
   date: getTodayDate(),
+  country: 'US',
+  types: [],
+  networks: [],
+  genres: [],
+  languages: [],
+  timeSort: false,
+  query: '',
+  slack: false,
+  help: false,
+  version: false,
+  debug: false,
+  limit: 10,
   time: false,
   // Include these as extra properties for the tests
   _: [],

@@ -1,17 +1,17 @@
 import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
 
-import type { ShowFormatter } from '../interfaces/showFormatter.js';
-import type { TvShowService } from '../interfaces/tvShowService.js';
-import type { Show } from '../types/tvmaze.js';
-import type { StyleService } from '../utils/styleService.js';
+import type { ShowFormatter } from '../../interfaces/showFormatter.js';
+import type { StyleService } from '../../interfaces/styleService.js';
+import type { TvShowService } from '../../interfaces/tvShowService.js';
+import type { Show } from '../../types/tvmaze.js';
 
 /**
  * Console implementation of the ShowFormatter interface
  * Formats TV show information for display in the console
  */
 @injectable()
-export class ConsoleFormatter implements ShowFormatter {
+export class ConsoleFormatterImpl implements ShowFormatter {
   // Constants for formatting
   private readonly UNKNOWN_SHOW = 'Unknown Show';
   private readonly UNKNOWN_TYPE = 'Unknown';
@@ -201,27 +201,55 @@ export class ConsoleFormatter implements ShowFormatter {
     const networks = Object.keys(networkGroups).sort();
     
     for (const network of networks) {
-      // Safe access to shows array using hasOwnProperty
-      if (!Object.prototype.hasOwnProperty.call(networkGroups, network)) {
-        continue;
-      }
+      // Add network header
+      output.push(`\n${this.styleService.boldCyan(network)}`);
+      output.push('-'.repeat(network.length));
       
-      const shows = networkGroups[network];
-      
-      // Skip empty networks
-      if (shows.length === 0) continue;
+      // Get shows for this network
+      let shows = networkGroups[network];
       
       // Sort shows by time if requested
-      const sortedShows = timeSort 
-        ? this.tvShowService.sortShowsByTime(shows)
-        : shows;
+      if (timeSort && shows.length > 0) {
+        shows = [...shows].sort((a, b) => {
+          // Handle shows without airtime
+          if (!a.airtime) return 1;
+          if (!b.airtime) return -1;
+          
+          // Compare airtime strings
+          return a.airtime.localeCompare(b.airtime);
+        });
+      }
       
-      // Add network header
-      output.push(this.styleService.bold(`\n${network}:`));
+      // Group shows by show ID to handle multiple episodes
+      const showGroups: Record<string, Show[]> = {};
+      for (const show of shows) {
+        const showId = show.show.id;
+        if (showId !== undefined) {
+          const showIdKey = showId.toString();
+          if (showGroups[showIdKey] === undefined) {
+            showGroups[showIdKey] = [];
+          }
+          showGroups[showIdKey].push(show);
+        }
+      }
       
-      // Process each show
-      for (const show of sortedShows) {
-        output.push(this.formatTimedShow(show));
+      // Format each show or show group
+      for (const showIdKey of Object.keys(showGroups)) {
+        const showGroup = showGroups[showIdKey];
+        
+        // Format based on number of episodes
+        if (showGroup.length === 1) {
+          // Single episode
+          output.push(this.formatShow(showGroup[0]));
+        } else if (showGroup.every(show => !show.airtime)) {
+          // Multiple episodes without airtime
+          output.push(this.formatMultipleEpisodes(showGroup));
+        } else {
+          // Multiple episodes with different airtimes
+          for (const show of showGroup) {
+            output.push(this.formatShow(show));
+          }
+        }
       }
     }
     

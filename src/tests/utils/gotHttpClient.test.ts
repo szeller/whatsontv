@@ -1,17 +1,18 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import nock from 'nock';
 
-import { GotHttpClient } from '../../utils/gotHttpClient.js';
+import { GotHttpClientImpl } from '../../implementations/gotHttpClientImpl';
+import { HttpClientOptions } from '../../interfaces/httpClient';
 
 // Base URL for tests
 const BASE_URL = 'https://api.example.com';
 
 describe('GotHttpClient', () => {
-  let client: GotHttpClient;
+  let client: GotHttpClientImpl;
   
   beforeEach(() => {
     // Create a new client instance before each test
-    client = new GotHttpClient({ baseUrl: BASE_URL });
+    client = new GotHttpClientImpl({ baseUrl: BASE_URL } as HttpClientOptions);
     
     // Enable Nock for real HTTP requests
     nock.disableNetConnect();
@@ -86,9 +87,9 @@ describe('GotHttpClient', () => {
       nock.enableNetConnect();
       
       // Create a client with a non-existent domain to force a network error
-      const badClient = new GotHttpClient({ 
+      const badClient = new GotHttpClientImpl({ 
         baseUrl: 'https://non-existent-domain-that-will-fail.example'
-      });
+      } as HttpClientOptions);
       
       // Set a shorter timeout to make the test faster
       jest.setTimeout(10000);

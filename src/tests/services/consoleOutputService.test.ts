@@ -1,24 +1,23 @@
 /**
  * Tests for the ConsoleOutputService implementation
  */
-import 'reflect-metadata';
 import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { container } from 'tsyringe';
 
-import { ConsoleOutputService } from '../../services/consoleOutputService.js';
+import { ConsoleOutputServiceImpl } from '../../implementations/console/consoleOutputServiceImpl';
 import { 
   createMockConsoleOutput, 
   createMockShowFormatter
-} from '../utils/testHelpers.js';
+} from '../utils/testHelpers';
 
 // Import types
-import type { NetworkGroups } from '../../types/app.js';
-import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
-import type { ShowFormatter } from '../../interfaces/showFormatter.js';
-import type { Show } from '../../types/tvmaze.js';
+import type { NetworkGroups } from '../../types/app';
+import type { ConsoleOutput } from '../../interfaces/consoleOutput';
+import type { ShowFormatter } from '../../interfaces/showFormatter';
+import type { Show } from '../../types/tvmaze';
 
 // Create a test subclass of ConsoleOutputService that overrides the groupShowsByNetwork usage
-class TestConsoleOutputService extends ConsoleOutputService {
+class TestConsoleOutputService extends ConsoleOutputServiceImpl {
   private mockNetworkGroups: NetworkGroups;
   private groupShowsByNetworkCalls: Show[][] = [];
 

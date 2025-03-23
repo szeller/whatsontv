@@ -1,4 +1,4 @@
-import type { CliArgs } from '../services/consoleOutputService.js';
+import type { CliArgs } from '../types/cliArgs.js';
 import type { Show } from '../types/tvmaze.js';
 
 /**
