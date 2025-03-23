@@ -305,4 +305,275 @@ describe('TvMazeServiceImpl', () => {
       expect(result[0].name).toBe('Test Show');
     });
   });
+
+  describe('fetchShowsWithOptions', () => {
+    it('should use today\'s date when date is not provided', async () => {
+      // Arrange
+      mockHttpClient.getMock.mockResolvedValue({
+        data: [mockTvMazeShow],
+        status: 200,
+        headers: {}
+      });
+      
+      // Mock the getTodayDate function to return a fixed date
+      const originalDateNow = Date.now;
+      Date.now = jest.fn(() => new Date('2025-03-23T12:00:00Z').getTime());
+      
+      try {
+        // Act
+        await tvMazeService.fetchShowsWithOptions({});
+        
+        // Assert
+        expect(mockHttpClient.getMock.mock.calls[0][0]).toContain('2025-03-23');
+      } finally {
+        // Restore original Date.now
+        Date.now = originalDateNow;
+      }
+    });
+    
+    it('should filter shows by country when country is provided', async () => {
+      // Arrange
+      const usShow = { ...mockShow };
+      const gbShow = { 
+        ...mockShow, 
+        show: { 
+          ...mockShow.show, 
+          network: { 
+            ...mockShow.show.network, 
+            country: { 
+              name: 'United Kingdom', 
+              code: 'GB', 
+              timezone: 'Europe/London' 
+            } 
+          } 
+        } 
+      };
+      
+      mockHttpClient.getMock.mockResolvedValue({
+        data: [usShow, gbShow],
+        status: 200,
+        headers: {}
+      });
+      
+      // Act
+      const result = await tvMazeService.fetchShowsWithOptions({
+        date: '2025-03-23',
+        country: 'GB'
+      });
+      
+      // Assert
+      expect(result.length).toBe(1);
+      expect(result[0].show.network?.country?.code).toBe('GB');
+    });
+    
+    it(
+      'should handle shows with missing network information when filtering by country',
+      async () => {
+        // Arrange
+        const showWithoutNetwork = { 
+          ...mockShow, 
+          show: { 
+            ...mockShow.show, 
+            network: null 
+          } 
+        };
+        
+        mockHttpClient.getMock.mockResolvedValue({
+          data: [showWithoutNetwork],
+          status: 200,
+          headers: {}
+        });
+        
+        // Act
+        const result = await tvMazeService.fetchShowsWithOptions({
+          date: '2025-03-23',
+          country: 'US'
+        });
+        
+        // Assert
+        expect(result.length).toBe(0);
+      }
+    );
+    
+    it('should filter shows by type when types are provided', async () => {
+      // Arrange
+      const scriptedShow = { ...mockShow };
+      const realityShow = { 
+        ...mockShow, 
+        show: { 
+          ...mockShow.show, 
+          type: 'Reality' 
+        } 
+      };
+      
+      mockHttpClient.getMock.mockResolvedValue({
+        data: [scriptedShow, realityShow],
+        status: 200,
+        headers: {}
+      });
+      
+      // Act
+      const result = await tvMazeService.fetchShowsWithOptions({
+        date: '2025-03-23',
+        types: ['Reality']
+      });
+      
+      // Assert
+      expect(result.length).toBe(1);
+      expect(result[0].show.type).toBe('Reality');
+    });
+    
+    it('should filter shows by network when networks are provided', async () => {
+      // Arrange
+      const hboShow = { 
+        ...mockShow, 
+        show: { 
+          ...mockShow.show, 
+          network: { 
+            ...mockShow.show.network, 
+            name: 'HBO' 
+          } 
+        } 
+      };
+      const netflixShow = { 
+        ...mockShow, 
+        show: { 
+          ...mockShow.show, 
+          network: { 
+            ...mockShow.show.network, 
+            name: 'Netflix' 
+          } 
+        } 
+      };
+      
+      mockHttpClient.getMock.mockResolvedValue({
+        data: [hboShow, netflixShow],
+        status: 200,
+        headers: {}
+      });
+      
+      // Act
+      const result = await tvMazeService.fetchShowsWithOptions({
+        date: '2025-03-23',
+        networks: ['HBO']
+      });
+      
+      // Assert
+      expect(result.length).toBe(1);
+      expect(result[0].show.network?.name).toBe('HBO');
+    });
+    
+    it('should filter shows by genre when genres are provided', async () => {
+      // Arrange
+      const dramaShow = { ...mockShow };
+      const comedyShow = { 
+        ...mockShow, 
+        show: { 
+          ...mockShow.show, 
+          genres: ['Comedy'] 
+        } 
+      };
+      
+      mockHttpClient.getMock.mockResolvedValue({
+        data: [dramaShow, comedyShow],
+        status: 200,
+        headers: {}
+      });
+      
+      // Act
+      const result = await tvMazeService.fetchShowsWithOptions({
+        date: '2025-03-23',
+        genres: ['Comedy']
+      });
+      
+      // Assert
+      expect(result.length).toBe(1);
+      expect(result[0].show.genres).toContain('Comedy');
+    });
+    
+    it('should filter shows by language when languages are provided', async () => {
+      // Arrange
+      const englishShow = { ...mockShow };
+      const spanishShow = { 
+        ...mockShow, 
+        show: { 
+          ...mockShow.show, 
+          language: 'Spanish' 
+        } 
+      };
+      
+      mockHttpClient.getMock.mockResolvedValue({
+        data: [englishShow, spanishShow],
+        status: 200,
+        headers: {}
+      });
+      
+      // Act
+      const result = await tvMazeService.fetchShowsWithOptions({
+        date: '2025-03-23',
+        languages: ['Spanish']
+      });
+      
+      // Assert
+      expect(result.length).toBe(1);
+      expect(result[0].show.language).toBe('Spanish');
+    });
+  });
+
+  describe('getShows', () => {
+    it('should call searchShows when search parameter is provided', async () => {
+      // Arrange
+      const searchSpy = jest.spyOn(tvMazeService, 'searchShows');
+      mockHttpClient.getMock.mockResolvedValue({
+        data: mockSearchResult,
+        status: 200,
+        headers: {}
+      });
+      
+      // Act
+      await tvMazeService.getShows({ search: 'test query' });
+      
+      // Assert
+      expect(searchSpy).toHaveBeenCalledWith('test query');
+    });
+    
+    it('should call fetchShowsWithOptions when search parameter is not provided', async () => {
+      // Arrange
+      const fetchSpy = jest.spyOn(tvMazeService, 'fetchShowsWithOptions');
+      mockHttpClient.getMock.mockResolvedValue({
+        data: [mockTvMazeShow],
+        status: 200,
+        headers: {}
+      });
+      
+      // Act
+      await tvMazeService.getShows({ date: '2025-03-23' });
+      
+      // Assert
+      expect(fetchSpy).toHaveBeenCalledWith({
+        date: '2025-03-23',
+        country: undefined,
+        types: undefined,
+        networks: undefined,
+        genres: undefined,
+        languages: undefined
+      });
+    });
+    
+    it('should call fetchShowsWithOptions when search parameter is empty', async () => {
+      // Arrange
+      const fetchSpy = jest.spyOn(tvMazeService, 'fetchShowsWithOptions');
+      mockHttpClient.getMock.mockResolvedValue({
+        data: [mockTvMazeShow],
+        status: 200,
+        headers: {}
+      });
+      
+      // Act
+      await tvMazeService.getShows({ search: '', date: '2025-03-23' });
+      
+      // Assert
+      expect(fetchSpy).toHaveBeenCalled();
+    });
+  });
 });

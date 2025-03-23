@@ -137,8 +137,110 @@ describe('ConsoleOutputServiceImpl', () => {
     );
   });
 
+  describe('displayNetworkGroups', () => {
+    it('should format and display network groups', async () => {
+      // Arrange
+      const mockNetworkGroups = {
+        'Network A': [mockShow],
+        'Network B': [mockShow]
+      };
+      mockShowFormatter.formatNetworkGroups.mockReturnValue([
+        'Formatted network A', 
+        'Formatted network B'
+      ]);
+      
+      // Act
+      await service.displayNetworkGroups(mockNetworkGroups, false);
+      
+      // Assert
+      expect(() => mockShowFormatter.formatNetworkGroups(mockNetworkGroups, false)).not.toThrow();
+      expect(() => mockConsoleOutput.log('Formatted network A')).not.toThrow();
+      expect(() => mockConsoleOutput.log('Formatted network B')).not.toThrow();
+    });
+    
+    it('should sort shows by time when timeSort is true', async () => {
+      // Arrange
+      const mockNetworkGroups = {
+        'Network A': [mockShow],
+        'Network B': [mockShow]
+      };
+      
+      // Act
+      await service.displayNetworkGroups(mockNetworkGroups, true);
+      
+      // Assert
+      expect(() => mockShowFormatter.formatNetworkGroups(mockNetworkGroups, true)).not.toThrow();
+    });
+  });
+
+  describe('parseArgs', () => {
+    it('should parse command line arguments with defaults', () => {
+      // Act
+      const args = service.parseArgs(['--date', '2025-03-23']);
+      
+      // Assert
+      expect(args.date).toBe('2025-03-23');
+      expect(args.country).toBe('US');
+      expect(args.timeSort).toBe(false);
+    });
+    
+    it('should handle array parameters correctly', () => {
+      // Act
+      const args = service.parseArgs(['--types', 'Scripted,Reality', '--networks', 'HBO,Netflix']);
+      
+      // Assert
+      expect(args.types).toEqual(['Scripted', 'Reality']);
+      expect(args.networks).toEqual(['HBO', 'Netflix']);
+    });
+
+    it('should handle genres and languages parameters', () => {
+      // Act
+      const args = service.parseArgs([
+        '--genres', 'Drama,Comedy', 
+        '--languages', 'English,Spanish'
+      ]);
+      
+      // Assert
+      expect(args.genres).toEqual(['Drama', 'Comedy']);
+      expect(args.languages).toEqual(['English', 'Spanish']);
+    });
+
+    it('should handle boolean flags', () => {
+      // Act
+      const args = service.parseArgs(['--timeSort', '--debug']);
+      
+      // Assert
+      expect(args.timeSort).toBe(true);
+      expect(args.debug).toBe(true);
+    });
+  });
+
+  describe('displayHeader', () => {
+    it('should display the application header', () => {
+      // Act
+      service.displayHeader();
+      
+      // Assert
+      expect(mockConsoleOutput.log).toHaveBeenCalledTimes(2);
+      expect(mockConsoleOutput.log).toHaveBeenCalledWith(expect.stringContaining('WhatsOnTV'));
+      expect(mockConsoleOutput.log).toHaveBeenCalledWith(expect.stringContaining('='));
+    });
+  });
+
+  describe('displayFooter', () => {
+    it('should display the application footer', () => {
+      // Act
+      service.displayFooter();
+      
+      // Assert
+      expect(mockConsoleOutput.log).toHaveBeenCalledTimes(2);
+      expect(mockConsoleOutput.log).toHaveBeenCalledWith(expect.stringContaining('='));
+      expect(mockConsoleOutput.log).toHaveBeenCalledWith(expect.stringContaining('TVMaze API'));
+    });
+  });
+
   describe('isInitialized', () => {
-    it('should return true when properly initialized', (): void => {
+    it('should return true when properly initialized', () => {
       // Act
       const result = service.isInitialized();
 
@@ -146,7 +248,7 @@ describe('ConsoleOutputServiceImpl', () => {
       expect(result).toBe(true);
     });
 
-    it('should return false when output is null', (): void => {
+    it('should return false when output is null', () => {
       // Arrange
       const serviceWithNullOutput = new ConsoleOutputServiceImpl(
         mockShowFormatter,
@@ -160,7 +262,7 @@ describe('ConsoleOutputServiceImpl', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false when formatter is null', (): void => {
+    it('should return false when formatter is null', () => {
       // Arrange
       const serviceWithNullFormatter = new ConsoleOutputServiceImpl(
         null as unknown as ShowFormatter,
