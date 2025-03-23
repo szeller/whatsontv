@@ -9,8 +9,8 @@
   },
   "scripts": {
     "start": "node --import ./src/register.mjs src/cli.ts",
-    "test": "NODE_OPTIONS=\"--experimental-vm-modules --no-warnings\" jest --coverage --coverageReporters=text --coverageReporters=lcov --coverageReporters=json-summary",
-    "test:no-coverage": "NODE_OPTIONS=\"--experimental-vm-modules --no-warnings\" jest --coverage=false",
+    "test": "NODE_OPTIONS=\"--experimental-vm-modules --no-warnings\" jest --coverage --coverageReporters=text --coverageReporters=lcov --coverageReporters=json-summary --forceExit",
+    "test:no-coverage": "NODE_OPTIONS=\"--experimental-vm-modules --no-warnings\" jest --coverage=false --forceExit",
     "lint": "eslint --config eslint.config.js 'src/**/*.ts' --report-unused-disable-directives",
     "lint:fix": "eslint --config eslint.config.js 'src/**/*.ts' --fix",
     "lint:ci": "eslint --config eslint.config.js 'src/**/*.ts' --report-unused-disable-directives --max-warnings 999",

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, afterAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import nock from 'nock';
 
 import { GotHttpClientImpl } from '../../implementations/gotHttpClientImpl.js';
@@ -33,6 +33,13 @@ describe('GotHttpClient', () => {
     nock.cleanAll();
     
     // Enable real network connections
+    nock.enableNetConnect();
+  });
+
+  afterAll(() => {
+    // Ensure nock is completely restored
+    nock.restore();
+    nock.cleanAll();
     nock.enableNetConnect();
   });
 
