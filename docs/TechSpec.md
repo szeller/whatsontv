@@ -22,36 +22,76 @@ What's On TV is a TypeScript-based CLI application and Slack notification servic
 
 ### System Components
 
-1. **CLI Interface** (`src/cli.ts`)
-   - Handles command-line argument parsing using `yargs`
-   - Provides immediate feedback for show queries
-   - Supports various filtering options
+The application follows a clean architecture with clear separation of interfaces and implementations:
 
-2. **Slack Notifier** (`src/slack.ts`)
-   - Manages scheduled notifications using `node-schedule`
-   - Formats and sends messages to Slack
-   - Handles retry logic and error reporting
+1. **Interface Definitions** (`src/interfaces/`)
+   - `tvShowService.ts`: Interface for TV show data retrieval
+   - `outputService.ts`: Common interface for output services
+   - `showFormatter.ts`: Interface for formatting show data
+   - `consoleOutput.ts`: Interface for low-level console operations
+   - `httpClient.ts`: Interface for HTTP client operations
 
-3. **TV Show Service** (`src/services/tvShowService.ts`)
-   - Core business logic for fetching and processing show data
-   - Implements filtering and sorting functionality
-   - Handles API communication with TVMaze
+2. **Implementations** (`src/implementations/`)
+   - `tvMazeServiceImpl.ts`: TVMaze API implementation of TvShowService
+   - `gotHttpClientImpl.ts`: HTTP client implementation using got
+   - `styleServiceImpl.ts`: Styling service implementation
+   - Console-specific implementations (`src/implementations/console/`):
+     - `consoleOutputImpl.ts`: Implementation of low-level console operations
+     - `consoleFormatterImpl.ts`: Console-specific formatting implementation
+     - `consoleOutputServiceImpl.ts`: Console output service implementation
+   - Slack-specific implementations (`src/implementations/slack/`):
+     - `slackFormatterImpl.ts`: Slack-specific formatting implementation
+     - `slackOutputServiceImpl.ts`: Slack output service implementation
 
-4. **Configuration Management** (`src/config.ts`)
+3. **Utilities** (`src/utils/`)
+   - `dateUtils.ts`: Date-related utility functions
+   - `showUtils.ts`: Show data manipulation functions
+   - `styleUtils.ts`: Styling utility functions
+   - `formatting.ts`: General text formatting utilities
+   - `ids.ts`: ID generation utilities
+
+4. **Entry Points**
+   - `src/cli.ts`: Command-line interface entry point
+   - `src/slack.ts`: Slack notification service entry point
+
+5. **Configuration Management** (`src/config.ts`)
    - Manages user preferences and settings
    - Supports both default and user-override configurations
    - Handles environment variables for sensitive data
+
+### Dependency Injection
+
+The application uses tsyringe for dependency injection:
+
+1. **Container Setup** (`src/container.ts`)
+   - Registers all services with their interfaces
+   - Uses singleton pattern for stateful services
+   - Configures dependencies for both console and Slack implementations
+
+2. **Injectable Services**
+   - All service implementations are decorated with `@injectable()`
+   - Dependencies are injected through constructor parameters
+   - Clear separation between interfaces and implementations
+
+3. **Service Resolution**
+   - Entry points resolve services from the container
+   - No direct instantiation of services outside the container
+   - Consistent use of dependency injection throughout the application
 
 ### Data Flow
 
 ```mermaid
 graph TD
-    A[CLI/Slack Entry Points] --> B[TV Show Service]
-    B --> C[TVMaze API]
-    C --> B
-    B --> D[Data Processing]
-    D --> E[Output Formatting]
-    E --> F[CLI Output/Slack Message]
+    A[CLI/Slack Entry Points] --> B[Container]
+    B --> C[OutputService]
+    B --> D[TvShowService]
+    D --> E[HttpClient]
+    E --> F[TVMaze API]
+    F --> E
+    E --> D
+    D --> C
+    C --> G[ShowFormatter]
+    G --> H[Output: Console/Slack]
 ```
 
 ## Technical Decisions
@@ -62,7 +102,7 @@ graph TD
 
 ### External Dependencies
 1. **API Communication**
-   - `axios`: Robust HTTP client with TypeScript support
+   - `got`: Robust HTTP client with TypeScript support
    - No API key required for TVMaze
 
 2. **CLI Interface**
@@ -72,6 +112,11 @@ graph TD
 3. **Slack Integration**
    - `@slack/web-api`: Official Slack client
    - `node-schedule`: Cron-like job scheduler
+
+4. **Dependency Injection**
+   - `tsyringe`: Lightweight DI container with TypeScript support
+   - Decorators for injectable services
+   - Container-based service resolution
 
 ### Type System
 
@@ -84,6 +129,11 @@ graph TD
    - Type-safe configuration options
    - Environment variable definitions
    - Slack configuration types
+
+3. **Interface Definitions**
+   - Clear interface definitions for all services
+   - Consistent naming conventions
+   - Proper separation of concerns
 
 ## Testing Strategy
 
@@ -148,7 +198,9 @@ graph TD
    - Import path URL resolution using `import.meta.url`
 
 4. **Code Organization**
-   - Clear separation of concerns
+   - Clear separation of interfaces and implementations
+   - Consistent naming conventions (*Impl.ts suffix for implementations)
+   - Platform-specific code in dedicated directories
    - Well-documented public APIs
    - Private functions for internal logic
    - Integration tests through public APIs
@@ -199,349 +251,107 @@ jest.spyOn(object, 'method').mockImplementation(() => returnValue);
    ```
 
 3. **Mock Cleanup**: Reset mocks in beforeEach to prevent test pollution
-   ```typescript
-   beforeEach(() => {
-     jest.resetAllMocks();
-   });
-   ```
 
-### 3. Testing Best Practices
+### 3. Dependency Injection in Tests
 
-#### Test Structure
-- Mirror source code structure in test files
-- Group related tests using describe blocks
-- Use clear test descriptions following the pattern:
-  ```typescript
-  describe('componentName', () => {
-    describe('functionName', () => {
-      test('should describe expected behavior', () => {
-        // Test implementation
-      });
-    });
-  });
-  ```
-
-#### Assertions
-- Prefer explicit assertions over snapshot testing
-- Use type-safe assertions when possible
-- Test both success and error paths
-
-#### Mock Data
-- Define reusable mock data at the top of test files
-- Use TypeScript interfaces to ensure mock data correctness
-- Keep mock data minimal and focused on test requirements
-
-### 4. Common Mocking Scenarios
-
-#### External Dependencies
 ```typescript
-// API Clients (using axios-mock-adapter)
-const mock = new MockAdapter(api);
-mock.onGet('/path').reply(200, responseData);
+// Create a test container
+const container = new Container();
 
-// Utility Functions
-jest.unstable_mockModule('../../utils/ids.js', () => ({
-  generateId: jest.fn(() => 'mock-id')
-}));
+// Register mocks
+container.register<TvShowService>('TvShowService', {
+  useValue: mockTvShowService
+});
 
-// Date/Time
-jest.spyOn(global.Date, 'now').mockImplementation(() => 1234567890);
+// Resolve the service under test
+const service = container.resolve<OutputService>('OutputService');
 ```
 
-#### Internal Dependencies
-```typescript
-// Class Methods
-jest.spyOn(instance, 'method').mockImplementation(() => result);
+## CI/CD Pipeline
 
-// Event Handlers
-jest.spyOn(element, 'addEventListener');
-```
+### GitHub Actions Workflows
 
-### 5. Coverage Requirements
-- Maintain 80% coverage for:
-  - Statements
-  - Branches
-  - Functions
-  - Lines
-- Exclude test files from coverage reports
-- Document any intentionally uncovered code
-
-### 6. Performance
-- Mock heavy operations in unit tests
-- Use setup/teardown hooks efficiently
-- Keep test execution time under 5 seconds per file
-
-### 7. Debugging
-- Use `test.only()` for focusing on specific tests
-- Enable Jest's verbose mode for detailed output
-- Utilize Jest's --detectOpenHandles for async issues
-
-## Development Workflow
-
-### 1. Continuous Integration and Deployment
-
-#### CI/CD Philosophy
-- Automated testing and validation for all code changes
-- Enforce code quality standards through automated checks
-- Maintain high test coverage across the codebase
-- Provide rapid feedback to developers
-- Enable confident dependency updates
-- Support streamlined deployment process
-
-#### GitHub Actions Workflows
-
-1. **Main CI Workflow** (`ci.yml`)
+1. **CI Workflow** (`ci.yml`)
    - Triggers:
-     - Push to any branch (including main)
-     - Pull requests to main
+     - Push to main branch
+     - Pull requests to main branch
+   - Jobs:
+     - Lint: ESLint check
+     - Test: Jest tests with coverage
+     - Build: TypeScript compilation
    - Environment:
      - Ubuntu latest with Node.js 20.x
-   - Steps:
-     - Checkout code
-     - Setup Node.js with npm cache
-     - Verify package-lock.json integrity
-     - Install dependencies
-     - Run type checking
-     - Run ESLint validation
-     - Run tests with coverage reporting
-     - Store coverage artifacts
-     - Report coverage metrics
 
 2. **Dependency Update Test** (`dependency-update-test.yml`)
    - Triggers:
      - Pull requests that modify package.json or package-lock.json
    - Environment:
      - Ubuntu latest with Node.js 20.x
-   - Steps:
-     - Checkout code
-     - Setup Node.js with npm cache
-     - Install dependencies
-     - Run ESLint validation
-     - Run type checking
-     - Run tests with coverage
-     - Check for ESLint peer dependency warnings
-     - Validate ESLint configuration
 
-#### Branch Protection Rules
-- Required status checks:
-  - All GitHub Actions workflows must pass
-  - Code review required for PRs to main
-  - No direct pushes to main branch
-- Coverage requirements:
-  - Maintain minimum 80% coverage for statements, branches, functions, and lines
-  - Block PRs that decrease coverage below thresholds
-- Merge requirements:
-  - Linear history (rebase and merge)
-  - No merge commits
-  - Clean commit history
+## Development Environment
 
-#### Coverage Reporting
-- Jest configured to generate coverage reports
-- Coverage artifacts stored in GitHub Actions
-- Coverage badge in README.md showing current coverage percentage
-- Coverage thresholds enforced:
-  - Statements: 80%
-  - Branches: 80%
-  - Functions: 80%
-  - Lines: 80%
+### Node.js Version
+- Minimum supported: 18.18.0
+- Recommended: 20.x
+- CI/CD runs on: 20.x
 
-#### Notifications
-- GitHub notifications for workflow failures
-- Integration with team communication tools for CI status updates
-- Automated comments on PRs with test results and coverage changes
+### Package Management
+- npm v10.x.x
+- package-lock.json committed to repository
+- Explicit dependency versions
 
-#### Deployment Process
-- Automated deployment triggered on release creation
-- Semantic versioning enforced
-- Release notes generated from PR descriptions
-- Package published to npm registry with appropriate tags
-
-### 2. Pre-commit Hooks
-- Type checking runs first
-- ESLint with --fix via lint-staged
-- Unit tests for changed files without coverage checks
-- Consistent with CI validation
-
-### 3. Development Commands
-- `npm test`: Run tests
-- `npm run type-check`: TypeScript validation
-- `npm run lint`: Run ESLint checks
-- `npm run lint:fix`: Run ESLint with auto-fix
-- `npm run ci`: Full CI validation suite (type-check, test, lint)
-- `npm run test:watch`: Run tests in watch mode
-- `npm run test:changed`: Run tests on changed files only
-
-## Documentation
-
-1. **Code Documentation**
-   - TSDoc comments for public APIs
-   - Clear function and type documentation
-   - Examples in comments for complex logic
-
-2. **Project Documentation**
-   - README.md for user guide
-   - TechSpec.md for technical documentation
-   - Inline comments for implementation details
-
-## Maintenance
-
-1. **Dependency Management**
-   - Automated dependency updates via Dependabot
-     - Weekly checks for npm dependencies
-     - Monthly checks for GitHub Actions
-     - Intelligent grouping of related dependencies
-     - Automated PR creation with appropriate labels
-   - Version constraints and compatibility management
-     - Minor and patch updates automated
-     - Major updates require manual review
-     - Special handling for TypeScript and ESLint ecosystem
-   - Security vulnerability monitoring and patching
-   - Comprehensive testing for dependency updates
-
-2. **Monitoring**
-   - Error logging
-   - Usage statistics
-   - API response times
-
-3. **Updates**
-   - Regular review of TVMaze API changes
-   - TypeScript and Node.js version updates
-   - Security patches
-
-## Version Constraints and Dependencies
-
-This section tracks specific version constraints and dependencies that require careful consideration during updates.
-
-### ESLint Ecosystem
-- **ESLint**: Using v9.x.x with:
-  - Flat config format (eslint.config.js)
-  - Direct integration with TypeScript
-  - Single source of truth for code quality and formatting
-  - Related dependencies:
-    - `@eslint/js`: v9.x.x for JavaScript configurations
-    - `@typescript-eslint/parser`: v8.x.x for TypeScript parsing
-    - `@typescript-eslint/eslint-plugin`: v8.x.x for TypeScript-specific rules
-  - **Compatibility Notes**:
-    - TypeScript ESLint plugins have peer dependencies on ESLint v8, but work with v9
-    - Peer dependency warnings are expected and can be safely ignored
-    - Version mismatches between parser and plugin can cause issues
-  - **Update Strategy**:
-    - Dependabot configured to group all ESLint-related updates together
-    - Minor/patch updates automated via weekly PRs
-    - Major version updates require manual review and testing
-    - Always update parser and plugin together to maintain compatibility
-
-### TypeScript
-- **TypeScript**: Using v5.5.2 with full ESM support
-- **NodeNext module resolution**: For improved import handling
-- **ES2022 target**: For modern JavaScript features
-- **Strict mode enabled**: For type safety and best practices
-- **Type safety for external APIs**: For robust error handling
-- **Comprehensive type definitions**: For maintainable codebase
-- **Version constraints**: >=4.7.4 <5.6.0 for ESLint tooling compatibility
-
-### Testing Framework
+### Development Tools
+- **TypeScript**: v5.5.2 with strict mode
+- **ESLint**: v9.x.x with TypeScript-ESLint v8.x.x
 - **Jest**: Using v29.x.x with:
   - ts-jest for TypeScript support
   - Configured with separate projects for unit tests
   - Coverage reporting and thresholds
 
-### Version Update Strategy
-1. **Major Version Updates**
-   - Evaluate ecosystem compatibility before upgrading
-   - Test all integrations thoroughly
-   - Update related dependencies in sync
-   - Document any breaking changes
+## Deployment
 
-2. **Compatibility Checks**
-   - ESLint + TypeScript compatibility
-   - Jest runner compatibility
-   - Code style enforcement consistency
+### Production Deployment
+- Node.js 18.18.0+ required
+- Built JavaScript files in `dist/` directory
+- Environment variables for configuration
+- PM2 or similar process manager recommended
 
-3. **Update Assessment**
-   - Security implications
-   - Feature requirements
-   - Breaking changes
-   - Integration impacts
+### Development Setup
+1. Clone repository
+2. Install dependencies: `npm install`
+3. Build TypeScript: `npm run build`
+4. Run tests: `npm test`
+5. Start CLI: `npm run shows`
+6. Start Slack notifier: `npm run slack`
+
+## Maintenance
+
+### Versioning
+- Semantic versioning (MAJOR.MINOR.PATCH)
+- CHANGELOG.md for version history
+- Git tags for releases
+
+### Dependency Updates
+- Weekly automated checks via Dependabot
+- Grouped updates for related packages
+- Automated PR creation for minor and patch updates
+- Manual review for major updates
 
 ## Future Improvements
 
-### Code Quality
-1. Error Handling
-   - Add custom error types for better error handling in `tvShowService.ts`
-   - Implement structured error logging
-   - Add error recovery strategies for API failures
+1. **Additional Output Platforms**
+   - Discord integration
+   - Email notifications
+   - Web dashboard
 
-2. Code Organization
-   - Extract complex filtering logic into dedicated utility functions
-   - Consider implementing a service layer pattern
-   - Add examples in comments for complex filtering logic
+2. **Enhanced Features**
+   - User preferences storage
+   - Show recommendations
+   - Episode reminders
+   - Personalized notifications
 
-### Testing
-1. Configuration
-   - Extract coverage thresholds to constants for easier maintenance
-   - Add documentation for ESM-specific Jest settings
-   - Consider adding integration test suite
-
-2. Test Organization
-   - Group tests by feature/functionality
-   - Add more edge cases for error conditions
-   - Consider adding performance benchmarks
-
-### Future Considerations
-
-### Potential Enhancements
-1. Support for additional TV data sources
-2. More notification platforms (Discord, Email)
-3. Personal watch list management
-4. Show recommendations based on preferences
-5. Integration with streaming service availability
-
-### Technical Debt
-1. Regular dependency updates
-2. Monitoring of TVMaze API changes
-3. Performance optimization for large result sets
-4. Enhanced error reporting
-
-## Error Handling
-
-1. **API Errors**
-   - Graceful handling of TVMaze API failures
-   - Retry logic for transient failures
-   - Clear error messages for users
-
-2. **Configuration Errors**
-   - Validation of user configuration
-   - Sensible defaults for missing options
-   - Environment variable checking
-
-3. **Runtime Errors**
-   - Graceful degradation on failures
-   - Detailed error logging
-   - User-friendly error messages
-
-## Build and Validation
-
-1. **Continuous Integration**
-   - GitHub Actions workflow
-   - Single validation job that runs:
-     - Type checking
-     - ESLint for code quality and formatting
-     - Unit tests with coverage
-   - Package-lock.json verification
-   - Status badge in README
-
-2. **Pre-commit Hooks**
-   - Type checking runs first
-   - ESLint with --fix via lint-staged
-   - Unit tests for changed files without coverage checks
-   - Consistent with CI validation
-
-3. **Development Commands**
-   - `npm test`: Run tests
-   - `npm run type-check`: TypeScript validation
-   - `npm run lint`: Run ESLint checks
-   - `npm run lint:fix`: Run ESLint with auto-fix
-   - `npm run ci`: Full CI validation suite (type-check, test, lint)
-   - `npm run test:watch`: Run tests in watch mode
-   - `npm run test:changed`: Run tests on changed files only
+3. **Technical Improvements**
+   - Improved test coverage
+   - Performance optimizations
+   - Containerization
+   - Serverless deployment options

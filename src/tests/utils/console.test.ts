@@ -1,9 +1,11 @@
-import { describe, expect, it, jest } from '@jest/globals';
+/**
+ * Tests for the console test helpers
+ */
+import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { createMockConsole } from './consoleTestHelpers.js';
 
-import { consoleOutput, createMockConsole } from '../../utils/console.js';
-
-describe('Console Utilities', () => {
-  describe('consoleOutput', () => {
+describe('Console Test Helpers', () => {
+  describe('createMockConsole', () => {
     const originalConsole = {
       log: console.log,
       error: console.error
@@ -19,196 +21,72 @@ describe('Console Utilities', () => {
       console.error = originalConsole.error;
     });
 
-    it('should log messages correctly', () => {
-      // Arrange
-      const message = 'test message';
-
-      // Act
-      consoleOutput.log(message);
-
-      // Assert
-      expect(console.log).toHaveBeenCalledWith(message);
-    });
-
-    it('should handle undefined log messages', () => {
-      // Act
-      consoleOutput.log(undefined);
-
-      // Assert
-      expect(console.log).toHaveBeenCalledWith(undefined);
-    });
-
-    it('should log errors correctly', () => {
-      // Arrange
-      const message = 'error message';
-      const args = ['arg1', 'arg2'];
-
-      // Act
-      consoleOutput.error(message, ...args);
-
-      // Assert
-      expect(console.error).toHaveBeenCalledWith(message, ...args);
-    });
-
-    it('should handle undefined error messages', () => {
-      // Arrange
-      const args = ['arg1'];
-
-      // Act
-      consoleOutput.error(undefined, ...args);
-
-      // Assert
-      expect(console.error).toHaveBeenCalledWith(undefined, ...args);
-    });
-
-    it('should log with level "log" correctly', () => {
-      // Arrange
-      const message = 'log level message';
-
-      // Act
-      consoleOutput.logWithLevel('log', message);
-
-      // Assert
-      expect(console.error).toHaveBeenCalledWith(message);
-      expect(console.log).not.toHaveBeenCalled();
-    });
-
-    it('should log with level "error" correctly', () => {
-      // Arrange
-      const message = 'error level message';
-      const args = ['detail1', 'detail2'];
-
-      // Act
-      consoleOutput.logWithLevel('error', message, ...args);
-
-      // Assert
-      expect(console.error).toHaveBeenCalledWith(message, ...args);
-    });
-
-    it('should handle undefined messages with logWithLevel for "log" level', () => {
-      // Act
-      consoleOutput.logWithLevel('log', undefined);
-
-      // Assert
-      expect(console.error).toHaveBeenCalledWith(undefined);
-    });
-
-    it('should handle undefined messages with logWithLevel for "error" level', () => {
-      // Arrange
-      const args = ['detail'];
-
-      // Act
-      consoleOutput.logWithLevel('error', undefined, ...args);
-
-      // Assert
-      expect(console.error).toHaveBeenCalledWith(undefined, ...args);
-    });
-  });
-
-  describe('createMockConsole', () => {
     it('should capture log messages', () => {
       // Arrange
       const mockConsole = createMockConsole();
-
+      const message = 'test message';
+      
       // Act
-      mockConsole.log('test message');
-      mockConsole.log('another message');
-
+      mockConsole.log(message);
+      
       // Assert
       const output = mockConsole.getOutput();
-      expect(output.logs).toEqual(['test message', 'another message']);
-      expect(output.errors).toEqual([]);
+      expect(output).toContain(message);
     });
-
-    it('should handle undefined log messages', () => {
+    
+    it('should capture multiple log messages', () => {
       // Arrange
       const mockConsole = createMockConsole();
-
+      const messages = ['message 1', 'message 2', 'message 3'];
+      
       // Act
-      mockConsole.log(undefined);
-
+      messages.forEach(msg => mockConsole.log(msg));
+      
       // Assert
       const output = mockConsole.getOutput();
-      expect(output.logs).toEqual(['']);
+      expect(output).toHaveLength(messages.length);
+      messages.forEach(msg => {
+        expect(output).toContain(msg);
+      });
     });
-
+    
     it('should capture error messages with args', () => {
       // Arrange
       const mockConsole = createMockConsole();
-
+      
       // Act
-      mockConsole.error('error 1', 'detail');
-      mockConsole.error('error 2', 'more', 'details');
-
+      mockConsole.error('error message', 'detail1', 'detail2');
+      
       // Assert
       const output = mockConsole.getOutput();
-      expect(output.logs).toEqual([]);
-      expect(output.errors).toEqual([
-        'error 1 detail',
-        'error 2 more details'
-      ]);
+      expect(output[0]).toContain('ERROR: error message detail1 detail2');
     });
-
-    it('should handle undefined error messages', () => {
+    
+    it('should handle logWithLevel for log level', () => {
       // Arrange
       const mockConsole = createMockConsole();
-
+      const message = 'log level message';
+      
       // Act
-      mockConsole.error(undefined, 'arg1');
-
+      mockConsole.logWithLevel('log', message);
+      
       // Assert
       const output = mockConsole.getOutput();
-      expect(output.errors).toEqual([' arg1']);
+      expect(output).toContain(message);
     });
-
-    it('should capture log level messages with logWithLevel', () => {
+    
+    it('should handle logWithLevel for error level', () => {
       // Arrange
       const mockConsole = createMockConsole();
-
+      const message = 'error level message';
+      const args = ['detail1', 'detail2'];
+      
       // Act
-      mockConsole.logWithLevel('log', 'log message');
-
+      mockConsole.logWithLevel('error', message, ...args);
+      
       // Assert
       const output = mockConsole.getOutput();
-      expect(output.logs).toEqual(['log message']);
-      expect(output.errors).toEqual([]);
-    });
-
-    it('should capture error level messages with logWithLevel', () => {
-      // Arrange
-      const mockConsole = createMockConsole();
-
-      // Act
-      mockConsole.logWithLevel('error', 'error message', 'detail');
-
-      // Assert
-      const output = mockConsole.getOutput();
-      expect(output.logs).toEqual([]);
-      expect(output.errors).toEqual(['error message detail']);
-    });
-
-    it('should handle undefined messages with logWithLevel for "log" level', () => {
-      // Arrange
-      const mockConsole = createMockConsole();
-
-      // Act
-      mockConsole.logWithLevel('log', undefined);
-
-      // Assert
-      const output = mockConsole.getOutput();
-      expect(output.logs).toEqual(['']);
-    });
-
-    it('should handle undefined messages with logWithLevel for "error" level', () => {
-      // Arrange
-      const mockConsole = createMockConsole();
-
-      // Act
-      mockConsole.logWithLevel('error', undefined, 'detail');
-
-      // Assert
-      const output = mockConsole.getOutput();
-      expect(output.errors).toEqual([' detail']);
+      expect(output[0]).toContain('ERROR: error level message detail1 detail2');
     });
   });
 });

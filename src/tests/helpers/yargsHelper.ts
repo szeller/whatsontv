@@ -1,9 +1,8 @@
 import { jest } from '@jest/globals';
 import type { Arguments } from 'yargs';
 
-import config from '../../config.js';
-import type { CliArgs } from '../../services/consoleOutput.js';
-import { getTodayDate } from '../../services/tvShowService.js';
+import type { CliArgs } from '../../types/cliArgs.js';
+import { getTodayDate } from '../../utils/showUtils.js';
 
 interface YargsOptions {
   alias?: string;
@@ -28,22 +27,23 @@ export interface MockYargsInstance {
   argv: Record<string, unknown>;
 }
 
-const defaultArgs: CliArgs = {
+// Only include properties that exist in the CliArgs interface
+const defaultArgs: CliArgs & Record<string, unknown> = {
   date: getTodayDate(),
-  d: getTodayDate(),
-  country: config.country,
-  c: config.country,
-  types: config.types,
-  t: config.types,
-  networks: config.networks,
-  n: config.networks,
-  genres: config.genres,
-  g: config.genres,
-  languages: config.languages,
-  l: config.languages,
+  country: 'US',
+  types: [],
+  networks: [],
+  genres: [],
+  languages: [],
   timeSort: false,
-  's': false,
-  'time-sort': false,
+  query: '',
+  slack: false,
+  help: false,
+  version: false,
+  debug: false,
+  limit: 10,
+  time: false,
+  // Include these as extra properties for the tests
   _: [],
   $0: 'test'
 };
@@ -129,23 +129,23 @@ export function createMockYargs(): MockYargsInstance {
       if (arg.startsWith('--')) {
         const key: string = arg.slice(2);
         const option: YargsOptions | undefined = currentOptions[key];
-        if (option) {
+        if (option !== undefined && option !== null) {
           if (option.type === 'boolean') {
             parsedArgs[key] = true;
-            if (option.alias) {
+            if (option.alias !== undefined && option.alias !== '') {
               parsedArgs[option.alias] = true;
             }
           } else {
             const value: string | undefined = args[i + 1];
-            if (option.type === 'array' && value) {
+            if (option.type === 'array' && value !== undefined && value !== '') {
               parsedArgs[key] = [value];
-              if (option.alias) {
+              if (option.alias !== undefined && option.alias !== '') {
                 parsedArgs[option.alias] = [value];
               }
               i++;
-            } else if (value && !value.startsWith('--')) {
+            } else if (value !== undefined && value !== '' && !value.startsWith('--')) {
               parsedArgs[key] = value;
-              if (option.alias) {
+              if (option.alias !== undefined && option.alias !== '') {
                 parsedArgs[option.alias] = value;
               }
               i++;
@@ -158,7 +158,7 @@ export function createMockYargs(): MockYargsInstance {
     Object.entries(currentOptions).forEach(([key, option]: [string, YargsOptions]): void => {
       if (option.default !== undefined && parsedArgs[key] === undefined) {
         parsedArgs[key] = option.default;
-        if (option.alias) {
+        if (option.alias !== undefined && option.alias !== '') {
           parsedArgs[option.alias] = option.default;
         }
       }

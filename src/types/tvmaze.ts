@@ -67,3 +67,16 @@ export interface FetchOptions {
 export interface GroupedShows {
   [key: string]: Show[];
 }
+
+export interface Episode {
+  id: number;
+  name: string;
+  season: number;
+  number: number;
+  airtime: string;
+  airdate?: string;
+  runtime?: number;
+  image?: Image | null;
+  summary?: string;
+  type?: string;
+}

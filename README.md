@@ -128,22 +128,74 @@ npm run shows -- --help
 - Customizable through config file
 - Automatic daily notifications at configurable time
 
+## Architecture
+
+### Clean Architecture
+The application follows a clean architecture with clear separation of interfaces and implementations:
+
+- **Interfaces** (`src/interfaces/`): Define contracts for all services
+- **Implementations** (`src/implementations/`): Concrete implementations of interfaces
+  - Platform-specific code in dedicated subdirectories (console, slack)
+- **Utilities** (`src/utils/`): Pure utility functions
+- **Entry Points** (`src/cli.ts`, `src/slack.ts`): Application entry points
+
+### Dependency Injection
+The application uses tsyringe for dependency injection:
+
+- All services are injectable and registered in a central container
+- Dependencies are injected through constructor parameters
+- Clear separation between interfaces and implementations
+- Consistent use of dependency injection throughout the application
+
+### Directory Structure
+```
+src/
+│
+├── interfaces/                             # All interface definitions
+│   ├── consoleOutput.ts                    # Interface for low-level console operations
+│   ├── httpClient.ts                       # Interface for HTTP client operations
+│   ├── outputService.ts                    # Common interface for output services
+│   ├── showFormatter.ts                    # Interface for formatting show data
+│   └── tvShowService.ts                    # Interface for TV show data retrieval
+│
+├── implementations/                        # All concrete implementations
+│   ├── gotHttpClientImpl.ts                # HTTP client implementation using got
+│   ├── styleServiceImpl.ts                 # Styling service implementation
+│   ├── tvMazeServiceImpl.ts                # TVMaze API implementation
+│   │
+│   ├── console/                            # Console-specific implementations
+│   │   ├── consoleFormatterImpl.ts         # Console-specific formatting
+│   │   ├── consoleOutputImpl.ts            # Low-level console operations
+│   │   └── consoleOutputServiceImpl.ts     # Console output service
+│   │
+│   └── slack/                              # Slack-specific implementations
+│       ├── slackFormatterImpl.ts           # Slack-specific formatting
+│       └── slackOutputServiceImpl.ts       # Slack output service
+│
+├── utils/                                  # Utility functions and helpers
+│   ├── dateUtils.ts                        # Date-related utility functions
+│   ├── formatting.ts                       # General text formatting utilities
+│   ├── ids.ts                              # ID generation utilities
+│   ├── showUtils.ts                        # Show data manipulation functions
+│   └── styleUtils.ts                       # Styling utility functions
+│
+├── cli.ts                                  # CLI entry point
+├── slack.ts                                # Slack entry point
+└── index.ts                                # Main application entry point
+```
+
 ## Documentation
 
 ### Project Documentation
 - `README.md`: User guide and quick start
-- `docs/TechSpec.md`: Technical documentation including:
+- `docs/techspec.md`: Technical documentation including:
   - Architecture and design decisions
   - Development workflow
   - Testing strategy
   - Version constraints
   - Code style guidelines
-- `docs/TVMaze.md`: Complete TVMaze API reference including:
-  - API endpoints and parameters
-  - Data structures and types
-  - Supported platforms and regions
-  - Error handling and best practices
-  - Rate limiting and authentication
+- `docs/refactoring-plan.md`: Detailed plan for the refactoring process
+- `docs/TVMaze.md`: Complete TVMaze API reference
 
 ### Code Documentation
 - TSDoc comments for public APIs
@@ -199,45 +251,27 @@ This project uses Dependabot to automate dependency updates with the following s
 1. **Automated PRs**: Dependabot creates PRs for compatible updates
 2. **Review Process**:
    - Check that all tests pass in the PR
-   - Verify ESLint configuration still works
-   - Look for peer dependency warnings (expected for TypeScript-ESLint with ESLint v9)
-3. **Version Constraints**:
-   - Major version updates require manual review
-   - TypeScript and ESLint ecosystem have special compatibility requirements
-   - Always update related packages together (e.g., parser and plugin)
+   - Verify that coverage thresholds are maintained
+   - Review any breaking changes or deprecation notices
+3. **Merge Strategy**:
+   - Minor/patch updates merged automatically if tests pass
+   - Major updates require manual review and testing
+   - Dependency groups updated together to maintain compatibility
 
-#### Special Considerations
-- **ESLint Ecosystem**: Maintain single source of truth for code quality and formatting
-- **Peer Dependencies**: Some expected warnings from TypeScript-ESLint are normal
-- **Documentation**: Version constraints are documented in `docs/TechSpec.md#version-constraints-and-dependencies`.
+## Contributing
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-For detailed information about dependency constraints and compatibility, see the [Technical Specification](docs/TechSpec.md#version-constraints-and-dependencies).
+## License
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-### Running Tests
-```bash
-# Run all tests
-npm test
-
-# Run type checking
-npm run type-check
-
-# Run linting
-npm run lint
-
-# Run linting with auto-fix
-npm run lint:fix
-
-# Run CI checks (type checking, tests, and linting)
-npm run ci
-
-# Run tests in watch mode during development
-npm run test:watch
-
-# Run tests only on changed files (used by pre-commit hooks)
-npm run test:changed
-```
-
-### Development Mode
-Watch for changes during development:
-```bash
-npm run dev
+## Acknowledgments
+- [TVMaze API](https://www.tvmaze.com/api) for providing the TV show data
+- [tsyringe](https://github.com/microsoft/tsyringe) for dependency injection
+- [got](https://github.com/sindresorhus/got) for HTTP requests
+- [chalk](https://github.com/chalk/chalk) for terminal styling
+- [node-schedule](https://github.com/node-schedule/node-schedule) for scheduling
+- [yargs](https://github.com/yargs/yargs) for command-line argument parsing

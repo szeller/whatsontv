@@ -1,4 +1,5 @@
-import { HttpClient, HttpResponse } from '../../utils/httpClient.js';
+import type { HttpClient, HttpResponse } from '../../interfaces/httpClient.js';
+import { setTimeout } from 'timers/promises';
 
 /**
  * Mock HTTP client for testing
@@ -7,6 +8,11 @@ import { HttpClient, HttpResponse } from '../../utils/httpClient.js';
 export class MockHttpClient implements HttpClient {
   private mockResponses = new Map<string, HttpResponse<unknown>>();
   private mockErrors = new Map<string, Error>();
+  
+  /**
+   * Tracks the last URL that was requested
+   */
+  public lastUrl = '';
 
   /**
    * Set up a mock GET response
@@ -45,19 +51,51 @@ export class MockHttpClient implements HttpClient {
   }
 
   /**
+   * Set a mock response for any request
+   * @param response The response to return
+   */
+  setMockResponse<T>(response: HttpResponse<T>): void {
+    // This will be used as a default response for any URL
+    this.mockResponses.set('*', response as HttpResponse<unknown>);
+  }
+
+  /**
+   * Set a mock error for any request
+   * @param error The error to throw
+   */
+  setMockError(error: Error): void {
+    // This will be used as a default error for any URL
+    this.mockErrors.set('*', error);
+  }
+
+  /**
    * Mock implementation of GET
    * @param url The URL to request
    * @param _params Optional query parameters (ignored in mock)
    * @returns Promise resolving to the mock response
    */
   async get<T>(url: string, _params?: Record<string, string>): Promise<HttpResponse<T>> {
+    // Track the last URL requested
+    this.lastUrl = url;
+    
+    // Add a small delay to simulate network latency
+    await setTimeout(1);
+    
     if (this.mockErrors.has(url)) {
-      throw this.mockErrors.get(url)!;
+      const error = this.mockErrors.get(url);
+      if (error) throw error;
     }
     if (this.mockResponses.has(url)) {
       return this.mockResponses.get(url) as HttpResponse<T>;
     }
-    throw new Error(`No mock response for GET ${url}`);
+    if (this.mockResponses.has('*')) {
+      return this.mockResponses.get('*') as HttpResponse<T>;
+    }
+    if (this.mockErrors.has('*')) {
+      const error = this.mockErrors.get('*');
+      if (error) throw error;
+    }
+    throw new Error(`No mock response or error set for URL: ${url}`);
   }
 
   /**
@@ -72,13 +110,27 @@ export class MockHttpClient implements HttpClient {
     _data?: D,
     _params?: Record<string, string>
   ): Promise<HttpResponse<T>> {
-    const key = `POST:${url}`;
-    if (this.mockErrors.has(key)) {
-      throw this.mockErrors.get(key)!;
+    // Track the last URL requested
+    this.lastUrl = url;
+    
+    // Add a small delay to simulate network latency
+    await setTimeout(1);
+    
+    const postUrl = `POST:${url}`;
+    if (this.mockErrors.has(postUrl)) {
+      const error = this.mockErrors.get(postUrl);
+      if (error) throw error;
     }
-    if (this.mockResponses.has(key)) {
-      return this.mockResponses.get(key) as HttpResponse<T>;
+    if (this.mockResponses.has(postUrl)) {
+      return this.mockResponses.get(postUrl) as HttpResponse<T>;
     }
-    throw new Error(`No mock response for POST ${url}`);
+    if (this.mockResponses.has('*')) {
+      return this.mockResponses.get('*') as HttpResponse<T>;
+    }
+    if (this.mockErrors.has('*')) {
+      const error = this.mockErrors.get('*');
+      if (error) throw error;
+    }
+    throw new Error(`No mock response or error set for URL: ${url}`);
   }
 }

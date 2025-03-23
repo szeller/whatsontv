@@ -2,10 +2,10 @@
 
 // Coverage thresholds aligned with project requirements
 const COVERAGE_THRESHOLD = {
-  branches: 80, // Updated threshold to 80% to match project standards
-  functions: 80,
-  lines: 80,
-  statements: 80
+  branches: 80, 
+  functions: 80, 
+  lines: 80, 
+  statements: 80 
 };
 
 /**

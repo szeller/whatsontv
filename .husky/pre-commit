@@ -1,7 +1,4 @@
 #!/usr/bin/env sh
 
-# Run type checking first
-npm run type-check || exit 1
-
-# Run lint-staged for formatting and linting
-npx --no-install lint-staged
+# Run linting and type checking without coverage
+npm run precommit

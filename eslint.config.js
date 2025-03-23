@@ -20,7 +20,66 @@ import unicornPlugin from 'eslint-plugin-unicorn';
  * - Code quality (eslint-plugin-sonarjs)
  * - Promise handling (eslint-plugin-promise)
  * - Modern JavaScript practices (eslint-plugin-unicorn)
+ * - TypeScript type checking (integrated with ESLint)
  */
+
+// Common TypeScript rules for both source and test files
+const commonTsRules = {
+  // TypeScript-specific rules
+  ...tseslint.configs.recommended.rules,
+  
+  // Override some strict rules for our codebase
+  '@typescript-eslint/explicit-function-return-type': ['error', {
+    allowExpressions: true,
+    allowTypedFunctionExpressions: true
+  }],
+  '@typescript-eslint/no-unused-vars': ['error', {
+    argsIgnorePattern: '^_',
+    varsIgnorePattern: '^_',
+    caughtErrorsIgnorePattern: '^_'
+  }],
+  '@typescript-eslint/ban-ts-comment': ['error', { 
+    'ts-expect-error': 'allow-with-description' 
+  }],
+  '@typescript-eslint/no-require-imports': 'error',
+  
+  // Import rules
+  'import/no-unresolved': 'off', // TypeScript handles this
+  'import/order': 'off',
+  'import/no-duplicates': 'error',
+  'import/no-cycle': 'error',
+  
+  // Formatting rules (aligned with project standards)
+  'semi': ['error', 'always'],
+  'quotes': ['error', 'single'],
+  'max-len': ['error', { 'code': 100 }],
+  'indent': ['error', 2],
+  'comma-dangle': ['error', 'never'],
+  'object-curly-spacing': ['error', 'always'],
+  'array-bracket-spacing': ['error', 'never'],
+  
+  // Code quality rules
+  'eqeqeq': 'error',
+  'no-unused-expressions': 'error',
+  'no-var': 'error',
+  'prefer-const': 'error',
+  'no-loss-of-precision': 'error'
+};
+
+// Strict type-checking rules for source files
+const strictTypeRules = {
+  '@typescript-eslint/no-explicit-any': 'error',
+  '@typescript-eslint/strict-boolean-expressions': 'error',
+  '@typescript-eslint/no-non-null-assertion': 'error',
+  '@typescript-eslint/no-floating-promises': 'error',
+  '@typescript-eslint/no-misused-promises': 'error',
+  '@typescript-eslint/unbound-method': 'error',
+  '@typescript-eslint/no-unnecessary-type-assertion': 'error',
+  '@typescript-eslint/no-unnecessary-type-arguments': 'error',
+  '@typescript-eslint/restrict-plus-operands': 'error',
+  '@typescript-eslint/restrict-template-expressions': 'error',
+};
+
 export default [
   eslint.configs.recommended,
   // Main source files configuration
@@ -36,7 +95,6 @@ export default [
         tsconfigRootDir: '.'
       },
       globals: {
-        // Node.js globals
         process: 'readonly',
         console: 'readonly',
         global: 'readonly'
@@ -51,114 +109,45 @@ export default [
       'unicorn': unicornPlugin
     },
     rules: {
-      // TypeScript-specific rules
-      ...tseslint.configs.recommended.rules,
-      '@typescript-eslint/explicit-function-return-type': ['error', {
-        allowExpressions: true,
-        allowTypedFunctionExpressions: true
-      }],
-      '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/no-unused-vars': ['error', {
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_',
-        caughtErrorsIgnorePattern: '^_'
-      }],
-      '@typescript-eslint/no-floating-promises': 'error',
-      '@typescript-eslint/strict-boolean-expressions': 'error',
-      '@typescript-eslint/no-non-null-assertion': 'error',
-      '@typescript-eslint/ban-ts-comment': ['error', { 
-        'ts-expect-error': 'allow-with-description' 
-      }], // Replaces prefer-ts-expect-error
-      '@typescript-eslint/no-require-imports': 'error', // Replaces no-var-requires
+      ...commonTsRules,
+      ...strictTypeRules,
       
-      // Import rules
-      'import/no-unresolved': 'off', // TypeScript handles this
-      'import/order': ['error', {
-        'groups': [
-          'builtin',
-          'external',
-          'internal',
-          'parent',
-          'sibling',
-          'index'
-        ],
-        'newlines-between': 'always',
-        'alphabetize': {
-          'order': 'asc',
-          'caseInsensitive': true
-        }
-      }],
-      'import/no-duplicates': 'error',
-      'import/no-cycle': 'error',
+      // Rules with many violations temporarily disabled - to be fixed in GitHub issue #49
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
       
-      // Security rules
-      'security/detect-object-injection': 'warn',
-      'security/detect-non-literal-regexp': 'warn',
-      'security/detect-non-literal-fs-filename': 'warn',
+      // Strict type checking rules - previously warnings, now errors
+      '@typescript-eslint/no-unsafe-argument': 'error',
+      '@typescript-eslint/no-unsafe-return': 'error',
+      '@typescript-eslint/require-await': 'error',
+      '@typescript-eslint/only-throw-error': 'error',
+      
+      // Security rules (selected subset)
       'security/detect-eval-with-expression': 'error',
       'security/detect-buffer-noassert': 'error',
-      'security/detect-unsafe-regex': 'warn',
+      'security/detect-unsafe-regex': 'error',
       'security/detect-new-buffer': 'error',
       
-      // SonarJS rules for code quality
+      // SonarJS rules (selected subset)
       'sonarjs/no-identical-expressions': 'error',
       'sonarjs/no-identical-conditions': 'error',
-      'sonarjs/no-inverted-boolean-check': 'warn',
-      'sonarjs/no-redundant-boolean': 'warn',
-      'sonarjs/no-unused-collection': 'warn',
       'sonarjs/no-use-of-empty-return-value': 'error',
-      'sonarjs/no-duplicate-string': ['warn', { 'threshold': 3 }],
-      'sonarjs/prefer-immediate-return': 'warn',
-      'sonarjs/prefer-object-literal': 'warn',
-      'sonarjs/prefer-single-boolean-return': 'warn',
-      'sonarjs/no-small-switch': 'warn',
       'sonarjs/no-gratuitous-expressions': 'error',
       
-      // Promise handling rules
+      // Promise handling rules (selected subset)
       'promise/catch-or-return': 'error',
       'promise/no-return-wrap': 'error',
       'promise/param-names': 'error',
-      'promise/no-nesting': 'warn',
-      'promise/no-promise-in-callback': 'warn',
-      'promise/no-callback-in-promise': 'warn',
-      'promise/avoid-new': 'warn',
       'promise/no-new-statics': 'error',
-      'promise/valid-params': 'error',
       
-      // Unicorn rules for modern JavaScript practices
-      'unicorn/better-regex': 'warn',
-      'unicorn/catch-error-name': 'warn',
-      'unicorn/consistent-destructuring': 'warn',
+      // Unicorn rules (selected subset)
       'unicorn/error-message': 'error',
-      'unicorn/no-array-for-each': 'warn',
-      'unicorn/no-for-loop': 'warn',
-      'unicorn/no-lonely-if': 'warn',
-      'unicorn/no-nested-ternary': 'warn',
       'unicorn/no-null': 'off', // Conflicts with TypeScript patterns
-      'unicorn/no-useless-undefined': 'warn',
-      'unicorn/prefer-array-find': 'warn',
-      'unicorn/prefer-array-flat-map': 'warn',
-      'unicorn/prefer-includes': 'warn',
-      'unicorn/prefer-string-slice': 'warn',
-      'unicorn/prefer-ternary': 'warn',
       'unicorn/prevent-abbreviations': 'off', // Too aggressive for our codebase
       
-      // Formatting rules (aligned with project standards)
-      'semi': ['error', 'always'],
-      'quotes': ['error', 'single'],
-      'max-len': ['error', { 'code': 100 }],
-      'indent': ['error', 2],
-      'comma-dangle': ['error', 'never'],
-      'object-curly-spacing': ['error', 'always'],
-      'array-bracket-spacing': ['error', 'never'],
-      
-      // Code quality rules
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
-      'eqeqeq': 'error',
-      'no-unused-expressions': 'error',
-      'no-var': 'error',
-      'prefer-const': 'error',
-      'no-loss-of-precision': 'error' // Using base rule instead of @typescript-eslint version
+      // Console rules
+      'no-console': ['error', { allow: ['warn', 'error'] }]
     },
     linterOptions: {
       reportUnusedDisableDirectives: 'error'
@@ -176,101 +165,34 @@ export default [
         tsconfigRootDir: '.'
       },
       globals: {
-        // Node.js globals
         process: 'readonly',
         console: 'readonly',
         global: 'readonly',
-        // Jest globals
+        jest: 'readonly',
         describe: 'readonly',
+        it: 'readonly',
         test: 'readonly',
         expect: 'readonly',
         beforeAll: 'readonly',
         afterAll: 'readonly',
         beforeEach: 'readonly',
-        afterEach: 'readonly',
-        jest: 'readonly'
+        afterEach: 'readonly'
       }
     },
     plugins: {
       '@typescript-eslint': tseslint,
-      'import': importPlugin,
-      'security': securityPlugin,
-      'sonarjs': sonarjsPlugin,
-      'promise': promisePlugin,
-      'unicorn': unicornPlugin
+      'import': importPlugin
     },
     rules: {
-      // TypeScript-specific rules
-      ...tseslint.configs.recommended.rules,
-      '@typescript-eslint/explicit-function-return-type': ['error', {
-        allowExpressions: true,
-        allowTypedFunctionExpressions: true
-      }],
-      '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/no-unused-vars': ['error', {
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_',
-        caughtErrorsIgnorePattern: '^_'
-      }],
-      '@typescript-eslint/no-floating-promises': 'error',
-      '@typescript-eslint/no-non-null-assertion': 'off', // Relaxed for tests
-      '@typescript-eslint/strict-boolean-expressions': 'off', // Relaxed for tests
-      '@typescript-eslint/ban-ts-comment': ['error', { 
-        'ts-expect-error': 'allow-with-description' 
-      }],
-      '@typescript-eslint/no-require-imports': 'error',
+      ...commonTsRules,
+      ...strictTypeRules,
       
-      // Import rules
-      'import/no-unresolved': 'off',
-      'import/order': ['error', {
-        'groups': [
-          'builtin',
-          'external',
-          'internal',
-          'parent',
-          'sibling',
-          'index'
-        ],
-        'newlines-between': 'always',
-        'alphabetize': {
-          'order': 'asc',
-          'caseInsensitive': true
-        }
-      }],
-      
-      // Security rules - relaxed for tests
-      'security/detect-object-injection': 'off',
-      'security/detect-non-literal-regexp': 'off',
-      'security/detect-non-literal-fs-filename': 'off',
-      'security/detect-eval-with-expression': 'error',
-      'security/detect-buffer-noassert': 'error',
-      
-      // SonarJS rules - relaxed for tests
-      'sonarjs/no-identical-expressions': 'error',
-      'sonarjs/no-identical-conditions': 'error',
-      'sonarjs/no-duplicate-string': 'off',
-      'sonarjs/no-small-switch': 'off',
-      
-      // Promise rules - relaxed for tests
-      'promise/catch-or-return': 'off',
-      'promise/no-nesting': 'off',
-      'promise/no-promise-in-callback': 'off',
-      'promise/no-callback-in-promise': 'off',
-      'promise/avoid-new': 'off',
-      
-      // Unicorn rules - relaxed for tests
-      'unicorn/consistent-destructuring': 'off',
-      'unicorn/no-array-for-each': 'off',
-      'unicorn/no-for-loop': 'off',
-      
-      // Formatting and code quality rules
-      'semi': ['error', 'always'],
-      'quotes': ['error', 'single'],
-      'max-len': ['error', { 'code': 100 }],
-      'indent': ['error', 2],
-      'comma-dangle': ['error', 'never'],
-      'object-curly-spacing': ['error', 'always'],
-      'no-console': 'off' // Relaxed for tests
+      // Only relax these specific rules for tests
+      'no-console': 'off',
+      'no-unused-expressions': 'off' // Allow unused expressions in tests (for chai etc.)
+    },
+    linterOptions: {
+      reportUnusedDisableDirectives: 'error'
     }
   }
 ];

@@ -18,7 +18,10 @@ const defaultConfig: Config = {
     enabled: true,
     botToken: process.env.SLACK_BOT_TOKEN,
     channel: process.env.SLACK_CHANNEL
-  }
+  },
+  appName: 'WhatsOnTV',
+  version: '1.0.0',
+  apiUrl: 'https://api.tvmaze.com'
 };
 
 // Try to load user config from config.json
