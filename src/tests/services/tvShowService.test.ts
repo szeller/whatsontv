@@ -3,18 +3,19 @@
  */
 import 'reflect-metadata';
 import { describe, it, beforeEach, expect, afterEach, jest } from '@jest/globals';
-import { container, InjectionToken } from 'tsyringe';
+import { container } from 'tsyringe';
 
-import { TvMazeServiceImpl } from '../../implementations/tvMazeServiceImpl.js';
 import type { Show, ShowDetails } from '../../types/tvmaze.js';
+import type { TvShowService } from '../../interfaces/tvShowService.js';
+import { TvMazeServiceImpl } from '../../implementations/tvMazeServiceImpl.js';
 import { MockHttpClient } from '../utils/mockHttpClient.js';
-import { groupShowsByNetwork } from '../../utils/showUtils.js';
+import { groupShowsByNetwork, getTodayDate } from '../../utils/showUtils.js';
 
 // Create a mock HTTP client and service instance
 let mockClient: MockHttpClient;
-let tvShowService: TvMazeServiceImpl;
+let tvShowService: TvShowService;
 
-// Type-safe way to check if a network exists in the groups and get its shows
+// Helper functions for testing
 function hasNetwork(groups: Record<string, Show[]>, network: string): boolean {
   return Object.prototype.hasOwnProperty.call(groups, network);
 }
@@ -136,7 +137,7 @@ describe('tvShowService', () => {
     });
     
     // Create the service
-    tvShowService = container.resolve(TvMazeServiceImpl as InjectionToken<TvMazeServiceImpl>);
+    tvShowService = container.resolve(TvMazeServiceImpl);
   });
   
   describe('groupShowsByNetwork', () => {
@@ -156,10 +157,10 @@ describe('tvShowService', () => {
       const result = groupShowsByNetwork(shows);
       
       // Use our type-safe helper functions to verify the result
-      expect(hasNetwork(result as Record<string, Show[]>, 'CBS')).toBe(true);
-      expect(getShowsCount(result as Record<string, Show[]>, 'CBS')).toBe(1);
-      expect(hasNetwork(result as Record<string, Show[]>, 'Unknown Network')).toBe(false);
-      expect(getShowsCount(result as Record<string, Show[]>, 'Unknown Network')).toBe(0);
+      expect(hasNetwork(result, 'CBS')).toBe(true);
+      expect(getShowsCount(result, 'CBS')).toBe(1);
+      expect(hasNetwork(result, 'Unknown Network')).toBe(false);
+      expect(getShowsCount(result, 'Unknown Network')).toBe(0);
     });
     
     it('handles shows with no network', () => {
@@ -181,8 +182,8 @@ describe('tvShowService', () => {
       const result = groupShowsByNetwork(shows);
       
       // Use our type-safe helper functions to verify the result
-      expect(hasNetwork(result as Record<string, Show[]>, 'Unknown Network')).toBe(true);
-      expect(getShowsCount(result as Record<string, Show[]>, 'Unknown Network')).toBe(1);
+      expect(hasNetwork(result, 'Unknown Network')).toBe(true);
+      expect(getShowsCount(result, 'Unknown Network')).toBe(1);
     });
     
     it('handles web channel shows', () => {
@@ -215,33 +216,32 @@ describe('tvShowService', () => {
       const result = groupShowsByNetwork([webChannelShow, regularShow]);
       
       // Use our type-safe helper functions to verify the result
-      const networks = Object.keys(result as Record<string, Show[]>).sort();
+      const networks = Object.keys(result).sort();
       expect(networks).toEqual(['CBS', 'Netflix'].sort());
-      expect(getShowsCount(result as Record<string, Show[]>, 'Netflix')).toBe(1);
-      expect(getShowsCount(result as Record<string, Show[]>, 'CBS')).toBe(1);
+      expect(getShowsCount(result, 'Netflix')).toBe(1);
+      expect(getShowsCount(result, 'CBS')).toBe(1);
     });
   });
   
   describe('fetchShowsWithOptions', () => {
     it('fetches shows with default options', async () => {
-      // Mock the getShowsByDate method
-      const mockShow = {
-        name: 'NCIS',
-        season: 1,
-        number: 1,
-        airtime: '20:00',
-        show: {
-          ...mockTvShowDetails,
-          name: 'NCIS'
-        }
-      };
-      
-      // Get the current date in YYYY-MM-DD format
-      const today = new Date().toISOString().split('T')[0];
+      // Get today's date in YYYY-MM-DD format
+      const today = getTodayDate();
       
       // Set up the mock response for the HTTP client
       mockClient.mockGet(`https://api.tvmaze.com/schedule?date=${today}&country=US`, {
-        data: [mockShow],
+        data: [
+          {
+            name: 'NCIS',
+            season: 1,
+            number: 1,
+            airtime: '20:00',
+            show: {
+              ...mockTvShowDetails,
+              name: 'NCIS'
+            }
+          }
+        ],
         status: 200,
         headers: {}
       });
@@ -344,11 +344,7 @@ describe('tvShowService', () => {
       // The API returns an array of objects with a 'show' property
       mockClient.setMockResponse({
         data: [{ 
-          show: {
-            ...mockTvShowDetails,
-            // Add the 'show' property that normalizeShowData expects
-            show: mockTvShowDetails
-          }
+          show: mockTvShowDetails
         }],
         status: 200,
         headers: {}

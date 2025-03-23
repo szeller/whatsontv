@@ -1,0 +1,212 @@
+[
+  {
+    "id": 2582338,
+    "url": "https://www.tvmaze.com/episodes/2582338/60-minutes-56x26-march-17-2024",
+    "name": "March 17, 2024",
+    "season": 56,
+    "number": 26,
+    "type": "regular",
+    "airdate": "2024-03-17",
+    "airtime": "19:00",
+    "airstamp": "2024-03-17T23:00:00+00:00",
+    "runtime": 60,
+    "rating": {
+      "average": null
+    },
+    "image": null,
+    "summary": "<p>Interviews of the week.</p>",
+    "show": {
+      "id": 3777,
+      "url": "https://www.tvmaze.com/shows/3777/60-minutes",
+      "name": "60 Minutes",
+      "type": "News",
+      "language": "English",
+      "genres": [
+        "News"
+      ],
+      "network": {
+        "id": 2,
+        "name": "CBS",
+        "country": {
+          "name": "United States",
+          "code": "US",
+          "timezone": "America/New_York"
+        }
+      },
+      "webChannel": null,
+      "image": {
+        "medium": "https://static.tvmaze.com/uploads/images/medium_portrait/486/1215949.jpg",
+        "original": "https://static.tvmaze.com/uploads/images/original_untouched/486/1215949.jpg"
+      },
+      "summary": "<p><b>60 Minutes</b> is a popular news magazine providing both hard hitting investigations, interviews and features, along with people in the news and current events.</p>"
+    }
+  },
+  {
+    "id": 2582354,
+    "url": "https://www.tvmaze.com/episodes/2582354/the-equalizer-4x09-truth-to-power",
+    "name": "Truth to Power",
+    "season": "4",
+    "number": "9",
+    "type": "regular",
+    "airdate": "2024-03-17",
+    "airtime": "20:00",
+    "airstamp": "2024-03-18T00:00:00+00:00",
+    "runtime": 60,
+    "rating": {
+      "average": null
+    },
+    "image": null,
+    "summary": "<p>When a woman's daughter is murdered, she turns to McCall for help after the police dismiss her claims that her daughter's boyfriend is the killer; Dante's wife, Alicia, asks him to help her father, who's in trouble.</p>",
+    "show": {
+      "id": 42181,
+      "url": "https://www.tvmaze.com/shows/42181/the-equalizer",
+      "name": "The Equalizer",
+      "type": "Scripted",
+      "language": "English",
+      "genres": [
+        "Drama",
+        "Action",
+        "Crime"
+      ],
+      "network": {
+        "id": 2,
+        "name": "CBS",
+        "country": {
+          "name": "United States",
+          "code": "US",
+          "timezone": "America/New_York"
+        }
+      },
+      "webChannel": null,
+      "image": {
+        "medium": "https://static.tvmaze.com/uploads/images/medium_portrait/489/1224652.jpg",
+        "original": "https://static.tvmaze.com/uploads/images/original_untouched/489/1224652.jpg"
+      },
+      "summary": "<p>Robyn McCall, an enigmatic woman with a mysterious background, uses her extensive skills to help those with nowhere else to turn.</p>"
+    }
+  },
+  {
+    "id": 2582386,
+    "url": "https://www.tvmaze.com/episodes/2582386/the-reluctant-traveler-with-eugene-levy-2x05-episode-5",
+    "name": "Episode 5",
+    "season": 2,
+    "number": 5,
+    "type": "regular",
+    "airdate": "2024-03-15",
+    "airtime": "",
+    "airstamp": "2024-03-15T07:00:00+00:00",
+    "runtime": null,
+    "rating": {
+      "average": null
+    },
+    "image": null,
+    "summary": null,
+    "_embedded": {
+      "show": {
+        "id": 65789,
+        "url": "https://www.tvmaze.com/shows/65789/the-reluctant-traveler-with-eugene-levy",
+        "name": "The Reluctant Traveler with Eugene Levy",
+        "type": "Documentary",
+        "language": "English",
+        "genres": [
+          "Travel"
+        ],
+        "network": null,
+        "webChannel": {
+          "id": 310,
+          "name": "Apple TV+",
+          "country": null,
+          "officialSite": "https://tv.apple.com/"
+        },
+        "image": {
+          "medium": "https://static.tvmaze.com/uploads/images/medium_portrait/489/1224653.jpg",
+          "original": "https://static.tvmaze.com/uploads/images/original_untouched/489/1224653.jpg"
+        },
+        "summary": "<p>Follow <b>Eugene Levy</b> as he visits some of the world's most beautiful and intriguing destinations, experiencing thrilling local adventures with hilarious new friends.</p>"
+      }
+    }
+  },
+  {
+    "id": 2582402,
+    "url": "https://www.tvmaze.com/episodes/2582402/the-machine-1x05-episode-5",
+    "name": "Episode 5",
+    "season": 1,
+    "number": 5,
+    "type": "regular",
+    "airdate": "2024-03-15",
+    "airtime": "",
+    "airstamp": "2024-03-15T07:00:00+00:00",
+    "runtime": null,
+    "rating": {
+      "average": null
+    },
+    "image": null,
+    "summary": null,
+    "_embedded": {
+      "show": {
+        "id": 69214,
+        "url": "https://www.tvmaze.com/shows/69214/the-machine",
+        "name": "The Machine",
+        "type": "Scripted",
+        "language": "English",
+        "genres": [
+          "Comedy"
+        ],
+        "network": null,
+        "webChannel": {
+          "id": 1,
+          "name": "Netflix",
+          "country": null,
+          "officialSite": "https://www.netflix.com/"
+        },
+        "image": {
+          "medium": "https://static.tvmaze.com/uploads/images/medium_portrait/489/1224654.jpg",
+          "original": "https://static.tvmaze.com/uploads/images/original_untouched/489/1224654.jpg"
+        },
+        "summary": "<p>Based on Bert Kreischer's stand-up routine \"The Machine,\" this comedy series follows Bert and his father as they get kidnapped by those Bert wronged in Russia two decades ago.</p>"
+      }
+    }
+  },
+  {
+    "id": 2582418,
+    "url": "https://www.tvmaze.com/episodes/2582418/girls5eva-3x05-the-spice-girls-movie",
+    "name": "The Spice Girls Movie",
+    "season": 3,
+    "number": 5,
+    "type": "regular",
+    "airdate": "2024-03-15",
+    "airtime": "",
+    "airstamp": "2024-03-15T07:00:00+00:00",
+    "runtime": null,
+    "rating": {
+      "average": null
+    },
+    "image": null,
+    "summary": "<p>Gloria's son tries to get the girls to invest in his app; Dawn and Wickie compete for the same man; Summer's husband returns from prison.</p>",
+    "_embedded": {
+      "show": {
+        "id": 48361,
+        "url": "https://www.tvmaze.com/shows/48361/girls5eva",
+        "name": "Girls5eva",
+        "type": "Scripted",
+        "language": "English",
+        "genres": [
+          "Comedy",
+          "Music"
+        ],
+        "network": null,
+        "webChannel": {
+          "id": 1,
+          "name": "Netflix",
+          "country": null,
+          "officialSite": "https://www.netflix.com/"
+        },
+        "image": {
+          "medium": "https://static.tvmaze.com/uploads/images/medium_portrait/489/1224655.jpg",
+          "original": "https://static.tvmaze.com/uploads/images/original_untouched/489/1224655.jpg"
+        },
+        "summary": "<p>When a one-hit-wonder girl group from the 90's gets sampled by a young rapper, its members reunite to give their pop star dreams one more shot.</p>"
+      }
+    }
+  }
+]
