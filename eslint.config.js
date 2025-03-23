@@ -185,20 +185,9 @@ export default [
     },
     rules: {
       ...commonTsRules,
+      ...strictTypeRules,
       
-      // Relax some rules for tests
-      '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/strict-boolean-expressions': 'off',
-      '@typescript-eslint/no-non-null-assertion': 'error', // Keep this as error
-      
-      // Temporarily disabled for tests - to be fixed in GitHub issue #49
-      '@typescript-eslint/no-unsafe-argument': 'off',
-      '@typescript-eslint/no-unsafe-assignment': 'off',
-      '@typescript-eslint/no-unsafe-member-access': 'off',
-      '@typescript-eslint/no-unsafe-call': 'off',
-      '@typescript-eslint/no-unsafe-return': 'off',
-      
-      '@typescript-eslint/unbound-method': 'off',
+      // Only relax these specific rules for tests
       'no-console': 'off',
       'no-unused-expressions': 'off' // Allow unused expressions in tests (for chai etc.)
     },

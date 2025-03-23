@@ -129,23 +129,23 @@ export function createMockYargs(): MockYargsInstance {
       if (arg.startsWith('--')) {
         const key: string = arg.slice(2);
         const option: YargsOptions | undefined = currentOptions[key];
-        if (option) {
+        if (option !== undefined && option !== null) {
           if (option.type === 'boolean') {
             parsedArgs[key] = true;
-            if (option.alias) {
+            if (option.alias !== undefined && option.alias !== '') {
               parsedArgs[option.alias] = true;
             }
           } else {
             const value: string | undefined = args[i + 1];
-            if (option.type === 'array' && value) {
+            if (option.type === 'array' && value !== undefined && value !== '') {
               parsedArgs[key] = [value];
-              if (option.alias) {
+              if (option.alias !== undefined && option.alias !== '') {
                 parsedArgs[option.alias] = [value];
               }
               i++;
-            } else if (value && !value.startsWith('--')) {
+            } else if (value !== undefined && value !== '' && !value.startsWith('--')) {
               parsedArgs[key] = value;
-              if (option.alias) {
+              if (option.alias !== undefined && option.alias !== '') {
                 parsedArgs[option.alias] = value;
               }
               i++;
@@ -158,7 +158,7 @@ export function createMockYargs(): MockYargsInstance {
     Object.entries(currentOptions).forEach(([key, option]: [string, YargsOptions]): void => {
       if (option.default !== undefined && parsedArgs[key] === undefined) {
         parsedArgs[key] = option.default;
-        if (option.alias) {
+        if (option.alias !== undefined && option.alias !== '') {
           parsedArgs[option.alias] = option.default;
         }
       }

@@ -409,7 +409,7 @@ describe('tvShowService', () => {
       // The actual implementation might return a different structure
       // than what we're expecting in the test. Let's check the important parts.
       expect(result).not.toBeNull();
-      if (result) {
+      if (result !== null && result !== undefined) {
         expect(result).toEqual(mockTvShowDetails);
       }
     });
