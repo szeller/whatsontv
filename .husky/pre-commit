@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 
-# Run linting and unit tests
-npm run ci
+# Run linting and type checking without coverage
+npm run precommit

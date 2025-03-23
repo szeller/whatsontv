@@ -2,10 +2,10 @@
 
 // Coverage thresholds aligned with project requirements
 const COVERAGE_THRESHOLD = {
-  branches: 0, // Temporarily disabled to allow commit to go through
-  functions: 0,
-  lines: 0,
-  statements: 0
+  branches: 80, 
+  functions: 80, 
+  lines: 80, 
+  statements: 80 
 };
 
 /**

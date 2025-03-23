@@ -20,13 +20,6 @@ export interface TvShowService {
   searchShows(query: string): Promise<Show[]>;
 
   /**
-   * Get episodes for a specific show
-   * @param showId ID of the show
-   * @returns Promise resolving to an array of episodes
-   */
-  getEpisodes(showId: number): Promise<Show[]>;
-
-  /**
    * Get shows based on command line options
    * @param options Command line options
    * @returns Promise resolving to an array of shows
@@ -34,7 +27,6 @@ export interface TvShowService {
   getShows(options: { 
     date?: string; 
     search?: string; 
-    show?: number;
   }): Promise<Show[]>;
 
   /**

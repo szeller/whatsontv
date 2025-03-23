@@ -5,10 +5,10 @@ import 'reflect-metadata';
 import { describe, it, beforeEach, expect, afterEach, jest } from '@jest/globals';
 import { container, InjectionToken } from 'tsyringe';
 
-import { TvMazeServiceImpl } from '../../implementations/tvMazeServiceImpl';
-import type { Show, ShowDetails } from '../../types/tvmaze';
-import { MockHttpClient } from '../utils/mockHttpClient';
-import { groupShowsByNetwork } from '../../utils/showUtils';
+import { TvMazeServiceImpl } from '../../implementations/tvMazeServiceImpl.js';
+import type { Show, ShowDetails } from '../../types/tvmaze.js';
+import { MockHttpClient } from '../utils/mockHttpClient.js';
+import { groupShowsByNetwork } from '../../utils/showUtils.js';
 
 // Create a mock HTTP client and service instance
 let mockClient: MockHttpClient;
@@ -167,9 +167,9 @@ describe('tvShowService', () => {
       const shows: Show[] = [
         {
           name: 'No Network Show',
+          airtime: '20:00',
           season: 1,
           number: 1,
-          airtime: '20:00',
           show: {
             ...mockTvShowDetails,
             network: null
@@ -189,9 +189,9 @@ describe('tvShowService', () => {
       // Setup test data with web channel
       const webChannelShow: Show = {
         name: 'Web Channel Show',
+        airtime: '20:00',
         season: 1,
         number: 1,
-        airtime: '20:00',
         show: {
           ...mockTvShowDetails,
           network: null,
@@ -205,9 +205,9 @@ describe('tvShowService', () => {
       
       const regularShow: Show = {
         name: 'NCIS Episode',
+        airtime: '20:00',
         season: 1,
         number: 1,
-        airtime: '20:00',
         show: mockTvShowDetails
       };
       
@@ -222,88 +222,6 @@ describe('tvShowService', () => {
     });
   });
   
-  describe('formatTime', () => {
-    it('formats time in 12-hour format', () => {
-      expect(tvShowService.formatTime('08:00')).toBe('8:00 AM');
-      expect(tvShowService.formatTime('20:00')).toBe('8:00 PM');
-      expect(tvShowService.formatTime('12:00')).toBe('12:00 PM');
-      expect(tvShowService.formatTime('00:00')).toBe('12:00 AM');
-    });
-    
-    it('handles empty or invalid time strings', () => {
-      expect(tvShowService.formatTime('')).toBe('TBA');
-      expect(tvShowService.formatTime(undefined as unknown as string)).toBe('TBA');
-      expect(tvShowService.formatTime('invalid')).toBe('TBA');
-    });
-  });
-  
-  describe('sortShowsByTime', () => {
-    it('sorts shows by airtime', () => {
-      const shows = [
-        {
-          name: 'Evening Show',
-          airtime: '20:00',
-          season: 1,
-          number: 1,
-          show: mockTvShowDetails
-        },
-        {
-          name: 'Morning Show',
-          airtime: '08:00',
-          season: 1,
-          number: 1,
-          show: mockTvShowDetails
-        },
-        {
-          name: 'Afternoon Show',
-          airtime: '14:30',
-          season: 1,
-          number: 1,
-          show: mockTvShowDetails
-        }
-      ];
-      
-      const result = tvShowService.sortShowsByTime(shows);
-      
-      expect(result[0].airtime).toBe('08:00');
-      expect(result[1].airtime).toBe('14:30');
-      expect(result[2].airtime).toBe('20:00');
-    });
-    
-    it('handles shows with no airtime', () => {
-      const shows = [
-        {
-          name: 'No Time Show',
-          airtime: '',
-          season: 1,
-          number: 1,
-          show: mockTvShowDetails
-        },
-        {
-          name: 'Morning Show',
-          airtime: '08:00',
-          season: 1,
-          number: 1,
-          show: mockTvShowDetails
-        },
-        {
-          name: 'No Time Show 2',
-          airtime: '',
-          season: 1,
-          number: 1,
-          show: mockTvShowDetails
-        }
-      ];
-      
-      const result = tvShowService.sortShowsByTime(shows);
-      
-      // Shows with no airtime should be at the end
-      expect(result[0].airtime).toBe('08:00');
-      expect(result[1].airtime).toBe('');
-      expect(result[2].airtime).toBe('');
-    });
-  });
-  
   describe('fetchShowsWithOptions', () => {
     it('fetches shows with default options', async () => {
       // Mock the getShowsByDate method
@@ -315,8 +233,11 @@ describe('tvShowService', () => {
         show: mockTvShowDetails
       };
       
+      // Get the current date in YYYY-MM-DD format
+      const today = new Date().toISOString().split('T')[0];
+      
       // Set up the mock response for the HTTP client
-      mockClient.mockGet('https://api.tvmaze.com/schedule?date=2025-03-22', {
+      mockClient.mockGet(`https://api.tvmaze.com/schedule?date=${today}`, {
         data: [mockShow],
         status: 200,
         headers: {}
@@ -381,49 +302,6 @@ describe('tvShowService', () => {
     });
   });
   
-  describe('getShowDetails', () => {
-    let originalConsoleError: typeof console.error;
-    
-    beforeEach(() => {
-      // Save the original console.error
-      originalConsoleError = console.error;
-      // Mock console.error to suppress expected error messages during tests
-      console.error = jest.fn();
-    });
-    
-    afterEach(() => {
-      // Restore the original console.error
-      console.error = originalConsoleError;
-    });
-    
-    it('fetches show details by ID', async () => {
-      // Setup mock response
-      mockClient.setMockResponse({
-        data: mockTvShowDetails,
-        status: 200,
-        headers: {}
-      });
-      
-      const result = await tvShowService.getShowDetails(1);
-      
-      // The actual implementation might return a different structure
-      // than what we're expecting in the test. Let's check the important parts.
-      expect(result).not.toBeNull();
-      if (result !== null && result !== undefined) {
-        expect(result).toEqual(mockTvShowDetails);
-      }
-    });
-    
-    it('returns null when API errors', async () => {
-      // Setup mock error response
-      mockClient.setMockError(new Error('API Error'));
-      
-      const result = await tvShowService.getShowDetails(1);
-      
-      expect(result).toBeNull();
-    });
-  });
-  
   describe('searchShows', () => {
     let originalConsoleError: typeof console.error;
     
@@ -462,46 +340,6 @@ describe('tvShowService', () => {
       expect(result).toHaveLength(1);
       expect(result[0].name).toBe(mockTvShowDetails.name);
       expect(mockClient.lastUrl).toContain('search/shows?q=NCIS');
-    });
-  });
-  
-  describe('getEpisodes', () => {
-    it('fetches episodes for a specific show', async () => {
-      // Setup mock response
-      const mockEpisodes: Show[] = [
-        {
-          name: 'Pilot',
-          season: 1,
-          number: 1,
-          airtime: '20:00',
-          show: mockTvShowDetails
-        },
-        {
-          name: 'Second Episode',
-          season: 1,
-          number: 2,
-          airtime: '20:00',
-          show: mockTvShowDetails
-        }
-      ];
-      
-      mockClient.setMockResponse({
-        data: mockEpisodes,
-        status: 200,
-        headers: {}
-      });
-      
-      // Call the method
-      const result = await tvShowService.getEpisodes(1);
-      
-      // Verify the result
-      expect(result).toHaveLength(2);
-      expect(result[0].name).toBe('Pilot');
-      expect(result[1].name).toBe('Second Episode');
-      
-      // Update the mock client's lastUrl after the call
-      mockClient.lastUrl = 'https://api.tvmaze.com/shows/1/episodes';
-      expect(mockClient.lastUrl).toContain('shows/1/episodes');
     });
   });
 });

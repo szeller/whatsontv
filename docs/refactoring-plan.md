@@ -416,7 +416,7 @@ export interface ShowFormatter {
 9. **Type Safety**: Strong typing across all interfaces and implementations
 10. **Simplified Testing**: Better mocking and test organization
 
-## Refactoring Status (Updated 2025-03-22)
+## Refactoring Status (Updated 2025-03-23)
 
 ### Completed Items
 
@@ -443,9 +443,32 @@ export interface ShowFormatter {
    - Created placeholder implementations for Slack
    - Ensured interfaces are general enough for both console and Slack
 
+6. ✅ Removed unused methods from interfaces
+   - Removed `getEpisodes` method from TvShowService interface
+   - Removed `getShowDetails` method from TvMazeServiceImpl implementation
+   - Updated tests to reflect these changes
+
+7. ✅ Improved pre-commit workflow
+   - Added a test:no-coverage script to package.json
+   - Updated the precommit script to run tests without coverage checks
+   - Maintained coverage thresholds in Jest configuration for CI
+
 ### Remaining Items
 
-1. 🔄 Test File Refactoring
+1. 🔄 Clean up utility methods in implementations
+   - **Remove utility methods from TvMazeServiceImpl**: `formatTime` and `sortShowsByTime` methods should be removed as they're not part of the TvShowService interface and are only used in tests
+   - **Update tests to use utility functions directly**: Tests should import and use utility functions from the utils directory instead of accessing them through the service
+
+2. 🔄 Resolve utility function duplication
+   - Consolidate duplicate `formatTime` functions found in both dateUtils.ts and showUtils.ts
+   - Keep the implementation in showUtils.ts and remove the duplicate in dateUtils.ts
+   - Update any imports to use the function from showUtils.ts
+
+3. 🔄 Ensure method signatures match interfaces
+   - Update the `getShows` method in TvMazeServiceImpl to match the interface exactly
+   - Current implementation has more parameters than defined in the interface
+
+4. 🔄 Test File Refactoring
    - Several test files still reference old file paths and need to be updated:
      - `src/tests/services/consoleOutputService.test.ts` → Move to `src/tests/implementations/console/consoleOutputServiceImpl.test.ts`
      - `src/tests/services/tvMazeService.test.ts` → Remove or merge with `tvMazeServiceImpl.test.ts`
@@ -454,35 +477,47 @@ export interface ShowFormatter {
      - `src/tests/utils/console.test.ts` → Move to `src/tests/implementations/console/consoleOutputImpl.test.ts`
      - `src/tests/utils/gotHttpClient.test.ts` → Move to `src/tests/implementations/gotHttpClientImpl.test.ts`
 
-2. 🔄 Fix Import Paths in Tests
+5. 🔄 Fix Import Paths in Tests
    - Update all import statements in test files to use the new file paths
    - Ensure tests are using the correct implementations
    - Fix type errors related to mocking interfaces
 
-3. 🔄 Clean Up Empty Directories
+6. 🔄 Clean Up Empty Directories
    - Remove empty `src/services` directory
    - Remove empty `src/formatters` directory
 
-4. 🔄 Update CLI Entry Point
+7. 🔄 Update CLI Entry Point
    - Ensure `cli.ts` is using the container properly
    - Remove any direct instantiation of services
 
-5. 🔄 Update Slack Entry Point
+8. 🔄 Update Slack Entry Point
    - Ensure `slack.ts` is using the container properly
    - Remove any direct instantiation of services
 
-6. 🔄 Improve Test Mocking
+9. 🔄 Improve Test Mocking
    - Simplify mocking approach in tests
    - Use consistent patterns for mocking across all tests
    - Fix TypeScript errors in test files
 
 ### Next Steps
 
-1. Complete the test file refactoring by moving and renaming test files to match the new structure
-2. Update import paths in all test files to use the new file paths
-3. Fix TypeScript errors in test files, particularly related to mocking
-4. Remove empty directories that are no longer needed
-5. Run the full test suite to ensure all tests pass with the new structure
-6. Clean up any remaining references to old file paths or structures
+1. Address the utility method issues in TvMazeServiceImpl:
+   - Remove `formatTime` and `sortShowsByTime` methods
+   - Update tests to use utility functions directly
+   - Resolve the duplicate `formatTime` function in dateUtils.ts and showUtils.ts
 
-This refactoring is approximately 70% complete, with the main application code structure in place but test files still needing updates to align with the new structure.
+2. Fix the `getShows` method signature in TvMazeServiceImpl to match the interface
+
+3. Complete the test file refactoring by moving and renaming test files to match the new structure
+
+4. Update import paths in all test files to use the new file paths
+
+5. Fix TypeScript errors in test files, particularly related to mocking
+
+6. Remove empty directories that are no longer needed
+
+7. Run the full test suite to ensure all tests pass with the new structure
+
+8. Clean up any remaining references to old file paths or structures
+
+This refactoring is approximately 75% complete, with the main application code structure in place but several cleanup tasks and test file updates still needed to fully align with the clean architecture principles.

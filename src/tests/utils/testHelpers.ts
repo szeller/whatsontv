@@ -59,20 +59,17 @@ export function createMockTvShowService(): TvShowService {
   return {
     getShowsByDate: jest.fn<(date: string) => Promise<Show[]>>().mockResolvedValue([]),
     searchShows: jest.fn<(query: string) => Promise<Show[]>>().mockResolvedValue([]),
-    getEpisodes: jest.fn<(showId: number) => Promise<Show[]>>().mockResolvedValue([]),
     getShows: jest.fn<(options: { 
       date?: string; 
       search?: string; 
-      show?: number;
-      genres?: string[];
-      languages?: string[];
     }) => Promise<Show[]>>().mockResolvedValue([]),
-    // Removed groupShowsByNetwork as it's now a utility function, not part of the interface
-    // Removed non-interface methods
     fetchShowsWithOptions: jest.fn<(options: {
       date?: string;
-      search?: string;
-      show?: number;
+      country?: string;
+      types?: string[];
+      networks?: string[];
+      genres?: string[];
+      languages?: string[];
     }) => Promise<Show[]>>().mockResolvedValue([])
   };
 }

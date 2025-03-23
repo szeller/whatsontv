@@ -6,17 +6,15 @@ import { inject, injectable } from 'tsyringe';
 
 // Type imports
 import type { TvShowService } from '../interfaces/tvShowService.js';
-import type { Episode, Show, ShowDetails, TVMazeShow } from '../types/tvmaze.js';
+import type { Show, TVMazeShow } from '../types/tvmaze.js';
 import type { HttpClient } from '../interfaces/httpClient.js';
 import { 
   filterByGenre, 
   filterByLanguage, 
   filterByNetwork, 
   filterByType, 
-  formatTime as formatTimeUtil,
   getTodayDate,
-  normalizeShowData,
-  sortShowsByTime as sortShowsByTimeUtil
+  normalizeShowData
 } from '../utils/showUtils.js';
 
 // Constants
@@ -80,66 +78,6 @@ export class TvMazeServiceImpl implements TvShowService {
       return response.data.map(item => normalizeShowData(item.show));
     } catch (error) {
       console.error(`Error searching for shows with query "${query}":`, error);
-      return [];
-    }
-  }
-
-  /**
-   * Get episodes for a specific show
-   * @param showId - ID of the show
-   * @returns Promise resolving to an array of episodes as shows
-   */
-  async getEpisodes(showId: number): Promise<Show[]> {
-    try {
-      const response = await this._apiClient.get<Episode[]>(
-        `${TV_MAZE_API}/shows/${showId}/episodes`
-      );
-
-      // Check if data exists and has length
-      if (Array.isArray(response.data) && response.data.length === 0) {
-        console.error(`Error fetching episodes for show ${showId}: ${NO_DATA_MESSAGE}`);
-        return [];
-      }
-
-      // First get the show details to use in the episode mapping
-      const showDetails = await this.getShowDetails(showId);
-      if (showDetails === null) {
-        console.error(`Unable to fetch show details for show ${showId}`);
-        return [];
-      }
-      
-      // Convert episodes to Show format
-      return response.data.map(episode => {
-        // Handle nullable values explicitly
-        const airdate = episode.airdate ?? '';
-        const runtime = episode.runtime ?? 0;
-        const summary = episode.summary ?? '';
-        
-        return {
-          id: episode.id,
-          name: episode.name,
-          airdate,
-          airtime: episode.airtime,
-          runtime,
-          season: episode.season,
-          number: episode.number,
-          show: {
-            id: showId,
-            name: showDetails.name,
-            type: 'episode',
-            language: showDetails.language,
-            genres: showDetails.genres,
-            network: showDetails.network,
-            webChannel: showDetails.webChannel,
-            image: showDetails.image,
-            summary: showDetails.summary
-          },
-          network: showDetails.network,
-          summary
-        };
-      });
-    } catch (error) {
-      console.error(`Error fetching episodes for show ${showId}:`, error);
       return [];
     }
   }
@@ -209,68 +147,21 @@ export class TvMazeServiceImpl implements TvShowService {
    */
   async getShows(options: { 
     date?: string; 
-    search?: string; 
-    show?: number;
-    country?: string;
-    types?: string[];
-    networks?: string[];
-    genres?: string[];
-    languages?: string[];
-  } = {}): Promise<Show[]> {
+    search?: string;
+  }): Promise<Show[]> {
     // Search for shows by name
     if (options.search !== undefined && options.search !== null && options.search.trim() !== '') {
       return this.searchShows(options.search);
     }
     
-    // Get episodes for a specific show
-    if (typeof options.show === 'number' && options.show > 0) {
-      return this.getEpisodes(options.show);
-    }
-    
-    // Get shows for a specific date with filters
-    return this.fetchShowsWithOptions(options);
-  }
-
-  /**
-   * Get details for a specific show
-   * @param showId - ID of the show
-   * @returns Promise resolving to a show or null
-   */
-  async getShowDetails(showId: string | number): Promise<ShowDetails | null> {
-    try {
-      const response = await this._apiClient.get<ShowDetails>(
-        `${TV_MAZE_API}/shows/${showId}`
-      );
-
-      // Check if data exists
-      const hasData = response.data !== undefined && response.data !== null;
-      if (!hasData) {
-        console.error(`Error fetching show details for ${showId}: ${NO_DATA_MESSAGE}`);
-        return null;
-      }
-
-      return response.data;
-    } catch (error) {
-      console.error(`Error fetching show details for ${showId}:`, error);
-      return null;
-    }
-  }
-
-  /**
-   * Format time string to 12-hour format
-   * @param time - Time string in HH:MM format
-   * @returns Formatted time string
-   */
-  formatTime(time: string | undefined): string {
-    return formatTimeUtil(time);
-  }
-
-  /**
-   * Sort shows by airtime
-   * @param shows - Array of shows to sort
-   * @returns Sorted array of shows
-   */
-  sortShowsByTime(shows: Show[]): Show[] {
-    return sortShowsByTimeUtil(shows);
+    // Get shows for a specific date
+    return this.fetchShowsWithOptions({
+      date: options.date,
+      country: undefined,
+      types: undefined,
+      networks: undefined,
+      genres: undefined,
+      languages: undefined
+    });
   }
 }

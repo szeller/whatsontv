@@ -8,7 +8,8 @@ import {
   getTodayDate, 
   groupShowsByNetwork, 
   sortShowsByTime, 
-  normalizeShowData 
+  normalizeShowData,
+  formatTime
 } from '../../utils/showUtils.js';
 import type { Show } from '../../types/tvmaze.js';
 
@@ -269,6 +270,21 @@ describe('ShowUtils', () => {
       expect(result).toHaveLength(2);
       expect(result[0].name).toBe('Timed Show');
       expect(result[1].name).toBe('No Time Show');
+    });
+  });
+
+  describe('formatTime', () => {
+    it('formats time in 12-hour format', () => {
+      expect(formatTime('08:00')).toBe('8:00 AM');
+      expect(formatTime('20:00')).toBe('8:00 PM');
+      expect(formatTime('12:00')).toBe('12:00 PM');
+      expect(formatTime('00:00')).toBe('12:00 AM');
+    });
+    
+    it('handles empty or invalid time strings', () => {
+      expect(formatTime('')).toBe('TBA');
+      expect(formatTime(undefined as unknown as string)).toBe('TBA');
+      expect(formatTime('invalid')).toBe('TBA');
     });
   });
 
