@@ -20,6 +20,7 @@ import unicornPlugin from 'eslint-plugin-unicorn';
  * - Code quality (eslint-plugin-sonarjs)
  * - Promise handling (eslint-plugin-promise)
  * - Modern JavaScript practices (eslint-plugin-unicorn)
+ * - TypeScript type checking (integrated with ESLint)
  */
 export default [
   eslint.configs.recommended,
@@ -53,6 +54,28 @@ export default [
     rules: {
       // TypeScript-specific rules
       ...tseslint.configs.recommended.rules,
+      
+      // Type-checking rules - selectively enabled for gradual adoption
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/no-misused-promises': 'error',
+      '@typescript-eslint/no-unnecessary-type-assertion': 'error',
+      '@typescript-eslint/no-unnecessary-type-arguments': 'error',
+      '@typescript-eslint/restrict-plus-operands': 'error',
+      '@typescript-eslint/restrict-template-expressions': 'error',
+      '@typescript-eslint/unbound-method': 'error',
+      
+      // Rules with many violations temporarily disabled - to be fixed in GitHub issue #49
+      // https://github.com/szeller/whatsontv/issues/49
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      
+      // Temporarily disable some strict type-checking rules for gradual adoption
+      '@typescript-eslint/no-unsafe-argument': 'warn',
+      '@typescript-eslint/no-unsafe-return': 'warn',
+      '@typescript-eslint/require-await': 'warn',
+      '@typescript-eslint/only-throw-error': 'warn',
+      
       '@typescript-eslint/explicit-function-return-type': ['error', {
         allowExpressions: true,
         allowTypedFunctionExpressions: true
@@ -63,7 +86,6 @@ export default [
         varsIgnorePattern: '^_',
         caughtErrorsIgnorePattern: '^_'
       }],
-      '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/strict-boolean-expressions': 'error',
       '@typescript-eslint/no-non-null-assertion': 'error',
       '@typescript-eslint/ban-ts-comment': ['error', { 
@@ -198,6 +220,28 @@ export default [
     rules: {
       // TypeScript-specific rules
       ...tseslint.configs.recommended.rules,
+      
+      // Type-checking rules - selectively enabled for gradual adoption
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/no-misused-promises': 'error',
+      '@typescript-eslint/no-unnecessary-type-assertion': 'error',
+      '@typescript-eslint/no-unnecessary-type-arguments': 'error',
+      '@typescript-eslint/restrict-plus-operands': 'error',
+      '@typescript-eslint/restrict-template-expressions': 'error',
+      '@typescript-eslint/unbound-method': 'error',
+      
+      // Rules with many violations temporarily disabled - to be fixed in GitHub issue #49
+      // https://github.com/szeller/whatsontv/issues/49
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      
+      // Temporarily disable some strict type-checking rules for gradual adoption
+      '@typescript-eslint/no-unsafe-argument': 'warn',
+      '@typescript-eslint/no-unsafe-return': 'warn',
+      '@typescript-eslint/require-await': 'warn',
+      '@typescript-eslint/only-throw-error': 'warn',
+      
       '@typescript-eslint/explicit-function-return-type': ['error', {
         allowExpressions: true,
         allowTypedFunctionExpressions: true
@@ -208,7 +252,6 @@ export default [
         varsIgnorePattern: '^_',
         caughtErrorsIgnorePattern: '^_'
       }],
-      '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/strict-boolean-expressions': 'off', // Relaxed for tests
       '@typescript-eslint/no-non-null-assertion': 'off', // Relaxed for tests
       '@typescript-eslint/ban-ts-comment': ['error', { 

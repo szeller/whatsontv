@@ -29,3 +29,4 @@ coverage/
 
 # ESLint
 .eslintcache
+type-errors.txt

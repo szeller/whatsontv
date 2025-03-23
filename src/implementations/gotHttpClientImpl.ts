@@ -65,11 +65,13 @@ export class GotHttpClientImpl implements HttpClient {
       // Type assertion for the response
       const response = await this.client.get(normalizedUrl, {
         searchParams: params
-      }) as unknown as Response<string>;
+      }) as Response<string>;
       
       // Check for error status codes
       if (response.statusCode >= 400) {
-        throw { response };
+        throw new Error(`HTTP Error ${response.statusCode}: ${
+          response.statusCode === 404 ? 'Not Found' : 'Request failed'
+        }`);
       }
       
       return this.transformResponse<T>(response);
@@ -100,11 +102,13 @@ export class GotHttpClientImpl implements HttpClient {
       const response = await this.client.post(normalizedUrl, {
         json: data,
         searchParams: params
-      }) as unknown as Response<string>;
+      }) as Response<string>;
       
       // Check for error status codes
       if (response.statusCode >= 400) {
-        throw { response };
+        throw new Error(`HTTP Error ${response.statusCode}: ${
+          response.statusCode === 404 ? 'Not Found' : 'Request failed'
+        }`);
       }
       
       return this.transformResponse<T>(response);
@@ -134,7 +138,7 @@ export class GotHttpClientImpl implements HttpClient {
       return {
         data,
         status: response.statusCode,
-        headers: response.headers as Record<string, string>
+        headers: response.headers
       };
     } catch (error) {
       this.log('error', 'Error transforming response:', error);
@@ -142,7 +146,7 @@ export class GotHttpClientImpl implements HttpClient {
       return {
         data: response.body as unknown as T,
         status: response.statusCode,
-        headers: response.headers as Record<string, string>
+        headers: response.headers
       };
     }
   }

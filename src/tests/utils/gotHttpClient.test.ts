@@ -75,7 +75,9 @@ describe('GotHttpClient', () => {
         .reply(404, 'Not Found');
       
       // Verify the error is thrown correctly
-      await expect(client.get<unknown>('/test')).rejects.toThrow('HTTP Error: 404');
+      await expect(client.get<unknown>('/test')).rejects.toThrow(
+        'Request Error: HTTP Error 404: Not Found'
+      );
     });
 
     it('should handle network errors', async () => {
@@ -176,7 +178,9 @@ describe('GotHttpClient', () => {
       
       // Verify the error is thrown correctly
       await expect(client.post<unknown, Record<string, unknown>>('/create', requestBody))
-        .rejects.toThrow('HTTP Error: 400');
+        .rejects.toThrow(
+          'Request Error: HTTP Error 400: Request failed'
+        );
     });
 
     it('should handle post request with invalid JSON response', async () => {
