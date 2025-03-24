@@ -1,4 +1,4 @@
-import type { Show } from '../types/tvmaze.js';
+import type { NetworkGroups, Show } from '../types/tvShowModel.js';
 
 /**
  * Interface for formatters that format TV show information
@@ -30,7 +30,7 @@ export interface ShowFormatter {
    * @param shows Multiple episodes of the same show
    * @returns Formatted show string
    */
-  formatMultipleEpisodes(shows: Show[]): string;
+  formatMultipleEpisodes(shows: Show[]): string[];
   
   /**
    * Format a group of shows by network
@@ -38,5 +38,5 @@ export interface ShowFormatter {
    * @param timeSort Whether to sort shows by time
    * @returns Formatted output as an array of strings
    */
-  formatNetworkGroups(networkGroups: Record<string, Show[]>, timeSort?: boolean): string[];
+  formatNetworkGroups(networkGroups: NetworkGroups, timeSort?: boolean): string[];
 }

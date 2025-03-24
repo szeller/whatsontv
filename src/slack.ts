@@ -1,218 +1,187 @@
+/**
+ * Slack integration for WhatsOnTV
+ * Sends TV show information to Slack
+ */
 import { WebClient } from '@slack/web-api';
-import schedule from 'node-schedule';
-import { container } from './container.js';
-
+import { getTodayDate } from './utils/dateUtils.js';
 import config from './config.js';
+import { groupShowsByNetwork } from './utils/showUtils.js';
 import type { ConsoleOutput } from './interfaces/consoleOutput.js';
 import type { TvShowService } from './interfaces/tvShowService.js';
-import type { Show } from './types/tvmaze.js';
-import { getTodayDate } from './utils/showUtils.js';
+import type { Show } from './types/tvShowModel.js';
 
-interface SlackMessage {
-  channel: string;
-  text: string;
-  blocks?: MessageBlock[];
-}
-
-interface MessageBlock {
+/**
+ * Slack block types
+ */
+interface SlackBlock {
   type: string;
-  text: {
-    type: string;
-    text: string;
-  };
-}
-
-// Initialize Slack client if enabled
-let slack: WebClient | undefined;
-if (
-  config.slack.enabled === true && 
-  config.slack.botToken !== undefined && 
-  config.slack.botToken !== ''
-) {
-  slack = new WebClient(config.slack.botToken);
+  text?: { type: string; text: string };
 }
 
 /**
- * Send TV show notifications to Slack
- * @param timeSort Whether to sort shows by time
- * @returns Promise that resolves when notifications are sent
+ * Slack configuration
  */
-export async function sendTvShowNotifications(timeSort = false): Promise<void> {
-  const consoleOutput = container.resolve<ConsoleOutput>('ConsoleOutput');
-  
-  try {
-    if (slack === undefined) {
-      throw new Error('Slack client not initialized. Check your configuration.');
-    }
-
-    if (config.slack.channel === undefined || config.slack.channel === '') {
-      throw new Error('Slack channel not configured.');
-    }
-
-    const tvShowService = container.resolve<TvShowService>('TvShowService');
-    const shows: Show[] = await tvShowService.fetchShowsWithOptions({
-      types: config.types,
-      networks: config.networks,
-      genres: config.genres,
-      languages: config.languages,
-      date: getTodayDate()
-    });
-
-    let message = '';
-    let blocks: MessageBlock[] = [];
-
-    if (shows.length === 0) {
-      message = ' No TV shows found for today.';
-      blocks = [{
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: message
-        }
-      }];
-    } else {
-      // Group shows by network
-      const networkGroups = groupShowsByNetwork(shows);
-      
-      // Format and send the message
-      blocks = [];
-      
-      // Add header
-      blocks.push({
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: `*TV Shows for ${getTodayDate()}*`
-        }
-      });
-
-      // Format shows by network
-      for (const [network, shows] of Object.entries(networkGroups)) {
-        const formattedShows: string = shows
-          .sort((a: Show, b: Show): number => {
-            if (timeSort) {
-              return (a.airtime || '').localeCompare(b.airtime || '');
-            }
-            return a.show.name.localeCompare(b.show.name);
-          })
-          .map((show: Show): string => formatShowDetails(show))
-          .join('\n');
-
-        blocks.push({
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: `*${network}*\n${formattedShows}`
-          }
-        });
-      }
-
-      // Format shows by network
-      for (const block of blocks) {
-        message += block.text.text + '\n\n';
-      }
-    }
-
-    const slackMessage: SlackMessage = {
-      channel: config.slack.channel,
-      text: message,
-      blocks
-    };
-
-    await slack.chat.postMessage(slackMessage);
-    consoleOutput.log('TV show notifications sent successfully.');
-  } catch (error) {
-    consoleOutput.error(
-      'Failed to send TV show notifications:', 
-      error instanceof Error ? error.message : String(error)
-    );
-  }
+export interface SlackConfig {
+  botToken: string;
+  channel: string;
 }
 
 /**
- * Start the TV show notification service
+ * Send TV show information to Slack
+ * @param service TV show service
+ * @param output Console output service
  */
-export function startTvShowNotifier(): void {
-  const consoleOutput = container.resolve<ConsoleOutput>('ConsoleOutput');
-  
-  if (config.slack.enabled !== true) {
-    consoleOutput.log(
-      'Slack notifications are disabled. Set slack.enabled to true in config to enable.'
+export async function sendToSlack(
+  service: TvShowService,
+  output: ConsoleOutput
+): Promise<void> {
+  // Check if Slack is configured
+  if (
+    typeof config.slack !== 'object' || 
+    config.slack === null ||
+    typeof config.slack.botToken !== 'string' || 
+    config.slack.botToken === '' ||
+    typeof config.slack.channel !== 'string' ||
+    config.slack.channel === ''
+  ) {
+    output.log(
+      'Slack is not configured. Please set SLACK_BOT_TOKEN and SLACK_CHANNEL environment variables.'
     );
     return;
   }
 
-  // Create a cron schedule from the notification time in the config
-  const hour = config.notificationTime.split(':')[0];
-  const minute = config.notificationTime.split(':')[1];
-  const cronSchedule = `0 ${minute} ${hour} * * *`;
-
-  const dailyTvShowCheck = async (): Promise<void> => {
-    try {
-      await sendTvShowNotifications();
-    } catch (error) {
-      consoleOutput.error('Failed to run daily TV show check:', error);
-    }
+  const slackConfig: SlackConfig = {
+    botToken: config.slack.botToken,
+    channel: config.slack.channel
   };
 
-  schedule.scheduleJob(cronSchedule, dailyTvShowCheck);
-  consoleOutput.log(`TV Show Notifier is running. Scheduled for ${config.notificationTime} daily.`);
-}
-
-/**
- * Group shows by their network or web channel
- * @param shows List of shows to group
- * @returns Shows grouped by network
- */
-function groupShowsByNetwork(shows: Show[]): Record<string, Show[]> {
-  const groups: Record<string, Show[]> = {};
+  // Get shows for today
+  const shows = await service.fetchShowsWithOptions({
+    date: getTodayDate()
+  });
   
-  for (const show of shows) {
-    // Get network name (or web channel name if no network)
-    let networkName = 'Unknown Network';
-    
-    if (
-      show.show.network?.name !== undefined && 
-      show.show.network.name !== null && 
-      show.show.network.name !== ''
-    ) {
-      networkName = show.show.network.name;
-    } else if (
-      show.show.webChannel?.name !== undefined && 
-      show.show.webChannel.name !== null && 
-      show.show.webChannel.name !== ''
-    ) {
-      networkName = show.show.webChannel.name;
-    }
-    
-    // Initialize group if it doesn't exist
-    if (groups[networkName] === undefined) {
-      groups[networkName] = [];
-    }
-    
-    // Add show to its network group
-    groups[networkName].push(show);
+  if (shows.length === 0) {
+    output.log('No shows found for today.');
+    return;
   }
-  
-  return groups;
+
+  await postToSlack(shows, slackConfig, output);
 }
 
 /**
- * Format show details for display
+ * Post shows to Slack
+ * @param shows Shows to post
+ * @param config Slack configuration
+ * @param output Console output service
+ */
+async function postToSlack(
+  shows: Show[],
+  config: SlackConfig,
+  output: ConsoleOutput
+): Promise<void> {
+  try {
+    const client = new WebClient(config.botToken);
+
+    // Create message blocks
+    const blocks = createMessageBlocks(shows);
+
+    // Send message to Slack
+    const result = await client.chat.postMessage({
+      channel: config.channel,
+      text: 'TV Shows Today',
+      blocks
+    });
+
+    output.log(`Message sent to Slack: ${result.ts}`);
+  } catch (error) {
+    output.error('Error sending message to Slack:');
+    if (error instanceof Error) {
+      output.error(error.message);
+      return;
+    }
+    output.error(String(error));
+  }
+}
+
+/**
+ * Create message blocks for Slack
+ * @param shows Shows to create blocks for
+ * @returns Message blocks
+ */
+function createMessageBlocks(shows: Show[]): SlackBlock[] {
+  // Create message blocks
+  const blocks: SlackBlock[] = [
+    {
+      type: 'header',
+      text: {
+        type: 'plain_text',
+        text: `*TV Shows for ${getTodayDate()}*`
+      }
+    }
+  ];
+
+  // Group shows by network
+  const networkGroups = groupShowsByNetwork(shows);
+  
+  // Add each network as a section
+  for (const [network, networkShows] of Object.entries(networkGroups)) {
+    if (networkShows.length === 0) {
+      continue;
+    }
+
+    // Add network header
+    blocks.push({
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `*${network}*`
+      }
+    });
+
+    // Add shows for this network
+    const formattedShows: string = networkShows
+      .sort((a: Show, b: Show): number => {
+        // Always sort by time
+        const aTime = a.airtime !== null && a.airtime !== '' ? a.airtime : '';
+        const bTime = b.airtime !== null && b.airtime !== '' ? b.airtime : '';
+        return aTime.localeCompare(bTime);
+      })
+      .map((show: Show): string => formatShowDetails(show))
+      .join('\n');
+
+    blocks.push({
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: formattedShows
+      }
+    });
+
+    // Add divider
+    blocks.push({
+      type: 'divider'
+    });
+  }
+
+  return blocks;
+}
+
+/**
+ * Format show details for Slack
  * @param show Show to format
- * @returns Formatted show details
+ * @returns Formatted string
  */
 function formatShowDetails(show: Show): string {
-  const time: string = show.airtime || 'TBA';
-  const episodeInfo: string = `S${show.season}E${show.number}`;
-  return `• \`${time}\` *${show.show.name}* (${show.show.type || 'Unknown'}) - ` +
-    `${episodeInfo}\n${show.name ? `  "${show.name}"\n` : ''}`;
-}
-
-// Check if running in test mode
-if (process.argv.includes('--test')) {
-  // Just run once and exit
-  void sendTvShowNotifications().then(() => process.exit(0));
-} else {
-  startTvShowNotifier();
+  // Format time
+  const time = show.airtime !== null && show.airtime !== '' ? show.airtime : 'TBA';
+  
+  // Format episode info
+  const episodeInfo = 
+    (typeof show.season === 'number' && show.season > 0) && 
+    (typeof show.number === 'number' && show.number > 0)
+      ? `S${show.season}E${show.number}` 
+      : '';
+  
+  // Return formatted string
+  return `• \`${time}\` *${show.name}* (${show.type || 'Unknown'}) - ${episodeInfo}`;
 }

@@ -65,26 +65,22 @@ export async function main(args?: CliArgs): Promise<void> {
       const uniqueWebChannels = new Set<string>();
       
       for (const show of shows) {
-        // Check for valid network name
-        if (show.show.network?.name !== undefined && 
-            show.show.network.name !== null && 
-            show.show.network.name !== '') {
-          uniqueNetworks.add(show.show.network.name);
+        // Check for valid channel name
+        if (show.channel && show.channel !== '') {
+          uniqueNetworks.add(show.channel);
         }
         
-        // Check for valid web channel name
-        if (show.show.webChannel?.name !== undefined && 
-            show.show.webChannel.name !== null && 
-            show.show.webChannel.name !== '') {
-          uniqueWebChannels.add(show.show.webChannel.name);
-        }
+        // For streaming shows, we would need to add additional logic
+        // if we want to track web channels separately
       }
       
       consoleOutput.log('\nAvailable Networks:');
       consoleOutput.log([...uniqueNetworks].sort().join(', '));
       
-      consoleOutput.log('\nAvailable Web Channels:');
-      consoleOutput.log([...uniqueWebChannels].sort().join(', '));
+      if (uniqueWebChannels.size > 0) {
+        consoleOutput.log('\nAvailable Web Channels:');
+        consoleOutput.log([...uniqueWebChannels].sort().join(', '));
+      }
     }
 
     // Display the shows

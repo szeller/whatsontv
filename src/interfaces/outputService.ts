@@ -1,5 +1,5 @@
 import type { CliArgs } from '../types/cliArgs.js';
-import type { Show } from '../types/tvmaze.js';
+import type { Show } from '../types/tvShowModel.js';
 
 /**
  * Interface for output services that display TV show information

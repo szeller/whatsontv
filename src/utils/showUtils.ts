@@ -3,20 +3,13 @@
  * These functions are independent of the API used to fetch the shows
  */
 
-import type { NetworkGroups } from '../types/app.js';
-import type { Show, TVMazeShow, ShowDetails } from '../types/tvmaze.js';
+import type { Show } from '../types/tvShowModel.js';
 
 /**
- * Get today's date in YYYY-MM-DD format
- * @returns Today's date string
+ * Type for grouping shows by network
  */
-export function getTodayDate(): string {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  
-  return `${year}-${month}-${day}`;
+export interface NetworkGroups {
+  [network: string]: Show[];
 }
 
 /**
@@ -28,15 +21,10 @@ export function groupShowsByNetwork(shows: Show[]): NetworkGroups {
   const groups: NetworkGroups = {};
   
   for (const show of shows) {
-    // Explicitly handle null/undefined/empty cases for network and webChannel names
-    const networkName = 
-      (show.show.network?.name !== undefined && 
-       show.show.network?.name !== null && 
-       show.show.network?.name !== '') ? show.show.network.name : 
-        ((show.show.webChannel?.name !== undefined && 
-       show.show.webChannel?.name !== null && 
-       show.show.webChannel?.name !== '') ? show.show.webChannel.name : 
-          'Unknown Network');
+    // Get the channel name from our simplified model
+    const networkName = show.channel !== null && show.channel !== '' 
+      ? show.channel 
+      : 'Unknown Network';
     
     if (!Object.prototype.hasOwnProperty.call(groups, networkName)) {
       groups[networkName] = [];
@@ -57,20 +45,25 @@ export function groupShowsByNetwork(shows: Show[]): NetworkGroups {
  */
 export function sortShowsByTime(shows: Show[]): Show[] {
   return [...shows].sort((a, b) => {
-    // Handle undefined or null airtimes
-    if (!a.airtime && !b.airtime) return 0;
-    if (!a.airtime) return 1;
-    if (!b.airtime) return -1;
+    // Handle null/undefined airtimes
+    const aTime = a.airtime !== null && a.airtime !== '' ? a.airtime : '';
+    const bTime = b.airtime !== null && b.airtime !== '' ? b.airtime : '';
     
-    // Parse time strings into comparable values
-    const [aHours, aMinutes] = a.airtime.split(':').map(Number);
-    const [bHours, bMinutes] = b.airtime.split(':').map(Number);
-    
-    // Compare hours first, then minutes
-    if (aHours !== bHours) {
-      return aHours - bHours;
+    // If both shows have airtimes, sort by time
+    if (aTime !== '' && bTime !== '') {
+      // If airtimes are the same, sort by name
+      if (aTime === bTime) {
+        return a.name.localeCompare(b.name);
+      }
+      return aTime.localeCompare(bTime);
     }
-    return aMinutes - bMinutes;
+    
+    // If only one show has an airtime, prioritize it
+    if (aTime !== '' && bTime === '') return -1;
+    if (aTime === '' && bTime !== '') return 1;
+    
+    // If neither show has an airtime, sort by name
+    return a.name.localeCompare(b.name);
   });
 }
 
@@ -79,27 +72,26 @@ export function sortShowsByTime(shows: Show[]): Show[] {
  * @param time - Time string in HH:MM format
  * @returns Formatted time string
  */
-export function formatTime(time: string | undefined): string {
-  // Explicitly handle null, undefined, and empty string cases
-  if (time === undefined || time === null || time === '') {
+export function formatTime(time: string | null): string {
+  if (time === null || time === '') {
     return 'TBA';
   }
   
-  const match = time.match(/^(\d{1,2}):(\d{2})$/);
-  if (!match) return 'TBA';
+  // Parse hours and minutes
+  const [hoursStr, minutesStr] = time.split(':');
   
-  const [_, hourStr, minute] = match;
-  const hour = parseInt(hourStr, 10);
-  
-  if (hour === 0) {
-    return `12:${minute} AM`;
-  } else if (hour < 12) {
-    return `${hour}:${minute} AM`;
-  } else if (hour === 12) {
-    return `12:${minute} PM`;
-  } else {
-    return `${hour - 12}:${minute} PM`;
+  if (hoursStr === undefined || minutesStr === undefined) {
+    return 'TBA';
   }
+  
+  const hours = parseInt(hoursStr, 10);
+  const minutes = minutesStr;
+  
+  // Convert to 12-hour format
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const hours12 = hours % 12 || 12; // Convert 0 to 12 for 12 AM
+  
+  return `${hours12}:${minutes} ${period}`;
 }
 
 /**
@@ -109,13 +101,13 @@ export function formatTime(time: string | undefined): string {
  * @returns Filtered shows
  */
 export function filterByType(shows: Show[], types: string[]): Show[] {
-  if (!types.length) {
+  if (types === undefined || types === null || types.length === 0) {
     return shows;
   }
   
   return shows.filter(show => {
-    const showType = show.show.type;
-    return showType !== undefined && showType !== null && types.includes(showType);
+    const showType = show.type.toLowerCase();
+    return types.some(type => showType === type.toLowerCase());
   });
 }
 
@@ -126,18 +118,16 @@ export function filterByType(shows: Show[], types: string[]): Show[] {
  * @returns Filtered shows
  */
 export function filterByNetwork(shows: Show[], networks: string[]): Show[] {
-  if (!networks.length) {
+  if (networks === undefined || networks === null || networks.length === 0) {
     return shows;
   }
   
   return shows.filter(show => {
-    const networkName = show.show.network?.name;
-    const webChannelName = show.show.webChannel?.name;
+    // In our new model, channel is a string
+    const channelName = show.channel !== null ? show.channel : '';
     
-    // Check if either the network name or web channel name matches any of the specified networks
-    return (
-      (networkName !== undefined && networkName !== null && networks.includes(networkName)) ||
-      (webChannelName !== undefined && webChannelName !== null && networks.includes(webChannelName))
+    return networks.some(network => 
+      channelName.toLowerCase().includes(network.toLowerCase())
     );
   });
 }
@@ -149,14 +139,20 @@ export function filterByNetwork(shows: Show[], networks: string[]): Show[] {
  * @returns Filtered shows
  */
 export function filterByGenre(shows: Show[], genres: string[]): Show[] {
-  if (!genres.length) {
+  if (genres === undefined || genres === null || genres.length === 0) {
     return shows;
   }
   
   return shows.filter(show => {
-    const showGenres = show.show.genres;
-    return showGenres !== undefined && showGenres !== null && 
-      showGenres.some(genre => genres.includes(genre));
+    const showGenres = show.genres !== undefined && show.genres !== null 
+      ? show.genres 
+      : [];
+    
+    return genres.some(genre => 
+      showGenres.some(showGenre => 
+        showGenre.toLowerCase() === genre.toLowerCase()
+      )
+    );
   });
 }
 
@@ -167,106 +163,34 @@ export function filterByGenre(shows: Show[], genres: string[]): Show[] {
  * @returns Filtered shows
  */
 export function filterByLanguage(shows: Show[], languages: string[]): Show[] {
-  if (!languages.length) {
+  // If no languages are specified, return all shows
+  if (languages === undefined || languages === null || languages.length === 0) {
     return shows;
   }
   
+  // Convert languages to lowercase for case-insensitive comparison
+  const lowercaseLanguages = languages.map(lang => lang.toLowerCase());
+  
   return shows.filter(show => {
-    const language = show.show.language;
-    return language !== undefined && language !== null && languages.includes(language);
+    // If show has no language, skip it
+    if (show.language === null || show.language === undefined || show.language === '') {
+      return false;
+    }
+    
+    // Check if the show's language is in the list of languages to include
+    return lowercaseLanguages.includes(show.language.toLowerCase());
   });
 }
 
 /**
- * Normalize TVMaze show data to our internal Show format
- * @param tvMazeData - Raw TVMaze show data
- * @returns Normalized Show object
+ * Filter shows by country (based on network country)
+ * @param shows - Shows to filter
+ * @param _country - Country code to filter by
+ * @returns Filtered shows
  */
-export function normalizeShowData(tvMazeData: TVMazeShow | { show: TVMazeShow }): Show {
-  // Determine if we're dealing with a direct show object or one with a show property
-  const rawData = ('show' in tvMazeData ? tvMazeData.show : tvMazeData) as TVMazeShow;
-
-  // Create a default show object for cases where data is missing
-  const defaultShow: Show = {
-    airtime: '',
-    name: '',
-    season: 0,
-    number: 0,
-    show: {
-      id: 0,
-      name: '',
-      type: '',
-      language: '',
-      genres: [],
-      network: null,
-      webChannel: null,
-      image: null,
-      summary: ''
-    }
-  };
-
-  // Handle the case where rawData might be undefined or null
-  if (rawData === null || rawData === undefined) {
-    return defaultShow;
-  }
-
-  // Extract the show details - either from the show property or from the raw data itself
-  const showDetails: ShowDetails = {
-    id: typeof rawData.id === 'number' 
-      ? rawData.id 
-      : (typeof rawData.id === 'string' && rawData.id !== '' 
-        ? parseInt(rawData.id, 10) 
-        : 0),
-    name: rawData.name !== undefined && rawData.name !== null && 
-      rawData.name !== '' 
-      ? String(rawData.name) 
-      : '',
-    type: rawData.type !== undefined && rawData.type !== null &&
-      rawData.type !== ''
-      ? String(rawData.type)
-      : '',
-    language: rawData.language !== undefined && rawData.language !== null
-      ? rawData.language
-      : '',
-    genres: Array.isArray(rawData.genres) ? rawData.genres : [],
-    network: rawData.network !== undefined && rawData.network !== null
-      ? rawData.network
-      : null,
-    webChannel: rawData.webChannel !== undefined && rawData.webChannel !== null
-      ? rawData.webChannel
-      : null,
-    image: rawData.image !== undefined && rawData.image !== null
-      ? rawData.image
-      : null,
-    summary: rawData.summary !== undefined &&
-      rawData.summary !== null && rawData.summary !== ''
-      ? rawData.summary.replace(/<\/?[^>]+(>|$)/g, '') // Strip HTML tags
-      : ''
-  };
-
-  // Create a normalized copy of the show data
-  const normalizedShow: Show = {
-    // Ensure required string properties are never undefined
-    airtime: rawData.airtime !== undefined && rawData.airtime !== null && 
-      rawData.airtime !== '' 
-      ? String(rawData.airtime) 
-      : '',
-    name: rawData.name !== undefined && rawData.name !== null && 
-      rawData.name !== '' 
-      ? String(rawData.name) 
-      : '',
-    season: typeof rawData.season === 'number' 
-      ? rawData.season 
-      : (typeof rawData.season === 'string' && rawData.season !== '' 
-        ? parseInt(rawData.season, 10) 
-        : 0),
-    number: typeof rawData.number === 'number' 
-      ? rawData.number 
-      : (typeof rawData.number === 'string' && rawData.number !== '' 
-        ? parseInt(rawData.number, 10) 
-        : 0),
-    show: showDetails
-  };
-
-  return normalizedShow;
+export function filterByCountry(shows: Show[], _country: string): Show[] {
+  // This is a placeholder implementation that would need to be updated
+  // when country information is added to the Show model
+  // For now, we don't filter by country since we don't have that data
+  return shows;
 }

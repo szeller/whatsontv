@@ -1,0 +1,258 @@
+[
+  {
+    "id": 2582338,
+    "url": "https://www.tvmaze.com/episodes/2582338/60-minutes-56x26-march-17-2024",
+    "name": "March 17, 2024",
+    "season": 56,
+    "number": 26,
+    "type": "regular",
+    "airdate": "2024-03-17",
+    "airtime": "19:00",
+    "airstamp": "2024-03-17T23:00:00+00:00",
+    "runtime": 60,
+    "rating": {
+      "average": null
+    },
+    "image": null,
+    "summary": "<p>Interviews of the week.</p>",
+    "show": {
+      "id": 3777,
+      "url": "https://www.tvmaze.com/shows/3777/60-minutes",
+      "name": "60 Minutes",
+      "type": "News",
+      "language": "English",
+      "genres": [
+        "News"
+      ],
+      "status": "Running",
+      "runtime": 60,
+      "averageRuntime": 60,
+      "premiered": "1968-09-24",
+      "ended": null,
+      "officialSite": "https://www.cbsnews.com/60-minutes/",
+      "schedule": {
+        "time": "19:00",
+        "days": [
+          "Sunday"
+        ]
+      },
+      "rating": {
+        "average": 7.6
+      },
+      "weight": 99,
+      "network": {
+        "id": 2,
+        "name": "CBS",
+        "country": {
+          "name": "United States",
+          "code": "US",
+          "timezone": "America/New_York"
+        },
+        "officialSite": "https://www.cbs.com/"
+      },
+      "webChannel": null,
+      "dvdCountry": null,
+      "externals": {
+        "tvrage": 5489,
+        "thetvdb": 70780,
+        "imdb": "tt0123338"
+      },
+      "image": {
+        "medium": "https://static.tvmaze.com/uploads/images/medium_portrait/486/1215949.jpg",
+        "original": "https://static.tvmaze.com/uploads/images/original_untouched/486/1215949.jpg"
+      },
+      "summary": "<p><b>60 Minutes</b> is a popular news magazine providing both hard hitting investigations, interviews and features, along with people in the news and current events.</p>",
+      "updated": 1710734400,
+      "_links": {
+        "self": {
+          "href": "https://api.tvmaze.com/shows/3777"
+        },
+        "previousepisode": {
+          "href": "https://api.tvmaze.com/episodes/2582338"
+        },
+        "nextepisode": {
+          "href": "https://api.tvmaze.com/episodes/2582339"
+        }
+      }
+    },
+    "_links": {
+      "self": {
+        "href": "https://api.tvmaze.com/episodes/2582338"
+      },
+      "show": {
+        "href": "https://api.tvmaze.com/shows/3777"
+      }
+    }
+  },
+  {
+    "id": 2582354,
+    "url": "https://www.tvmaze.com/episodes/2582354/the-equalizer-4x09-truth-to-power",
+    "name": "Truth to Power",
+    "season": 4,
+    "number": 9,
+    "type": "regular",
+    "airdate": "2024-03-17",
+    "airtime": "20:00",
+    "airstamp": "2024-03-18T00:00:00+00:00",
+    "runtime": 60,
+    "rating": {
+      "average": null
+    },
+    "image": null,
+    "summary": "<p>When a woman's daughter is murdered, she turns to McCall for help after the police dismiss her claims that her daughter's boyfriend is the killer; Dante's wife, Alicia, asks him to help her father, who's in trouble.</p>",
+    "show": {
+      "id": 42181,
+      "url": "https://www.tvmaze.com/shows/42181/the-equalizer",
+      "name": "The Equalizer",
+      "type": "Scripted",
+      "language": "English",
+      "genres": [
+        "Drama",
+        "Action",
+        "Crime"
+      ],
+      "status": "Running",
+      "runtime": 60,
+      "averageRuntime": 60,
+      "premiered": "2021-02-07",
+      "ended": null,
+      "officialSite": "https://www.cbs.com/shows/the-equalizer/",
+      "schedule": {
+        "time": "20:00",
+        "days": [
+          "Sunday"
+        ]
+      },
+      "rating": {
+        "average": 6.7
+      },
+      "weight": 99,
+      "network": {
+        "id": 2,
+        "name": "CBS",
+        "country": {
+          "name": "United States",
+          "code": "US",
+          "timezone": "America/New_York"
+        },
+        "officialSite": "https://www.cbs.com/"
+      },
+      "webChannel": null,
+      "dvdCountry": null,
+      "externals": {
+        "tvrage": null,
+        "thetvdb": 385420,
+        "imdb": "tt11141750"
+      },
+      "image": {
+        "medium": "https://static.tvmaze.com/uploads/images/medium_portrait/489/1224652.jpg",
+        "original": "https://static.tvmaze.com/uploads/images/original_untouched/489/1224652.jpg"
+      },
+      "summary": "<p>Robyn McCall, an enigmatic woman with a mysterious background, uses her extensive skills to help those with nowhere else to turn. McCall comes across to most as an average single mom who is quietly raising her teenage daughter. But to a trusted few, she is <b>The Equalizer</b> - an anonymous guardian angel and defender of the downtrodden, who's also dogged in her pursuit of personal redemption.</p>",
+      "updated": 1710734400,
+      "_links": {
+        "self": {
+          "href": "https://api.tvmaze.com/shows/42181"
+        },
+        "previousepisode": {
+          "href": "https://api.tvmaze.com/episodes/2582354"
+        },
+        "nextepisode": {
+          "href": "https://api.tvmaze.com/episodes/2582355"
+        }
+      }
+    },
+    "_links": {
+      "self": {
+        "href": "https://api.tvmaze.com/episodes/2582354"
+      },
+      "show": {
+        "href": "https://api.tvmaze.com/shows/42181"
+      }
+    }
+  },
+  {
+    "id": 2582370,
+    "url": "https://www.tvmaze.com/episodes/2582370/ncis-los-angeles-5x09-recovery",
+    "name": "Recovery",
+    "season": 5,
+    "number": 9,
+    "type": "regular",
+    "airdate": "2024-03-17",
+    "airtime": "21:00",
+    "airstamp": "2024-03-18T01:00:00+00:00",
+    "runtime": 60,
+    "rating": {
+      "average": null
+    },
+    "image": null,
+    "summary": "<p>When Sam's wife is kidnapped from her CIA safehouse, the NCIS team discovers she has a secret that compromises her location; Deeks and Kensi realize that a car accident they were involved in might have been related to the case.</p>",
+    "show": {
+      "id": 18085,
+      "url": "https://www.tvmaze.com/shows/18085/ncis-los-angeles",
+      "name": "NCIS: Los Angeles",
+      "type": "Scripted",
+      "language": "English",
+      "genres": [
+        "Drama",
+        "Action",
+        "Crime"
+      ],
+      "status": "Ended",
+      "runtime": 60,
+      "averageRuntime": 60,
+      "premiered": "2009-09-22",
+      "ended": "2023-05-21",
+      "officialSite": "http://www.cbs.com/shows/ncis_los_angeles/",
+      "schedule": {
+        "time": "22:00",
+        "days": [
+          "Sunday"
+        ]
+      },
+      "rating": {
+        "average": 7.8
+      },
+      "weight": 98,
+      "network": {
+        "id": 2,
+        "name": "CBS",
+        "country": {
+          "name": "United States",
+          "code": "US",
+          "timezone": "America/New_York"
+        },
+        "officialSite": "https://www.cbs.com/"
+      },
+      "webChannel": null,
+      "dvdCountry": null,
+      "externals": {
+        "tvrage": 21934,
+        "thetvdb": 95441,
+        "imdb": "tt1378167"
+      },
+      "image": {
+        "medium": "https://static.tvmaze.com/uploads/images/medium_portrait/445/1114094.jpg",
+        "original": "https://static.tvmaze.com/uploads/images/original_untouched/445/1114094.jpg"
+      },
+      "summary": "<p><b>NCIS: Los Angeles</b> is a drama about the high-stakes world of a division of NCIS that is charged with apprehending dangerous and elusive criminals, who pose a threat to the nation's security. By assuming false identities and utilizing the most advanced technology, this team of highly trained agents goes deep undercover, putting their lives on the line in the field to bring down their targets.</p>",
+      "updated": 1710734400,
+      "_links": {
+        "self": {
+          "href": "https://api.tvmaze.com/shows/18085"
+        },
+        "previousepisode": {
+          "href": "https://api.tvmaze.com/episodes/2520921"
+        }
+      }
+    },
+    "_links": {
+      "self": {
+        "href": "https://api.tvmaze.com/episodes/2582370"
+      },
+      "show": {
+        "href": "https://api.tvmaze.com/shows/18085"
+      }
+    }
+  }
+]

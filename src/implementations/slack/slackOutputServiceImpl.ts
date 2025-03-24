@@ -5,7 +5,7 @@ import type { OutputService } from '../../interfaces/outputService.js';
 import type { ShowFormatter } from '../../interfaces/showFormatter.js';
 import type { TvShowService } from '../../interfaces/tvShowService.js';
 import type { CliArgs } from '../../types/cliArgs.js';
-import type { Show } from '../../types/tvmaze.js';
+import type { Show } from '../../types/tvShowModel.js';
 
 /**
  * Implementation of the OutputService for Slack

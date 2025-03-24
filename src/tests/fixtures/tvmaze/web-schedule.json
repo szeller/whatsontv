@@ -1,0 +1,252 @@
+[
+  {
+    "id": 2582386,
+    "url": "https://www.tvmaze.com/episodes/2582386/the-reluctant-traveler-with-eugene-levy-2x05-episode-5",
+    "name": "Episode 5",
+    "season": 2,
+    "number": 5,
+    "type": "regular",
+    "airdate": "2024-03-15",
+    "airtime": "",
+    "airstamp": "2024-03-15T07:00:00+00:00",
+    "runtime": null,
+    "rating": {
+      "average": null
+    },
+    "image": null,
+    "summary": null,
+    "_embedded": {
+      "show": {
+        "id": 65789,
+        "url": "https://www.tvmaze.com/shows/65789/the-reluctant-traveler-with-eugene-levy",
+        "name": "The Reluctant Traveler with Eugene Levy",
+        "type": "Documentary",
+        "language": "English",
+        "genres": [
+          "Travel"
+        ],
+        "status": "Running",
+        "runtime": null,
+        "averageRuntime": 33,
+        "premiered": "2023-02-24",
+        "ended": null,
+        "officialSite": "https://tv.apple.com/show/the-reluctant-traveler-with-eugene-levy/umc.cmc.65gr7gzrch0wfmw8uqbqbpvqd",
+        "schedule": {
+          "time": "",
+          "days": [
+            "Friday"
+          ]
+        },
+        "rating": {
+          "average": 6.8
+        },
+        "weight": 95,
+        "network": null,
+        "webChannel": {
+          "id": 310,
+          "name": "Apple TV+",
+          "country": null,
+          "officialSite": "https://tv.apple.com/"
+        },
+        "dvdCountry": null,
+        "externals": {
+          "tvrage": null,
+          "thetvdb": 418814,
+          "imdb": "tt14566220"
+        },
+        "image": {
+          "medium": "https://static.tvmaze.com/uploads/images/medium_portrait/489/1224653.jpg",
+          "original": "https://static.tvmaze.com/uploads/images/original_untouched/489/1224653.jpg"
+        },
+        "summary": "<p>Follow <b>Eugene Levy</b> as he visits some of the world's most beautiful and intriguing destinations, experiencing thrilling local adventures with hilarious new friends.</p>",
+        "updated": 1710734400,
+        "_links": {
+          "self": {
+            "href": "https://api.tvmaze.com/shows/65789"
+          },
+          "previousepisode": {
+            "href": "https://api.tvmaze.com/episodes/2582386"
+          },
+          "nextepisode": {
+            "href": "https://api.tvmaze.com/episodes/2582387"
+          }
+        }
+      }
+    },
+    "_links": {
+      "self": {
+        "href": "https://api.tvmaze.com/episodes/2582386"
+      },
+      "show": {
+        "href": "https://api.tvmaze.com/shows/65789"
+      }
+    }
+  },
+  {
+    "id": 2582402,
+    "url": "https://www.tvmaze.com/episodes/2582402/the-machine-1x05-episode-5",
+    "name": "Episode 5",
+    "season": 1,
+    "number": 5,
+    "type": "regular",
+    "airdate": "2024-03-15",
+    "airtime": "",
+    "airstamp": "2024-03-15T07:00:00+00:00",
+    "runtime": null,
+    "rating": {
+      "average": null
+    },
+    "image": null,
+    "summary": null,
+    "_embedded": {
+      "show": {
+        "id": 69214,
+        "url": "https://www.tvmaze.com/shows/69214/the-machine",
+        "name": "The Machine",
+        "type": "Scripted",
+        "language": "English",
+        "genres": [
+          "Comedy"
+        ],
+        "status": "Running",
+        "runtime": null,
+        "averageRuntime": 27,
+        "premiered": "2024-02-16",
+        "ended": null,
+        "officialSite": "https://www.netflix.com/title/81665328",
+        "schedule": {
+          "time": "",
+          "days": [
+            "Friday"
+          ]
+        },
+        "rating": {
+          "average": 7.3
+        },
+        "weight": 98,
+        "network": null,
+        "webChannel": {
+          "id": 1,
+          "name": "Netflix",
+          "country": null,
+          "officialSite": "https://www.netflix.com/"
+        },
+        "dvdCountry": null,
+        "externals": {
+          "tvrage": null,
+          "thetvdb": 439538,
+          "imdb": "tt28420814"
+        },
+        "image": {
+          "medium": "https://static.tvmaze.com/uploads/images/medium_portrait/489/1224654.jpg",
+          "original": "https://static.tvmaze.com/uploads/images/original_untouched/489/1224654.jpg"
+        },
+        "summary": "<p>Based on Bert Kreischer's stand-up routine \"The Machine,\" this comedy series follows Bert and his father as they get kidnapped by those Bert wronged in Russia two decades ago.</p>",
+        "updated": 1710734400,
+        "_links": {
+          "self": {
+            "href": "https://api.tvmaze.com/shows/69214"
+          },
+          "previousepisode": {
+            "href": "https://api.tvmaze.com/episodes/2582402"
+          },
+          "nextepisode": {
+            "href": "https://api.tvmaze.com/episodes/2582403"
+          }
+        }
+      }
+    },
+    "_links": {
+      "self": {
+        "href": "https://api.tvmaze.com/episodes/2582402"
+      },
+      "show": {
+        "href": "https://api.tvmaze.com/shows/69214"
+      }
+    }
+  },
+  {
+    "id": 2582418,
+    "url": "https://www.tvmaze.com/episodes/2582418/girls5eva-3x05-the-spice-girls-movie",
+    "name": "The Spice Girls Movie",
+    "season": 3,
+    "number": 5,
+    "type": "regular",
+    "airdate": "2024-03-15",
+    "airtime": "",
+    "airstamp": "2024-03-15T07:00:00+00:00",
+    "runtime": null,
+    "rating": {
+      "average": null
+    },
+    "image": null,
+    "summary": "<p>Gloria's son tries to get the girls to invest in his app; Dawn and Wickie compete for the same man; Summer's husband returns from prison.</p>",
+    "_embedded": {
+      "show": {
+        "id": 48361,
+        "url": "https://www.tvmaze.com/shows/48361/girls5eva",
+        "name": "Girls5eva",
+        "type": "Scripted",
+        "language": "English",
+        "genres": [
+          "Comedy",
+          "Music"
+        ],
+        "status": "Running",
+        "runtime": null,
+        "averageRuntime": 28,
+        "premiered": "2021-05-06",
+        "ended": null,
+        "officialSite": "https://www.netflix.com/title/81490659",
+        "schedule": {
+          "time": "",
+          "days": [
+            "Thursday"
+          ]
+        },
+        "rating": {
+          "average": 6.9
+        },
+        "weight": 97,
+        "network": null,
+        "webChannel": {
+          "id": 1,
+          "name": "Netflix",
+          "country": null,
+          "officialSite": "https://www.netflix.com/"
+        },
+        "dvdCountry": null,
+        "externals": {
+          "tvrage": null,
+          "thetvdb": 393321,
+          "imdb": "tt11650492"
+        },
+        "image": {
+          "medium": "https://static.tvmaze.com/uploads/images/medium_portrait/489/1224655.jpg",
+          "original": "https://static.tvmaze.com/uploads/images/original_untouched/489/1224655.jpg"
+        },
+        "summary": "<p>When a one-hit-wonder girl group from the 90's gets sampled by a young rapper, its members reunite to give their pop star dreams one more shot. They may be grown women balancing spouses, kids, jobs, debt, aging parents, and shoulder pain, but can't they also be <b>Girls5eva</b>?</p>",
+        "updated": 1710734400,
+        "_links": {
+          "self": {
+            "href": "https://api.tvmaze.com/shows/48361"
+          },
+          "previousepisode": {
+            "href": "https://api.tvmaze.com/episodes/2582418"
+          },
+          "nextepisode": {
+            "href": "https://api.tvmaze.com/episodes/2582419"
+          }
+        }
+      }
+    },
+    "_links": {
+      "self": {
+        "href": "https://api.tvmaze.com/episodes/2582418"
+      },
+      "show": {
+        "href": "https://api.tvmaze.com/shows/48361"
+      }
+    }
+  }
+]

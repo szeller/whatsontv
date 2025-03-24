@@ -9,8 +9,8 @@
   },
   "scripts": {
     "start": "node --import ./src/register.mjs src/cli.ts",
-    "test": "NODE_OPTIONS=\"--experimental-vm-modules --no-warnings\" jest --coverage --coverageReporters=text --coverageReporters=lcov --coverageReporters=json-summary --forceExit",
-    "test:no-coverage": "NODE_OPTIONS=\"--experimental-vm-modules --no-warnings\" jest --coverage=false --forceExit",
+    "test": "NODE_OPTIONS=\"--experimental-vm-modules --no-warnings\" jest --coverage --coverageReporters=text --coverageReporters=lcov --coverageReporters=json-summary",
+    "test:no-coverage": "NODE_OPTIONS=\"--experimental-vm-modules --no-warnings\" jest --coverage=false",
     "lint": "eslint --config eslint.config.js 'src/**/*.ts' --report-unused-disable-directives",
     "lint:fix": "eslint --config eslint.config.js 'src/**/*.ts' --fix",
     "lint:ci": "eslint --config eslint.config.js 'src/**/*.ts' --report-unused-disable-directives --max-warnings 999",
@@ -49,7 +49,8 @@
     "reflect-metadata": "^0.2.2",
     "ts-node": "^10.9.2",
     "tsyringe": "^4.8.0",
-    "yargs": "^17.7.2"
+    "yargs": "^17.7.2",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@babel/core": "^7.26.9",

@@ -2,7 +2,7 @@ import { jest } from '@jest/globals';
 import type { Arguments } from 'yargs';
 
 import type { CliArgs } from '../../types/cliArgs.js';
-import { getTodayDate } from '../../utils/showUtils.js';
+import { getTodayDate } from '../../utils/dateUtils.js';
 
 interface YargsOptions {
   alias?: string;
