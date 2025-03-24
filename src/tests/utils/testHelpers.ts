@@ -1,28 +1,25 @@
 /**
- * Test helpers for working with tsyringe dependency injection
- * Provides utilities to create mock objects and test containers
+ * Test helpers for the TVMaze application
  */
-
-import 'reflect-metadata';
-
 import { jest } from '@jest/globals';
 import { container, DependencyContainer } from 'tsyringe';
 
 // Local imports
+import { PlainStyleServiceImpl } from '../../implementations/test/plainStyleServiceImpl.js';
 
 // Type imports
 import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
 import type { ShowFormatter } from '../../interfaces/showFormatter.js';
-import type { TvShowService } from '../../interfaces/tvShowService.js';
-import type { NetworkGroups } from '../../types/app.js';
-import type { Show } from '../../types/tvmaze.js';
-import { PlainStyleServiceImpl } from '../../implementations/test/plainStyleServiceImpl.js';
 import type { StyleService } from '../../interfaces/styleService.js';
+import type { TvShowService } from '../../interfaces/tvShowService.js';
+import type { Show } from '../../types/tvShowModel.js';
+import type { NetworkGroups } from '../../utils/showUtils.js';
 
 /**
  * Create a mock console output object for testing
+ * @returns Mock console output
  */
-export function createMockConsoleOutput(): ConsoleOutput {
+export function createMockConsoleOutput(): jest.Mocked<ConsoleOutput> {
   return {
     log: jest.fn(),
     error: jest.fn(),
@@ -31,23 +28,16 @@ export function createMockConsoleOutput(): ConsoleOutput {
 }
 
 /**
- * Create a mock show formatter for testing
+ * Create a mock formatter for testing
+ * @returns Mock formatter
  */
-export function createMockShowFormatter(): ShowFormatter {
+export function createMockFormatter(): jest.Mocked<ShowFormatter> {
   return {
-    formatShow: jest.fn<(show: Show) => string>().mockReturnValue('Formatted show'),
-    formatTimedShow: jest.fn<(show: Show) => string>().mockReturnValue('Formatted timed show'),
-    formatUntimedShow: jest.fn<(show: Show) => string>()
-      .mockReturnValue('Formatted untimed show'),
-    formatMultipleEpisodes: jest.fn<(shows: Show[]) => string>()
-      .mockReturnValue('Formatted multiple episodes'),
-    formatNetworkGroups: jest.fn<
-      (
-        networkGroups: NetworkGroups,
-        timeSort?: boolean
-      ) => string[]
-    >()
-      .mockReturnValue(['Formatted network groups'])
+    formatShow: jest.fn(),
+    formatTimedShow: jest.fn(),
+    formatUntimedShow: jest.fn(),
+    formatMultipleEpisodes: jest.fn(),
+    formatNetworkGroups: jest.fn<(groups: NetworkGroups, timeSort?: boolean) => string[]>()
   };
 }
 
@@ -58,11 +48,6 @@ export function createMockShowFormatter(): ShowFormatter {
 export function createMockTvShowService(): TvShowService {
   return {
     getShowsByDate: jest.fn<(date: string) => Promise<Show[]>>().mockResolvedValue([]),
-    searchShows: jest.fn<(query: string) => Promise<Show[]>>().mockResolvedValue([]),
-    getShows: jest.fn<(options: { 
-      date?: string; 
-      search?: string; 
-    }) => Promise<Show[]>>().mockResolvedValue([]),
     fetchShowsWithOptions: jest.fn<(options: {
       date?: string;
       country?: string;
@@ -87,7 +72,7 @@ export function createTestContainer(): DependencyContainer {
     useValue: createMockConsoleOutput() 
   });
   testContainer.register<ShowFormatter>('ShowFormatter', { 
-    useValue: createMockShowFormatter() 
+    useValue: createMockFormatter() 
   });
   testContainer.register<TvShowService>('TvShowService', { 
     useValue: createMockTvShowService() 
@@ -113,7 +98,7 @@ export function resetContainer(): void {
     useValue: createMockConsoleOutput() 
   });
   container.register<ShowFormatter>('ShowFormatter', { 
-    useValue: createMockShowFormatter() 
+    useValue: createMockFormatter() 
   });
   container.register<TvShowService>('TvShowService', { 
     useValue: createMockTvShowService() 

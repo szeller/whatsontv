@@ -7,14 +7,15 @@ import config from '../../config.js';
 import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
 import type { OutputService } from '../../interfaces/outputService.js';
 import type { ShowFormatter } from '../../interfaces/showFormatter.js';
-import type { NetworkGroups } from '../../types/app.js';
-import type { Show } from '../../types/tvmaze.js';
-import { getTodayDate, groupShowsByNetwork } from '../../utils/showUtils.js';
+import type { Show } from '../../types/tvShowModel.js';
+import type { NetworkGroups } from '../../utils/showUtils.js';
+import { groupShowsByNetwork } from '../../utils/showUtils.js';
+import { getTodayDate } from '../../utils/dateUtils.js';
 
 /**
- * CLI arguments interface
+ * CLI arguments interface for console output
  */
-export interface CliArgs extends Arguments {
+export interface ConsoleCliArgs extends Arguments {
   date: string;
   country: string;
   types: string[];
@@ -103,7 +104,7 @@ export class ConsoleOutputServiceImpl implements OutputService {
    * @param args Command line arguments (optional)
    * @returns Parsed command line arguments
    */
-  public parseArgs(args?: string[]): CliArgs {
+  public parseArgs(args?: string[]): ConsoleCliArgs {
     return yargs(args || process.argv.slice(2))
       .options({
         date: {
@@ -178,7 +179,7 @@ export class ConsoleOutputServiceImpl implements OutputService {
       .alias('help', 'h')
       .version()
       .alias('version', 'v')
-      .parseSync() as CliArgs;
+      .parseSync() as ConsoleCliArgs;
   }
 
   /**

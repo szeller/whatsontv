@@ -4,7 +4,7 @@ import { inject, injectable } from 'tsyringe';
 import type { ShowFormatter } from '../../interfaces/showFormatter.js';
 import type { StyleService } from '../../interfaces/styleService.js';
 import type { TvShowService } from '../../interfaces/tvShowService.js';
-import type { Show } from '../../types/tvmaze.js';
+import type { Show } from '../../types/tvShowModel.js';
 
 /**
  * Slack implementation of the ShowFormatter interface
@@ -31,7 +31,8 @@ export class SlackFormatterImpl implements ShowFormatter {
    * TODO: Implement actual Slack formatting
    */
   public formatShow(show: Show): string {
-    return show.airtime ? this.formatTimedShow(show) : this.formatUntimedShow(show);
+    const hasAirtime = show.airtime !== undefined && show.airtime !== '';
+    return hasAirtime ? this.formatTimedShow(show) : this.formatUntimedShow(show);
   }
 
   /**
@@ -41,7 +42,7 @@ export class SlackFormatterImpl implements ShowFormatter {
    * TODO: Implement actual Slack formatting
    */
   public formatTimedShow(show: Show): string {
-    return `*${show.show.name}* (${show.airtime})`;
+    return `*${show.name}* (${show.airtime})`;
   }
 
   /**
@@ -51,22 +52,24 @@ export class SlackFormatterImpl implements ShowFormatter {
    * TODO: Implement actual Slack formatting
    */
   public formatUntimedShow(show: Show): string {
-    return `*${show.show.name}* (TBA)`;
+    return `*${show.name}* (TBA)`;
   }
 
   /**
-   * Format multiple episodes of the same show with no specific airtime for Slack
+   * Format multiple episodes of the same show with no specific airtime
    * @param shows Multiple episodes of the same show
    * @returns Formatted show string for Slack
    * TODO: Implement actual Slack formatting
    */
-  public formatMultipleEpisodes(shows: Show[]): string {
+  public formatMultipleEpisodes(shows: Show[]): string[] {
     if (shows.length === 0) {
-      return 'No episodes found';
+      return ['No episodes found'];
     }
     
-    const showName = shows[0].show.name || 'Unknown Show';
-    return `*${showName}* (Multiple Episodes)`;
+    const showName = shows[0].name !== undefined && shows[0].name !== '' 
+      ? shows[0].name 
+      : 'Unknown Show';
+    return [`*${showName}* (Multiple Episodes)`];
   }
 
   /**

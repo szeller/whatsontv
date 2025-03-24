@@ -4,7 +4,7 @@ import { inject, injectable } from 'tsyringe';
 import type { ShowFormatter } from '../../interfaces/showFormatter.js';
 import type { StyleService } from '../../interfaces/styleService.js';
 import type { TvShowService } from '../../interfaces/tvShowService.js';
-import type { Show } from '../../types/tvmaze.js';
+import type { Show } from '../../types/tvShowModel.js';
 
 /**
  * Console implementation of the ShowFormatter interface
@@ -43,7 +43,9 @@ export class ConsoleFormatterImpl implements ShowFormatter {
    * @returns Formatted string
    */
   public formatShow(show: Show): string {
-    return show.airtime ? this.formatTimedShow(show) : this.formatUntimedShow(show);
+    return show.airtime !== null && show.airtime !== '' 
+      ? this.formatTimedShow(show) 
+      : this.formatUntimedShow(show);
   }
 
   /**
@@ -54,19 +56,10 @@ export class ConsoleFormatterImpl implements ShowFormatter {
   public formatTimedShow(show: Show): string {
     // Extract show information
     // Use the actual airtime value directly for tests to pass
-    const time = show.airtime || this.NO_AIRTIME;
-    const network = 
-      show.show.network?.name !== undefined && show.show.network?.name !== null 
-        ? show.show.network.name 
-        : 'N/A';
-    const type = 
-      show.show.type !== undefined && show.show.type !== null && show.show.type !== '' 
-        ? show.show.type 
-        : 'N/A';
-    const showName = 
-      show.show.name !== undefined && show.show.name !== null && show.show.name !== '' 
-        ? show.show.name 
-        : 'Unknown';
+    const time = show.airtime !== null && show.airtime !== '' ? show.airtime : this.NO_AIRTIME;
+    const network = show.channel !== null && show.channel !== '' ? show.channel : 'N/A';
+    const type = show.type !== null && show.type !== '' ? show.type : 'N/A';
+    const showName = show.name !== null && show.name !== '' ? show.name : 'Unknown';
     const episodeInfo = `S${show.season}E${show.number}`;
     
     // Format each component with consistent padding
@@ -82,12 +75,10 @@ export class ConsoleFormatterImpl implements ShowFormatter {
     const episodeInfoStr: string = this.styleService.yellow(
       episodeInfo.padEnd(this.PAD_LENGTHS.episodeInfo)
     );
-    const episodeName: string = show.name || '';
-    const episodeNameStr: string = this.styleService.dim(episodeName);
-
+    
     // Combine all components with consistent spacing
     const headerLine = `${timeStr} ${networkStr} ${typeStr} ${showNameStr} ${episodeInfoStr}`;
-    return episodeName ? `${headerLine} ${episodeNameStr}` : headerLine;
+    return headerLine;
   }
 
   /**
@@ -97,15 +88,9 @@ export class ConsoleFormatterImpl implements ShowFormatter {
    */
   public formatUntimedShow(show: Show): string {
     // Extract show information
-    const network = show.show.network?.name !== undefined && show.show.network?.name !== null 
-      ? show.show.network.name 
-      : 'Unknown';
-    const type = show.show.type !== undefined && show.show.type !== null 
-      ? show.show.type 
-      : 'Unknown';
-    const showName = show.show.name !== undefined && show.show.name !== null 
-      ? show.show.name 
-      : 'Unknown';
+    const network = show.channel !== null && show.channel !== '' ? show.channel : 'Unknown';
+    const type = show.type !== null && show.type !== '' ? show.type : 'Unknown';
+    const showName = show.name !== null && show.name !== '' ? show.name : 'Unknown';
     const episodeInfo = `S${show.season}E${show.number}`;
     
     // Format each component with consistent padding
@@ -121,37 +106,34 @@ export class ConsoleFormatterImpl implements ShowFormatter {
     const episodeInfoStr: string = this.styleService.yellow(
       episodeInfo.padEnd(this.PAD_LENGTHS.episodeInfo)
     );
-    const episodeName: string = show.name || '';
-    const episodeNameStr: string = this.styleService.dim(episodeName);
-
+    
     // Combine all components with consistent spacing
     const headerLine = `${timeStr} ${networkStr} ${typeStr} ${showNameStr} ${episodeInfoStr}`;
-    return episodeName ? `${headerLine} ${episodeNameStr}` : headerLine;
+    return headerLine;
   }
 
   /**
    * Format multiple episodes of the same show with no specific airtime
    * @param episodes Episodes to format
-   * @returns Formatted episodes string
+   * @returns Formatted episodes string array
    */
-  public formatMultipleEpisodes(episodes: Show[]): string {
+  public formatMultipleEpisodes(episodes: Show[]): string[] {
     if (episodes.length === 0) {
-      return '';
+      return [];
     }
     
     // Get the first episode to extract show information
     const firstEpisode = episodes[0];
     
     // Extract show information
-    const network = firstEpisode.show.network?.name !== undefined && 
-      firstEpisode.show.network?.name !== null 
-      ? firstEpisode.show.network.name 
+    const network = firstEpisode.channel !== null && firstEpisode.channel !== '' 
+      ? firstEpisode.channel 
       : 'Unknown';
-    const type = firstEpisode.show.type !== undefined && firstEpisode.show.type !== null 
-      ? firstEpisode.show.type 
+    const type = firstEpisode.type !== null && firstEpisode.type !== '' 
+      ? firstEpisode.type 
       : 'Unknown';
-    const showName = firstEpisode.show.name !== undefined && firstEpisode.show.name !== null 
-      ? firstEpisode.show.name 
+    const showName = firstEpisode.name !== null && firstEpisode.name !== '' 
+      ? firstEpisode.name 
       : 'Unknown';
     
     // Format each component with consistent padding
@@ -177,22 +159,20 @@ export class ConsoleFormatterImpl implements ShowFormatter {
       const episodeInfoStr: string = this.styleService.yellow(
         episodeInfo.padEnd(this.PAD_LENGTHS.episodeInfo)
       );
-      const episodeName: string = episode.name || '';
-      const episodeNameStr: string = this.styleService.dim(episodeName);
       
       // Indent episode lines for better readability
-      return `    ${episodeInfoStr} ${episodeNameStr}`;
+      return `    ${episodeInfoStr}`;
     });
     
-    // Combine header and episode lines
-    return [headerLine, ...episodeLines].join('\n');
+    // Return as array of strings
+    return [headerLine, ...episodeLines];
   }
 
   /**
    * Format shows grouped by network
    * @param networkGroups Shows grouped by network
    * @param timeSort Whether to sort shows by time
-   * @returns Formatted shows string
+   * @returns Formatted shows string array
    */
   public formatNetworkGroups(networkGroups: Record<string, Show[]>, timeSort = false): string[] {
     const output: string[] = [];
@@ -200,50 +180,58 @@ export class ConsoleFormatterImpl implements ShowFormatter {
     // Get network names and sort them alphabetically
     const networks = Object.keys(networkGroups).sort();
     
+    // Process each network
     for (const network of networks) {
-      // Add network header
-      output.push(`\n${this.styleService.boldCyan(network)}`);
-      output.push('-'.repeat(network.length));
-      
       // Get shows for this network
-      let shows = networkGroups[network];
+      const shows = networkGroups[network];
       
-      // Sort shows by time if requested
-      if (timeSort && shows.length > 0) {
-        shows = [...shows].sort((a, b) => {
-          // Handle shows without airtime
-          if (!a.airtime) return 1;
-          if (!b.airtime) return -1;
-          
-          // Compare airtime strings
-          return a.airtime.localeCompare(b.airtime);
-        });
+      // Skip empty networks
+      if (shows.length === 0) {
+        continue;
       }
+      
+      // Add network header
+      output.push(this.styleService.boldCyan(`\n${network}:`));
+      
+      // Add separator line
+      const separatorLine = '-'.repeat(network.length + 1);
+      output.push(this.styleService.dim(separatorLine));
       
       // Group shows by show ID to handle multiple episodes
       const showGroups: Record<string, Show[]> = {};
       for (const show of shows) {
-        const showId = show.show.id;
-        if (showId !== undefined) {
-          const showIdKey = showId.toString();
-          if (showGroups[showIdKey] === undefined) {
-            showGroups[showIdKey] = [];
-          }
-          showGroups[showIdKey].push(show);
+        const showId = show.id.toString();
+        if (!Object.prototype.hasOwnProperty.call(showGroups, showId)) {
+          showGroups[showId] = [];
         }
+        showGroups[showId].push(show);
+      }
+      
+      // Sort shows by time if requested
+      if (timeSort && shows.length > 0) {
+        shows.sort((a, b) => {
+          // Handle shows without airtime
+          if (a.airtime === undefined || a.airtime === null || a.airtime === '') return 1;
+          if (b.airtime === undefined || b.airtime === null || b.airtime === '') return -1;
+          
+          // Compare airtime strings - at this point we know both are non-null strings
+          return a.airtime.localeCompare(b.airtime);
+        });
       }
       
       // Format each show or show group
-      for (const showIdKey of Object.keys(showGroups)) {
-        const showGroup = showGroups[showIdKey];
+      for (const showId of Object.keys(showGroups)) {
+        const showGroup = showGroups[showId];
         
         // Format based on number of episodes
         if (showGroup.length === 1) {
           // Single episode
           output.push(this.formatShow(showGroup[0]));
-        } else if (showGroup.every(show => !show.airtime)) {
+        } else if (showGroup.every(show => {
+          return show.airtime === undefined || show.airtime === null || show.airtime === '';
+        })) {
           // Multiple episodes without airtime
-          output.push(this.formatMultipleEpisodes(showGroup));
+          output.push(...this.formatMultipleEpisodes(showGroup));
         } else {
           // Multiple episodes with different airtimes
           for (const show of showGroup) {

@@ -3,7 +3,7 @@ import { container, InjectionToken } from 'tsyringe';
 
 import { ConsoleFormatterImpl } from '../../../implementations/console/consoleFormatterImpl';
 import { createMockTvShowService } from '../../utils/testHelpers';
-import type { Show } from '../../../types/tvmaze';
+import type { Show } from '../../../types/tvShowModel.js';
 import type { TvShowService } from '../../../interfaces/tvShowService';
 import type { StyleService } from '../../../interfaces/styleService';
 import { PlainStyleServiceImpl } from '../../../implementations/test/plainStyleServiceImpl';
@@ -30,34 +30,22 @@ describe('ConsoleFormatterImpl', () => {
     
     // Create mock show data
     mockShow = {
+      id: 1,
+      name: 'Test Show',
+      type: 'Scripted',
+      language: 'English',
+      genres: ['Drama'],
+      channel: 'Test Network',
+      isStreaming: false,
+      summary: 'Test summary',
       airtime: '20:00',
-      name: 'Test Episode',
       season: 1,
-      number: 1,
-      show: {
-        id: 1,
-        name: 'Test Show',
-        type: 'Scripted',
-        language: 'English',
-        genres: ['Drama'],
-        network: {
-          id: 1,
-          name: 'Test Network',
-          country: {
-            name: 'United States',
-            code: 'US',
-            timezone: 'America/New_York'
-          }
-        },
-        webChannel: null,
-        image: null,
-        summary: 'Test summary'
-      }
+      number: 1
     };
     
     mockShowNoAirtime = {
       ...mockShow,
-      airtime: ''
+      airtime: null
     };
     
     // Reset all mocks before each test
@@ -87,25 +75,21 @@ describe('ConsoleFormatterImpl', () => {
       expect(result).toContain('Scripted');
       expect(result).toContain('Test Show');
       expect(result).toContain('S1E1');
-      expect(result).toContain('Test Episode');
     });
 
     it('should handle shows with missing information', () => {
       const incompleteShow: Show = {
-        name: '',
-        season: 2,
-        number: 3,
+        id: 0,
+        name: 'Unknown Show',
+        type: '',
+        language: null,
+        genres: [],
+        channel: '',
+        isStreaming: false,
+        summary: null,
         airtime: '21:00',
-        show: {
-          name: '',
-          type: '',
-          language: null,
-          genres: [],
-          network: null,
-          webChannel: null,
-          image: null,
-          summary: ''
-        }
+        season: 2,
+        number: 3
       };
       
       const result = formatter.formatTimedShow(incompleteShow);
@@ -124,7 +108,6 @@ describe('ConsoleFormatterImpl', () => {
       expect(result).toContain('Scripted');
       expect(result).toContain('Test Show');
       expect(result).toContain('S1E1');
-      expect(result).toContain('Test Episode');
     });
   });
 
@@ -132,41 +115,36 @@ describe('ConsoleFormatterImpl', () => {
     it('should format multiple episodes of the same show correctly', () => {
       const episodes = [
         {
-          ...mockShowNoAirtime,
-          name: 'Episode 1',
+          ...mockShow,
           season: 1,
           number: 1
         },
         {
-          ...mockShowNoAirtime,
-          name: 'Episode 2',
+          ...mockShow,
           season: 1,
           number: 2
         }
       ];
       
       const result = formatter.formatMultipleEpisodes(episodes);
-      const lines = result.split('\n');
       
       // Should have 3 lines: header + 2 episodes
-      expect(lines.length).toBe(3);
+      expect(result.length).toBe(3);
       
       // Header should contain show info
-      expect(lines[0]).toContain('TBA');
-      expect(lines[0]).toContain('Test Network');
-      expect(lines[0]).toContain('Scripted');
-      expect(lines[0]).toContain('Test Show');
-      expect(lines[0]).toContain('Multiple');
+      expect(result[0]).toContain('TBA');
+      expect(result[0]).toContain('Test Network');
+      expect(result[0]).toContain('Scripted');
+      expect(result[0]).toContain('Test Show');
+      expect(result[0]).toContain('Multiple');
       
       // Episode lines should contain episode info
-      expect(lines[1]).toContain('S1E1');
-      expect(lines[1]).toContain('Episode 1');
-      expect(lines[2]).toContain('S1E2');
-      expect(lines[2]).toContain('Episode 2');
+      expect(result[1]).toContain('S1E1');
+      expect(result[2]).toContain('S1E2');
     });
 
-    it('should return empty string for empty array', () => {
-      expect(formatter.formatMultipleEpisodes([])).toBe('');
+    it('should return empty array for empty array', () => {
+      expect(formatter.formatMultipleEpisodes([])).toEqual([]);
     });
   });
 
@@ -176,29 +154,13 @@ describe('ConsoleFormatterImpl', () => {
         'Test Network': [
           {
             ...mockShow,
-            network: {
-              id: 1,
-              name: 'Test Network',
-              country: {
-                name: 'United States',
-                code: 'US',
-                timezone: 'America/New_York'
-              }
-            }
+            channel: 'Test Network'
           }
         ],
         'Another Network': [
           {
             ...mockShow,
-            network: {
-              id: 2,
-              name: 'Another Network',
-              country: {
-                name: 'United States',
-                code: 'US',
-                timezone: 'America/New_York'
-              }
-            }
+            channel: 'Another Network'
           }
         ]
       };
