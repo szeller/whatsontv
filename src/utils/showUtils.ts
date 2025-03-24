@@ -126,6 +126,13 @@ export function filterByNetwork(shows: Show[], networks: string[]): Show[] {
     // In our new model, channel is a string
     const channelName = show.channel !== null ? show.channel : '';
     
+    // If channel name is empty, this show won't match any network filter
+    if (channelName === '') {
+      return false;
+    }
+    
+    // Check if the channel name matches any of the networks
+    // This works for both traditional networks and streaming services
     return networks.some(network => 
       channelName.toLowerCase().includes(network.toLowerCase())
     );

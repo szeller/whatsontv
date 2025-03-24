@@ -33,6 +33,17 @@ export class MockConsoleOutputImpl implements ConsoleOutput {
   }
 
   /**
+   * Log a warning message to the captured output
+   * @param message Warning message to log
+   * @param args Additional arguments
+   */
+  warn(message?: string, ...args: unknown[]): void {
+    if (message !== undefined) {
+      this.output.push(`WARN: ${message} ${args.join(' ')}`);
+    }
+  }
+
+  /**
    * Log a message with a specific level to the captured output
    * @param level Log level (log or error)
    * @param message Message to log

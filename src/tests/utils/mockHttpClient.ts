@@ -1,5 +1,12 @@
 import type { HttpClient, HttpResponse } from '../../interfaces/httpClient.js';
 import { setTimeout } from 'timers/promises';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get the directory path for fixtures
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const fixturesDir = path.join(__dirname, '../fixtures/tvmaze');
 
 /**
  * Mock HTTP client for testing
@@ -8,6 +15,8 @@ import { setTimeout } from 'timers/promises';
 export class MockHttpClient implements HttpClient {
   private mockResponses = new Map<string, HttpResponse<unknown>>();
   private mockErrors = new Map<string, Error>();
+  private requests: string[] = [];
+  private requestCounts = new Map<string, number>();
   
   /**
    * Tracks the last URL that was requested
@@ -38,7 +47,7 @@ export class MockHttpClient implements HttpClient {
    * @param response The response to return
    */
   mockPost<T>(url: string, response: HttpResponse<T>): void {
-    this.mockResponses.set(`POST:${url}`, response as HttpResponse<unknown>);
+    this.mockResponses.set(url, response);
   }
 
   /**
@@ -47,7 +56,7 @@ export class MockHttpClient implements HttpClient {
    * @param error The error to throw
    */
   mockPostError(url: string, error: Error): void {
-    this.mockErrors.set(`POST:${url}`, error);
+    this.mockErrors.set(url, error);
   }
 
   /**
@@ -69,32 +78,97 @@ export class MockHttpClient implements HttpClient {
   }
 
   /**
+   * Load a fixture file as a mock response
+   * @param url URL to mock
+   * @param fixturePath Path to fixture file (relative to fixtures directory)
+   * @param status HTTP status code to return
+   */
+  mockFixture(url: string, fixturePath: string, status = 200): void {
+    const fullPath = path.join(fixturesDir, fixturePath);
+    const data = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
+    
+    this.mockResponses.set(url, {
+      status,
+      headers: {},
+      data
+    });
+  }
+
+  /**
+   * Get the list of requested URLs
+   * @returns Array of requested URLs
+   */
+  getRequests(): string[] {
+    return [...this.requests];
+  }
+
+  /**
+   * Get the number of times a specific URL has been requested
+   * @param url The URL to check
+   * @returns The number of times the URL has been requested
+   */
+  getCallCount(url: string): number {
+    return this.requestCounts.get(url) ?? 0;
+  }
+
+  /**
+   * Clear all mocks and requests
+   */
+  reset(): void {
+    this.mockResponses.clear();
+    this.mockErrors.clear();
+    this.requests = [];
+    this.requestCounts.clear();
+    this.lastUrl = '';
+  }
+
+  /**
+   * Track a request to a URL
+   * @param url The URL being requested
+   */
+  private trackRequest(url: string): void {
+    this.lastUrl = url;
+    this.requests.push(url);
+    
+    // Get current count and increment
+    const currentCount = this.requestCounts.get(url) ?? 0;
+    this.requestCounts.set(url, currentCount + 1);
+  }
+
+  /**
    * Mock implementation of GET
    * @param url The URL to request
    * @param _params Optional query parameters (ignored in mock)
    * @returns Promise resolving to the mock response
    */
   async get<T>(url: string, _params?: Record<string, string>): Promise<HttpResponse<T>> {
-    // Track the last URL requested
-    this.lastUrl = url;
+    // Track this request
+    this.trackRequest(url);
     
-    // Add a small delay to simulate network latency
-    await setTimeout(1);
+    // Simulate network delay
+    await setTimeout(10);
     
+    // Check if we have a mock error for this URL
     if (this.mockErrors.has(url)) {
-      const error = this.mockErrors.get(url);
-      if (error) throw error;
+      throw this.mockErrors.get(url);
     }
+    
+    // Check if we have a mock error for any URL
+    if (this.mockErrors.has('*')) {
+      throw this.mockErrors.get('*');
+    }
+    
+    // Check if we have a mock response for this URL
     if (this.mockResponses.has(url)) {
       return this.mockResponses.get(url) as HttpResponse<T>;
     }
+    
+    // Check if we have a mock response for any URL
     if (this.mockResponses.has('*')) {
       return this.mockResponses.get('*') as HttpResponse<T>;
     }
-    if (this.mockErrors.has('*')) {
-      const error = this.mockErrors.get('*');
-      if (error) throw error;
-    }
+    
+    // Throw error if no mock is set up
     throw new Error(`No mock response or error set for URL: ${url}`);
   }
 
@@ -110,27 +184,33 @@ export class MockHttpClient implements HttpClient {
     _data?: D,
     _params?: Record<string, string>
   ): Promise<HttpResponse<T>> {
-    // Track the last URL requested
-    this.lastUrl = url;
+    // Track this request
+    this.trackRequest(url);
     
-    // Add a small delay to simulate network latency
-    await setTimeout(1);
+    // Simulate network delay
+    await setTimeout(10);
     
-    const postUrl = `POST:${url}`;
-    if (this.mockErrors.has(postUrl)) {
-      const error = this.mockErrors.get(postUrl);
-      if (error) throw error;
+    // Check if we have a mock error for this URL
+    if (this.mockErrors.has(url)) {
+      throw this.mockErrors.get(url);
     }
-    if (this.mockResponses.has(postUrl)) {
-      return this.mockResponses.get(postUrl) as HttpResponse<T>;
+    
+    // Check if we have a mock error for any URL
+    if (this.mockErrors.has('*')) {
+      throw this.mockErrors.get('*');
     }
+    
+    // Check if we have a mock response for this URL
+    if (this.mockResponses.has(url)) {
+      return this.mockResponses.get(url) as HttpResponse<T>;
+    }
+    
+    // Check if we have a mock response for any URL
     if (this.mockResponses.has('*')) {
       return this.mockResponses.get('*') as HttpResponse<T>;
     }
-    if (this.mockErrors.has('*')) {
-      const error = this.mockErrors.get('*');
-      if (error) throw error;
-    }
+    
+    // Throw error if no mock is set up
     throw new Error(`No mock response or error set for URL: ${url}`);
   }
 }

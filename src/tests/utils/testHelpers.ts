@@ -23,6 +23,7 @@ export function createMockConsoleOutput(): jest.Mocked<ConsoleOutput> {
   return {
     log: jest.fn(),
     error: jest.fn(),
+    warn: jest.fn(),
     logWithLevel: jest.fn()
   };
 }

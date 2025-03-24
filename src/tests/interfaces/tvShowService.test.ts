@@ -109,9 +109,15 @@ describe('TvShowService Interface', () => {
       const service = container.resolve<TvShowService>('TvShowService');
       const today = getTodayDate();
       
-      // Set up the mock response for the HTTP client
+      // Set up the mock responses for both endpoints
       mockClient.mockGet(`https://api.tvmaze.com/schedule?date=${today}&country=US`, {
         data: networkScheduleFixtures,
+        status: 200,
+        headers: {}
+      });
+      
+      mockClient.mockGet(`https://api.tvmaze.com/schedule/web?date=${today}`, {
+        data: webScheduleFixtures,
         status: 200,
         headers: {}
       });
@@ -120,9 +126,12 @@ describe('TvShowService Interface', () => {
       const result = await service.fetchShowsWithOptions({});
       
       // Verify the result
-      expect(result).toHaveLength(networkScheduleFixtures.length);
+      expect(result.length).toBeGreaterThan(0);
       expect(result[0].name).toBe(networkShows[0].name);
-      expect(mockClient.lastUrl).toContain('schedule?date=');
+      // Verify both endpoints were called
+      const requests = mockClient.getRequests();
+      expect(requests).toContain(`https://api.tvmaze.com/schedule?date=${today}&country=US`);
+      expect(requests).toContain(`https://api.tvmaze.com/schedule/web?date=${today}`);
     });
   });
   

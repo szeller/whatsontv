@@ -8,23 +8,26 @@ import type { OutputService } from './interfaces/outputService.js';
 import type { TvShowService } from './interfaces/tvShowService.js';
 import type { CliArgs } from './types/cliArgs.js';
 
+// Get ConsoleOutput service for global error handling
+const consoleOutput = container.resolve<ConsoleOutput>('ConsoleOutput');
+
 // Add global error handler for uncaught exceptions
 process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:');
+  consoleOutput.error('Uncaught Exception:');
   if (error !== null && typeof error === 'object') {
-    console.error(`${error.name}: ${error.message}`);
+    consoleOutput.error(`${error.name}: ${error.message}`);
     if (error.stack !== undefined && error.stack !== null && error.stack.length > 0) {
-      console.error(error.stack);
+      consoleOutput.error(error.stack);
     }
   } else {
-    console.error(error);
+    consoleOutput.error(String(error));
   }
   process.exit(1);
 });
 
-// Debug logging is temporary and will be removed after fixing the double output issue
-console.warn('CLI module loaded, import.meta.url:', import.meta.url);
-console.warn('process.argv[1]:', process.argv[1]);
+// Debug logging using ConsoleOutput.warn instead of console.warn
+consoleOutput.warn('CLI module loaded, import.meta.url:', import.meta.url);
+consoleOutput.warn('process.argv[1]:', process.argv[1]);
 
 /**
  * Main function to run the CLI application
@@ -34,7 +37,6 @@ export async function main(args?: CliArgs): Promise<void> {
   // Resolve the services from the container
   const outputService = container.resolve<OutputService>('OutputService');
   const tvShowService = container.resolve<TvShowService>('TvShowService');
-  const consoleOutput = container.resolve<ConsoleOutput>('ConsoleOutput');
   
   try {
     // Parse command line arguments
@@ -62,25 +64,29 @@ export async function main(args?: CliArgs): Promise<void> {
     // Debug: Print all unique networks and web channels
     if (parsedArgs.debug === true) {
       const uniqueNetworks = new Set<string>();
-      const uniqueWebChannels = new Set<string>();
+      const uniqueStreamingServices = new Set<string>();
       
       for (const show of shows) {
         // Check for valid channel name
         if (show.channel && show.channel !== '') {
-          uniqueNetworks.add(show.channel);
+          if (show.isStreaming) {
+            uniqueStreamingServices.add(show.channel);
+          } else {
+            uniqueNetworks.add(show.channel);
+          }
         }
-        
-        // For streaming shows, we would need to add additional logic
-        // if we want to track web channels separately
       }
       
-      consoleOutput.log('\nAvailable Networks:');
+      consoleOutput.log('\nAvailable Traditional Networks:');
       consoleOutput.log([...uniqueNetworks].sort().join(', '));
       
-      if (uniqueWebChannels.size > 0) {
-        consoleOutput.log('\nAvailable Web Channels:');
-        consoleOutput.log([...uniqueWebChannels].sort().join(', '));
-      }
+      consoleOutput.log('\nAvailable Streaming Services:');
+      consoleOutput.log([...uniqueStreamingServices].sort().join(', '));
+      
+      // Print total counts
+      consoleOutput.log(`\nTotal Shows: ${shows.length}`);
+      consoleOutput.log(`Traditional Network Shows: ${shows.filter(s => !s.isStreaming).length}`);
+      consoleOutput.log(`Streaming Service Shows: ${shows.filter(s => s.isStreaming).length}`);
     }
 
     // Display the shows

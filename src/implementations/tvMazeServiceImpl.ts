@@ -34,24 +34,86 @@ export class TvMazeServiceImpl implements TvShowService {
   }
 
   /**
-   * Get shows for a specific date
+   * Get shows for a specific date from the traditional network schedule
+   * @param date - Date in YYYY-MM-DD format
+   * @returns Promise resolving to an array of raw schedule items
+   * @private
+   */
+  private async getNetworkSchedule(date: string): Promise<unknown[]> {
+    const endpoint = `${TV_MAZE_API}/schedule?date=${date}&country=US`;
+    
+    try {
+      // Make the API request
+      const response = await this._apiClient.get(endpoint);
+      
+      // If no data is returned, return empty array
+      if (!Array.isArray(response.data) || response.data.length === 0) {
+        return [];
+      }
+      
+      return response.data as unknown[];
+    } catch (error) {
+      // Only log errors in production environments, not during tests
+      if (process.env.NODE_ENV !== 'test') {
+        console.error('TvMazeServiceImpl.getNetworkSchedule error:', error);
+      }
+      
+      return [];
+    }
+  }
+
+  /**
+   * Get shows for a specific date from the web/streaming schedule
+   * @param date - Date in YYYY-MM-DD format
+   * @returns Promise resolving to an array of raw schedule items
+   * @private
+   */
+  private async getWebSchedule(date: string): Promise<unknown[]> {
+    const endpoint = `${TV_MAZE_API}/schedule/web?date=${date}`;
+    
+    try {
+      // Make the API request
+      const response = await this._apiClient.get(endpoint);
+      
+      // If no data is returned, return empty array
+      if (!Array.isArray(response.data) || response.data.length === 0) {
+        return [];
+      }
+      
+      return response.data as unknown[];
+    } catch (error) {
+      // Only log errors in production environments, not during tests
+      if (process.env.NODE_ENV !== 'test') {
+        console.error('TvMazeServiceImpl.getWebSchedule error:', error);
+      }
+      
+      return [];
+    }
+  }
+
+  /**
+   * Get shows for a specific date from both network and web schedules
    * @param date - Date in YYYY-MM-DD format
    * @returns Promise resolving to an array of shows
    */
   async getShowsByDate(date: string): Promise<Show[]> {
     try {
-      const endpoint = `${TV_MAZE_API}/schedule?date=${date}&country=US`;
+      // Fetch shows from both endpoints in parallel
+      const [networkSchedule, webSchedule] = await Promise.all([
+        this.getNetworkSchedule(date),
+        this.getWebSchedule(date)
+      ]);
       
-      // Make the API request
-      const response = await this._apiClient.get(endpoint);
+      // Combine the results
+      const combinedSchedule = [...networkSchedule, ...webSchedule];
       
-      // If no data is returned, throw an error
-      if (!Array.isArray(response.data) || response.data.length === 0) {
+      // If no data is returned from either endpoint, throw an error
+      if (combinedSchedule.length === 0) {
         throw new Error(NO_DATA_MESSAGE);
       }
       
-      // Transform the data using our new domain model
-      return transformSchedule(response.data);
+      // Transform the combined data using our domain model
+      return transformSchedule(combinedSchedule);
     } catch (error) {
       // Only log errors in production environments, not during tests
       if (process.env.NODE_ENV !== 'test') {
