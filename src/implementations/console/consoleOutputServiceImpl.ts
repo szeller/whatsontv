@@ -44,8 +44,8 @@ export class ConsoleOutputServiceImpl implements OutputService {
    * @param output Console output utility
    */
   constructor(
-    @inject('ShowFormatter') protected readonly formatter: ShowFormatter,
-    @inject('ConsoleOutput') protected readonly output: ConsoleOutput
+    @inject('ShowFormatter') private readonly formatter: ShowFormatter,
+    @inject('ConsoleOutput') private readonly output: ConsoleOutput
   ) {}
 
   /**
@@ -64,10 +64,15 @@ export class ConsoleOutputServiceImpl implements OutputService {
     const networkGroups = groupShowsByNetwork(shows);
     const formattedOutput = this.formatter.formatNetworkGroups(networkGroups, timeSort);
     
-    // Use Promise.all to properly utilize async/await
-    await Promise.all(
-      formattedOutput.map(line => Promise.resolve(this.output.log(line)))
-    );
+    // Display each line of output
+    try {
+      for (const line of formattedOutput) {
+        await Promise.resolve(this.output.log(line));
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.output.error(`Error displaying output: ${errorMessage}`);
+    }
   }
 
   /**
@@ -84,10 +89,15 @@ export class ConsoleOutputServiceImpl implements OutputService {
       timeSort
     );
     
-    // Use Promise.all to properly utilize async/await
-    await Promise.all(
-      formattedOutput.map(line => Promise.resolve(this.output.log(line)))
-    );
+    // Display each line of output
+    try {
+      for (const line of formattedOutput) {
+        await Promise.resolve(this.output.log(line));
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.output.error(`Error displaying output: ${errorMessage}`);
+    }
   }
 
   /**

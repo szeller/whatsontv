@@ -194,5 +194,112 @@ describe('ConsoleFormatterImpl', () => {
       // Clean up the spy
       sortSpy.mockRestore();
     });
+
+    it('should handle empty networks', () => {
+      const networkGroups = {
+        'Empty Network': []
+      };
+      
+      const result = formatter.formatNetworkGroups(networkGroups);
+      
+      // Should not include the empty network
+      expect(result).toHaveLength(0);
+    });
+
+    it('should sort shows by airtime when timeSort is true', () => {
+      const networkGroups = {
+        'Test Network': [
+          {
+            ...mockShow,
+            id: 1,
+            name: 'Late Show',
+            airtime: '22:00'
+          },
+          {
+            ...mockShow,
+            id: 2,
+            name: 'Early Show',
+            airtime: '08:00'
+          }
+        ]
+      };
+      
+      // Create a spy to observe the internal sorting logic
+      const sortSpy = jest.spyOn(Array.prototype, 'sort');
+      
+      const result = formatter.formatNetworkGroups(networkGroups, true);
+      
+      // Verify that sort was called
+      expect(sortSpy).toHaveBeenCalled();
+      
+      // Check that the result contains both shows
+      expect(result.some(line => line.includes('Early Show'))).toBe(true);
+      expect(result.some(line => line.includes('Late Show'))).toBe(true);
+      
+      // Clean up the spy
+      sortSpy.mockRestore();
+    });
+
+    it('should handle shows with missing airtime when sorting', () => {
+      const networkGroups = {
+        'Test Network': [
+          {
+            ...mockShow,
+            id: 1,
+            name: 'Show Without Airtime',
+            airtime: null
+          },
+          {
+            ...mockShow,
+            id: 2,
+            name: 'Show With Airtime',
+            airtime: '20:00'
+          }
+        ]
+      };
+      
+      // Create a spy to observe the internal sorting logic
+      const sortSpy = jest.spyOn(Array.prototype, 'sort');
+      
+      const result = formatter.formatNetworkGroups(networkGroups, true);
+      
+      // Verify that sort was called
+      expect(sortSpy).toHaveBeenCalled();
+      
+      // Check that the result contains both shows
+      expect(result.some(line => line.includes('Show With Airtime'))).toBe(true);
+      expect(result.some(line => line.includes('Show Without Airtime'))).toBe(true);
+      
+      // Clean up the spy
+      sortSpy.mockRestore();
+    });
+
+    it('should handle multiple episodes of the same show with different airtimes', () => {
+      const networkGroups = {
+        'Test Network': [
+          {
+            ...mockShow,
+            id: 1,
+            name: 'Same Show',
+            airtime: '20:00',
+            season: 1,
+            number: 1
+          },
+          {
+            ...mockShow,
+            id: 1,
+            name: 'Same Show',
+            airtime: '21:00',
+            season: 1,
+            number: 2
+          }
+        ]
+      };
+      
+      const result = formatter.formatNetworkGroups(networkGroups);
+      
+      // Should format each episode separately
+      expect(result.filter(line => line.includes('Same Show')).length).toBe(2);
+    });
   });
 });

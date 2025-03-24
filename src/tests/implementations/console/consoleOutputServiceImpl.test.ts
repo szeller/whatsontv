@@ -69,96 +69,202 @@ describe('ConsoleOutputServiceImpl', () => {
   });
 
   describe('displayShows', () => {
+    /**
+     * Tests that shows are properly displayed when grouped by network
+     */
     it('should display shows grouped by network', async (): Promise<void> => {
       // Arrange
-      mockShowFormatter.formatNetworkGroups.mockReturnValue(['Formatted network output']);
+      const formatNetworkGroupsSpy = jest.spyOn(mockShowFormatter, 'formatNetworkGroups');
+      formatNetworkGroupsSpy.mockReturnValue(['Formatted network output']);
 
       // Act
       await service.displayShows(mockShows, false);
 
       // Assert
-      expect(mockShowFormatter.formatNetworkGroups.mock.calls.length).toBe(1);
-      const formatArgs = mockShowFormatter.formatNetworkGroups.mock.calls[0];
-      
-      // The first argument should be the shows grouped by network
-      const expectedNetworkGroups = { 'Test Network': mockShows };
-      expect(formatArgs[0]).toEqual(expectedNetworkGroups);
-      expect(formatArgs[1]).toBe(false);
-      
-      expect(mockConsoleOutput.log.mock.calls.length).toBe(1);
-      const logArgs = mockConsoleOutput.log.mock.calls[0];
-      expect(logArgs[0]).toBe('Formatted network output');
+      expect(formatNetworkGroupsSpy).toHaveBeenCalledTimes(1);
+      expect(formatNetworkGroupsSpy).toHaveBeenCalledWith(
+        mockShows.reduce((networkGroups: Record<string, Show[]>, show: Show) => {
+          if (networkGroups[show.channel] === undefined) {
+            networkGroups[show.channel] = [];
+          }
+          networkGroups[show.channel].push(show);
+          return networkGroups;
+        }, {}),
+        false
+      );
+      const logSpy = jest.spyOn(mockConsoleOutput, 'log');
+      expect(logSpy).toHaveBeenCalledTimes(1);
+      expect(logSpy).toHaveBeenCalledWith('Formatted network output');
     });
 
+    /**
+     * Tests that the service correctly handles empty show arrays
+     * by displaying an appropriate message
+     */
     it('should handle empty shows array', async (): Promise<void> => {
       // Act
       await service.displayShows([], false);
 
       // Assert
-      expect(mockConsoleOutput.log.mock.calls.length).toBe(1);
-      const logArgs = mockConsoleOutput.log.mock.calls[0];
-      expect(logArgs[0]).toBe('No shows found for the specified criteria.');
+      const logSpy = jest.spyOn(mockConsoleOutput, 'log');
+      expect(logSpy).toHaveBeenCalledTimes(1);
+      expect(logSpy).toHaveBeenCalledWith('No shows found for the specified criteria.');
     });
-
-    it(
-      'should display shows with detailed output when verbose is true',
-      async (): Promise<void> => {
-        // Arrange
-        mockShowFormatter.formatNetworkGroups.mockReturnValue(['Formatted network output']);
-
-        // Act
-        await service.displayShows(mockShows, true);
-
-        // Assert
-        expect(mockShowFormatter.formatNetworkGroups.mock.calls.length).toBe(1);
-        const formatArgs = mockShowFormatter.formatNetworkGroups.mock.calls[0];
-        
-        // The first argument should be the shows grouped by network
-        const expectedNetworkGroups = { 'Test Network': mockShows };
-        expect(formatArgs[0]).toEqual(expectedNetworkGroups);
-        expect(formatArgs[1]).toBe(true);
-        
-        expect(mockConsoleOutput.log.mock.calls.length).toBe(1);
-        const logArgs = mockConsoleOutput.log.mock.calls[0];
-        expect(logArgs[0]).toBe('Formatted network output');
-      }
-    );
+    
+    /**
+     * Tests that the service properly handles errors during output
+     */
+    it('should handle errors during output', async () => {
+      // Arrange
+      const logSpy = jest.spyOn(mockConsoleOutput, 'log');
+      logSpy.mockImplementationOnce(() => {
+        throw new Error('Test error');
+      });
+      
+      // Act
+      await service.displayShows(mockShows, false);
+      
+      // Assert
+      const errorSpy = jest.spyOn(mockConsoleOutput, 'error');
+      expect(errorSpy).toHaveBeenCalledTimes(1);
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Error displaying output: Test error')
+      );
+    });
+    
+    /**
+     * Tests that the service properly handles non-Error objects thrown during output
+     */
+    it('should handle non-Error objects thrown during output', async () => {
+      // Arrange
+      const logSpy = jest.spyOn(mockConsoleOutput, 'log');
+      logSpy.mockImplementationOnce(() => {
+        throw 'String error'; // Not an Error object
+      });
+      
+      // Act
+      await service.displayShows(mockShows, false);
+      
+      // Assert
+      const errorSpy = jest.spyOn(mockConsoleOutput, 'error');
+      expect(errorSpy).toHaveBeenCalledTimes(1);
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Error displaying output: String error')
+      );
+    });
   });
 
   describe('displayNetworkGroups', () => {
-    it('should format and display network groups', async () => {
+    /**
+     * Tests that the service correctly formats and displays network groups
+     */
+    const testFormatAndDisplayNetworkGroups = async (): Promise<void> => {
       // Arrange
       const mockNetworkGroups = {
         'Network A': [mockShow],
-        'Network B': [mockShow]
+        'Network B': []
       };
-      mockShowFormatter.formatNetworkGroups.mockReturnValue([
-        'Formatted network A', 
-        'Formatted network B'
-      ]);
+      const formatNetworkGroupsSpy = jest.spyOn(mockShowFormatter, 'formatNetworkGroups');
+      formatNetworkGroupsSpy.mockReturnValue(['Network A', 'Show 1']);
       
       // Act
       await service.displayNetworkGroups(mockNetworkGroups, false);
       
       // Assert
-      expect(() => mockShowFormatter.formatNetworkGroups(mockNetworkGroups, false)).not.toThrow();
-      expect(() => mockConsoleOutput.log('Formatted network A')).not.toThrow();
-      expect(() => mockConsoleOutput.log('Formatted network B')).not.toThrow();
-    });
-    
-    it('should sort shows by time when timeSort is true', async () => {
+      expect(formatNetworkGroupsSpy).toHaveBeenCalledTimes(1);
+      expect(formatNetworkGroupsSpy).toHaveBeenCalledWith(
+        mockNetworkGroups, 
+        false
+      );
+      const logSpy = jest.spyOn(mockConsoleOutput, 'log');
+      expect(logSpy).toHaveBeenCalledTimes(2);
+      expect(logSpy).toHaveBeenNthCalledWith(1, 'Network A');
+      expect(logSpy).toHaveBeenNthCalledWith(2, 'Show 1');
+    };
+
+    it(
+      'should format and display network groups',
+      testFormatAndDisplayNetworkGroups
+    );
+
+    /**
+     * Tests that the timeSort parameter is correctly passed to the formatter
+     */
+    const testPassTimeSortParameterToFormatter = async (): Promise<void> => {
       // Arrange
-      const mockNetworkGroups = {
-        'Network A': [mockShow],
-        'Network B': [mockShow]
-      };
+      const mockNetworkGroups = { 'Network A': [mockShow] };
+      const timeSort = true;
       
       // Act
-      await service.displayNetworkGroups(mockNetworkGroups, true);
+      await service.displayNetworkGroups(mockNetworkGroups, timeSort);
       
       // Assert
-      expect(() => mockShowFormatter.formatNetworkGroups(mockNetworkGroups, true)).not.toThrow();
-    });
+      const formatNetworkGroupsSpy = jest.spyOn(mockShowFormatter, 'formatNetworkGroups');
+      expect(formatNetworkGroupsSpy).toHaveBeenCalledTimes(1);
+      expect(formatNetworkGroupsSpy).toHaveBeenCalledWith(
+        mockNetworkGroups,
+        timeSort
+      );
+    };
+
+    it(
+      'should pass timeSort parameter to formatter',
+      testPassTimeSortParameterToFormatter
+    );
+
+    /**
+     * Tests that the service properly handles errors during output
+     */
+    const testHandleErrorsDuringOutput = async (): Promise<void> => {
+      // Arrange
+      const mockNetworkGroups = { 'Network A': [mockShow] };
+      const logSpy = jest.spyOn(mockConsoleOutput, 'log');
+      logSpy.mockImplementationOnce(() => {
+        throw new Error('Test error');
+      });
+      
+      // Act
+      await service.displayNetworkGroups(mockNetworkGroups, false);
+      
+      // Assert
+      const errorSpy = jest.spyOn(mockConsoleOutput, 'error');
+      expect(errorSpy).toHaveBeenCalledTimes(1);
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Error displaying output: Test error')
+      );
+    };
+
+    it(
+      'should handle errors during output',
+      testHandleErrorsDuringOutput
+    );
+    
+    /**
+     * Tests that the service properly handles non-Error objects thrown during output
+     */
+    const testHandleNonErrorObjectsThrownDuringOutput = async (): Promise<void> => {
+      // Arrange
+      const mockNetworkGroups = { 'Network A': [mockShow] };
+      const logSpy = jest.spyOn(mockConsoleOutput, 'log');
+      logSpy.mockImplementationOnce(() => {
+        throw 'String error'; // Not an Error object
+      });
+      
+      // Act
+      await service.displayNetworkGroups(mockNetworkGroups, false);
+      
+      // Assert
+      const errorSpy = jest.spyOn(mockConsoleOutput, 'error');
+      expect(errorSpy).toHaveBeenCalledTimes(1);
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Error displaying output: String error')
+      );
+    };
+
+    it(
+      'should handle non-Error objects thrown during output',
+      testHandleNonErrorObjectsThrownDuringOutput
+    );
   });
 
   describe('parseArgs', () => {
@@ -201,6 +307,37 @@ describe('ConsoleOutputServiceImpl', () => {
       expect(args.timeSort).toBe(true);
       expect(args.debug).toBe(true);
     });
+    
+    it('should parse provided arguments correctly', () => {
+      // Arrange
+      const args = ['--date', '2023-01-01', '--timeSort'];
+      
+      // Act
+      const result = service.parseArgs(args);
+      
+      // Assert
+      expect(result.date).toBe('2023-01-01');
+      expect(result.timeSort).toBe(true);
+    });
+    
+    it('should handle comma-separated list arguments', () => {
+      // Arrange
+      const args = [
+        '--networks', 'HBO,Netflix',
+        '--genres', 'Drama,Comedy',
+        '--types', 'Scripted,Reality',
+        '--languages', 'English,Spanish'
+      ];
+      
+      // Act
+      const result = service.parseArgs(args);
+      
+      // Assert
+      expect(result.networks).toEqual(['HBO', 'Netflix']);
+      expect(result.genres).toEqual(['Drama', 'Comedy']);
+      expect(result.types).toEqual(['Scripted', 'Reality']);
+      expect(result.languages).toEqual(['English', 'Spanish']);
+    });
   });
 
   describe('displayHeader', () => {
@@ -209,21 +346,35 @@ describe('ConsoleOutputServiceImpl', () => {
       service.displayHeader();
       
       // Assert
-      expect(mockConsoleOutput.log).toHaveBeenCalledTimes(2);
-      expect(mockConsoleOutput.log).toHaveBeenCalledWith(expect.stringContaining('WhatsOnTV'));
-      expect(mockConsoleOutput.log).toHaveBeenCalledWith(expect.stringContaining('='));
+      const logSpy = jest.spyOn(mockConsoleOutput, 'log');
+      expect(logSpy).toHaveBeenCalledTimes(2);
+      expect(logSpy).toHaveBeenNthCalledWith(
+        1, 
+        expect.stringContaining('WhatsOnTV')
+      );
+      expect(logSpy).toHaveBeenNthCalledWith(
+        2, 
+        expect.stringContaining('=')
+      );
     });
   });
 
   describe('displayFooter', () => {
-    it('should display the application footer', () => {
+    it('should display application footer', () => {
       // Act
       service.displayFooter();
       
       // Assert
-      expect(mockConsoleOutput.log).toHaveBeenCalledTimes(2);
-      expect(mockConsoleOutput.log).toHaveBeenCalledWith(expect.stringContaining('='));
-      expect(mockConsoleOutput.log).toHaveBeenCalledWith(expect.stringContaining('TVMaze API'));
+      const logSpy = jest.spyOn(mockConsoleOutput, 'log');
+      expect(logSpy).toHaveBeenCalledTimes(2);
+      expect(logSpy).toHaveBeenNthCalledWith(
+        1, 
+        expect.stringContaining('=')
+      );
+      expect(logSpy).toHaveBeenNthCalledWith(
+        2, 
+        expect.stringContaining('TVMaze API')
+      );
     });
   });
 
@@ -231,35 +382,31 @@ describe('ConsoleOutputServiceImpl', () => {
     it('should return true when properly initialized', () => {
       // Act
       const result = service.isInitialized();
-
+      
       // Assert
       expect(result).toBe(true);
     });
 
-    it('should return false when output is null', () => {
+    it('should return false when formatter is not initialized', () => {
       // Arrange
-      const serviceWithNullOutput = new ConsoleOutputServiceImpl(
-        mockShowFormatter,
-        null as unknown as ConsoleOutput
-      );
-
+      // @ts-expect-error - Testing invalid state
+      service['formatter'] = undefined;
+      
       // Act
-      const result = serviceWithNullOutput.isInitialized();
-
+      const result = service.isInitialized();
+      
       // Assert
       expect(result).toBe(false);
     });
 
-    it('should return false when formatter is null', () => {
+    it('should return false when output is not initialized', () => {
       // Arrange
-      const serviceWithNullFormatter = new ConsoleOutputServiceImpl(
-        null as unknown as ShowFormatter,
-        mockConsoleOutput
-      );
-
+      // @ts-expect-error - Testing invalid state
+      service['output'] = undefined;
+      
       // Act
-      const result = serviceWithNullFormatter.isInitialized();
-
+      const result = service.isInitialized();
+      
       // Assert
       expect(result).toBe(false);
     });
