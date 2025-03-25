@@ -85,7 +85,9 @@ export class SlackOutputServiceImpl implements OutputService {
       slack: true,
       help: false,
       version: false,
-      limit: 0
+      limit: 10,
+      webOnly: false,
+      showAll: false
     };
   }
 }

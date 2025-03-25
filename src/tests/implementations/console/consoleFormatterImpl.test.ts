@@ -35,7 +35,7 @@ describe('ConsoleFormatterImpl', () => {
       type: 'Scripted',
       language: 'English',
       genres: ['Drama'],
-      channel: 'Test Network',
+      network: 'Test Network',
       isStreaming: false,
       summary: 'Test summary',
       airtime: '20:00',
@@ -84,7 +84,7 @@ describe('ConsoleFormatterImpl', () => {
         type: '',
         language: null,
         genres: [],
-        channel: '',
+        network: '',
         isStreaming: false,
         summary: null,
         airtime: '21:00',
@@ -154,13 +154,13 @@ describe('ConsoleFormatterImpl', () => {
         'Test Network': [
           {
             ...mockShow,
-            channel: 'Test Network'
+            network: 'Test Network'
           }
         ],
         'Another Network': [
           {
             ...mockShow,
-            channel: 'Another Network'
+            network: 'Another Network'
           }
         ]
       };

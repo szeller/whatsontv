@@ -145,7 +145,7 @@ export const showSchema = z.object({
   type: z.string().default('unknown'),
   language: nullableString.default(null),
   genres: z.array(z.string()).default([]),
-  channel: z.string(),
+  network: z.string(),
   isStreaming: z.boolean().default(false),
   summary: nullableString.default(null),
   airtime: nullableString.default(null),
@@ -182,6 +182,66 @@ export type Network = z.infer<typeof networkSchema>;
  */
 
 /**
+ * Transform TVMaze API schedule data into our domain model
+ * @param data Raw TVMaze API schedule data
+ * @param isStreaming Whether the data is from the streaming schedule
+ * @returns Array of transformed Show objects
+ */
+export function transformSchedule(data: unknown[], isStreaming = false): Show[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+
+  return data.map(item => {
+    // Extract show data based on whether it's from streaming or network schedule
+    const showData = isStreaming 
+      ? (item as { _embedded?: { show?: unknown } })._embedded?.show
+      : (item as { show?: unknown }).show;
+
+    if (showData === undefined || showData === null) {
+      return null;
+    }
+
+    // Extract show fields
+    const show = showData as {
+      id?: number;
+      name?: string;
+      type?: string;
+      language?: string | null;
+      genres?: string[];
+      network?: { name?: string };
+      webChannel?: { name?: string };
+      summary?: string | null;
+    };
+
+    // Extract episode data
+    const episode = item as {
+      airtime?: string | null;
+      season?: number;
+      number?: number;
+    };
+
+    return {
+      id: show.id ?? 0,
+      name: show.name ?? '',
+      type: show.type ?? '',
+      language: show.language ?? null,
+      genres: show.genres ?? [],
+      network: (show.network?.name !== null && show.network?.name !== undefined) 
+        ? show.network.name 
+        : (show.webChannel?.name !== null && show.webChannel?.name !== undefined)
+          ? show.webChannel.name 
+          : 'Unknown Network',
+      isStreaming,
+      summary: show.summary ?? null,
+      airtime: episode.airtime ?? null,
+      season: episode.season ?? 0,
+      number: episode.number ?? 0
+    };
+  }).filter((show): show is Show => show !== null);
+}
+
+/**
  * Transform a TVMaze schedule item to our domain model
  * @param item TVMaze schedule item
  * @returns Show object
@@ -210,7 +270,7 @@ export function transformScheduleItem(item: unknown): Show {
       type: show.type ?? '',
       language: show.language ?? null,
       genres: show.genres ?? [],
-      channel: (show.network?.name !== null && show.network?.name !== undefined) 
+      network: (show.network?.name !== null && show.network?.name !== undefined) 
         ? show.network.name 
         : (show.webChannel?.name !== null && show.webChannel?.name !== undefined)
           ? show.webChannel.name 
@@ -218,8 +278,14 @@ export function transformScheduleItem(item: unknown): Show {
       isStreaming: show.webChannel !== null,
       summary: show.summary ?? null,
       airtime: parsed.airtime ?? null,
-      season: parsed.season ?? 0,
-      number: parsed.number ?? 0
+      season: 
+        typeof parsed.season === 'string' 
+          ? parseInt(parsed.season, 10) 
+          : (parsed.season ?? 0),
+      number: 
+        typeof parsed.number === 'string' 
+          ? parseInt(parsed.number, 10) 
+          : (parsed.number ?? 0)
     };
   } catch (error) {
     console.error('Error transforming schedule item:', error);
@@ -260,7 +326,7 @@ export function transformWebScheduleItem(item: unknown): Show {
       type: show.type ?? '',
       language: show.language ?? null,
       genres: show.genres ?? [],
-      channel: (show.network?.name !== null && show.network?.name !== undefined) 
+      network: (show.network?.name !== null && show.network?.name !== undefined) 
         ? show.network.name 
         : (show.webChannel?.name !== null && show.webChannel?.name !== undefined)
           ? show.webChannel.name 
@@ -268,19 +334,18 @@ export function transformWebScheduleItem(item: unknown): Show {
       isStreaming: true,
       summary: show.summary ?? null,
       airtime: parsed.airtime ?? null,
-      season: parsed.season ?? 0,
-      number: parsed.number ?? 0
+      season: 
+        typeof parsed.season === 'string' 
+          ? parseInt(parsed.season, 10) 
+          : (parsed.season ?? 0),
+      number: 
+        typeof parsed.number === 'string' 
+          ? parseInt(parsed.number, 10) 
+          : (parsed.number ?? 0)
     };
   } catch (error) {
     console.error('Error transforming web schedule item:', error);
     const errorMsg = error instanceof Error ? error.message : String(error);
     throw new Error(`Failed to transform web schedule item: ${errorMsg}`);
   }
-}
-
-/**
- * Transform an array of TVMaze schedule items to our domain model
- */
-export function transformSchedule(items: unknown[]): Show[] {
-  return items.map(item => transformScheduleItem(item));
 }

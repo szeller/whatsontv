@@ -54,6 +54,16 @@ export interface CliArgs {
   debug: boolean;
   
   /**
+   * Whether to only show web/streaming shows
+   */
+  webOnly: boolean;
+
+  /**
+   * Whether to show both network and web shows
+   */
+  showAll: boolean;
+
+  /**
    * Maximum number of shows to display
    */
   limit: number;

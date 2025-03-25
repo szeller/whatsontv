@@ -3,7 +3,7 @@
  * 
  * Provides easy access to domain model test fixtures for use in tests
  */
-import { Show, Episode, NetworkGroups } from '../../../types/tvShowModel.js';
+import { Show, NetworkGroups } from '../../../types/tvShowModel.js';
 
 /**
  * Domain model test fixtures
@@ -21,7 +21,7 @@ export class DomainFixtures {
         type: 'scripted',
         language: 'English',
         genres: ['Drama', 'Action'],
-        channel: 'ABC',
+        network: 'ABC',
         isStreaming: false,
         summary: 'A sample network show for testing',
         airtime: '20:00',
@@ -34,7 +34,7 @@ export class DomainFixtures {
         type: 'reality',
         language: 'English',
         genres: ['Reality'],
-        channel: 'NBC',
+        network: 'NBC',
         isStreaming: false,
         summary: 'Another sample network show for testing',
         airtime: '21:00',
@@ -56,7 +56,7 @@ export class DomainFixtures {
         type: 'scripted',
         language: 'English',
         genres: ['Comedy', 'Drama'],
-        channel: 'Netflix',
+        network: 'Netflix',
         isStreaming: true,
         summary: 'A sample streaming show for testing',
         airtime: null,
@@ -69,41 +69,12 @@ export class DomainFixtures {
         type: 'documentary',
         language: 'English',
         genres: ['Documentary'],
-        channel: 'Hulu',
+        network: 'Hulu',
         isStreaming: true,
         summary: 'Another sample streaming show for testing',
         airtime: null,
         season: 1,
         number: 2
-      }
-    ];
-  }
-
-  /**
-   * Get sample episodes for testing
-   * @returns Array of episodes in domain model format
-   */
-  static getEpisodes(): Episode[] {
-    return [
-      {
-        id: 101,
-        name: 'Pilot',
-        season: 1,
-        number: 1,
-        summary: 'The first episode',
-        airdate: '2023-01-01',
-        airtime: '20:00',
-        runtime: 60
-      },
-      {
-        id: 102,
-        name: 'The Second One',
-        season: 1,
-        number: 2,
-        summary: 'The second episode',
-        airdate: '2023-01-08',
-        airtime: '20:00',
-        runtime: 60
       }
     ];
   }
@@ -125,7 +96,7 @@ export class DomainFixtures {
           type: 'scripted',
           language: 'English',
           genres: ['Drama'],
-          channel: 'HBO',
+          network: 'HBO',
           isStreaming: false,
           summary: 'A sample cable show for testing',
           airtime: '21:00',

@@ -41,6 +41,8 @@ const defaultArgs: CliArgs & Record<string, unknown> = {
   help: false,
   version: false,
   debug: false,
+  webOnly: false,
+  showAll: false,
   limit: 10,
   time: false,
   // Include these as extra properties for the tests

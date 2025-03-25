@@ -30,6 +30,8 @@ export interface ConsoleCliArgs extends Arguments {
   help: boolean;
   version: boolean;
   debug: boolean;
+  webOnly: boolean;
+  showAll: boolean;
 }
 
 /**
@@ -181,6 +183,16 @@ export class ConsoleOutputServiceImpl implements OutputService {
         debug: {
           alias: 'D',
           describe: 'Enable debug mode',
+          type: 'boolean',
+          default: false
+        },
+        webOnly: {
+          describe: 'Only show web series',
+          type: 'boolean',
+          default: false
+        },
+        showAll: {
+          describe: 'Show all shows, including those without air dates',
           type: 'boolean',
           default: false
         }

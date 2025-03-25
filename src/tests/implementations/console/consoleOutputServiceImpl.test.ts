@@ -23,7 +23,7 @@ describe('ConsoleOutputServiceImpl', () => {
     type: 'Scripted',
     language: 'English',
     genres: ['Drama'],
-    channel: 'Test Network',
+    network: 'Test Network',
     isStreaming: false,
     summary: 'Test summary',
     airtime: '20:00',
@@ -84,10 +84,10 @@ describe('ConsoleOutputServiceImpl', () => {
       expect(formatNetworkGroupsSpy).toHaveBeenCalledTimes(1);
       expect(formatNetworkGroupsSpy).toHaveBeenCalledWith(
         mockShows.reduce((networkGroups: Record<string, Show[]>, show: Show) => {
-          if (networkGroups[show.channel] === undefined) {
-            networkGroups[show.channel] = [];
+          if (networkGroups[show.network] === undefined) {
+            networkGroups[show.network] = [];
           }
-          networkGroups[show.channel].push(show);
+          networkGroups[show.network].push(show);
           return networkGroups;
         }, {}),
         false

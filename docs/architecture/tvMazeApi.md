@@ -13,18 +13,101 @@ https://api.tvmaze.com
 
 ### Schedule Endpoints
 
-1. **TV Schedule** (`/schedule`)
-   - Returns all TV shows airing during a specific date
+1. **TV Network Schedule** (`/schedule`)
+   - Returns all traditional TV network shows airing during a specific date
    - Parameters:
      - `date`: YYYY-MM-DD format (e.g., 2025-03-16)
      - `country`: Two-letter country code (e.g., 'US')
    - Example: `https://api.tvmaze.com/schedule?country=US&date=2025-03-16`
 
-2. **Web Schedule** (`/schedule/web`)
+2. **Web/Streaming Schedule** (`/schedule/web`)
    - Returns all web/streaming shows airing during a specific date
    - Parameters:
      - `date`: YYYY-MM-DD format
    - Example: `https://api.tvmaze.com/schedule/web?date=2025-03-16`
+
+## API Data Structures
+
+### Important Structural Differences
+
+The TVMaze API has different response structures for network shows and streaming shows:
+
+#### Network Schedule Item (`/schedule`)
+```typescript
+interface NetworkScheduleItem {
+  id: number;
+  url: string;
+  name: string;           // Episode name
+  season: number;         // Season number
+  number: number;         // Episode number
+  airdate: string;        // YYYY-MM-DD format
+  airtime: string;        // Show's airtime in HH:MM format
+  runtime: number;        // Duration in minutes
+  show: {                 // Show is at the top level
+    id: number;
+    name: string;
+    type: string;
+    language: string;
+    genres: string[];
+    network: {            // Traditional TV network
+      id: number;
+      name: string;
+      country: { code: string; name: string; timezone: string; }
+    } | null;
+    webChannel: null;     // Typically null for network shows
+    summary: string;
+    // ... other fields
+  }
+}
+```
+
+#### Web Schedule Item (`/schedule/web`)
+```typescript
+interface WebScheduleItem {
+  id: number;
+  url: string;
+  name: string;           // Episode name
+  season: number;         // Season number
+  number: number;         // Episode number
+  airdate: string;        // YYYY-MM-DD format
+  airtime: string;        // Show's airtime in HH:MM format
+  runtime: number;        // Duration in minutes
+  _embedded: {            // Show is nested in _embedded
+    show: {
+      id: number;
+      name: string;
+      type: string;
+      language: string;
+      genres: string[];
+      network: null;      // Typically null for web shows
+      webChannel: {       // Streaming service
+        id: number;
+        name: string;
+        country: { code: string; name: string; timezone: string; } | null;
+      } | null;
+      summary: string;
+      // ... other fields
+    }
+  }
+}
+```
+
+## Type Inconsistencies
+
+The TVMaze API has some type inconsistencies that we need to handle:
+
+1. **Numeric fields as strings**: Sometimes `season` and `number` are returned as strings instead of numbers
+2. **Nullable fields**: Many fields can be null, including `network`, `webChannel`, `language`, etc.
+3. **Missing fields**: Some fields might be missing entirely in some responses
+
+Our application uses Zod schemas to validate and transform the API responses, handling these inconsistencies gracefully.
+
+## API Usage in Our Application
+
+1. We fetch both network and web schedules for the current date
+2. We transform the API responses into our domain model (see `tvDomainModel.md`)
+3. We combine the results and apply any user-specified filters
+4. We format and display the results according to the user's preferences
 
 ## Data Structures
 

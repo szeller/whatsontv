@@ -56,7 +56,7 @@ export async function sendToSlack(
   };
 
   // Get shows for today
-  const shows = await service.fetchShowsWithOptions({
+  const shows = await service.fetchShows({
     date: getTodayDate()
   });
   

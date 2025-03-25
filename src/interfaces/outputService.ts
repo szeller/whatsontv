@@ -1,4 +1,3 @@
-import type { CliArgs } from '../types/cliArgs.js';
 import type { Show } from '../types/tvShowModel.js';
 
 /**
@@ -11,13 +10,6 @@ export interface OutputService {
    * @param timeSort Whether to sort by time (true) or group by network (false)
    */
   displayShows(shows: Show[], timeSort?: boolean): Promise<void>;
-  
-  /**
-   * Parse command line arguments
-   * @param args Command line arguments
-   * @returns Parsed arguments object
-   */
-  parseArgs(args?: string[]): CliArgs;
   
   /**
    * Check if the service is properly initialized

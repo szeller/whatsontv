@@ -5,8 +5,9 @@
 This document outlines the development plan for addressing two related issues:
 - **Issue #45**: Fix network filtering for streaming services like Prime Video
 - **Issue #50**: Implement Integration Tests for CLI
+- **Issue #52**: Standardize test fixtures and mock data
 
-By addressing these issues together, we can ensure that the streaming services support is properly tested through the CLI integration tests.
+By addressing these issues together, we can ensure that the streaming services support is properly tested through the CLI integration tests, while also improving the maintainability of our test suite.
 
 ## Issue Analysis
 
@@ -15,7 +16,7 @@ By addressing these issues together, we can ensure that the streaming services s
 **Root Cause Analysis:**
 1. The TVMaze API represents streaming services in a different endpoint (`/schedule/web`) than traditional networks (`/schedule`).
 2. Our current implementation only fetches from the `/schedule` endpoint, which doesn't include streaming services.
-3. The transformation logic correctly handles both network and web channel shows, but we're not fetching the web channel data.
+3. The transformation logic correctly handles both network and web schedule items, but we're not fetching the web channel data.
 
 **Current Implementation:**
 - `TvMazeServiceImpl.getShowsByDate` only fetches from `/schedule?date={date}&country=US`
@@ -28,6 +29,16 @@ By addressing these issues together, we can ensure that the streaming services s
 - The CLI functionality is tested indirectly through unit tests of individual components
 - No end-to-end tests that verify the CLI works correctly with different arguments
 - No tests that verify the output format and content
+
+### Issue #52: Standardize test fixtures and mock data
+
+**Current Status:**
+- We have well-structured domain fixtures in `src/tests/fixtures/domain/domainFixtures.ts` that aren't being used
+- Many tests use one-off mock data defined inline, leading to inconsistencies
+- TVMaze API fixtures are used consistently, but domain model fixtures are not
+- No clear separation between API fixtures and domain model fixtures in tests
+- Redundant mock data creation across multiple test files
+- Duplicate type definitions in test files instead of reusing existing types from the main codebase
 
 ## Implementation Plan
 
@@ -99,61 +110,134 @@ By addressing these issues together, we can ensure that the streaming services s
 
 #### 2.4 Error Handling Tests
 
-1. Test network error handling
-2. Test API error handling
-3. Test invalid argument handling
+1. Test invalid date format
+2. Test network not found
+3. Test API error handling
 
-#### 2.5 Time Sorting Tests
+### 3. Standardize Test Fixtures and Mock Data (Issue #52)
 
-1. Test time sorting enabled
-2. Test time sorting disabled
+#### 3.1 Enhance Domain Fixtures
 
-## Testing Strategy
+1. Update `domainFixtures.ts` to include more comprehensive test data:
+   - Add more network shows with different properties
+   - Add more streaming shows with different properties
+   - Ensure fixtures cover all edge cases (null values, missing properties, etc.)
+   - Add fixtures for different genres, languages, and types
+   - Create fixtures that match the TVMaze API fixtures for consistent testing
 
-### Unit Tests
+2. Create specialized fixtures for specific test scenarios:
+   - Shows with missing airtime
+   - Shows with very long names or descriptions
+   - Shows with special characters
+   - Shows with empty or null properties
 
-1. Update `TvMazeServiceImpl.test.ts` to test the new functionality
-2. Use the existing fixtures for testing
+#### 3.2 Create Fixture Utility Functions
 
-### Integration Tests
+1. Add utility functions to `domainFixtures.ts`:
+   ```typescript
+   // Get a show with specific properties
+   static getShowWithProps(props: Partial<Show>): Show
+   
+   // Get a random show from the fixtures
+   static getRandomShow(): Show
+   
+   // Get shows filtered by property
+   static getShowsByGenre(genre: string): Show[]
+   static getShowsByType(type: string): Show[]
+   static getShowsByLanguage(language: string): Show[]
+   static getShowsByChannel(channel: string): Show[]
+   ```
 
-1. Create a new test file: `src/tests/integration/cli/cli.test.ts`
-2. Use Jest for running the tests
-3. Use snapshot testing for verifying output format
-4. Mock the HTTP client to return controlled responses
+#### 3.3 Refactor Existing Tests
 
-## Implementation Timeline
+1. Replace inline mock data in tests with imports from `domainFixtures.ts`:
+   - Update `consoleFormatterImpl.test.ts` (22 instances)
+   - Update `consoleOutputServiceImpl.test.ts` (3 instances)
+   - Update `slackOutputServiceImpl.test.ts` (if applicable)
+   - Update `showUtils.test.ts` (if applicable)
+   - Update any other test files with inline mock data
 
-1. **Day 1**: Fix streaming services support
-   - Update `TvMazeServiceImpl`
-   - Update network filtering
-   - Add unit tests
+2. Create a mapping between TVMaze API fixtures and domain fixtures:
+   ```typescript
+   // src/tests/utils/fixtureUtils.ts
+   export function mapTvMazeFixtureToDomain(tvMazeShow: unknown): Show
+   ```
 
-2. **Day 2**: Implement CLI integration tests
-   - Create test infrastructure
-   - Implement basic functionality tests
-   - Implement filtering tests
+3. Update test helper functions to use domain fixtures:
+   ```typescript
+   // src/tests/utils/testHelpers.ts
+   export function createMockTvShowService(shows?: Show[]): TvShowService {
+     return {
+       getShowsByDate: jest.fn().mockResolvedValue(
+         shows ?? DomainFixtures.getNetworkShows()
+       ),
+       // ...
+     };
+   }
+   ```
 
-3. **Day 3**: Complete integration tests
-   - Implement error handling tests
-   - Implement time sorting tests
-   - Clean up and finalize documentation
+4. **Note:** When taking a final pass at mock data cleanup, also clean up duplicate type definitions in test files by reusing existing types from the main codebase.
+
+#### 3.4 Standardize Test Setup
+
+1. Create standard test setup functions for common test scenarios:
+   ```typescript
+   // src/tests/utils/testSetup.ts
+   export function setupFormatterTest(): {
+     formatter: ShowFormatter;
+     mockShow: Show;
+     // ...
+   }
+   
+   export function setupOutputServiceTest(): {
+     outputService: OutputService;
+     mockShows: Show[];
+     // ...
+   }
+   ```
+
+2. Update tests to use these standard setup functions
 
 ## Success Criteria
 
-1. **Issue #45**:
-   - Users can see shows from streaming services
-   - Network filtering works for both traditional networks and streaming services
-   - All unit tests pass
+### 1. Streaming Services Support
 
-2. **Issue #50**:
+1. **Issue #45**:
+   - Users can filter shows by streaming service name
+   - Streaming services are displayed correctly in the output
+   - Network filtering works for both traditional networks and streaming services
+   - All tests pass with the new implementation
+
+### 2. CLI Integration Tests
+
+1. **Issue #50**:
    - CLI functionality is fully tested
    - Tests would have caught the recent issues with double output and undefined values
    - Test coverage meets or exceeds 80%
    - Tests are maintainable and not overly brittle
 
-## References
+### 3. Test Fixtures Standardization
 
-- [TVMaze API Documentation](https://www.tvmaze.com/api)
-- [Jest Documentation](https://jestjs.io/docs/getting-started)
-- [Test Fixtures](../tests/fixtures/tvmaze/)
+1. **Issue #52**:
+   - All tests use consistent domain fixtures from `domainFixtures.ts`
+   - No inline mock data in tests (except for very specific edge cases)
+   - Clear separation between API fixtures and domain fixtures
+   - Reduced code duplication in test setup
+   - Improved test maintainability and readability
+
+## Timeline
+
+1. **Week 1**:
+   - Fix streaming services support
+   - Create basic CLI integration tests
+   - Update domain fixtures
+
+2. **Week 2**:
+   - Implement remaining CLI tests
+   - Refactor existing tests to use domain fixtures
+   - Create test utility functions
+
+3. **Week 3**:
+   - Final testing and bug fixes
+   - Documentation updates
+   - Code review and merge

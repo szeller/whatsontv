@@ -10,6 +10,7 @@ import { container } from 'tsyringe';
 
 // Implementation imports
 import { ChalkStyleServiceImpl } from './implementations/console/chalkStyleServiceImpl.js';
+import { ConsoleConfigServiceImpl } from './implementations/console/consoleConfigServiceImpl.js';
 import { ConsoleFormatterImpl } from './implementations/console/consoleFormatterImpl.js';
 import { ConsoleOutputImpl } from './implementations/console/consoleOutputImpl.js';
 import { ConsoleOutputServiceImpl } from './implementations/console/consoleOutputServiceImpl.js';
@@ -19,6 +20,7 @@ import { SlackOutputServiceImpl } from './implementations/slack/slackOutputServi
 import { TvMazeServiceImpl } from './implementations/tvMazeServiceImpl.js';
 
 // Interface imports
+import type { ConfigService } from './interfaces/configService.js';
 import type { ConsoleOutput } from './interfaces/consoleOutput.js';
 import type { HttpClient } from './interfaces/httpClient.js';
 import type { OutputService } from './interfaces/outputService.js';
@@ -33,6 +35,7 @@ container.registerSingleton<ShowFormatter>('ShowFormatter', ConsoleFormatterImpl
 container.registerSingleton<TvShowService>('TvShowService', TvMazeServiceImpl);
 container.registerSingleton<OutputService>('OutputService', ConsoleOutputServiceImpl);
 container.registerSingleton<ConsoleOutput>('ConsoleOutput', ConsoleOutputImpl);
+container.registerSingleton<ConfigService>('ConfigService', ConsoleConfigServiceImpl);
 
 // Register HttpClient with factory to provide empty options object
 container.register<HttpClient>('HttpClient', {

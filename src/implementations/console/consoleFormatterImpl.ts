@@ -57,7 +57,7 @@ export class ConsoleFormatterImpl implements ShowFormatter {
     // Extract show information
     // Use the actual airtime value directly for tests to pass
     const time = show.airtime !== null && show.airtime !== '' ? show.airtime : this.NO_AIRTIME;
-    const network = show.channel !== null && show.channel !== '' ? show.channel : 'N/A';
+    const network = show.network !== null && show.network !== '' ? show.network : 'N/A';
     const type = show.type !== null && show.type !== '' ? show.type : 'N/A';
     const showName = show.name !== null && show.name !== '' ? show.name : 'Unknown';
     const episodeInfo = `S${show.season}E${show.number}`;
@@ -88,7 +88,7 @@ export class ConsoleFormatterImpl implements ShowFormatter {
    */
   public formatUntimedShow(show: Show): string {
     // Extract show information
-    const network = show.channel !== null && show.channel !== '' ? show.channel : 'Unknown';
+    const network = show.network !== null && show.network !== '' ? show.network : 'Unknown';
     const type = show.type !== null && show.type !== '' ? show.type : 'Unknown';
     const showName = show.name !== null && show.name !== '' ? show.name : 'Unknown';
     const episodeInfo = `S${show.season}E${show.number}`;
@@ -126,8 +126,8 @@ export class ConsoleFormatterImpl implements ShowFormatter {
     const firstEpisode = episodes[0];
     
     // Extract show information
-    const network = firstEpisode.channel !== null && firstEpisode.channel !== '' 
-      ? firstEpisode.channel 
+    const network = firstEpisode.network !== null && firstEpisode.network !== '' 
+      ? firstEpisode.network 
       : 'Unknown';
     const type = firstEpisode.type !== null && firstEpisode.type !== '' 
       ? firstEpisode.type 
