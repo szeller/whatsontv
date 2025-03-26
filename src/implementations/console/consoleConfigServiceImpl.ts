@@ -60,7 +60,7 @@ export class ConsoleConfigServiceImpl implements ConfigService {
         ? this.cliArgs.languages 
         : [...(Array.isArray(this.appConfig.languages) ? this.appConfig.languages : [])],
       webOnly: this.cliArgs.webOnly ?? false,
-      showAll: this.cliArgs.showAll ?? false
+      showAll: this.cliArgs.showAll ?? true
     };
     
     // Extract CLI options
@@ -278,7 +278,7 @@ export class ConsoleConfigServiceImpl implements ConfigService {
         showAll: {
           describe: 'Show all shows, including those without air dates',
           type: 'boolean',
-          default: false
+          default: true
         }
       })
       .help()
