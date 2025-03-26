@@ -19,15 +19,11 @@ const config = {
   collectCoverage: true,
   coverageDirectory: '<rootDir>/coverage',
   
-  // Exclude test files and type definitions from coverage
-  coveragePathIgnorePatterns: [
-    '<rootDir>/node_modules/',
-    '<rootDir>/dist/',
-    '\\.test\\.ts$',
-    '<rootDir>/src/types/',
-    '<rootDir>/scripts/',
-    '<rootDir>/src/tests/utils/mockHttpClient.ts',
-    '<rootDir>/src/tests/helpers/'
+  // Explicitly include only source files for coverage
+  collectCoverageFrom: [
+    'src/**/*.ts',
+    '!src/tests/**/*.ts',
+    '!src/**/test/*.ts'
   ],
   
   // Generate various coverage report formats
