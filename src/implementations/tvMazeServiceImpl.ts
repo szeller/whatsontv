@@ -76,8 +76,6 @@ export class TvMazeServiceImpl implements TvShowService {
       // URLs to fetch based on options
       const urlsToFetch: string[] = [];
 
-      
-
       // Add network schedule if not web-only or if showing all
       if (mergedOptions.webOnly !== true || mergedOptions.showAll === true) {
         urlsToFetch.push(getNetworkScheduleUrl(dateStr, countryStr));

@@ -3,6 +3,7 @@ import { setTimeout } from 'timers/promises';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { jest } from '@jest/globals';
 
 // Get the directory path for fixtures
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -19,6 +20,21 @@ export class MockHttpClient implements HttpClient {
   private requestCounts = new Map<string, number>();
   
   /**
+   * Jest mock functions for direct control in tests
+   */
+  public getMock = jest.fn<
+    (url: string, params?: Record<string, string>) => Promise<HttpResponse<unknown>>
+  >();
+  
+  public postMock = jest.fn<
+    (
+      url: string, 
+      data?: unknown, 
+      params?: Record<string, string>
+    ) => Promise<HttpResponse<unknown>>
+  >();
+  
+  /**
    * Tracks the last URL that was requested
    */
   public lastUrl = '';
@@ -30,6 +46,7 @@ export class MockHttpClient implements HttpClient {
    */
   mockGet<T>(url: string, response: HttpResponse<T>): void {
     this.mockResponses.set(url, response as HttpResponse<unknown>);
+    this.getMock.mockResolvedValue(response);
   }
 
   /**
@@ -39,6 +56,7 @@ export class MockHttpClient implements HttpClient {
    */
   mockGetError(url: string, error: Error): void {
     this.mockErrors.set(url, error);
+    this.getMock.mockRejectedValue(error);
   }
 
   /**
@@ -48,6 +66,7 @@ export class MockHttpClient implements HttpClient {
    */
   mockPost<T>(url: string, response: HttpResponse<T>): void {
     this.mockResponses.set(url, response);
+    this.postMock.mockResolvedValue(response);
   }
 
   /**
@@ -57,6 +76,7 @@ export class MockHttpClient implements HttpClient {
    */
   mockPostError(url: string, error: Error): void {
     this.mockErrors.set(url, error);
+    this.postMock.mockRejectedValue(error);
   }
 
   /**
@@ -66,6 +86,8 @@ export class MockHttpClient implements HttpClient {
   setMockResponse<T>(response: HttpResponse<T>): void {
     // This will be used as a default response for any URL
     this.mockResponses.set('*', response as HttpResponse<unknown>);
+    this.getMock.mockResolvedValue(response);
+    this.postMock.mockResolvedValue(response);
   }
 
   /**
@@ -75,6 +97,8 @@ export class MockHttpClient implements HttpClient {
   setMockError(error: Error): void {
     // This will be used as a default error for any URL
     this.mockErrors.set('*', error);
+    this.getMock.mockRejectedValue(error);
+    this.postMock.mockRejectedValue(error);
   }
 
   /**
@@ -88,6 +112,11 @@ export class MockHttpClient implements HttpClient {
     const data = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
     
     this.mockResponses.set(url, {
+      status,
+      headers: {},
+      data
+    });
+    this.getMock.mockResolvedValue({
       status,
       headers: {},
       data
@@ -120,6 +149,8 @@ export class MockHttpClient implements HttpClient {
     this.requests = [];
     this.requestCounts.clear();
     this.lastUrl = '';
+    this.getMock.mockReset();
+    this.postMock.mockReset();
   }
 
   /**
@@ -144,6 +175,7 @@ export class MockHttpClient implements HttpClient {
   async get<T>(url: string, _params?: Record<string, string>): Promise<HttpResponse<T>> {
     // Track this request
     this.trackRequest(url);
+    this.lastUrl = url;
     
     // Simulate network delay
     await setTimeout(10);
@@ -166,6 +198,11 @@ export class MockHttpClient implements HttpClient {
     // Check if we have a mock response for any URL
     if (this.mockResponses.has('*')) {
       return this.mockResponses.get('*') as HttpResponse<T>;
+    }
+    
+    // If we have a mock function set up, use it
+    if (this.getMock.mock.calls.length > 0) {
+      return this.getMock(url, _params) as Promise<HttpResponse<T>>;
     }
     
     // Throw error if no mock is set up
@@ -186,6 +223,7 @@ export class MockHttpClient implements HttpClient {
   ): Promise<HttpResponse<T>> {
     // Track this request
     this.trackRequest(url);
+    this.lastUrl = url;
     
     // Simulate network delay
     await setTimeout(10);
@@ -208,6 +246,11 @@ export class MockHttpClient implements HttpClient {
     // Check if we have a mock response for any URL
     if (this.mockResponses.has('*')) {
       return this.mockResponses.get('*') as HttpResponse<T>;
+    }
+    
+    // If we have a mock function set up, use it
+    if (this.postMock.mock.calls.length > 0) {
+      return this.postMock(url, _data, _params) as Promise<HttpResponse<T>>;
     }
     
     // Throw error if no mock is set up

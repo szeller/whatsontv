@@ -2,51 +2,15 @@
  * Tests for the TvMazeServiceImpl implementation
  */
 import 'reflect-metadata';
-import { jest, describe, it, expect, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import { container } from 'tsyringe';
 import { TvMazeServiceImpl } from '../../implementations/tvMazeServiceImpl.js';
-import type { HttpClient, HttpResponse } from '../../interfaces/httpClient.js';
+import type { HttpClient } from '../../interfaces/httpClient.js';
 import type { Show } from '../../types/tvShowModel.js';
 import { TvMazeFixtures } from '../fixtures/tvmaze/tvMazeFixtures.js';
 import { getNetworkScheduleUrl, getWebScheduleUrl } from '../../utils/tvMazeUtils.js';
-
-/**
- * Create a mock implementation of HttpClient for testing
- */
-class MockHttpClient implements HttpClient {
-  public getMock = jest.fn<
-    (url: string, params?: Record<string, string>) => Promise<HttpResponse<unknown>>
-  >();
-  public postMock = jest.fn<
-    (
-      url: string, 
-      data?: unknown, 
-      params?: Record<string, string>
-    ) => Promise<HttpResponse<unknown>>
-  >();
-
-  public lastUrl = '';
-
-  async get<T>(
-    url: string, 
-    params?: Record<string, string>
-  ): Promise<HttpResponse<T>> {
-    this.lastUrl = url;
-    return this.getMock(url, params) as Promise<HttpResponse<T>>;
-  }
-
-  async post<T>(
-    url: string, 
-    data?: unknown, 
-    params?: Record<string, string>
-  ): Promise<HttpResponse<T>> {
-    return this.postMock(url, data, params) as Promise<HttpResponse<T>>;
-  }
-
-  mockGet(url: string, response: HttpResponse<unknown>): void {
-    this.getMock.mockResolvedValue(response);
-  }
-}
+import { MockHttpClient } from '../utils/mockHttpClient.js';
+import { getTodayDate } from '../../utils/dateUtils.js';
 
 describe('TvMazeServiceImpl', () => {
   let tvMazeService: TvMazeServiceImpl;
@@ -94,7 +58,7 @@ describe('TvMazeServiceImpl', () => {
 
     it('fetches shows for today', async () => {
       // Mock the HTTP client for this specific endpoint
-      const todayDate = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+      const todayDate = getTodayDate(); // Format: YYYY-MM-DD
       mockHttpClient.mockGet(getNetworkScheduleUrl(todayDate, 'US'), {
         data: TvMazeFixtures.getNetworkSchedule(),
         status: 200,
@@ -119,40 +83,67 @@ describe('TvMazeServiceImpl', () => {
 
     it('applies multiple filters', async () => {
       // Mock the HTTP client for this specific endpoint
-      mockHttpClient.mockGet(getNetworkScheduleUrl('2023-01-01', 'US'), {
-        data: TvMazeFixtures.getNetworkSchedule(),
+      const todayDate = getTodayDate();
+      
+      // Create a properly typed mock show that will match our filter criteria
+      const mockShow = {
+        id: 1,
+        url: 'https://www.tvmaze.com/episodes/1',
+        name: 'Test Episode',
+        season: 1,
+        number: 1,
+        type: 'regular',
+        airdate: todayDate,
+        airtime: '20:00',
+        airstamp: `${todayDate}T20:00:00-05:00`,
+        runtime: 60,
+        rating: { average: 8.5 },
+        image: null,
+        summary: '<p>Test episode summary</p>',
+        show: {
+          id: 1,
+          url: 'https://www.tvmaze.com/shows/1',
+          name: 'Test Show',
+          type: 'Scripted',
+          language: 'English',
+          genres: ['Drama'],
+          status: 'Running',
+          runtime: 60,
+          premiered: '2023-01-01',
+          officialSite: 'https://www.example.com',
+          schedule: { time: '20:00', days: ['Monday'] },
+          rating: { average: 8.5 },
+          weight: 100,
+          network: {
+            id: 1,
+            name: 'ABC',
+            country: {
+              name: 'United States',
+              code: 'US',
+              timezone: 'America/New_York'
+            }
+          },
+          webChannel: null,
+          externals: { tvrage: null, thetvdb: null, imdb: null },
+          image: null,
+          summary: '<p>Test show summary</p>',
+          updated: 1609459200,
+          _links: { self: { href: 'https://api.tvmaze.com/shows/1' } }
+        }
+      };
+      
+      // Mock the HTTP client with our mock data
+      mockHttpClient.mockGet(getNetworkScheduleUrl(todayDate, 'US'), {
+        data: [mockShow],
         status: 200,
         headers: {}
       });
-
-      // First, let's extract the available types, networks, genres in our test data
-      const networkData = TvMazeFixtures.getNetworkSchedule();
-      const shows = networkData
-        .map(item => item.show)
-        .filter((show): show is { 
-          type?: string; 
-          network?: { name?: string }; 
-          genres?: string[] 
-        } => show !== undefined && show !== null);
       
-      // Get unique types, networks, genres from our test data
-      const types = [...new Set(shows
-        .map(show => show.type)
-        .filter((type): type is string => type !== undefined && type !== null))];
-        
-      const networks = [...new Set(shows
-        .map(show => show.network?.name)
-        .filter((name): name is string => name !== undefined && name !== null))];
-        
-      const genres = [...new Set(shows
-        .flatMap(show => show.genres || [])
-        .filter((genre): genre is string => genre !== undefined && genre !== null))];
-      
-      // Use values that exist in our test data
+      // Call the method being tested with filters that match our mock show
       const result = await tvMazeService.fetchShows({
-        types: types.length > 0 ? [types[0]] : undefined,
-        networks: networks.length > 0 ? [networks[0]] : undefined,
-        genres: genres.length > 0 ? [genres[0]] : undefined,
+        types: ['Scripted'],
+        networks: ['ABC'],
+        genres: ['Drama'],
         languages: ['English']
       });
 
@@ -161,7 +152,7 @@ describe('TvMazeServiceImpl', () => {
     
     it('fetches web-only shows', async () => {
       // Mock the web schedule endpoint
-      const todayDate = new Date().toISOString().split('T')[0];
+      const todayDate = getTodayDate();
       mockHttpClient.mockGet(getWebScheduleUrl(todayDate), {
         data: TvMazeFixtures.getWebSchedule(),
         status: 200,
@@ -176,7 +167,7 @@ describe('TvMazeServiceImpl', () => {
     
     it('fetches both network and web shows when showAll is true', async () => {
       // Mock both endpoints
-      const todayDate = new Date().toISOString().split('T')[0];
+      const todayDate = getTodayDate();
       mockHttpClient.mockGet(getNetworkScheduleUrl(todayDate, 'US'), {
         data: TvMazeFixtures.getNetworkSchedule(),
         status: 200,
