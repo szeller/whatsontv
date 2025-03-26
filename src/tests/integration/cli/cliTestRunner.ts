@@ -86,9 +86,6 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
   container.register('ConsoleOutput', { useValue: mockConsoleOutput });
 
   // Register mock ConfigService
-  const originalConfigService = container.resolve<ConfigService>('ConfigService');
-
-  // Create a test config service with the CLI args
   const testConfigService = new TestConfigServiceImpl(
     {
       date: args.date ?? getTodayDate(),
@@ -125,8 +122,6 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
       }
     }
   );
-
-  // Register the test config service
   container.register('ConfigService', { useValue: testConfigService });
 
   try {
@@ -135,8 +130,8 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
       'Test Configuration:',
       util.inspect(
         {
-          showOptions: testConfigService.getShowOptions(),
-          cliOptions: testConfigService.getCliOptions()
+          showOptions: container.resolve<ConfigService>('ConfigService').getShowOptions(),
+          cliOptions: container.resolve<ConfigService>('ConfigService').getCliOptions()
         },
         { depth: null, colors: true }
       )
@@ -150,7 +145,7 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
   } finally {
     // Restore original services
     container.register('ConsoleOutput', { useValue: originalConsoleOutput });
-    container.register('ConfigService', { useValue: originalConfigService });
+    container.register('ConfigService', { useValue: container.resolve<ConfigService>('ConfigService') });
   }
 
   return {

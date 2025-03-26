@@ -30,6 +30,7 @@ The application follows a clean architecture with clear separation of interfaces
    - `showFormatter.ts`: Interface for formatting show data
    - `consoleOutput.ts`: Interface for low-level console operations
    - `httpClient.ts`: Interface for HTTP client operations
+   - `configService.ts`: Interface for configuration management
 
 2. **Implementations** (`src/implementations/`)
    - `tvMazeServiceImpl.ts`: TVMaze API implementation of TvShowService
@@ -39,9 +40,14 @@ The application follows a clean architecture with clear separation of interfaces
      - `consoleOutputImpl.ts`: Implementation of low-level console operations
      - `consoleFormatterImpl.ts`: Console-specific formatting implementation
      - `consoleOutputServiceImpl.ts`: Console output service implementation
+     - `consoleConfigServiceImpl.ts`: Console-specific configuration implementation
    - Slack-specific implementations (`src/implementations/slack/`):
      - `slackFormatterImpl.ts`: Slack-specific formatting implementation
      - `slackOutputServiceImpl.ts`: Slack output service implementation
+   - Test-specific implementations (`src/implementations/test/`):
+     - `testConfigServiceImpl.ts`: Test-specific configuration implementation
+     - `plainStyleServiceImpl.ts`: Unstyled formatting for tests
+     - `mockConsoleOutputImpl.ts`: Mock console output for testing
 
 3. **Utilities** (`src/utils/`)
    - `dateUtils.ts`: Date-related utility functions
@@ -49,13 +55,14 @@ The application follows a clean architecture with clear separation of interfaces
    - `styleUtils.ts`: Styling utility functions
    - `formatting.ts`: General text formatting utilities
    - `ids.ts`: ID generation utilities
+   - `tvMazeUtils.ts`: TVMaze API specific utility functions
 
 4. **Entry Points**
    - `src/cli.ts`: Command-line interface entry point
    - `src/slack.ts`: Slack notification service entry point
 
-5. **Configuration Management** (`src/config.ts`)
-   - Manages user preferences and settings
+5. **Configuration Management** (`src/types/configTypes.ts`)
+   - Defines configuration data structures
    - Supports both default and user-override configurations
    - Handles environment variables for sensitive data
 
@@ -67,6 +74,7 @@ The application uses tsyringe for dependency injection:
    - Registers all services with their interfaces
    - Uses singleton pattern for stateful services
    - Configures dependencies for both console and Slack implementations
+   - Registers appropriate ConfigService implementation based on context
 
 2. **Injectable Services**
    - All service implementations are decorated with `@injectable()`
@@ -85,6 +93,7 @@ graph TD
     A[CLI/Slack Entry Points] --> B[Container]
     B --> C[OutputService]
     B --> D[TvShowService]
+    B --> I[ConfigService]
     D --> E[HttpClient]
     E --> F[TVMaze API]
     F --> E
@@ -92,6 +101,8 @@ graph TD
     D --> C
     C --> G[ShowFormatter]
     G --> H[Output: Console/Slack]
+    I --> A
+    I --> D
 ```
 
 ## Technical Decisions
@@ -120,15 +131,16 @@ graph TD
 
 ### Type System
 
-1. **Show Types** (`src/types/tvmaze.ts`)
+1. **Show Types** (`src/types/tvmazeModel.ts`)
    - Comprehensive type definitions for TVMaze API responses
    - Custom types for internal show representation
    - Strong typing for filtering options
 
-2. **Configuration Types** (`src/types/config.ts`)
+2. **Configuration Types** (`src/types/configTypes.ts`)
    - Type-safe configuration options
    - Environment variable definitions
    - Slack configuration types
+   - Separation of show options and CLI options
 
 3. **Interface Definitions**
    - Clear interface definitions for all services

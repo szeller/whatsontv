@@ -3,7 +3,6 @@ import { inject, injectable } from 'tsyringe';
 import yargs from 'yargs';
 import type { Arguments } from 'yargs';
 
-import config from '../../config.js';
 import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
 import type { OutputService } from '../../interfaces/outputService.js';
 import type { ShowFormatter } from '../../interfaces/showFormatter.js';
@@ -11,6 +10,7 @@ import type { Show } from '../../types/tvShowModel.js';
 import type { NetworkGroups } from '../../utils/showUtils.js';
 import { groupShowsByNetwork } from '../../utils/showUtils.js';
 import { getTodayDate } from '../../utils/dateUtils.js';
+import type { ConfigService } from '../../interfaces/configService.js';
 
 /**
  * CLI arguments interface for console output
@@ -40,15 +40,45 @@ export interface ConsoleCliArgs extends Arguments {
  */
 @injectable()
 export class ConsoleOutputServiceImpl implements OutputService {
+  protected formatter!: ShowFormatter;
+  protected output!: ConsoleOutput;
+  protected configService!: ConfigService;
+
   /**
    * Create a new ConsoleOutputService
    * @param formatter Formatter for TV show output
    * @param output Console output utility
+   * @param configService Configuration service
+   * @param skipInitialization Optional flag to skip initialization (for testing)
    */
   constructor(
-    @inject('ShowFormatter') private readonly formatter: ShowFormatter,
-    @inject('ConsoleOutput') private readonly output: ConsoleOutput
-  ) {}
+    @inject('ShowFormatter') formatter: ShowFormatter,
+    @inject('ConsoleOutput') output: ConsoleOutput,
+    @inject('ConfigService') configService: ConfigService,
+      skipInitialization = false
+  ) {
+    if (!skipInitialization) {
+      this.initialize(formatter, output, configService);
+    }
+  }
+
+  /**
+   * Initialize the service with dependencies
+   * This method is separated from the constructor to allow overriding in tests
+   * @param formatter Formatter for TV show output
+   * @param output Console output utility
+   * @param configService Configuration service
+   * @protected
+   */
+  protected initialize(
+    formatter: ShowFormatter,
+    output: ConsoleOutput,
+    configService: ConfigService
+  ): void {
+    this.formatter = formatter;
+    this.output = output;
+    this.configService = configService;
+  }
 
   /**
    * Display TV shows based on the timeSort option
@@ -63,9 +93,9 @@ export class ConsoleOutputServiceImpl implements OutputService {
     }
 
     // Group shows by network and format them
-    const networkGroups = groupShowsByNetwork(shows);
+    const networkGroups = this.groupShowsByNetwork(shows);
     const formattedOutput = this.formatter.formatNetworkGroups(networkGroups, timeSort);
-    
+
     // Display each line of output
     try {
       for (const line of formattedOutput) {
@@ -75,6 +105,16 @@ export class ConsoleOutputServiceImpl implements OutputService {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.output.error(`Error displaying output: ${errorMessage}`);
     }
+  }
+
+  /**
+   * Group shows by network
+   * @param shows Array of TV shows to group
+   * @returns Shows grouped by network
+   * @protected
+   */
+  protected groupShowsByNetwork(shows: Show[]): NetworkGroups {
+    return groupShowsByNetwork(shows);
   }
 
   /**
@@ -90,7 +130,7 @@ export class ConsoleOutputServiceImpl implements OutputService {
       networkGroups,
       timeSort
     );
-    
+
     // Display each line of output
     try {
       for (const line of formattedOutput) {
@@ -107,8 +147,14 @@ export class ConsoleOutputServiceImpl implements OutputService {
    * @returns True if the service is ready to use
    */
   public isInitialized(): boolean {
-    return this.output !== null && this.output !== undefined && 
-           this.formatter !== null && this.formatter !== undefined;
+    return (
+      this.output !== null &&
+      this.output !== undefined &&
+      this.formatter !== null &&
+      this.formatter !== undefined &&
+      this.configService !== null &&
+      this.configService !== undefined
+    );
   }
 
   /**
@@ -195,6 +241,18 @@ export class ConsoleOutputServiceImpl implements OutputService {
           describe: 'Show all shows, including those without air dates',
           type: 'boolean',
           default: false
+        },
+        help: {
+          alias: 'h',
+          describe: 'Show help',
+          type: 'boolean',
+          default: false
+        },
+        version: {
+          alias: 'v',
+          describe: 'Show version',
+          type: 'boolean',
+          default: false
         }
       })
       .help()
@@ -208,7 +266,7 @@ export class ConsoleOutputServiceImpl implements OutputService {
    * Display application header
    */
   public displayHeader(): void {
-    this.output.log(`\n${config.appName} v${config.version}`);
+    this.output.log(`\n${this.configService.getAppName()} v${this.configService.getVersion()}`);
     this.output.log('='.repeat(30));
   }
 
@@ -217,6 +275,6 @@ export class ConsoleOutputServiceImpl implements OutputService {
    */
   public displayFooter(): void {
     this.output.log('\n' + '='.repeat(30));
-    this.output.log(`Data provided by TVMaze API (${config.apiUrl})`);
+    this.output.log(`Data provided by TVMaze API (${this.configService.getApiUrl()})`);
   }
 }

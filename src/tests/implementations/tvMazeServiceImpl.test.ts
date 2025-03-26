@@ -8,6 +8,7 @@ import { TvMazeServiceImpl } from '../../implementations/tvMazeServiceImpl.js';
 import type { HttpClient, HttpResponse } from '../../interfaces/httpClient.js';
 import type { Show } from '../../types/tvShowModel.js';
 import { TvMazeFixtures } from '../fixtures/tvmaze/tvMazeFixtures.js';
+import { getNetworkScheduleUrl, getWebScheduleUrl } from '../../utils/tvMazeUtils.js';
 
 /**
  * Create a mock implementation of HttpClient for testing
@@ -64,7 +65,6 @@ describe('TvMazeServiceImpl', () => {
       language: 'English',
       genres: ['Drama', 'Crime'],
       network: 'CBS',
-      isStreaming: false,
       summary: 'NCIS is a show about naval criminal investigators.',
       airtime: '20:00',
       season: 1,
@@ -82,7 +82,7 @@ describe('TvMazeServiceImpl', () => {
   describe('fetchShows', () => {
     it('returns shows for a specific date', async () => {
       // Mock the HTTP client for this specific endpoint
-      mockHttpClient.mockGet('https://api.tvmaze.com/schedule?date=2023-01-01&country=US', {
+      mockHttpClient.mockGet(getNetworkScheduleUrl('2023-01-01', 'US'), {
         data: TvMazeFixtures.getNetworkSchedule(),
         status: 200,
         headers: {}
@@ -95,7 +95,7 @@ describe('TvMazeServiceImpl', () => {
     it('fetches shows for today', async () => {
       // Mock the HTTP client for this specific endpoint
       const todayDate = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
-      mockHttpClient.mockGet(`https://api.tvmaze.com/schedule?date=${todayDate}&country=US`, {
+      mockHttpClient.mockGet(getNetworkScheduleUrl(todayDate, 'US'), {
         data: TvMazeFixtures.getNetworkSchedule(),
         status: 200,
         headers: {}
@@ -107,7 +107,7 @@ describe('TvMazeServiceImpl', () => {
 
     it('handles empty responses', async () => {
       // Mock empty response
-      mockHttpClient.mockGet('https://api.tvmaze.com/schedule?date=2099-01-01&country=US', {
+      mockHttpClient.mockGet(getNetworkScheduleUrl('2099-01-01', 'US'), {
         data: [],
         status: 200,
         headers: {}
@@ -118,14 +118,14 @@ describe('TvMazeServiceImpl', () => {
     });
 
     it('applies multiple filters', async () => {
-      // Mock the HTTP client
-      mockHttpClient.mockGet('https://api.tvmaze.com/schedule?date=2025-03-25&country=US', {
+      // Mock the HTTP client for this specific endpoint
+      mockHttpClient.mockGet(getNetworkScheduleUrl('2023-01-01', 'US'), {
         data: TvMazeFixtures.getNetworkSchedule(),
         status: 200,
         headers: {}
       });
 
-      // First, let's log the available types, networks, genres in our test data
+      // First, let's extract the available types, networks, genres in our test data
       const networkData = TvMazeFixtures.getNetworkSchedule();
       const shows = networkData
         .map(item => item.show)
@@ -148,10 +148,6 @@ describe('TvMazeServiceImpl', () => {
         .flatMap(show => show.genres || [])
         .filter((genre): genre is string => genre !== undefined && genre !== null))];
       
-      console.log('Available types in test data:', types);
-      console.log('Available networks in test data:', networks);
-      console.log('Available genres in test data:', genres);
-      
       // Use values that exist in our test data
       const result = await tvMazeService.fetchShows({
         types: types.length > 0 ? [types[0]] : undefined,
@@ -166,7 +162,7 @@ describe('TvMazeServiceImpl', () => {
     it('fetches web-only shows', async () => {
       // Mock the web schedule endpoint
       const todayDate = new Date().toISOString().split('T')[0];
-      mockHttpClient.mockGet(`https://api.tvmaze.com/schedule/web?date=${todayDate}`, {
+      mockHttpClient.mockGet(getWebScheduleUrl(todayDate), {
         data: TvMazeFixtures.getWebSchedule(),
         status: 200,
         headers: {}
@@ -175,19 +171,19 @@ describe('TvMazeServiceImpl', () => {
       const result = await tvMazeService.fetchShows({ webOnly: true });
       
       expect(result.length).toBeGreaterThan(0);
-      expect(result[0].isStreaming).toBe(true);
+      expect(result[0].network).toMatch(/^Apple TV\+$/);
     });
     
     it('fetches both network and web shows when showAll is true', async () => {
       // Mock both endpoints
       const todayDate = new Date().toISOString().split('T')[0];
-      mockHttpClient.mockGet(`https://api.tvmaze.com/schedule?date=${todayDate}&country=US`, {
+      mockHttpClient.mockGet(getNetworkScheduleUrl(todayDate, 'US'), {
         data: TvMazeFixtures.getNetworkSchedule(),
         status: 200,
         headers: {}
       });
       
-      mockHttpClient.mockGet(`https://api.tvmaze.com/schedule/web?date=${todayDate}`, {
+      mockHttpClient.mockGet(getWebScheduleUrl(todayDate), {
         data: TvMazeFixtures.getWebSchedule(),
         status: 200,
         headers: {}
@@ -197,8 +193,8 @@ describe('TvMazeServiceImpl', () => {
       
       expect(result.length).toBeGreaterThan(0);
       // Verify we have both types of shows
-      const networkShowsCount = result.filter(show => !show.isStreaming).length;
-      const webShowsCount = result.filter(show => show.isStreaming).length;
+      const networkShowsCount = result.filter(show => !show.network?.match(/^Apple TV\+$/)).length;
+      const webShowsCount = result.filter(show => show.network?.match(/^Apple TV\+$/)).length;
       expect(networkShowsCount).toBeGreaterThan(0);
       expect(webShowsCount).toBeGreaterThan(0);
     });

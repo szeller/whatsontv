@@ -24,10 +24,6 @@ process.on('uncaughtException', (error) => {
   process.exit(1);
 });
 
-// Debug logging using ConsoleOutput.warn instead of console.warn
-consoleOutput.warn('CLI module loaded, import.meta.url:', import.meta.url);
-consoleOutput.warn('process.argv[1]:', process.argv[1]);
-
 /**
  * Main function to run the CLI application
  */
@@ -51,29 +47,18 @@ export async function main(): Promise<void> {
     // Debug: Print all unique networks and web channels
     if (cliOptions.debug === true) {
       const uniqueNetworks = new Set<string>();
-      const uniqueStreamingServices = new Set<string>();
       
       for (const show of shows) {
         // Check for valid network name
         if (show.network !== null && show.network !== undefined && show.network !== '') {
-          if (show.isStreaming) {
-            uniqueStreamingServices.add(show.network);
-          } else {
-            uniqueNetworks.add(show.network);
-          }
+          uniqueNetworks.add(show.network);
         }
       }
       
-      consoleOutput.log('\nAvailable Traditional Networks:');
+      consoleOutput.log('\nAvailable Networks:');
       consoleOutput.log([...uniqueNetworks].sort().join(', '));
       
-      consoleOutput.log('\nAvailable Streaming Services:');
-      consoleOutput.log([...uniqueStreamingServices].sort().join(', '));
-      
-      // Print total counts
       consoleOutput.log(`\nTotal Shows: ${shows.length}`);
-      consoleOutput.log(`Traditional Network Shows: ${shows.filter((s) => !s.isStreaming).length}`);
-      consoleOutput.log(`Streaming Service Shows: ${shows.filter((s) => s.isStreaming).length}`);
     }
 
     // Display the shows
@@ -98,7 +83,7 @@ export async function main(): Promise<void> {
 
 // Run the main function if this file is executed directly
 if (import.meta.url.startsWith('file:') && 
-    process.argv[1] === import.meta.url.slice(5)) {
+    process.argv[1] === import.meta.url.slice(7)) {
   main().catch((error) => {
     consoleOutput.error(`Unhandled error in main: ${String(error)}`);
     process.exit(1);

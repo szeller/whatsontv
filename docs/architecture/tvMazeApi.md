@@ -1,342 +1,552 @@
 # TVMaze API Documentation
 
-This document outlines the TVMaze API endpoints and data structures used in the What's On TV project.
+This document provides comprehensive information about the TVMaze API, including endpoints, data structures, and integration patterns used in the What's On TV project. This documentation should be sufficient for developing a new TVMaze API integration.
 
-## API Endpoints
+## API Overview
 
-Our application uses the following TVMaze API endpoints:
+TVMaze is a free, community-driven TV show database with a public API that provides information about TV shows, episodes, cast, crew, and schedules. The API does not require authentication for most endpoints, making it easy to integrate.
 
-### Base URL
+## Base URL
+
 ```
 https://api.tvmaze.com
 ```
+
+## Core Endpoints
 
 ### Schedule Endpoints
 
 1. **TV Network Schedule** (`/schedule`)
    - Returns all traditional TV network shows airing during a specific date
    - Parameters:
-     - `date`: YYYY-MM-DD format (e.g., 2025-03-16)
+     - `date`: YYYY-MM-DD format (e.g., 2025-03-25)
      - `country`: Two-letter country code (e.g., 'US')
-   - Example: `https://api.tvmaze.com/schedule?country=US&date=2025-03-16`
+   - Example: `https://api.tvmaze.com/schedule?country=US&date=2025-03-25`
+   - Response: Array of schedule items with show data at the top level
 
 2. **Web/Streaming Schedule** (`/schedule/web`)
    - Returns all web/streaming shows airing during a specific date
    - Parameters:
      - `date`: YYYY-MM-DD format
-   - Example: `https://api.tvmaze.com/schedule/web?date=2025-03-16`
+   - Example: `https://api.tvmaze.com/schedule/web?date=2025-03-25`
+   - Response: Array of schedule items with show data nested in `_embedded.show`
 
-## API Data Structures
+### Show Endpoints
+
+1. **Show Information** (`/shows/{id}`)
+   - Returns detailed information about a specific show
+   - Example: `https://api.tvmaze.com/shows/1`
+
+2. **Show Episodes** (`/shows/{id}/episodes`)
+   - Returns all episodes for a specific show
+   - Example: `https://api.tvmaze.com/shows/1/episodes`
+
+3. **Show Cast** (`/shows/{id}/cast`)
+   - Returns cast information for a specific show
+   - Example: `https://api.tvmaze.com/shows/1/cast`
+
+4. **Show Search** (`/search/shows`)
+   - Searches for shows by name
+   - Parameters:
+     - `q`: Search query
+   - Example: `https://api.tvmaze.com/search/shows?q=game%20of%20thrones`
+
+## Data Structures
 
 ### Important Structural Differences
 
-The TVMaze API has different response structures for network shows and streaming shows:
+The TVMaze API has different response structures for network shows and streaming shows, which is a critical aspect to understand for correct integration:
 
 #### Network Schedule Item (`/schedule`)
+
+Network shows have the show data at the top level of the response:
+
 ```typescript
 interface NetworkScheduleItem {
-  id: number;
-  url: string;
-  name: string;           // Episode name
-  season: number;         // Season number
-  number: number;         // Episode number
-  airdate: string;        // YYYY-MM-DD format
-  airtime: string;        // Show's airtime in HH:MM format
-  runtime: number;        // Duration in minutes
-  show: {                 // Show is at the top level
+  id: number;              // Episode ID
+  url: string;             // TVMaze URL for the episode
+  name: string;            // Episode name
+  season: number | string; // Season number (can be a string in some responses)
+  number: number | string; // Episode number (can be a string in some responses)
+  type: string;            // Episode type (regular, special, etc.)
+  airdate: string;         // YYYY-MM-DD format
+  airtime: string | null;  // Show's airtime in HH:MM format (can be empty string or null)
+  airstamp: string;        // ISO 8601 timestamp
+  runtime: number | null;  // Duration in minutes
+  rating: {
+    average: number | null;
+  };
+  image: {
+    medium: string;
+    original: string;
+  } | null;
+  summary: string | null;  // Episode summary in HTML format
+  show: {                  // Show is at the top level
     id: number;
+    url: string;
     name: string;
-    type: string;
-    language: string;
+    type: string;          // Show type (Scripted, Reality, etc.)
+    language: string | null;
     genres: string[];
+    status: string;        // Running, Ended, etc.
+    runtime: number | null;
+    averageRuntime: number | null;
+    premiered: string | null;
+    ended: string | null;
+    officialSite: string | null;
+    schedule: {
+      time: string;
+      days: string[];
+    };
+    rating: {
+      average: number | null;
+    };
+    weight: number;
     network: {            // Traditional TV network
       id: number;
       name: string;
-      country: { code: string; name: string; timezone: string; }
+      country: {
+        name: string;
+        code: string;     // Two-letter country code
+        timezone: string; // e.g., 'America/New_York'
+      };
+      officialSite: string | null;
     } | null;
     webChannel: null;     // Typically null for network shows
-    summary: string;
-    // ... other fields
-  }
+    dvdCountry: null | {
+      name: string;
+      code: string;
+      timezone: string;
+    };
+    externals: {
+      tvrage: number | null;
+      thetvdb: number | null;
+      imdb: string | null;
+    };
+    image: {
+      medium: string;
+      original: string;
+    } | null;
+    summary: string | null; // Show summary in HTML format
+    updated: number;       // Unix timestamp
+    _links: {
+      self: { href: string };
+      previousepisode?: { href: string };
+      nextepisode?: { href: string };
+    };
+  };
+  _links: {
+    self: { href: string };
+    show: { href: string };
+  };
 }
 ```
 
 #### Web Schedule Item (`/schedule/web`)
+
+Streaming shows have the show data nested in the `_embedded` property:
+
 ```typescript
 interface WebScheduleItem {
-  id: number;
-  url: string;
-  name: string;           // Episode name
-  season: number;         // Season number
-  number: number;         // Episode number
-  airdate: string;        // YYYY-MM-DD format
-  airtime: string;        // Show's airtime in HH:MM format
-  runtime: number;        // Duration in minutes
-  _embedded: {            // Show is nested in _embedded
+  id: number;              // Episode ID
+  url: string;             // TVMaze URL for the episode
+  name: string;            // Episode name
+  season: number | string; // Season number
+  number: number | string; // Episode number
+  type: string;            // Episode type (regular, special, etc.)
+  airdate: string;         // YYYY-MM-DD format
+  airtime: string | null;  // Show's airtime in HH:MM format (often empty for streaming)
+  airstamp: string;        // ISO 8601 timestamp
+  runtime: number | null;  // Duration in minutes
+  rating: {
+    average: number | null;
+  };
+  image: {
+    medium: string;
+    original: string;
+  } | null;
+  summary: string | null;  // Episode summary in HTML format
+  _embedded: {             // Show is nested in _embedded
     show: {
       id: number;
+      url: string;
       name: string;
       type: string;
-      language: string;
+      language: string | null;
       genres: string[];
+      status: string;
+      runtime: number | null;
+      averageRuntime: number | null;
+      premiered: string | null;
+      ended: string | null;
+      officialSite: string | null;
+      schedule: {
+        time: string;
+        days: string[];
+      };
+      rating: {
+        average: number | null;
+      };
+      weight: number;
       network: null;      // Typically null for web shows
       webChannel: {       // Streaming service
         id: number;
         name: string;
-        country: { code: string; name: string; timezone: string; } | null;
+        country: {
+          name: string;
+          code: string;
+          timezone: string;
+        } | null;         // Note: country can be null for global streaming services
+        officialSite: string | null;
       } | null;
-      summary: string;
+      dvdCountry: null | {
+        name: string;
+        code: string;
+        timezone: string;
+      };
+      externals: {
+        tvrage: number | null;
+        thetvdb: number | null;
+        imdb: string | null;
+      };
+      image: {
+        medium: string;
+        original: string;
+      } | null;
+      summary: string | null;
+      updated: number;
+      _links: {
+        self: { href: string };
+        previousepisode?: { href: string };
+        nextepisode?: { href: string };
+      };
+    };
+  };
+  _links: {
+    self: { href: string };
+    show: { href: string };
+  };
+}
+```
+
+## Type Inconsistencies and Edge Cases
+
+The TVMaze API has several inconsistencies and edge cases that any robust integration must handle:
+
+1. **Type Inconsistencies:**
+   - `season` and `number` fields can be either numbers or strings
+   - Empty strings vs. null values for optional fields
+   - Some fields might be missing entirely in certain responses
+
+2. **Null Values:**
+   - Many fields can be null, including `network`, `webChannel`, `language`, `summary`, etc.
+   - Images can be null when no image is available
+
+3. **Streaming vs. Network Shows:**
+   - Network shows have `network` populated and `webChannel` null
+   - Streaming shows have `webChannel` populated and `network` null
+   - Some shows might have both `network` and `webChannel` populated (simulcast shows)
+
+4. **Country Information:**
+   - Global streaming services often have `null` for the country in `webChannel`
+   - Country codes follow ISO 3166-1 alpha-2 standard (two letters)
+
+5. **Time and Date Formats:**
+   - Dates are in YYYY-MM-DD format
+   - Times are in 24-hour HH:MM format
+   - Timestamps are in ISO 8601 format
+   - The `updated` field is a Unix timestamp
+
+## Integration Best Practices
+
+### 1. Data Transformation
+
+When integrating with TVMaze API, it's recommended to transform the API responses into a consistent domain model:
+
+```typescript
+// Example domain model for a show
+interface Show {
+  id: number;
+  name: string;
+  type: string;
+  language: string | null;
+  genres: string[];
+  network: string;         // Normalized network or streaming service name
+  isStreaming: boolean;    // Whether the show is from a streaming service
+  summary: string | null;
+  airtime: string | null;
+  season: number;          // Normalized to number
+  number: number;          // Normalized to number
+}
+```
+
+### 2. Handling Different Structures
+
+Use a unified transformation function that can handle both network and streaming show structures:
+
+```typescript
+function transformScheduleItem(item: unknown): Show | null {
+  try {
+    // Determine if it's a network or streaming show
+    const isFromWebSchedule = isWebScheduleItem(item);
+    
+    // Extract show data based on structure
+    let showData;
+    if (isFromWebSchedule) {
+      showData = item._embedded?.show;
+    } else {
+      showData = item.show;
+    }
+    
+    if (!showData) return null;
+    
+    // Determine if it's a streaming show based on properties
+    const isStreaming = 
+      (showData.webChannel !== null && showData.webChannel !== undefined) && 
+      (showData.network === null || showData.network === undefined);
+    
+    // Transform to domain model
+    return {
+      id: showData.id,
+      name: showData.name,
+      // ... other transformations
+      isStreaming: isStreaming,
+      // ... additional fields
+    };
+  } catch (error) {
+    // Handle errors
+    return null;
+  }
+}
+```
+
+### 3. Type Validation
+
+Use a schema validation library like Zod to ensure type safety:
+
+```typescript
+// Example Zod schema for network schedule item
+const networkScheduleItemSchema = z.object({
+  show: z.object({
+    id: z.number(),
+    name: z.string(),
+    // ... other fields
+  }),
+  // ... episode fields
+});
+
+// Example Zod schema for web schedule item
+const webScheduleItemSchema = z.object({
+  _embedded: z.object({
+    show: z.object({
+      id: z.number(),
+      name: z.string(),
       // ... other fields
+    }),
+  }),
+  // ... episode fields
+});
+
+// Combined schema using discriminated union
+const scheduleItemSchema = z.discriminatedUnion('_embedded', [
+  networkScheduleItemSchema,
+  webScheduleItemSchema,
+]);
+```
+
+### 4. Error Handling
+
+Implement robust error handling for API requests:
+
+```typescript
+async function getSchedule(url: string): Promise<Record<string, unknown>[]> {
+  try {
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      // Handle HTTP errors
+      throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    
+    if (!Array.isArray(data)) {
+      // Handle unexpected response format
+      throw new Error('Expected array response');
+    }
+    
+    return data;
+  } catch (error) {
+    // Log error and return empty array
+    console.error(`Error fetching schedule from ${url}:`, error);
+    return [];
+  }
+}
+```
+
+### 5. Caching
+
+Implement caching to reduce API calls and improve performance:
+
+```typescript
+// Example caching mechanism
+const cache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
+
+async function getCachedSchedule(url: string): Promise<Record<string, unknown>[]> {
+  const now = Date.now();
+  const cacheKey = url;
+  
+  // Check cache
+  const cachedData = cache.get(cacheKey);
+  if (cachedData && (now - cachedData.timestamp) < CACHE_TTL) {
+    return cachedData.data;
+  }
+  
+  // Fetch fresh data
+  const data = await getSchedule(url);
+  
+  // Update cache
+  cache.set(cacheKey, { data, timestamp: now });
+  
+  return data;
+}
+```
+
+## Example Integration Flow
+
+1. **Fetch Data:**
+   ```typescript
+   // Get today's date in YYYY-MM-DD format
+   const today = new Date().toISOString().split('T')[0];
+   
+   // Fetch network schedule
+   const networkUrl = `https://api.tvmaze.com/schedule?date=${today}&country=US`;
+   const networkSchedule = await getSchedule(networkUrl);
+   
+   // Fetch web schedule
+   const webUrl = `https://api.tvmaze.com/schedule/web?date=${today}`;
+   const webSchedule = await getSchedule(webUrl);
+   
+   // Combine schedules
+   const combinedSchedule = [...networkSchedule, ...webSchedule];
+   ```
+
+2. **Transform Data:**
+   ```typescript
+   // Transform to domain model
+   const shows = combinedSchedule
+     .map(item => transformScheduleItem(item))
+     .filter((show): show is Show => show !== null);
+   ```
+
+3. **Apply Filters:**
+   ```typescript
+   // Filter by user preferences
+   const filteredShows = shows.filter(show => {
+     // Example: Filter by genre
+     if (userPreferences.genres.length > 0) {
+       return show.genres.some(genre => userPreferences.genres.includes(genre));
+     }
+     return true;
+   });
+   ```
+
+4. **Display Results:**
+   ```typescript
+   // Sort by airtime
+   const sortedShows = filteredShows.sort((a, b) => {
+     if (!a.airtime) return 1;
+     if (!b.airtime) return -1;
+     return a.airtime.localeCompare(b.airtime);
+   });
+   
+   // Format and display
+   sortedShows.forEach(show => {
+     console.log(`${show.airtime || 'TBA'} - ${show.name} (${show.network})`);
+   });
+   ```
+
+## Handling API Rate Limits
+
+TVMaze API has rate limiting in place:
+
+- 20 calls every 10 seconds per IP address
+- If exceeded, you'll receive a 429 Too Many Requests response
+
+Implement a rate limiter to avoid hitting these limits:
+
+```typescript
+class RateLimiter {
+  private queue: Array<() => Promise<void>> = [];
+  private processing = false;
+  private requestsInWindow = 0;
+  private windowStart = Date.now();
+  private readonly MAX_REQUESTS = 20;
+  private readonly WINDOW_MS = 10000; // 10 seconds
+  
+  async schedule<T>(fn: () => Promise<T>): Promise<T> {
+    return new Promise((resolve, reject) => {
+      this.queue.push(async () => {
+        try {
+          const result = await fn();
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
+      });
+      
+      if (!this.processing) {
+        this.processQueue();
+      }
+    });
+  }
+  
+  private async processQueue() {
+    if (this.queue.length === 0) {
+      this.processing = false;
+      return;
+    }
+    
+    this.processing = true;
+    
+    // Check if we need to reset the window
+    const now = Date.now();
+    if (now - this.windowStart > this.WINDOW_MS) {
+      this.windowStart = now;
+      this.requestsInWindow = 0;
+    }
+    
+    // Check if we can make a request
+    if (this.requestsInWindow < this.MAX_REQUESTS) {
+      const task = this.queue.shift();
+      if (task) {
+        this.requestsInWindow++;
+        await task();
+        
+        // Process next item immediately
+        this.processQueue();
+      }
+    } else {
+      // Wait until the window resets
+      const waitTime = this.WINDOW_MS - (now - this.windowStart);
+      setTimeout(() => this.processQueue(), waitTime);
     }
   }
 }
+
+// Usage
+const rateLimiter = new RateLimiter();
+const data = await rateLimiter.schedule(() => getSchedule(url));
 ```
 
-## Type Inconsistencies
+## Conclusion
 
-The TVMaze API has some type inconsistencies that we need to handle:
+This documentation provides a comprehensive overview of the TVMaze API, including its endpoints, data structures, and integration patterns. By following these guidelines and best practices, you should be able to develop a robust TVMaze API integration that handles all the edge cases and inconsistencies in the API responses.
 
-1. **Numeric fields as strings**: Sometimes `season` and `number` are returned as strings instead of numbers
-2. **Nullable fields**: Many fields can be null, including `network`, `webChannel`, `language`, etc.
-3. **Missing fields**: Some fields might be missing entirely in some responses
-
-Our application uses Zod schemas to validate and transform the API responses, handling these inconsistencies gracefully.
-
-## API Usage in Our Application
-
-1. We fetch both network and web schedules for the current date
-2. We transform the API responses into our domain model (see `tvDomainModel.md`)
-3. We combine the results and apply any user-specified filters
-4. We format and display the results according to the user's preferences
-
-## Data Structures
-
-### Show Object
-```typescript
-interface Show {
-  airtime: string;        // Show's airtime in HH:MM format
-  name: string;           // Episode name
-  season: string|number;  // Season number
-  number: string|number;  // Episode number
-  show: ShowDetails;      // Detailed show information
-}
-```
-
-### Show Details
-```typescript
-interface ShowDetails {
-  id: number|string;
-  name: string;           // Show name
-  type: string;          // e.g., 'Scripted', 'Reality', etc.
-  language: string|null;
-  genres: string[];
-  network: Network|null;  // Traditional TV network
-  webChannel: Network|null; // Streaming platform
-  image: Image|null;
-  summary: string;
-}
-```
-
-### Network/Web Channel
-```typescript
-interface Network {
-  id: number;
-  name: string;          // Network/Platform name
-  country: Country|null;
-}
-```
-
-### Country
-```typescript
-interface Country {
-  name: string;    // Full country name
-  code: string;    // Two-letter country code
-  timezone: string; // e.g., 'America/New_York'
-}
-```
-
-### Image
-```typescript
-interface Image {
-  medium: string;   // URL to medium-size image
-  original: string; // URL to original-size image
-}
-```
-
-## API Response Examples
-
-### TV Schedule Response
-```json
-{
-  "id": 1234,
-  "airdate": "2025-03-16",
-  "airtime": "20:00",
-  "airstamp": "2025-03-17T03:00:00+00:00",
-  "runtime": 60,
-  "name": "Episode Title",
-  "season": 2,
-  "number": 5,
-  "show": {
-    "id": 5678,
-    "name": "Show Name",
-    "type": "Scripted",
-    "language": "English",
-    "genres": ["Drama", "Thriller"],
-    "network": {
-      "id": 3,
-      "name": "CBS",
-      "country": {
-        "name": "United States",
-        "code": "US",
-        "timezone": "America/New_York"
-      }
-    },
-    "webChannel": null,
-    "image": {
-      "medium": "https://static.tvmaze.com/medium.jpg",
-      "original": "https://static.tvmaze.com/original.jpg"
-    },
-    "summary": "Show description goes here"
-  }
-}
-```
-
-### Web Schedule Response
-```json
-{
-  "id": 5678,
-  "airdate": "2025-03-16",
-  "airtime": "00:00",
-  "airstamp": "2025-03-16T07:00:00+00:00",
-  "runtime": null,
-  "name": "Season 1 Episode 1",
-  "season": 1,
-  "number": 1,
-  "show": {
-    "id": 9012,
-    "name": "Streaming Show",
-    "type": "Reality",
-    "language": "English",
-    "genres": ["Reality"],
-    "network": null,
-    "webChannel": {
-      "id": 1,
-      "name": "Netflix",
-      "country": null
-    },
-    "image": {
-      "medium": "https://static.tvmaze.com/medium.jpg",
-      "original": "https://static.tvmaze.com/original.jpg"
-    },
-    "summary": "Streaming show description"
-  }
-}
-```
-
-## Supported Platforms
-
-### US Available Platforms
-The following streaming platforms are recognized as US-based:
-- Netflix
-- Paramount+ (also recognized as "Paramount Plus" or "Paramount")
-- Hulu
-- Prime Video
-- Apple TV+ (also recognized as "Apple TV Plus")
-- Disney+
-- HBO Max
-- Peacock
-- Discovery+
-- AMC+
-
-## Troubleshooting Guide
-
-### Common Issues
-
-1. **Missing Air Times**
-   ```typescript
-   // API Response
-   { "airtime": null }
-   // Our Code
-   const displayTime = show.airtime || 'TBA';
-   ```
-   - Shows without air times display as 'TBA'
-   - Sorted to end of time-sorted lists
-
-2. **Network vs Web Channel**
-   ```typescript
-   // Traditional TV Show
-   network = show.show.network?.name || 'N/A';  // "CBS"
-   // Streaming Show
-   network = show.show.webChannel?.name || 'N/A';  // "Netflix"
-   ```
-   - Always check both network and webChannel
-   - Use normalizeNetworkName() for consistent display
-
-3. **Country Code Handling**
-   ```typescript
-   // US Network
-   "CBS" // No country code needed
-   // International Network
-   "BBC (GB)" // Country code appended
-   // US Streaming Platform
-   "Netflix" // No country code needed even if show is international
-   ```
-   - Use isUSPlatform() to determine if country code is needed
-
-4. **Error Recovery**
-   ```typescript
-   try {
-     const shows = await fetchTvShows();
-   } catch (error) {
-     console.error('Error:', error.message);
-     return []; // Return empty array on error
-   }
-   ```
-   - API errors return empty arrays to prevent app crashes
-   - Invalid dates return empty results
-   - Network errors are logged but don't crash the app
-
-### Rate Limit Handling
-```typescript
-// Response Headers
-X-RateLimit-Limit: 20
-X-RateLimit-Remaining: 19
-```
-- Monitor X-RateLimit headers
-- Implement exponential backoff if needed
-- Consider caching frequently accessed data
-
-## Additional Resources
-
-- [TVMaze API Documentation](https://www.tvmaze.com/api)
-- [Schedule API Documentation](https://www.tvmaze.com/api#schedule)
-- [Show Endpoint Documentation](https://www.tvmaze.com/api#shows)
-
-## Rate Limiting
-
-TVMaze API has the following rate limits:
-- No authentication required for up to 20 calls every 10 seconds
-- Authentication available for higher rate limits (not currently used in this project)
-
-## Error Handling
-
-Our application handles API errors gracefully:
-- Network errors return an empty array
-- Invalid date formats are caught and logged
-- Missing show data fields are handled with reasonable defaults
-- Country mismatches are filtered out at the application level
-
-## Best Practices
-
-1. **Date Formatting**
-   - Always use YYYY-MM-DD format for date parameters
-   - Use the `getTodayDate()` utility function for consistency
-
-2. **Network Names**
-   - Use `normalizeNetworkName()` to handle network name variations
-   - Check platform availability with `isUSPlatform()`
-
-3. **Show Filtering**
-   - Filter shows by type, network, genre, and language
-   - Use country-specific filtering for regional content
-   - Handle both traditional TV and web/streaming content
+Remember to:
+1. Handle different data structures for network and streaming shows
+2. Normalize data types and handle inconsistencies
+3. Implement proper error handling and caching
+4. Respect API rate limits
+5. Transform API responses into a consistent domain model

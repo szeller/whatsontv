@@ -15,15 +15,27 @@ import { getTodayDate } from '../../utils/dateUtils.js';
 
 @injectable()
 export class ConsoleConfigServiceImpl implements ConfigService {
-  private showOptions: ShowOptions;
-  private cliOptions: CliOptions;
-  private appConfig: AppConfig;
-  private cliArgs: CliArgs;
+  protected showOptions!: ShowOptions;
+  protected cliOptions!: CliOptions;
+  protected appConfig!: AppConfig;
+  protected cliArgs!: CliArgs;
   
   /**
    * Create a new ConsoleConfigServiceImpl
+   * @param skipInitialization Optional flag to skip initialization (for testing)
    */
-  constructor() {
+  constructor(skipInitialization = false) {
+    if (!skipInitialization) {
+      this.initialize();
+    }
+  }
+  
+  /**
+   * Initialize the service
+   * This method is separated from the constructor to allow overriding in tests
+   * @protected
+   */
+  protected initialize(): void {
     // Parse command line arguments
     this.cliArgs = this.parseArgs();
     
@@ -114,10 +126,40 @@ export class ConsoleConfigServiceImpl implements ConfigService {
    * Parse command line arguments
    * @param args Command line arguments (optional)
    * @returns Parsed command line arguments
-   * @private
+   * @protected
    */
-  private parseArgs(args?: string[]): CliArgs {
-    const parsedArgs = yargs(args || process.argv.slice(2))
+  protected parseArgs(args?: string[]): CliArgs {
+    const yargsInstance = this.createYargsInstance(args || process.argv.slice(2));
+    const parsedArgs = yargsInstance.parseSync();
+    
+    // Convert to CliArgs type with proper handling of optional arrays
+    return {
+      date: typeof parsedArgs.date === 'string' ? parsedArgs.date : getTodayDate(),
+      country: typeof parsedArgs.country === 'string' ? parsedArgs.country : 'US',
+      types: Array.isArray(parsedArgs.types) ? parsedArgs.types : [],
+      networks: Array.isArray(parsedArgs.networks) ? parsedArgs.networks : [],
+      genres: Array.isArray(parsedArgs.genres) ? parsedArgs.genres : [],
+      languages: Array.isArray(parsedArgs.languages) ? parsedArgs.languages : [],
+      timeSort: Boolean(parsedArgs.timeSort),
+      query: typeof parsedArgs.query === 'string' ? parsedArgs.query : '',
+      slack: Boolean(parsedArgs.slack),
+      limit: typeof parsedArgs.limit === 'number' ? parsedArgs.limit : 0,
+      help: Boolean(parsedArgs.help),
+      version: Boolean(parsedArgs.version),
+      debug: Boolean(parsedArgs.debug),
+      webOnly: Boolean(parsedArgs.webOnly),
+      showAll: Boolean(parsedArgs.showAll)
+    };
+  }
+  
+  /**
+   * Create and configure a yargs instance
+   * @param args Command line arguments
+   * @returns Configured yargs instance
+   * @protected
+   */
+  protected createYargsInstance(args: string[]): ReturnType<typeof yargs> {
+    return yargs(args)
       .options({
         date: {
           alias: 'd',
@@ -195,36 +237,50 @@ export class ConsoleConfigServiceImpl implements ConfigService {
       .help()
       .alias('help', 'h')
       .version()
-      .alias('version', 'v')
-      .parseSync();
-    
-    // Convert to CliArgs type with proper handling of optional arrays
-    return {
-      date: parsedArgs.date,
-      country: parsedArgs.country,
-      types: Array.isArray(parsedArgs.types) ? parsedArgs.types : [],
-      networks: Array.isArray(parsedArgs.networks) ? parsedArgs.networks : [],
-      genres: Array.isArray(parsedArgs.genres) ? parsedArgs.genres : [],
-      languages: Array.isArray(parsedArgs.languages) ? parsedArgs.languages : [],
-      timeSort: Boolean(parsedArgs.timeSort),
-      query: String(parsedArgs.query || ''),
-      slack: Boolean(parsedArgs.slack),
-      limit: Number(parsedArgs.limit || 0),
-      help: Boolean(parsedArgs.help),
-      version: Boolean(parsedArgs.version),
-      debug: Boolean(parsedArgs.debug),
-      webOnly: Boolean(parsedArgs.webOnly),
-      showAll: Boolean(parsedArgs.showAll)
-    };
+      .alias('version', 'v');
   }
   
   /**
    * Load configuration from config file and merge with defaults
    * @returns Merged application configuration
+   * @protected
    */
-  private loadConfig(): AppConfig {
+  protected loadConfig(): AppConfig {
     // Default configuration
-    const defaultConfig: AppConfig = {
+    const defaultConfig = this.getDefaultConfig();
+    
+    // Try to load user config from config.json
+    let userConfig: Partial<AppConfig> = {};
+    try {
+      const configPath = this.getConfigFilePath();
+      
+      if (this.fileExists(configPath)) {
+        const configFile = this.readFile(configPath);
+        userConfig = this.parseConfigFile(configFile);
+      }
+    } catch (error) {
+      this.handleConfigError(error);
+    }
+    
+    // Merge default and user config
+    return {
+      ...defaultConfig,
+      ...userConfig,
+      // Ensure slack config is properly merged
+      slack: {
+        ...defaultConfig.slack,
+        ...(userConfig.slack || {})
+      }
+    };
+  }
+  
+  /**
+   * Get the default configuration
+   * @returns Default application configuration
+   * @protected
+   */
+  protected getDefaultConfig(): AppConfig {
+    return {
       country: 'US',
       types: [], // e.g., ['Reality', 'Scripted']
       networks: [], // e.g., ['Discovery', 'CBS']
@@ -240,33 +296,87 @@ export class ConsoleConfigServiceImpl implements ConfigService {
       version: '1.0.0',
       apiUrl: 'https://api.tvmaze.com'
     };
-    
-    // Try to load user config from config.json
-    let userConfig: Partial<AppConfig> = {};
-    try {
-      const __filename = fileURLToPath(import.meta.url);
-      const __dirname = path.dirname(__filename);
-      const configPath = path.resolve(__dirname, '../../../config.json');
-      
-      if (fs.existsSync(configPath)) {
-        const configFile = fs.readFileSync(configPath, 'utf8');
-        userConfig = JSON.parse(configFile);
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        console.warn(`Warning: Could not load config.json: ${error.message}`);
-      }
+  }
+  
+  /**
+   * Get the path to the config file
+   * @returns Path to the config file
+   * @protected
+   */
+  protected getConfigFilePath(): string {
+    const __filename = this.getFilePath();
+    const __dirname = this.getDirname(__filename);
+    return this.resolvePath(__dirname, '../../../config.json');
+  }
+  
+  /**
+   * Get the current file path
+   * @returns Current file path
+   * @protected
+   */
+  protected getFilePath(): string {
+    return fileURLToPath(import.meta.url);
+  }
+  
+  /**
+   * Get the directory name from a file path
+   * @param filePath File path
+   * @returns Directory name
+   * @protected
+   */
+  protected getDirname(filePath: string): string {
+    return path.dirname(filePath);
+  }
+  
+  /**
+   * Resolve a path
+   * @param basePath Base path
+   * @param relativePath Relative path
+   * @returns Resolved path
+   * @protected
+   */
+  protected resolvePath(basePath: string, relativePath: string): string {
+    return path.resolve(basePath, relativePath);
+  }
+  
+  /**
+   * Check if a file exists
+   * @param filePath File path
+   * @returns True if the file exists
+   * @protected
+   */
+  protected fileExists(filePath: string): boolean {
+    return fs.existsSync(filePath);
+  }
+  
+  /**
+   * Read a file
+   * @param filePath File path
+   * @returns File contents
+   * @protected
+   */
+  protected readFile(filePath: string): string {
+    return fs.readFileSync(filePath, 'utf8');
+  }
+  
+  /**
+   * Parse a config file
+   * @param fileContents File contents
+   * @returns Parsed config
+   * @protected
+   */
+  protected parseConfigFile(fileContents: string): Partial<AppConfig> {
+    return JSON.parse(fileContents) as Partial<AppConfig>;
+  }
+  
+  /**
+   * Handle a config error
+   * @param error Error
+   * @protected
+   */
+  protected handleConfigError(error: unknown): void {
+    if (error instanceof Error) {
+      console.warn(`Warning: Could not load config.json: ${error.message}`);
     }
-    
-    // Merge default and user config
-    return {
-      ...defaultConfig,
-      ...userConfig,
-      // Ensure slack config is properly merged
-      slack: {
-        ...defaultConfig.slack,
-        ...(userConfig.slack || {})
-      }
-    };
   }
 }

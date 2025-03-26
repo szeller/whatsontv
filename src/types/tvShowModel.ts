@@ -13,7 +13,6 @@ export interface Show {
   language: string | null;
   genres: string[];
   network: string;
-  isStreaming: boolean;
   summary: string | null;
   airtime: string | null;
   season: number;
