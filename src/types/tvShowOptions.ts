@@ -20,9 +20,6 @@ export interface ShowOptions {
   /** Languages to include */
   languages?: string[];
   
-  /** Whether to only include web/streaming shows */
-  webOnly?: boolean;
-  
-  /** Whether to include both network and web shows */
-  showAll?: boolean;
+  /** Source to fetch shows from: 'web', 'network', or 'all' */
+  fetchSource?: 'web' | 'network' | 'all';
 }

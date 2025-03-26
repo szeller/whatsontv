@@ -42,12 +42,10 @@ class TestConsoleOutputService extends ConsoleOutputServiceImpl {
     const mockArgs: ConsoleCliArgs = {
       date: '2023-01-01',
       country: 'US',
-      timeSort: false,
       help: false,
       version: false,
       debug: false,
-      webOnly: false,
-      showAll: false,
+      fetch: 'network',
       slack: false,
       query: '',
       showId: 0,
@@ -68,14 +66,10 @@ class TestConsoleOutputService extends ConsoleOutputServiceImpl {
           mockArgs.date = args[++i];
         } else if (arg === '--country' || arg === '-c') {
           mockArgs.country = args[++i];
-        } else if (arg === '--timeSort' || arg === '-t') {
-          mockArgs.timeSort = true;
         } else if (arg === '--debug' || arg === '-D') {
           mockArgs.debug = true;
-        } else if (arg === '--webOnly') {
-          mockArgs.webOnly = true;
-        } else if (arg === '--showAll') {
-          mockArgs.showAll = true;
+        } else if (arg === '--fetch') {
+          mockArgs.fetch = args[++i] as 'network' | 'web' | 'all';
         } else if (arg === '--slack' || arg === '-s') {
           mockArgs.slack = true;
         } else if (arg === '--query' || arg === '-q') {
@@ -181,7 +175,7 @@ describe('ConsoleOutputServiceImpl', () => {
       formatNetworkGroupsSpy.mockReturnValue(['Formatted network output']);
 
       // Act
-      await service.displayShows(mockShows, false);
+      await service.displayShows(mockShows, true);
 
       // Assert
       expect(formatNetworkGroupsSpy).toHaveBeenCalledTimes(1);
@@ -189,7 +183,7 @@ describe('ConsoleOutputServiceImpl', () => {
         expect.objectContaining({
           'Test Network': expect.arrayContaining([mockShow])
         }),
-        false
+        true
       );
       const logSpy = jest.spyOn(mockConsoleOutput, 'log');
       expect(logSpy).toHaveBeenCalledTimes(1);
@@ -357,7 +351,7 @@ describe('ConsoleOutputServiceImpl', () => {
       // Assert
       expect(args.date).toBe('2023-01-01');
       expect(args.country).toBe('US');
-      expect(args.timeSort).toBe(false);
+      expect(args.fetch).toBe('network');
     });
     
     /**
@@ -395,13 +389,11 @@ describe('ConsoleOutputServiceImpl', () => {
      */
     it('should handle boolean flags', () => {
       // Act
-      const args = service.parseArgs(['--timeSort', '--debug', '--webOnly', '--showAll']);
+      const args = service.parseArgs(['--debug', '--slack']);
       
       // Assert
-      expect(args.timeSort).toBe(true);
       expect(args.debug).toBe(true);
-      expect(args.webOnly).toBe(true);
-      expect(args.showAll).toBe(true);
+      expect(args.slack).toBe(true);
     });
     
     /**
@@ -456,21 +448,19 @@ describe('ConsoleOutputServiceImpl', () => {
       const args = service.parseArgs([
         '-d', '2023-01-01', 
         '-c', 'GB',
-        '-t',
+        '-D',
         '-q', 'test',
         '-s',
-        '-l', '5',
-        '-D'
+        '-l', '5'
       ]);
       
       // Assert
       expect(args.date).toBe('2023-01-01');
       expect(args.country).toBe('GB');
-      expect(args.timeSort).toBe(true);
+      expect(args.debug).toBe(true);
       expect(args.query).toBe('test');
       expect(args.slack).toBe(true);
       expect(args.limit).toBe(5);
-      expect(args.debug).toBe(true);
     });
   });
   

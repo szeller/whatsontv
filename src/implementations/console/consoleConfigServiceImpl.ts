@@ -59,14 +59,12 @@ export class ConsoleConfigServiceImpl implements ConfigService {
       languages: Array.isArray(this.cliArgs.languages) && this.cliArgs.languages.length > 0 
         ? this.cliArgs.languages 
         : [...(Array.isArray(this.appConfig.languages) ? this.appConfig.languages : [])],
-      webOnly: this.cliArgs.webOnly ?? false,
-      showAll: this.cliArgs.showAll ?? true
+      fetchSource: this.cliArgs.fetch ?? 'all'
     };
     
     // Extract CLI options
     this.cliOptions = {
       debug: this.cliArgs.debug ?? false,
-      timeSort: this.cliArgs.timeSort ?? false,
       slack: this.cliArgs.slack ?? false,
       help: this.cliArgs.help ?? false,
       version: this.cliArgs.version ?? false,
@@ -91,8 +89,7 @@ export class ConsoleConfigServiceImpl implements ConfigService {
       // Override with command line arguments if provided
       date: args.date || configOptions.date,
       country: args.country || configOptions.country,
-      showAll: args.showAll || configOptions.showAll,
-      webOnly: args.webOnly || configOptions.webOnly,
+      fetchSource: args.fetch || configOptions.fetchSource,
       // Use the filter arrays from the config file
       types: [...(configOptions.types || [])],
       genres: [...(configOptions.genres || [])],
@@ -187,16 +184,33 @@ export class ConsoleConfigServiceImpl implements ConfigService {
       networks: Array.isArray(parsedArgs.networks) ? parsedArgs.networks : [],
       genres: Array.isArray(parsedArgs.genres) ? parsedArgs.genres : [],
       languages: Array.isArray(parsedArgs.languages) ? parsedArgs.languages : [],
-      timeSort: Boolean(parsedArgs.timeSort),
       query: typeof parsedArgs.query === 'string' ? parsedArgs.query : '',
       slack: Boolean(parsedArgs.slack),
       limit: typeof parsedArgs.limit === 'number' ? parsedArgs.limit : 0,
       help: Boolean(parsedArgs.help),
       version: Boolean(parsedArgs.version),
       debug: Boolean(parsedArgs.debug),
-      webOnly: Boolean(parsedArgs.webOnly),
-      showAll: Boolean(parsedArgs.showAll)
+      fetch: this.validateFetchSource(parsedArgs.fetch)
     };
+  }
+  
+  /**
+   * Validate and normalize the fetch source parameter
+   * @param value The fetch source value from command line
+   * @returns A valid fetch source value ('web', 'network', or 'all')
+   * @private
+   */
+  private validateFetchSource(value: unknown): 'web' | 'network' | 'all' {
+    if (typeof value !== 'string') {
+      return 'all';
+    }
+    
+    const normalized = value.toLowerCase();
+    if (normalized === 'web' || normalized === 'network') {
+      return normalized;
+    }
+    
+    return 'all';
   }
   
   /**
@@ -240,12 +254,6 @@ export class ConsoleConfigServiceImpl implements ConfigService {
           type: 'string',
           coerce: (arg: string) => arg.split(',')
         },
-        timeSort: {
-          alias: 't',
-          describe: 'Sort shows by time',
-          type: 'boolean',
-          default: false
-        },
         query: {
           alias: 'q',
           describe: 'Search query for shows',
@@ -270,15 +278,11 @@ export class ConsoleConfigServiceImpl implements ConfigService {
           type: 'boolean',
           default: false
         },
-        webOnly: {
-          describe: 'Only show web series',
-          type: 'boolean',
-          default: false
-        },
-        showAll: {
-          describe: 'Show all shows, including those without air dates',
-          type: 'boolean',
-          default: true
+        fetch: {
+          alias: 'f',
+          describe: 'Fetch source (e.g., all, web, tv)',
+          type: 'string',
+          default: 'all'
         }
       })
       .help()

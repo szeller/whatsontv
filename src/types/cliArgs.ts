@@ -24,11 +24,6 @@ export interface CliArgs {
   networks: string[];
   
   /**
-   * Whether to sort shows by time
-   */
-  timeSort: boolean;
-  
-  /**
    * Search query for shows
    */
   query: string;
@@ -52,16 +47,11 @@ export interface CliArgs {
    * Whether to enable debug mode
    */
   debug: boolean;
-  
-  /**
-   * Whether to only show web/streaming shows
-   */
-  webOnly: boolean;
 
   /**
-   * Whether to show both network and web shows
+   * Source to fetch shows from: 'web', 'network', or 'all'
    */
-  showAll: boolean;
+  fetch: 'web' | 'network' | 'all';
 
   /**
    * Maximum number of shows to display

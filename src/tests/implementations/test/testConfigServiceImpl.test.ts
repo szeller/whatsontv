@@ -26,8 +26,7 @@ describe('TestConfigServiceImpl', () => {
       networks: ['BBC'],
       genres: ['Drama'],
       languages: ['English'],
-      webOnly: true,
-      showAll: false
+      fetchSource: 'web' as 'web' | 'network' | 'all'
     };
     
     // Act
@@ -44,7 +43,6 @@ describe('TestConfigServiceImpl', () => {
     // Arrange
     const cliOptions = {
       debug: true,
-      timeSort: true,
       slack: true,
       help: false,
       version: false,

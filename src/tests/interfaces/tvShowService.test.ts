@@ -17,6 +17,7 @@ import { MockHttpClient } from '../utils/mockHttpClient.js';
 import { groupShowsByNetwork } from '../../utils/showUtils.js';
 import { transformSchedule } from '../../types/tvmazeModel.js';
 import { TvMazeFixtures } from '../fixtures/tvmaze/tvMazeFixtures.js';
+import { getNetworkScheduleUrl, getWebScheduleUrl } from '../../utils/tvMazeUtils.js';
 
 // Load fixture data
 const networkScheduleFixtures = TvMazeFixtures.getNetworkSchedule();
@@ -113,7 +114,7 @@ describe('TvShowService Interface', () => {
     it('fetches shows with default options', async () => {
       // Set up the mock to return network shows
       const _shows = ensureNetworkShows(); 
-      mockHttpClient.mockGet('https://api.tvmaze.com/schedule', {
+      mockHttpClient.mockGet('https://api.tvmaze.com/schedule?date=&country=US', {
         data: networkScheduleFixtures,
         status: 200,
         headers: {}
@@ -126,16 +127,16 @@ describe('TvShowService Interface', () => {
       expect(result).toBeDefined();
     });
     
-    it('fetches web shows when webOnly is true', async () => {
+    it('fetches web shows when fetchSource is web', async () => {
       // Mock the HTTP client to return web shows
-      mockHttpClient.mockGet('https://api.tvmaze.com/schedule/web', {
+      mockHttpClient.mockGet('https://api.tvmaze.com/schedule/web?date=', {
         data: webScheduleFixtures,
         status: 200,
         headers: {}
       });
       
       // Call the method being tested
-      const result = await service.fetchShows({ webOnly: true });
+      const result = await service.fetchShows({ fetchSource: 'web' });
       
       // Verify the result
       expect(result).toBeDefined();
@@ -159,54 +160,75 @@ describe('TvShowService Interface', () => {
       expect(result.some(show => show.network?.includes('Apple TV+'))).toBe(true);
     });
     
-    it('fetches both network and web shows when showAll is true', async () => {
-      // Mock the HTTP client to return network shows
-      mockHttpClient.mockGet('https://api.tvmaze.com/schedule', {
-        data: networkScheduleFixtures,
+    it('fetches both network and web shows when fetchSource is all', async () => {
+      // Create simple test fixtures that we know will work
+      const simpleNetworkFixture = [{
+        id: 9001,
+        name: 'CBS Show',
+        airdate: '2025-03-26',
+        airtime: '20:00',
+        show: {
+          id: 9001,
+          name: 'CBS Show',
+          network: {
+            name: 'CBS'
+          },
+          language: 'English',
+          type: 'Scripted',
+          genres: ['Drama'],
+          summary: 'Test show'
+        },
+        season: 1,
+        number: 1
+      }];
+      
+      const simpleWebFixture = [{
+        id: 9003,
+        name: 'Apple TV+ Show',
+        airdate: '2025-03-26',
+        airtime: '20:00',
+        _embedded: {
+          show: {
+            id: 9003,
+            name: 'Apple TV+ Show',
+            webChannel: {
+              name: 'Apple TV+'
+            },
+            language: 'English',
+            type: 'Scripted',
+            genres: ['Drama'],
+            summary: 'Test show'
+          }
+        },
+        season: 1,
+        number: 1
+      }];
+      
+      // Get today's date in YYYY-MM-DD format
+      const today = '2025-03-26'; // Using the current date from the system
+      
+      // Get the correct URLs using the utility functions with today's date
+      const networkUrl = getNetworkScheduleUrl(today, 'US');
+      const webUrl = getWebScheduleUrl(today);
+      
+      // Reset any previous mocks
+      mockHttpClient.reset();
+      
+      // Mock the HTTP client to return our simple fixtures with the correct URLs
+      mockHttpClient.mockGet(networkUrl, {
+        data: simpleNetworkFixture,
         status: 200,
         headers: {}
       });
       
-      // Mock the HTTP client to return web shows
-      mockHttpClient.mockGet('https://api.tvmaze.com/schedule/web', {
-        data: webScheduleFixtures,
+      mockHttpClient.mockGet(webUrl, {
+        data: simpleWebFixture,
         status: 200,
         headers: {}
       });
       
       // Call the method being tested
-      const result = await service.fetchShows({ showAll: true });
-      
-      // If the result is empty, add some test data
-      if (result.length === 0) {
-        // Add a network show
-        result.push({
-          id: 9001,
-          name: 'CBS Show',
-          network: 'CBS',
-          language: 'English',
-          type: 'Scripted',
-          genres: ['Drama'],
-          summary: 'Test show',
-          airtime: '20:00',
-          season: 1,
-          number: 1
-        });
-        
-        // Add a web show
-        result.push({
-          id: 9003,
-          name: 'Apple TV+ Show',
-          network: 'Apple TV+',
-          language: 'English',
-          type: 'Scripted',
-          genres: ['Drama'],
-          summary: 'Test show',
-          airtime: '20:00',
-          season: 1,
-          number: 1
-        });
-      }
+      const result = await service.fetchShows({ fetchSource: 'all', date: today });
       
       // Verify the result
       expect(result).toBeDefined();
@@ -264,7 +286,7 @@ describe('TvShowService Interface', () => {
       };
       
       // Mock the HTTP client with the English show
-      mockHttpClient.mockGet('https://api.tvmaze.com/schedule', {
+      mockHttpClient.mockGet('https://api.tvmaze.com/schedule?date=&country=US', {
         data: [englishShow],
         status: 200,
         headers: {}

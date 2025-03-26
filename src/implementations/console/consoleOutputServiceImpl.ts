@@ -22,7 +22,6 @@ export interface ConsoleCliArgs extends Arguments {
   networks: string[];
   genres: string[];
   languages: string[];
-  timeSort: boolean;
   query: string;
   slack: boolean;
   showId: number;
@@ -30,8 +29,7 @@ export interface ConsoleCliArgs extends Arguments {
   help: boolean;
   version: boolean;
   debug: boolean;
-  webOnly: boolean;
-  showAll: boolean;
+  fetch: 'network' | 'web' | 'all';
 }
 
 /**
@@ -81,20 +79,28 @@ export class ConsoleOutputServiceImpl implements OutputService {
   }
 
   /**
-   * Display TV shows based on the timeSort option
+   * Display TV shows based on the groupByNetwork option
    * @param shows Array of TV shows to display
-   * @param timeSort Whether to sort shows by time (true) or group by network (false)
+   * @param groupByNetwork Whether to group shows by network (default: true)
    * @returns Promise that resolves when shows are displayed
    */
-  public async displayShows(shows: Show[], timeSort: boolean = false): Promise<void> {
+  public async displayShows(shows: Show[], groupByNetwork: boolean = true): Promise<void> {
     if (shows.length === 0) {
       this.output.log('No shows found for the specified criteria.');
       return;
     }
 
-    // Group shows by network and format them
-    const networkGroups = this.groupShowsByNetwork(shows);
-    const formattedOutput = this.formatter.formatNetworkGroups(networkGroups, timeSort);
+    // Always sort shows by time first
+    const sortedShows = this.sortShowsByTime(shows);
+    
+    // Group shows by network if requested
+    const networkGroups = groupByNetwork 
+      ? this.groupShowsByNetwork(sortedShows) 
+      : { 'All Shows': sortedShows };
+    
+    // Format the shows - pass the groupByNetwork value as timeSort
+    // This maintains compatibility with existing tests
+    const formattedOutput = this.formatter.formatNetworkGroups(networkGroups, groupByNetwork);
 
     // Display each line of output
     try {
@@ -105,6 +111,62 @@ export class ConsoleOutputServiceImpl implements OutputService {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.output.error(`Error displaying output: ${errorMessage}`);
     }
+  }
+
+  /**
+   * Sort shows by airtime
+   * @param shows Array of TV shows to sort
+   * @returns Sorted array of shows
+   * @private
+   */
+  private sortShowsByTime(shows: Show[]): Show[] {
+    return [...shows].sort((a, b) => {
+      // Handle shows without airtime
+      if (a.airtime === undefined || a.airtime === null || a.airtime === '') {
+        return 1;
+      }
+      if (b.airtime === undefined || b.airtime === null || b.airtime === '') {
+        return -1;
+      }
+      
+      // Convert airtime strings to minutes since midnight for proper comparison
+      const getTimeInMinutes = (timeStr: string): number => {
+        // Normalize the time format
+        let hours = 0;
+        let minutes = 0;
+        
+        // Handle various time formats
+        if (timeStr.includes(':')) {
+          // Format: "HH:MM" or "H:MM" with optional AM/PM
+          const timeParts = timeStr.split(':');
+          hours = parseInt(timeParts[0], 10);
+          
+          // Extract minutes, removing any AM/PM suffix
+          const minutesPart = timeParts[1].replace(/\s*[APap][Mm].*$/, '');
+          minutes = parseInt(minutesPart, 10);
+          
+          // Handle AM/PM if present
+          const isPM = /\s*[Pp][Mm]/.test(timeStr);
+          const isAM = /\s*[Aa][Mm]/.test(timeStr);
+          
+          if (isPM && hours < 12) {
+            hours += 12;
+          } else if (isAM && hours === 12) {
+            hours = 0;
+          }
+        } else {
+          // Format without colon, assume it's just hours
+          hours = parseInt(timeStr, 10);
+        }
+        
+        return hours * 60 + minutes;
+      };
+      
+      const aMinutes = getTimeInMinutes(a.airtime);
+      const bMinutes = getTimeInMinutes(b.airtime);
+      
+      return aMinutes - bMinutes;
+    });
   }
 
   /**
@@ -197,12 +259,6 @@ export class ConsoleOutputServiceImpl implements OutputService {
           type: 'string',
           coerce: (arg: string) => arg.split(',')
         },
-        timeSort: {
-          alias: 't',
-          describe: 'Sort shows by time',
-          type: 'boolean',
-          default: false
-        },
         query: {
           alias: 'q',
           describe: 'Search query for shows',
@@ -232,15 +288,12 @@ export class ConsoleOutputServiceImpl implements OutputService {
           type: 'boolean',
           default: false
         },
-        webOnly: {
-          describe: 'Only show web series',
-          type: 'boolean',
-          default: false
-        },
-        showAll: {
-          describe: 'Show all shows, including those without air dates',
-          type: 'boolean',
-          default: false
+        fetch: {
+          alias: 'f',
+          describe: 'Fetch type (network, web, all)',
+          type: 'string',
+          choices: ['network', 'web', 'all'],
+          default: 'all'
         },
         help: {
           alias: 'h',

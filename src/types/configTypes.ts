@@ -32,7 +32,6 @@ export interface AppConfig {
  */
 export interface CliOptions {
   debug: boolean;
-  timeSort: boolean;
   slack: boolean;
   help: boolean;
   version: boolean;

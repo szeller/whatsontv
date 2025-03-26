@@ -55,14 +55,19 @@ export async function main(): Promise<void> {
         }
       }
       
-      consoleOutput.log('\nAvailable Networks:');
-      consoleOutput.log([...uniqueNetworks].sort().join(', '));
-      
-      consoleOutput.log(`\nTotal Shows: ${shows.length}`);
+      // Only output debug info if not running in test mode
+      const isTestMode = process.env.NODE_ENV === 'test';
+      if (!isTestMode) {
+        consoleOutput.log('\nAvailable Networks:');
+        consoleOutput.log([...uniqueNetworks].sort().join(', '));
+        
+        consoleOutput.log(`\nTotal Shows: ${shows.length}`);
+      }
     }
 
-    // Display the shows
-    await outputService.displayShows(shows, cliOptions.timeSort);
+    // Display the shows - always sort by time, but allow toggling network grouping
+    // For now, we'll always group by network (true)
+    await outputService.displayShows(shows, true);
     
     // Display footer
     outputService.displayFooter();

@@ -159,13 +159,13 @@ describe('TvMazeServiceImpl', () => {
         headers: {}
       });
       
-      const result = await tvMazeService.fetchShows({ webOnly: true });
+      const result = await tvMazeService.fetchShows({ fetchSource: 'web' });
       
       expect(result.length).toBeGreaterThan(0);
       expect(result[0].network).toMatch(/^Apple TV\+$/);
     });
     
-    it('fetches both network and web shows when showAll is true', async () => {
+    it('fetches both network and web shows when fetchSource is all', async () => {
       // Mock both endpoints
       const todayDate = getTodayDate();
       mockHttpClient.mockGet(getNetworkScheduleUrl(todayDate, 'US'), {
@@ -180,7 +180,7 @@ describe('TvMazeServiceImpl', () => {
         headers: {}
       });
       
-      const result = await tvMazeService.fetchShows({ showAll: true });
+      const result = await tvMazeService.fetchShows({ fetchSource: 'all' });
       
       expect(result.length).toBeGreaterThan(0);
       // Verify we have both types of shows

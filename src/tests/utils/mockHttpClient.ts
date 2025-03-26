@@ -1,5 +1,4 @@
 import type { HttpClient, HttpResponse } from '../../interfaces/httpClient.js';
-import { setTimeout } from 'timers/promises';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -175,20 +174,6 @@ export class MockHttpClient implements HttpClient {
   async get<T>(url: string, _params?: Record<string, string>): Promise<HttpResponse<T>> {
     // Track this request
     this.trackRequest(url);
-    this.lastUrl = url;
-    
-    // Simulate network delay
-    await setTimeout(10);
-    
-    // Check if we have a mock error for this URL
-    if (this.mockErrors.has(url)) {
-      throw this.mockErrors.get(url);
-    }
-    
-    // Check if we have a mock error for any URL
-    if (this.mockErrors.has('*')) {
-      throw this.mockErrors.get('*');
-    }
     
     // Check if we have a mock response for this URL
     if (this.mockResponses.has(url)) {
@@ -200,9 +185,19 @@ export class MockHttpClient implements HttpClient {
       return this.mockResponses.get('*') as HttpResponse<T>;
     }
     
-    // If we have a mock function set up, use it
+    // Check if we have a mock error for this URL
+    if (this.mockErrors.has(url)) {
+      throw this.mockErrors.get(url);
+    }
+    
+    // Check if we have a mock error for any URL
+    if (this.mockErrors.has('*')) {
+      throw this.mockErrors.get('*');
+    }
+    
+    // If the mock function has been set up with mockGet/mockGetError, use it
     if (this.getMock.mock.calls.length > 0) {
-      return this.getMock(url, _params) as Promise<HttpResponse<T>>;
+      return await this.getMock(url, _params) as HttpResponse<T>;
     }
     
     // Throw error if no mock is set up
@@ -223,20 +218,6 @@ export class MockHttpClient implements HttpClient {
   ): Promise<HttpResponse<T>> {
     // Track this request
     this.trackRequest(url);
-    this.lastUrl = url;
-    
-    // Simulate network delay
-    await setTimeout(10);
-    
-    // Check if we have a mock error for this URL
-    if (this.mockErrors.has(url)) {
-      throw this.mockErrors.get(url);
-    }
-    
-    // Check if we have a mock error for any URL
-    if (this.mockErrors.has('*')) {
-      throw this.mockErrors.get('*');
-    }
     
     // Check if we have a mock response for this URL
     if (this.mockResponses.has(url)) {
@@ -248,9 +229,19 @@ export class MockHttpClient implements HttpClient {
       return this.mockResponses.get('*') as HttpResponse<T>;
     }
     
-    // If we have a mock function set up, use it
+    // Check if we have a mock error for this URL
+    if (this.mockErrors.has(url)) {
+      throw this.mockErrors.get(url);
+    }
+    
+    // Check if we have a mock error for any URL
+    if (this.mockErrors.has('*')) {
+      throw this.mockErrors.get('*');
+    }
+    
+    // If the mock function has been set up with mockPost/mockPostError, use it
     if (this.postMock.mock.calls.length > 0) {
-      return this.postMock(url, _data, _params) as Promise<HttpResponse<T>>;
+      return await this.postMock(url, _data, _params) as HttpResponse<T>;
     }
     
     // Throw error if no mock is set up

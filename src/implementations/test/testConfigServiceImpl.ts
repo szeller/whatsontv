@@ -30,14 +30,12 @@ export class TestConfigServiceImpl implements ConfigService {
       networks: showOptions.networks ?? [],
       genres: showOptions.genres ?? [],
       languages: showOptions.languages ?? ['English'],
-      webOnly: showOptions.webOnly ?? false,
-      showAll: showOptions.showAll ?? false
+      fetchSource: showOptions.fetchSource ?? 'all'
     };
     
     // Initialize CLI options with defaults
     this.cliOptions = {
       debug: cliOptions.debug ?? false,
-      timeSort: cliOptions.timeSort ?? false,
       slack: cliOptions.slack ?? false,
       help: cliOptions.help ?? false,
       version: cliOptions.version ?? false,

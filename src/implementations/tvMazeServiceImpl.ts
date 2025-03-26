@@ -54,8 +54,7 @@ export class TvMazeServiceImpl implements TvShowService {
     const defaultOptions: ShowOptions = {
       date: '',
       country: 'US',
-      showAll: false,
-      webOnly: false,
+      fetchSource: 'all',
       types: [],
       genres: [],
       languages: [],
@@ -76,13 +75,12 @@ export class TvMazeServiceImpl implements TvShowService {
       // URLs to fetch based on options
       const urlsToFetch: string[] = [];
 
-      // Add network schedule if not web-only or if showing all
-      if (mergedOptions.webOnly !== true || mergedOptions.showAll === true) {
+      // Determine which sources to fetch based on fetchSource
+      if (mergedOptions.fetchSource === 'all' || mergedOptions.fetchSource === 'network') {
         urlsToFetch.push(getNetworkScheduleUrl(dateStr, countryStr));
       }
 
-      // Add web schedule if showing all or web-only
-      if (mergedOptions.webOnly === true || mergedOptions.showAll === true) {
+      if (mergedOptions.fetchSource === 'all' || mergedOptions.fetchSource === 'web') {
         urlsToFetch.push(getWebScheduleUrl(dateStr));
       }
 

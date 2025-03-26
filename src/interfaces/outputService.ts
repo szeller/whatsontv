@@ -7,9 +7,9 @@ export interface OutputService {
   /**
    * Display TV shows to the user
    * @param shows List of shows to display
-   * @param timeSort Whether to sort by time (true) or group by network (false)
+   * @param groupByNetwork Whether to group shows by network (default: true)
    */
-  displayShows(shows: Show[], timeSort?: boolean): Promise<void>;
+  displayShows(shows: Show[], groupByNetwork?: boolean): Promise<void>;
   
   /**
    * Check if the service is properly initialized

@@ -28,15 +28,13 @@ class TestConsoleConfigService extends ConsoleConfigServiceImpl {
   private mockConfigPath = '/mock/path/config.json';
   private mockCliArgs: Partial<CliArgs> = {
     date: getTodayDate(),
-    timeSort: false,
     query: '',
     slack: false,
     limit: 0,
     help: false,
     version: false,
     debug: false,
-    webOnly: false,
-    showAll: false
+    fetch: 'network'
   };
 
   constructor(options: {
@@ -328,7 +326,6 @@ describe('ConsoleConfigServiceImpl', () => {
   it('should correctly get CLI options', () => {
     // Arrange
     const cliArgs: Partial<CliArgs> = {
-      timeSort: true,
       slack: true,
       limit: 10,
       debug: true
@@ -341,7 +338,6 @@ describe('ConsoleConfigServiceImpl', () => {
     
     // Assert
     const cliOptions = configService.getCliOptions();
-    expect(cliOptions.timeSort).toBe(true);
     expect(cliOptions.slack).toBe(true);
     expect(cliOptions.limit).toBe(10);
     expect(cliOptions.debug).toBe(true);
@@ -378,7 +374,6 @@ describe('ConsoleConfigServiceImpl', () => {
       '--country', 'UK',
       '--types', 'drama,comedy',
       '--networks', 'BBC,ITV',
-      '--timeSort',
       '--limit', '5',
       '--debug'
     ];
@@ -389,16 +384,14 @@ describe('ConsoleConfigServiceImpl', () => {
     expect(parsedArgs.country).toBe('UK');
     expect(parsedArgs.types).toEqual(['drama', 'comedy']);
     expect(parsedArgs.networks).toEqual(['BBC', 'ITV']);
-    expect(parsedArgs.timeSort).toBe(true);
     expect(parsedArgs.limit).toBe(5);
     expect(parsedArgs.debug).toBe(true);
   });
 
-  it('should handle web-only and show-all flags', () => {
+  it('should handle fetch source parameter', () => {
     // Arrange
     const cliArgs: Partial<CliArgs> = {
-      webOnly: true,
-      showAll: true
+      fetch: 'web'
     };
     
     // Act
@@ -408,8 +401,7 @@ describe('ConsoleConfigServiceImpl', () => {
     
     // Assert
     const showOptions = configService.getShowOptions();
-    expect(showOptions.webOnly).toBe(true);
-    expect(showOptions.showAll).toBe(true);
+    expect(showOptions.fetchSource).toBe('web');
   });
 
   it('should merge slack config correctly', () => {

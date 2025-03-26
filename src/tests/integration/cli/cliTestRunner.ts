@@ -12,7 +12,6 @@ import type { ConfigService } from '../../../interfaces/configService.js';
 import { TestConfigServiceImpl } from '../../../implementations/test/testConfigServiceImpl.js';
 import { MockConsoleOutputImpl } from '../../../implementations/test/mockConsoleOutputImpl.js';
 import { getTodayDate } from '../../../utils/dateUtils.js';
-import util from 'util';
 
 /**
  * Run the CLI with the given arguments and capture the output
@@ -24,6 +23,9 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
   stderr: string[];
   exitCode: number;
 }> {
+  // Set NODE_ENV to 'test' to suppress debug output
+  process.env.NODE_ENV = 'test';
+
   // Capture output
   const stdout: string[] = [];
   const stderr: string[] = [];
@@ -43,6 +45,7 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
     if (message !== undefined) {
       stdout.push(message);
     }
+    // For testing, we'll call the original to allow debugging
     originalLogFn(message);
   };
 
@@ -51,6 +54,7 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
       stderr.push([message, ...args.map(a => String(a))].join(' '));
       exitCode = 1;
     }
+    // For testing, we'll call the original to allow debugging
     originalErrorFn(message, ...args);
   };
 
@@ -61,23 +65,24 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
       const warnMsg = `[WARN] ${message} ${argsStr}`;
       stdout.push(warnMsg);
     }
+    // For testing, we'll call the original to allow debugging
     originalWarnFn(message, ...args);
   };
 
   mockConsoleOutput.logWithLevel = (
-    level: 'log' | 'error',
-    message?: string,
+    level: 'log' | 'error', 
+    message?: string, 
     ...args: unknown[]
   ): void => {
     if (message !== undefined) {
-      const formattedMessage = [message, ...args.map(a => String(a))].join(' ');
       if (level === 'log') {
-        stdout.push(formattedMessage);
+        stdout.push([message, ...args.map(a => String(a))].join(' '));
       } else {
-        stderr.push(formattedMessage);
+        stderr.push([message, ...args.map(a => String(a))].join(' '));
         exitCode = 1;
       }
     }
+    // For testing, we'll call the original to allow debugging
     originalLogWithLevelFn(level, message, ...args);
   };
 
@@ -85,7 +90,7 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
   const originalConsoleOutput = container.resolve<ConsoleOutput>('ConsoleOutput');
   container.register('ConsoleOutput', { useValue: mockConsoleOutput });
 
-  // Register mock ConfigService
+  // Create a test config service with the provided args
   const testConfigService = new TestConfigServiceImpl(
     {
       date: args.date ?? getTodayDate(),
@@ -94,65 +99,43 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
       networks: args.networks ?? [],
       genres: args.genres ?? [],
       languages: args.languages ?? [],
-      webOnly: args.webOnly ?? false,
-      showAll: args.showAll ?? false
+      fetchSource: args.fetch ?? 'network'
     },
     {
       debug: args.debug ?? false,
-      timeSort: args.timeSort ?? false,
       slack: args.slack ?? false,
       help: args.help ?? false,
       version: args.version ?? false,
       limit: args.limit ?? 0
-    },
-    {
-      appName: 'WhatsOnTV-Test',
-      version: '1.0.0-test',
-      apiUrl: 'https://api.tvmaze.com',
-      country: 'US',
-      types: [],
-      networks: [],
-      genres: [],
-      languages: ['English'],
-      notificationTime: '9:00',
-      slack: {
-        enabled: false,
-        botToken: undefined,
-        channel: undefined
-      }
     }
   );
+  
+  // Register test config service
+  const originalConfigService = container.resolve<ConfigService>('ConfigService');
   container.register('ConfigService', { useValue: testConfigService });
-
+  
   try {
-    // Debug: Log the test configuration
-    console.warn(
-      'Test Configuration:',
-      util.inspect(
-        {
-          showOptions: container.resolve<ConfigService>('ConfigService').getShowOptions(),
-          cliOptions: container.resolve<ConfigService>('ConfigService').getCliOptions()
-        },
-        { depth: null, colors: true }
-      )
-    );
-
-    // Run the CLI with the configured test services
+    // Run the CLI
     await main();
   } catch (error) {
+    // Capture any errors
+    if (error instanceof Error) {
+      const errorMessage = error.message || 'Unknown error';
+      stderr.push(`Error: ${errorMessage}`);
+      const errorStack = error.stack ?? '';
+      if (errorStack !== '') {
+        stderr.push(errorStack);
+      }
+    } else {
+      stderr.push(`Error: ${String(error)}`);
+    }
     exitCode = 1;
-    stderr.push(`Uncaught exception: ${String(error)}`);
   } finally {
     // Restore original services
     container.register('ConsoleOutput', { useValue: originalConsoleOutput });
-    container.register(
-      'ConfigService', 
-      { 
-        useValue: container.resolve<ConfigService>('ConfigService') 
-      }
-    );
+    container.register('ConfigService', { useValue: originalConfigService });
   }
-
+  
   return {
     stdout,
     stderr,
