@@ -1,6 +1,7 @@
 /**
  * Utility functions for TVMaze API operations
  */
+import { getStringOrDefault } from './stringUtils.js';
 
 /**
  * Base URL for TVMaze API
@@ -17,12 +18,14 @@ export function getNetworkScheduleUrl(date: string, country?: string): string {
   const baseUrl = `${TV_MAZE_BASE_URL}/schedule`;
   const params = new URLSearchParams();
   
-  if (date && date.trim() !== '') {
-    params.append('date', date);
+  const trimmedDate = getStringOrDefault(date, '');
+  if (trimmedDate) {
+    params.append('date', trimmedDate);
   }
   
-  if (country !== undefined && country !== null && country.trim() !== '') {
-    params.append('country', country);
+  const trimmedCountry = getStringOrDefault(country, '');
+  if (trimmedCountry) {
+    params.append('country', trimmedCountry);
   }
   
   const queryString = params.toString();
@@ -35,19 +38,6 @@ export function getNetworkScheduleUrl(date: string, country?: string): string {
  * @returns Full URL for web schedule endpoint
  */
 export function getWebScheduleUrl(date: string): string {
-  return `${TV_MAZE_BASE_URL}/schedule/web${date && date.trim() !== '' ? `?date=${date}` : ''}`;
-}
-
-/**
- * Determine if a schedule item is from a streaming service based on its structure
- * @param item Schedule item from TVMaze API
- * @returns True if the item is from a streaming service
- */
-export function isStreamingItem(item: unknown): boolean {
-  return item !== null && 
-         typeof item === 'object' && 
-         '_embedded' in item && 
-         item._embedded !== null && 
-         typeof item._embedded === 'object' && 
-         'show' in item._embedded;
+  const trimmedDate = getStringOrDefault(date, '');
+  return `${TV_MAZE_BASE_URL}/schedule/web${trimmedDate ? `?date=${trimmedDate}` : ''}`;
 }

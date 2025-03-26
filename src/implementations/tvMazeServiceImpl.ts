@@ -8,6 +8,8 @@ import type { ShowOptions } from '../types/tvShowOptions.js';
 import type { TvShowService } from '../interfaces/tvShowService.js';
 import { transformSchedule } from '../types/tvmazeModel.js';
 import { getNetworkScheduleUrl, getWebScheduleUrl } from '../utils/tvMazeUtils.js';
+import { getTodayDate } from '../utils/dateUtils.js';
+import { getStringOrDefault } from '../utils/stringUtils.js';
 
 /**
  * Implementation of the TvShowService interface for the TVMaze API
@@ -67,67 +69,34 @@ export class TvMazeServiceImpl implements TvShowService {
     };
 
     // Get date string, default to today if not provided
-    const dateStr = mergedOptions.date !== undefined && 
-      mergedOptions.date !== null && 
-      mergedOptions.date.trim() !== '' 
-      ? mergedOptions.date.trim() 
-      : new Date().toISOString().split('T')[0];
-      
-    const countryStr = mergedOptions.country !== undefined && 
-      mergedOptions.country !== null && 
-      mergedOptions.country.trim() !== '' 
-      ? mergedOptions.country.trim() 
-      : 'US';
-    
-    // URLs to fetch based on options
-    const urlsToFetch: string[] = [];
+    const dateStr = getStringOrDefault(mergedOptions.date, getTodayDate());
+    const countryStr = getStringOrDefault(mergedOptions.country, 'US');
     
     try {
-      // Determine which URLs to fetch based on options
-      if (mergedOptions.webOnly === true) {
-        // Web-only: just fetch the web schedule
-        urlsToFetch.push(getWebScheduleUrl(dateStr));
-      } else if (mergedOptions.showAll === true) {
-        // Show all: fetch both network and web schedules
+      // URLs to fetch based on options
+      const urlsToFetch: string[] = [];
+
+      // Add network schedule if not web-only or if showing all
+      if (mergedOptions.webOnly !== true) {
         urlsToFetch.push(getNetworkScheduleUrl(dateStr, countryStr));
+      }
+
+      // Add web schedule if showing all or web-only
+      if (mergedOptions.webOnly === true || mergedOptions.showAll === true) {
         urlsToFetch.push(getWebScheduleUrl(dateStr));
-      } else {
-        // Default: fetch only network schedule
-        urlsToFetch.push(getNetworkScheduleUrl(dateStr, countryStr));
       }
 
       // Fetch all schedules in parallel
       const schedulePromises = urlsToFetch.map(url => this.getSchedule(url));
       const scheduleResults = await Promise.all(schedulePromises);
       
-      // Transform and combine all schedule results
-      let shows: Show[] = [];
+      // Transform and combine all schedule results using a functional approach
+      let shows = scheduleResults
+        .map(scheduleResult => transformSchedule(scheduleResult))
+        .flat();
       
-      if (scheduleResults.length === 1) {
-        // Single schedule (either network-only or web-only)
-        shows = transformSchedule(scheduleResults[0]);
-      } else if (scheduleResults.length === 2) {
-        // Both network and web schedules
-        const networkShows = transformSchedule(scheduleResults[0]);
-        const webShows = transformSchedule(scheduleResults[1]);
-        
-        // Combine the results
-        shows = [...networkShows, ...webShows];
-      }
-      
-      // Apply filters if any are specified
-      const hasTypes = Array.isArray(mergedOptions.types) && 
-        mergedOptions.types.length > 0;
-      const hasGenres = Array.isArray(mergedOptions.genres) && 
-        mergedOptions.genres.length > 0;
-      const hasLanguages = Array.isArray(mergedOptions.languages) && 
-        mergedOptions.languages.length > 0;
-      const hasNetworks = Array.isArray(mergedOptions.networks) && 
-        mergedOptions.networks.length > 0;
-      
-      if (hasTypes || hasGenres || hasLanguages || hasNetworks) {
-        shows = this.applyFilters(shows, mergedOptions);
-      }
+      // Always apply filters - the applyFilters method will handle empty filter arrays
+      shows = this.applyFilters(shows, mergedOptions);
       
       return shows;
     } catch (error) {
@@ -152,15 +121,6 @@ export class TvMazeServiceImpl implements TvShowService {
     }
 
     let filteredShows = [...shows];
-
-    // Apply country filter
-    const countryValue = options.country;
-    if (typeof countryValue === 'string' && countryValue.trim() !== '') {
-      filteredShows = filteredShows.filter((show: Show) => {
-        return typeof show.network === 'string' && 
-              show.network.includes(countryValue);
-      });
-    }
 
     // Apply type filter
     const typeValues = options.types;
@@ -204,8 +164,7 @@ export class TvMazeServiceImpl implements TvShowService {
         return typeof show.language === 'string' && 
                show.language !== null && 
                languageValues.some((language: string) => 
-                 show.language !== null && 
-                 show.language.toLowerCase() === language.toLowerCase()
+                 show.language?.toLowerCase() === language.toLowerCase()
                );
       });
     }

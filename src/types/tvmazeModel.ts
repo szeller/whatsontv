@@ -6,7 +6,8 @@
  */
 import { z } from 'zod';
 // Only import the Show type since that's what we use in this file
-import { Show } from './tvShowModel.js';
+import type { Show } from './tvShowModel.js';
+import { getStringOrDefault } from '../utils/stringUtils.js';
 
 // Helper for converting string|number to number
 const numberFromMixed = z.union([
@@ -340,20 +341,26 @@ export function transformScheduleItem(item: unknown): Show | null {
 
     // Convert season/number to numbers regardless of input type
     let seasonNum = 0;
-    if (typeof episode.season === 'string' && episode.season.trim() !== '') {
-      seasonNum = parseInt(episode.season, 10);
-      if (isNaN(seasonNum)) {
-        seasonNum = 0;
+    if (typeof episode.season === 'string') {
+      const trimmedSeason = getStringOrDefault(episode.season, '');
+      if (trimmedSeason) {
+        seasonNum = parseInt(trimmedSeason, 10);
+        if (isNaN(seasonNum)) {
+          seasonNum = 0;
+        }
       }
     } else if (typeof episode.season === 'number') {
       seasonNum = episode.season;
     }
     
     let episodeNum = 0;
-    if (typeof episode.number === 'string' && episode.number.trim() !== '') {
-      episodeNum = parseInt(episode.number, 10);
-      if (isNaN(episodeNum)) {
-        episodeNum = 0;
+    if (typeof episode.number === 'string') {
+      const trimmedNumber = getStringOrDefault(episode.number, '');
+      if (trimmedNumber) {
+        episodeNum = parseInt(trimmedNumber, 10);
+        if (isNaN(episodeNum)) {
+          episodeNum = 0;
+        }
       }
     } else if (typeof episode.number === 'number') {
       episodeNum = episode.number;

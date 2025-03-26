@@ -17,6 +17,7 @@ export interface Show {
   airtime: string | null;
   season: number;
   number: number;
+  isStreaming?: boolean;
 }
 
 /**
