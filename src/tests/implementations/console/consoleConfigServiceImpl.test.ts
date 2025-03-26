@@ -28,11 +28,7 @@ class TestConsoleConfigService extends ConsoleConfigServiceImpl {
   private mockConfigPath = '/mock/path/config.json';
   private mockCliArgs: Partial<CliArgs> = {
     date: getTodayDate(),
-    query: '',
-    slack: false,
-    limit: 0,
     help: false,
-    version: false,
     debug: false,
     fetch: 'network'
   };
@@ -129,10 +125,7 @@ describe('ConsoleConfigServiceImpl', () => {
       enabled: true,
       botToken: undefined,
       channel: undefined
-    },
-    appName: 'WhatsOnTV',
-    version: '1.0.0',
-    apiUrl: 'https://api.tvmaze.com'
+    }
   };
 
   // Mock console.warn
@@ -153,18 +146,13 @@ describe('ConsoleConfigServiceImpl', () => {
     });
     
     // Assert
-    expect(configService.getAppName()).toBe(defaultConfig.appName);
-    expect(configService.getVersion()).toBe(defaultConfig.version);
-    expect(configService.getApiUrl()).toBe(defaultConfig.apiUrl);
     expect(configService.getShowOptions().country).toBe(defaultConfig.country);
   });
 
   it('should load config from file when it exists', () => {
     // Arrange
     const mockConfig = {
-      country: 'CA',
-      appName: 'CustomTVApp',
-      version: '2.0.0'
+      country: 'CA'
     };
     
     // Act
@@ -174,8 +162,6 @@ describe('ConsoleConfigServiceImpl', () => {
     });
     
     // Assert
-    expect(configService.getAppName()).toBe(mockConfig.appName);
-    expect(configService.getVersion()).toBe(mockConfig.version);
     expect(configService.getShowOptions().country).toBe(mockConfig.country);
   });
 
@@ -295,8 +281,6 @@ describe('ConsoleConfigServiceImpl', () => {
     });
     
     // Assert
-    expect(configService.getAppName()).toBe(defaultConfig.appName);
-    expect(configService.getVersion()).toBe(defaultConfig.version);
     expect(configService.getShowOptions().country).toBe(defaultConfig.country);
     expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
     expect(consoleWarnSpy).toHaveBeenCalledWith(
@@ -326,8 +310,6 @@ describe('ConsoleConfigServiceImpl', () => {
   it('should correctly get CLI options', () => {
     // Arrange
     const cliArgs: Partial<CliArgs> = {
-      slack: true,
-      limit: 10,
       debug: true
     };
     
@@ -338,17 +320,13 @@ describe('ConsoleConfigServiceImpl', () => {
     
     // Assert
     const cliOptions = configService.getCliOptions();
-    expect(cliOptions.slack).toBe(true);
-    expect(cliOptions.limit).toBe(10);
     expect(cliOptions.debug).toBe(true);
   });
 
   it('should correctly get the complete config', () => {
     // Arrange
     const mockConfig = {
-      country: 'CA',
-      appName: 'CustomTVApp',
-      version: '2.0.0'
+      country: 'CA'
     };
     
     // Act
@@ -360,8 +338,6 @@ describe('ConsoleConfigServiceImpl', () => {
     // Assert
     const config = configService.getConfig();
     expect(config.country).toBe(mockConfig.country);
-    expect(config.appName).toBe(mockConfig.appName);
-    expect(config.version).toBe(mockConfig.version);
   });
 
   it('should correctly parse command line arguments', () => {
@@ -374,7 +350,6 @@ describe('ConsoleConfigServiceImpl', () => {
       '--country', 'UK',
       '--types', 'drama,comedy',
       '--networks', 'BBC,ITV',
-      '--limit', '5',
       '--debug'
     ];
     
@@ -384,7 +359,6 @@ describe('ConsoleConfigServiceImpl', () => {
     expect(parsedArgs.country).toBe('UK');
     expect(parsedArgs.types).toEqual(['drama', 'comedy']);
     expect(parsedArgs.networks).toEqual(['BBC', 'ITV']);
-    expect(parsedArgs.limit).toBe(5);
     expect(parsedArgs.debug).toBe(true);
   });
 
@@ -435,8 +409,7 @@ describe('ConsoleConfigServiceImpl', () => {
     });
     
     // Assert
-    expect(configService.getAppName()).toBe(defaultConfig.appName);
-    expect(configService.getVersion()).toBe(defaultConfig.version);
+    expect(configService.getShowOptions().country).toBe(defaultConfig.country);
   });
 
   it('should correctly create a yargs instance with all options', () => {

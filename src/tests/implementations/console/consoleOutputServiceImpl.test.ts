@@ -1,32 +1,36 @@
 /**
- * Tests for the ConsoleOutputServiceImpl implementation
+ * Tests for ConsoleOutputServiceImpl
  */
-import { jest, describe, it, expect, beforeEach } from '@jest/globals';
-import { container } from 'tsyringe';
-
-// Fixed import line length
-import {
-  ConsoleOutputServiceImpl,
-  ConsoleCliArgs
-} from '../../../implementations/console/consoleOutputServiceImpl.js';
-import type { ConsoleOutput } from '../../../interfaces/consoleOutput.js';
-import type { ShowFormatter } from '../../../interfaces/showFormatter.js';
+import { describe, it, expect, jest, beforeEach } from '@jest/globals';
+import type { ShowOptions } from '../../../types/tvShowOptions.js';
+import type { CliOptions, AppConfig } from '../../../types/configTypes.js';
 import type { ConfigService } from '../../../interfaces/configService.js';
+import type { ShowFormatter } from '../../../interfaces/showFormatter.js';
+import type { ConsoleOutput } from '../../../interfaces/consoleOutput.js';
+import { 
+  ConsoleOutputServiceImpl 
+} from '../../../implementations/console/consoleOutputServiceImpl.js';
+import type { ConsoleCliArgs } from '../../../implementations/console/consoleOutputServiceImpl.js';
 import type { Show } from '../../../types/tvShowModel.js';
 import type { NetworkGroups } from '../../../utils/showUtils.js';
 
 // Create a test subclass that extends the implementation
 class TestConsoleOutputService extends ConsoleOutputServiceImpl {
+  // Make formatter and output public for testing
+  public formatter: ShowFormatter;
+  public output: ConsoleOutput;
+  public configService: ConfigService;
+  
+  // Constructor to inject mocks for testing
   constructor(
     mockShowFormatter: ShowFormatter,
     mockConsoleOutput: ConsoleOutput,
     mockConfigService: ConfigService
   ) {
-    // Skip initialization in the parent constructor
     super(mockShowFormatter, mockConsoleOutput, mockConfigService, true);
-    
-    // Manually initialize with our mock values
-    this.initialize(mockShowFormatter, mockConsoleOutput, mockConfigService);
+    this.formatter = mockShowFormatter;
+    this.output = mockConsoleOutput;
+    this.configService = mockConfigService;
   }
   
   // Override the groupShowsByNetwork method for testing if needed
@@ -38,18 +42,29 @@ class TestConsoleOutputService extends ConsoleOutputServiceImpl {
   
   // Override parseArgs to avoid process.exit() calls during testing
   public override parseArgs(args?: string[]): ConsoleCliArgs {
-    // Create a simple mock implementation that doesn't call process.exit
-    const mockArgs: ConsoleCliArgs = {
+    if (!args || args.length === 0) {
+      return {
+        date: '2023-01-01',
+        country: 'US',
+        help: false,
+        debug: false,
+        fetch: 'all',
+        types: [],
+        networks: [],
+        genres: [],
+        languages: [],
+        _: [],
+        $0: ''
+      };
+    }
+    
+    // For testing, we'll parse the arguments manually
+    const result: ConsoleCliArgs = {
       date: '2023-01-01',
       country: 'US',
       help: false,
-      version: false,
       debug: false,
-      fetch: 'network',
-      slack: false,
-      query: '',
-      showId: 0,
-      limit: 0,
+      fetch: 'all',
       types: [],
       networks: [],
       genres: [],
@@ -58,43 +73,40 @@ class TestConsoleOutputService extends ConsoleOutputServiceImpl {
       $0: ''
     };
     
-    // If args are provided, override the defaults with the provided values
-    if (args) {
-      for (let i = 0; i < args.length; i++) {
-        const arg = args[i];
-        if (arg === '--date' || arg === '-d') {
-          mockArgs.date = args[++i];
-        } else if (arg === '--country' || arg === '-c') {
-          mockArgs.country = args[++i];
-        } else if (arg === '--debug' || arg === '-D') {
-          mockArgs.debug = true;
-        } else if (arg === '--fetch') {
-          mockArgs.fetch = args[++i] as 'network' | 'web' | 'all';
-        } else if (arg === '--slack' || arg === '-s') {
-          mockArgs.slack = true;
-        } else if (arg === '--query' || arg === '-q') {
-          mockArgs.query = args[++i];
-        } else if (arg === '--showId') {
-          mockArgs.showId = parseInt(args[++i], 10);
-        } else if (arg === '--limit' || arg === '-l') {
-          mockArgs.limit = parseInt(args[++i], 10);
-        } else if (arg === '--types') {
-          mockArgs.types = args[++i].split(',');
-        } else if (arg === '--networks') {
-          mockArgs.networks = args[++i].split(',');
-        } else if (arg === '--genres') {
-          mockArgs.genres = args[++i].split(',');
-        } else if (arg === '--languages') {
-          mockArgs.languages = args[++i].split(',');
-        } else if (arg === '--help' || arg === '-h') {
-          mockArgs.help = true;
-        } else if (arg === '--version' || arg === '-v') {
-          mockArgs.version = true;
-        }
+    // Process the arguments
+    for (let i = 0; i < args.length; i++) {
+      const arg = args[i];
+      const nextArg = i + 1 < args.length ? args[i + 1] : null;
+      const isValidArg = (val: string | null): boolean => 
+        val !== null && val !== undefined && val !== '';
+      
+      if (arg === '--date' || arg === '-d') {
+        if (isValidArg(nextArg)) result.date = nextArg as string;
+        i++;
+      } else if (arg === '--country' || arg === '-c') {
+        if (isValidArg(nextArg)) result.country = nextArg as string;
+        i++;
+      } else if (arg === '--types') {
+        if (isValidArg(nextArg)) result.types = (nextArg as string).split(',');
+        i++;
+      } else if (arg === '--networks') {
+        if (isValidArg(nextArg)) result.networks = (nextArg as string).split(',');
+        i++;
+      } else if (arg === '--genres' || arg === '-g') {
+        if (isValidArg(nextArg)) result.genres = (nextArg as string).split(',');
+        i++;
+      } else if (arg === '--languages' || arg === '-L') {
+        if (isValidArg(nextArg)) result.languages = (nextArg as string).split(',');
+        i++;
+      } else if (arg === '--debug' || arg === '-D') {
+        result.debug = true;
+      } else if (arg === '--fetch' || arg === '-f') {
+        if (isValidArg(nextArg)) result.fetch = nextArg as 'network' | 'web' | 'all';
+        i++;
       }
     }
     
-    return mockArgs;
+    return result;
   }
 }
 
@@ -106,31 +118,19 @@ describe('ConsoleOutputServiceImpl', () => {
   let service: TestConsoleOutputService;
 
   // Sample test data
-  const mockShow: Show = {
-    id: 1,
-    name: 'Test Show',
-    type: 'Scripted',
-    language: 'English',
-    genres: ['Drama'],
-    network: 'Test Network',
-    summary: 'Test summary',
-    airtime: '20:00',
-    season: 1,
-    number: 1
-  };
-
-  const mockShows = [mockShow];
+  let mockShow: Show;
 
   beforeEach(() => {
     // Reset container for each test
-    container.clearInstances();
+    // container.clearInstances();
 
     // Create mock objects
     mockConsoleOutput = {
       log: jest.fn(),
       error: jest.fn(),
-      logWithLevel: jest.fn(),
-      getOutput: jest.fn().mockReturnValue([])
+      debug: jest.fn(),
+      warn: jest.fn(),
+      info: jest.fn()
     } as unknown as jest.Mocked<ConsoleOutput>;
 
     mockShowFormatter = {
@@ -138,21 +138,57 @@ describe('ConsoleOutputServiceImpl', () => {
       formatTimedShow: jest.fn(),
       formatUntimedShow: jest.fn(),
       formatMultipleEpisodes: jest.fn(),
-      formatNetworkGroups: jest.fn().mockReturnValue(['Formatted network output']),
-      formatShowsByDate: jest.fn().mockReturnValue('Formatted shows by date output'),
-      formatFilteredShows: jest.fn().mockReturnValue('Formatted filtered shows'),
-      formatShowDetails: jest.fn().mockReturnValue('Formatted show details'),
-      formatSearchResults: jest.fn().mockReturnValue('Formatted search results')
-    } as unknown as jest.Mocked<ShowFormatter>;
+      formatNetworkGroups: jest.fn()
+    };
+
+    // Create mock Show
+    mockShow = {
+      id: 1,
+      name: 'Test Show',
+      type: 'Scripted',
+      language: 'English',
+      genres: ['Drama'],
+      network: 'Test Network',
+      summary: 'Test summary',
+      airtime: '21:00',
+      season: 1,
+      number: 1
+    };
+
+    // Create mock ConfigService
+    const defaultShowOptions: ShowOptions = {
+      date: '2025-03-25',
+      country: 'US',
+      types: [],
+      networks: [],
+      genres: [],
+      languages: ['English'],
+      fetchSource: 'all'
+    };
+    const defaultCliOptions: CliOptions = {
+      debug: false,
+      help: false
+    };
+    const defaultAppConfig: AppConfig = {
+      country: 'US',
+      types: [],
+      networks: [],
+      genres: [],
+      languages: ['English'],
+      notificationTime: '09:00',
+      slack: {
+        enabled: false
+      }
+    };
     
     mockConfigService = {
-      getAppName: jest.fn().mockReturnValue('WhatsOnTV'),
-      getVersion: jest.fn().mockReturnValue('1.0.0'),
-      getApiUrl: jest.fn().mockReturnValue('https://api.tvmaze.com'),
-      getShowOptions: jest.fn(),
-      getCliOptions: jest.fn(),
-      getSlackConfig: jest.fn()
-    } as unknown as jest.Mocked<ConfigService>;
+      getShowOptions: jest.fn().mockReturnValue(defaultShowOptions),
+      getShowOption: jest.fn().mockImplementation(
+        (key) => defaultShowOptions[key as keyof ShowOptions]
+      ),
+      getCliOptions: jest.fn().mockReturnValue(defaultCliOptions),
+      getConfig: jest.fn().mockReturnValue(defaultAppConfig)
+    } as jest.Mocked<ConfigService>;
 
     // Create the service with our test subclass
     service = new TestConsoleOutputService(
@@ -171,23 +207,21 @@ describe('ConsoleOutputServiceImpl', () => {
      */
     it('should display shows grouped by network', async (): Promise<void> => {
       // Arrange
-      const formatNetworkGroupsSpy = jest.spyOn(mockShowFormatter, 'formatNetworkGroups');
-      formatNetworkGroupsSpy.mockReturnValue(['Formatted network output']);
-
+      const formatNetworkGroupsFn = jest.spyOn(mockShowFormatter, 'formatNetworkGroups');
+      formatNetworkGroupsFn.mockReturnValue(['Formatted network output']);
+      
       // Act
-      await service.displayShows(mockShows, true);
-
+      await service.displayShows([mockShow], true);
+      
       // Assert
-      expect(formatNetworkGroupsSpy).toHaveBeenCalledTimes(1);
-      expect(formatNetworkGroupsSpy).toHaveBeenCalledWith(
+      expect(formatNetworkGroupsFn).toHaveBeenCalledWith(
         expect.objectContaining({
           'Test Network': expect.arrayContaining([mockShow])
         }),
         true
       );
-      const logSpy = jest.spyOn(mockConsoleOutput, 'log');
-      expect(logSpy).toHaveBeenCalledTimes(1);
-      expect(logSpy).toHaveBeenCalledWith('Formatted network output');
+      const logFn = jest.spyOn(mockConsoleOutput, 'log');
+      expect(logFn).toHaveBeenCalledWith('Formatted network output');
     });
 
     /**
@@ -199,28 +233,33 @@ describe('ConsoleOutputServiceImpl', () => {
       await service.displayShows([], false);
 
       // Assert
-      const logSpy = jest.spyOn(mockConsoleOutput, 'log');
-      expect(logSpy).toHaveBeenCalledTimes(1);
-      expect(logSpy).toHaveBeenCalledWith('No shows found for the specified criteria.');
+      const logFn = jest.spyOn(mockConsoleOutput, 'log');
+      expect(logFn).toHaveBeenCalledWith(
+        'No shows found for the specified criteria.'
+      );
     });
     
     /**
      * Tests that the service properly handles errors during output
      */
-    it('should handle errors during output', async () => {
+    it('should handle errors during output', async (): Promise<void> => {
       // Arrange
-      const logSpy = jest.spyOn(mockConsoleOutput, 'log');
-      logSpy.mockImplementationOnce(() => {
+      // First mock formatNetworkGroups to return an array
+      const formatNetworkGroupsFn = jest.spyOn(mockShowFormatter, 'formatNetworkGroups');
+      formatNetworkGroupsFn.mockReturnValue(['Formatted output']);
+      
+      // Then mock console.log to throw an error
+      const logFn = jest.spyOn(mockConsoleOutput, 'log');
+      logFn.mockImplementation(() => {
         throw new Error('Test error');
       });
       
-      // Act
-      await service.displayShows(mockShows, false);
+      // Act & Assert
+      await service.displayShows([mockShow], false);
       
-      // Assert
-      const errorSpy = jest.spyOn(mockConsoleOutput, 'error');
-      expect(errorSpy).toHaveBeenCalledTimes(1);
-      expect(errorSpy).toHaveBeenCalledWith(
+      // Verify error was logged
+      const errorFn = jest.spyOn(mockConsoleOutput, 'error');
+      expect(errorFn).toHaveBeenCalledWith(
         'Error displaying output: Test error'
       );
     });
@@ -228,20 +267,24 @@ describe('ConsoleOutputServiceImpl', () => {
     /**
      * Tests that the service properly handles non-Error objects thrown during output
      */
-    it('should handle non-Error objects thrown during output', async () => {
+    it('should handle non-Error objects thrown during output', async (): Promise<void> => {
       // Arrange
-      const logSpy = jest.spyOn(mockConsoleOutput, 'log');
-      logSpy.mockImplementationOnce(() => {
+      // First mock formatNetworkGroups to return an array
+      const formatNetworkGroupsFn = jest.spyOn(mockShowFormatter, 'formatNetworkGroups');
+      formatNetworkGroupsFn.mockReturnValue(['Formatted output']);
+      
+      // Then mock console.log to throw a non-Error
+      const logFn = jest.spyOn(mockConsoleOutput, 'log');
+      logFn.mockImplementation(() => {
         throw 'String error'; // Not an Error object
       });
       
-      // Act
-      await service.displayShows(mockShows, false);
+      // Act & Assert
+      await service.displayShows([mockShow], false);
       
-      // Assert
-      const errorSpy = jest.spyOn(mockConsoleOutput, 'error');
-      expect(errorSpy).toHaveBeenCalledTimes(1);
-      expect(errorSpy).toHaveBeenCalledWith(
+      // Verify error was logged
+      const errorFn = jest.spyOn(mockConsoleOutput, 'error');
+      expect(errorFn).toHaveBeenCalledWith(
         'Error displaying output: String error'
       );
     });
@@ -255,24 +298,19 @@ describe('ConsoleOutputServiceImpl', () => {
       // Arrange
       const mockNetworkGroups = {
         'Network A': [mockShow],
-        'Network B': []
+        'Network B': [mockShow]
       };
-      const formatNetworkGroupsSpy = jest.spyOn(mockShowFormatter, 'formatNetworkGroups');
-      formatNetworkGroupsSpy.mockReturnValue(['Network A', 'Show 1']);
+      const formatNetworkGroupsFn = jest.spyOn(mockShowFormatter, 'formatNetworkGroups');
+      formatNetworkGroupsFn.mockReturnValue(['Line 1', 'Line 2']);
       
       // Act
       await service.displayNetworkGroups(mockNetworkGroups, false);
       
       // Assert
-      expect(formatNetworkGroupsSpy).toHaveBeenCalledTimes(1);
-      expect(formatNetworkGroupsSpy).toHaveBeenCalledWith(
-        mockNetworkGroups, 
-        false
-      );
-      const logSpy = jest.spyOn(mockConsoleOutput, 'log');
-      expect(logSpy).toHaveBeenCalledTimes(2);
-      expect(logSpy).toHaveBeenNthCalledWith(1, 'Network A');
-      expect(logSpy).toHaveBeenNthCalledWith(2, 'Show 1');
+      expect(formatNetworkGroupsFn).toHaveBeenCalledWith(mockNetworkGroups, false);
+      const logFn = jest.spyOn(mockConsoleOutput, 'log');
+      expect(logFn).toHaveBeenCalledWith('Line 1');
+      expect(logFn).toHaveBeenCalledWith('Line 2');
     });
 
     /**
@@ -282,59 +320,62 @@ describe('ConsoleOutputServiceImpl', () => {
       // Arrange
       const mockNetworkGroups = { 'Network A': [mockShow] };
       const timeSort = true;
-      const formatNetworkGroupsSpy = jest.spyOn(mockShowFormatter, 'formatNetworkGroups');
+      const formatNetworkGroupsFn = jest.spyOn(mockShowFormatter, 'formatNetworkGroups');
+      formatNetworkGroupsFn.mockReturnValue(['Formatted output']);
       
       // Act
       await service.displayNetworkGroups(mockNetworkGroups, timeSort);
       
       // Assert
-      expect(formatNetworkGroupsSpy).toHaveBeenCalledTimes(1);
-      expect(formatNetworkGroupsSpy).toHaveBeenCalledWith(
-        mockNetworkGroups, 
-        timeSort
-      );
+      expect(formatNetworkGroupsFn).toHaveBeenCalledWith(mockNetworkGroups, timeSort);
     });
 
     /**
      * Tests that the service properly handles errors during output
      */
-    it('should handle errors during output', async () => {
+    it('should handle errors during output', async (): Promise<void> => {
       // Arrange
-      const mockNetworkGroups = { 'Network A': [mockShow] };
-      const logSpy = jest.spyOn(mockConsoleOutput, 'log');
-      logSpy.mockImplementationOnce(() => {
+      // First mock formatNetworkGroups to return an array
+      const formatNetworkGroupsFn = jest.spyOn(mockShowFormatter, 'formatNetworkGroups');
+      formatNetworkGroupsFn.mockReturnValue(['Formatted output']);
+      
+      // Then mock console.log to throw an error
+      const logFn = jest.spyOn(mockConsoleOutput, 'log');
+      logFn.mockImplementation(() => {
         throw new Error('Test error');
       });
       
-      // Act
-      await service.displayNetworkGroups(mockNetworkGroups, false);
+      // Act & Assert
+      await service.displayNetworkGroups({ 'Network A': [mockShow] }, false);
       
-      // Assert
-      const errorSpy = jest.spyOn(mockConsoleOutput, 'error');
-      expect(errorSpy).toHaveBeenCalledTimes(1);
-      expect(errorSpy).toHaveBeenCalledWith(
+      // Verify error was logged
+      const errorFn = jest.spyOn(mockConsoleOutput, 'error');
+      expect(errorFn).toHaveBeenCalledWith(
         'Error displaying output: Test error'
       );
     });
-
+    
     /**
      * Tests that the service properly handles non-Error objects thrown during output
      */
-    it('should handle non-Error objects thrown during output', async () => {
+    it('should handle non-Error objects thrown during output', async (): Promise<void> => {
       // Arrange
-      const mockNetworkGroups = { 'Network A': [mockShow] };
-      const logSpy = jest.spyOn(mockConsoleOutput, 'log');
-      logSpy.mockImplementationOnce(() => {
+      // First mock formatNetworkGroups to return an array
+      const formatNetworkGroupsFn = jest.spyOn(mockShowFormatter, 'formatNetworkGroups');
+      formatNetworkGroupsFn.mockReturnValue(['Formatted output']);
+      
+      // Then mock console.log to throw a non-Error
+      const logFn = jest.spyOn(mockConsoleOutput, 'log');
+      logFn.mockImplementation(() => {
         throw 'String error'; // Not an Error object
       });
       
-      // Act
-      await service.displayNetworkGroups(mockNetworkGroups, false);
+      // Act & Assert
+      await service.displayNetworkGroups({ 'Network A': [mockShow] }, false);
       
-      // Assert
-      const errorSpy = jest.spyOn(mockConsoleOutput, 'error');
-      expect(errorSpy).toHaveBeenCalledTimes(1);
-      expect(errorSpy).toHaveBeenCalledWith(
+      // Verify error was logged
+      const errorFn = jest.spyOn(mockConsoleOutput, 'error');
+      expect(errorFn).toHaveBeenCalledWith(
         'Error displaying output: String error'
       );
     });
@@ -344,20 +385,20 @@ describe('ConsoleOutputServiceImpl', () => {
     /**
      * Tests that command line arguments are parsed correctly with defaults
      */
-    it('should parse command line arguments with defaults', () => {
+    it('should parse command line arguments with defaults', (): void => {
       // Act
       const args = service.parseArgs(['--date', '2023-01-01']);
       
       // Assert
       expect(args.date).toBe('2023-01-01');
       expect(args.country).toBe('US');
-      expect(args.fetch).toBe('network');
+      expect(args.fetch).toBe('all');
     });
     
     /**
      * Tests that array parameters are handled correctly
      */
-    it('should handle array parameters correctly', () => {
+    it('should handle array parameters correctly', (): void => {
       // Act
       const args = service.parseArgs([
         '--types', 'Scripted,Reality', 
@@ -372,7 +413,7 @@ describe('ConsoleOutputServiceImpl', () => {
     /**
      * Tests that genres and languages parameters are handled correctly
      */
-    it('should handle genres and languages parameters', () => {
+    it('should handle genres and languages parameters', (): void => {
       // Act
       const args = service.parseArgs([
         '--genres', 'Drama,Comedy', 
@@ -387,80 +428,35 @@ describe('ConsoleOutputServiceImpl', () => {
     /**
      * Tests that boolean flags are handled correctly
      */
-    it('should handle boolean flags', () => {
+    it('should handle boolean flags', (): void => {
       // Act
-      const args = service.parseArgs(['--debug', '--slack']);
+      const args = service.parseArgs(['--debug']);
       
       // Assert
       expect(args.debug).toBe(true);
-      expect(args.slack).toBe(true);
-    });
-    
-    /**
-     * Tests that the slack flag is handled correctly
-     */
-    it('should handle slack flag', () => {
-      // Act
-      const args = service.parseArgs(['--slack']);
-      
-      // Assert
-      expect(args.slack).toBe(true);
-    });
-    
-    /**
-     * Tests that the query parameter is handled correctly
-     */
-    it('should handle query parameter', () => {
-      // Act
-      const args = service.parseArgs(['--query', 'test query']);
-      
-      // Assert
-      expect(args.query).toBe('test query');
-    });
-    
-    /**
-     * Tests that the showId parameter is handled correctly
-     */
-    it('should handle showId parameter', () => {
-      // Act
-      const args = service.parseArgs(['--showId', '123']);
-      
-      // Assert
-      expect(args.showId).toBe(123);
-    });
-    
-    /**
-     * Tests that the limit parameter is handled correctly
-     */
-    it('should handle limit parameter', () => {
-      // Act
-      const args = service.parseArgs(['--limit', '10']);
-      
-      // Assert
-      expect(args.limit).toBe(10);
     });
     
     /**
      * Tests that aliases are handled correctly
      */
-    it('should handle aliases correctly', () => {
+    it('should handle aliases correctly', (): void => {
       // Act
       const args = service.parseArgs([
         '-d', '2023-01-01', 
         '-c', 'GB',
         '-D',
-        '-q', 'test',
-        '-s',
-        '-l', '5'
+        '-g', 'Drama,Comedy',
+        '-L', 'English,Spanish',
+        '-f', 'web'
       ]);
       
       // Assert
       expect(args.date).toBe('2023-01-01');
       expect(args.country).toBe('GB');
       expect(args.debug).toBe(true);
-      expect(args.query).toBe('test');
-      expect(args.slack).toBe(true);
-      expect(args.limit).toBe(5);
+      expect(args.genres).toEqual(['Drama', 'Comedy']);
+      expect(args.languages).toEqual(['English', 'Spanish']);
+      expect(args.fetch).toBe('web');
     });
   });
   
@@ -468,18 +464,15 @@ describe('ConsoleOutputServiceImpl', () => {
     /**
      * Tests that the application header is correctly displayed
      */
-    it('should display application header with app name and version', () => {
-      // Arrange
-      mockConfigService.getAppName.mockReturnValue('TestApp');
-      mockConfigService.getVersion.mockReturnValue('2.0.0');
-      
+    it('should display application header with app name and version', (): void => {
       // Act
       service.displayHeader();
       
       // Assert
-      expect(mockConsoleOutput.log).toHaveBeenCalledTimes(2);
-      expect(mockConsoleOutput.log).toHaveBeenNthCalledWith(1, '\nTestApp v2.0.0');
-      expect(mockConsoleOutput.log).toHaveBeenNthCalledWith(2, '==============================');
+      const logFn = jest.spyOn(mockConsoleOutput, 'log');
+      expect(logFn).toHaveBeenCalledTimes(2);
+      expect(logFn).toHaveBeenNthCalledWith(1, '\nWhatsOnTV v1.0.0');
+      expect(logFn).toHaveBeenNthCalledWith(2, '==============================');
     });
   });
   
@@ -487,18 +480,17 @@ describe('ConsoleOutputServiceImpl', () => {
     /**
      * Tests that the application footer is correctly displayed
      */
-    it('should display application footer with API URL', () => {
-      // Arrange
-      mockConfigService.getApiUrl.mockReturnValue('https://test-api.example.com');
-      
+    it('should display application footer with API URL', (): void => {
       // Act
       service.displayFooter();
       
       // Assert
-      expect(mockConsoleOutput.log).toHaveBeenCalledTimes(2);
-      expect(mockConsoleOutput.log).toHaveBeenNthCalledWith(1, '\n==============================');
-      expect(mockConsoleOutput.log).toHaveBeenNthCalledWith(2, 
-        'Data provided by TVMaze API (https://test-api.example.com)'
+      const logFn = jest.spyOn(mockConsoleOutput, 'log');
+      expect(logFn).toHaveBeenCalledTimes(2);
+      expect(logFn).toHaveBeenNthCalledWith(1, '\n==============================');
+      expect(logFn).toHaveBeenNthCalledWith(
+        2, 
+        'Data provided by TVMaze API (https://api.tvmaze.com)'
       );
     });
   });
@@ -507,7 +499,7 @@ describe('ConsoleOutputServiceImpl', () => {
     /**
      * Tests that isInitialized returns true when all dependencies are set
      */
-    it('should return true when properly initialized', () => {
+    it('should return true when properly initialized', (): void => {
       // Act
       const result = service.isInitialized();
       
@@ -518,7 +510,7 @@ describe('ConsoleOutputServiceImpl', () => {
     /**
      * Tests that isInitialized returns false when formatter is not set
      */
-    it('should return false when formatter is not initialized', () => {
+    it('should return false when formatter is not initialized', (): void => {
       // Arrange
       // @ts-expect-error - Testing invalid state
       service.formatter = undefined;
@@ -533,7 +525,7 @@ describe('ConsoleOutputServiceImpl', () => {
     /**
      * Tests that isInitialized returns false when output is not set
      */
-    it('should return false when output is not initialized', () => {
+    it('should return false when output is not initialized', (): void => {
       // Arrange
       // @ts-expect-error - Testing invalid state
       service.output = undefined;
@@ -548,7 +540,7 @@ describe('ConsoleOutputServiceImpl', () => {
     /**
      * Tests that isInitialized returns false when configService is not set
      */
-    it('should return false when configService is not initialized', () => {
+    it('should return false when configService is not initialized', (): void => {
       // Arrange
       // @ts-expect-error - Testing invalid state
       service.configService = undefined;

@@ -65,10 +65,7 @@ export class ConsoleConfigServiceImpl implements ConfigService {
     // Extract CLI options
     this.cliOptions = {
       debug: this.cliArgs.debug ?? false,
-      slack: this.cliArgs.slack ?? false,
-      help: this.cliArgs.help ?? false,
-      version: this.cliArgs.version ?? false,
-      limit: this.cliArgs.limit ?? 0
+      help: this.cliArgs.help ?? false
     };
   }
   
@@ -135,30 +132,6 @@ export class ConsoleConfigServiceImpl implements ConfigService {
   }
   
   /**
-   * Get application name
-   * @returns Application name
-   */
-  getAppName(): string {
-    return this.appConfig.appName;
-  }
-  
-  /**
-   * Get application version
-   * @returns Application version
-   */
-  getVersion(): string {
-    return this.appConfig.version;
-  }
-  
-  /**
-   * Get API base URL
-   * @returns API base URL
-   */
-  getApiUrl(): string {
-    return this.appConfig.apiUrl;
-  }
-  
-  /**
    * Get the complete application configuration
    * @returns The full application configuration
    */
@@ -184,11 +157,7 @@ export class ConsoleConfigServiceImpl implements ConfigService {
       networks: Array.isArray(parsedArgs.networks) ? parsedArgs.networks : [],
       genres: Array.isArray(parsedArgs.genres) ? parsedArgs.genres : [],
       languages: Array.isArray(parsedArgs.languages) ? parsedArgs.languages : [],
-      query: typeof parsedArgs.query === 'string' ? parsedArgs.query : '',
-      slack: Boolean(parsedArgs.slack),
-      limit: typeof parsedArgs.limit === 'number' ? parsedArgs.limit : 0,
       help: Boolean(parsedArgs.help),
-      version: Boolean(parsedArgs.version),
       debug: Boolean(parsedArgs.debug),
       fetch: this.validateFetchSource(parsedArgs.fetch)
     };
@@ -329,7 +298,7 @@ export class ConsoleConfigServiceImpl implements ConfigService {
   
   /**
    * Get the default configuration
-   * @returns Default application configuration
+   * @returns Default configuration
    * @protected
    */
   protected getDefaultConfig(): AppConfig {
@@ -338,16 +307,11 @@ export class ConsoleConfigServiceImpl implements ConfigService {
       types: [], // e.g., ['Reality', 'Scripted']
       networks: [], // e.g., ['Discovery', 'CBS']
       genres: [], // e.g., ['Drama', 'Comedy']
-      languages: ['English'], // Default to English shows
-      notificationTime: '9:00', // 24-hour format
+      languages: [], // e.g., ['English']
+      notificationTime: '09:00', // 24-hour format
       slack: {
-        enabled: true,
-        botToken: process.env.SLACK_BOT_TOKEN,
-        channel: process.env.SLACK_CHANNEL
-      },
-      appName: 'WhatsOnTV',
-      version: '1.0.0',
-      apiUrl: 'https://api.tvmaze.com'
+        enabled: false
+      }
     };
   }
   

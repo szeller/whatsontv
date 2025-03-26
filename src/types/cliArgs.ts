@@ -24,24 +24,9 @@ export interface CliArgs {
   networks: string[];
   
   /**
-   * Search query for shows
-   */
-  query: string;
-  
-  /**
-   * Whether to output to Slack
-   */
-  slack: boolean;
-  
-  /**
    * Whether to show help information
    */
   help: boolean;
-  
-  /**
-   * Whether to show version information
-   */
-  version: boolean;
   
   /**
    * Whether to enable debug mode
@@ -53,11 +38,6 @@ export interface CliArgs {
    */
   fetch: 'web' | 'network' | 'all';
 
-  /**
-   * Maximum number of shows to display
-   */
-  limit: number;
-  
   /**
    * Genres to filter shows by
    */

@@ -22,9 +22,6 @@ export interface AppConfig {
   languages: string[];
   notificationTime: string;
   slack: SlackConfig;
-  appName: string;
-  version: string;
-  apiUrl: string;
 }
 
 /**
@@ -32,8 +29,5 @@ export interface AppConfig {
  */
 export interface CliOptions {
   debug: boolean;
-  slack: boolean;
   help: boolean;
-  version: boolean;
-  limit: number;
 }

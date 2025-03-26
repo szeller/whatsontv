@@ -25,24 +25,6 @@ export interface ConfigService {
   getCliOptions(): CliOptions;
   
   /**
-   * Get application name
-   * @returns Application name
-   */
-  getAppName(): string;
-  
-  /**
-   * Get application version
-   * @returns Application version
-   */
-  getVersion(): string;
-  
-  /**
-   * Get API base URL
-   * @returns API base URL
-   */
-  getApiUrl(): string;
-  
-  /**
    * Get the complete application configuration
    * @returns The full application configuration
    */

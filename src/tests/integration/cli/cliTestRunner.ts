@@ -103,10 +103,7 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
     },
     {
       debug: args.debug ?? false,
-      slack: args.slack ?? false,
-      help: args.help ?? false,
-      version: args.version ?? false,
-      limit: args.limit ?? 0
+      help: args.help ?? false
     }
   );
   

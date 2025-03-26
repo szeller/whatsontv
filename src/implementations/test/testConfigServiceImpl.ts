@@ -36,10 +36,7 @@ export class TestConfigServiceImpl implements ConfigService {
     // Initialize CLI options with defaults
     this.cliOptions = {
       debug: cliOptions.debug ?? false,
-      slack: cliOptions.slack ?? false,
-      help: cliOptions.help ?? false,
-      version: cliOptions.version ?? false,
-      limit: cliOptions.limit ?? 0
+      help: cliOptions.help ?? false
     };
     
     // Initialize app config with defaults
@@ -49,15 +46,10 @@ export class TestConfigServiceImpl implements ConfigService {
       networks: appConfig.networks ?? [],
       genres: appConfig.genres ?? [],
       languages: appConfig.languages ?? ['English'],
-      notificationTime: appConfig.notificationTime ?? '9:00',
-      slack: {
-        enabled: appConfig.slack?.enabled ?? false,
-        botToken: appConfig.slack?.botToken,
-        channel: appConfig.slack?.channel
-      },
-      appName: appConfig.appName ?? 'WhatsOnTV-Test',
-      version: appConfig.version ?? '1.0.0-test',
-      apiUrl: appConfig.apiUrl ?? 'https://api.tvmaze.com'
+      notificationTime: appConfig.notificationTime ?? '09:00',
+      slack: appConfig.slack ?? {
+        enabled: false
+      }
     };
   }
   
@@ -84,30 +76,6 @@ export class TestConfigServiceImpl implements ConfigService {
    */
   getCliOptions(): CliOptions {
     return { ...this.cliOptions };
-  }
-  
-  /**
-   * Get application name
-   * @returns Application name
-   */
-  getAppName(): string {
-    return this.appConfig.appName;
-  }
-  
-  /**
-   * Get application version
-   * @returns Application version
-   */
-  getVersion(): string {
-    return this.appConfig.version;
-  }
-  
-  /**
-   * Get API base URL
-   * @returns API base URL
-   */
-  getApiUrl(): string {
-    return this.appConfig.apiUrl;
   }
   
   /**

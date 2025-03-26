@@ -6,7 +6,7 @@ import { getStringOrDefault } from './stringUtils.js';
 /**
  * Base URL for TVMaze API
  */
-export const TV_MAZE_BASE_URL = 'https://api.tvmaze.com';
+const TV_MAZE_BASE_URL = 'https://api.tvmaze.com';
 
 /**
  * Generate URL for network schedule endpoint

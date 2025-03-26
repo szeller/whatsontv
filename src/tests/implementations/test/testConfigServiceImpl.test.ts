@@ -11,8 +11,6 @@ describe('TestConfigServiceImpl', () => {
     const configService = new TestConfigServiceImpl();
     
     // Assert
-    expect(configService.getAppName()).toBe('WhatsOnTV-Test');
-    expect(configService.getVersion()).toBe('1.0.0-test');
     expect(configService.getShowOptions().country).toBe('US');
     expect(configService.getShowOptions().date).toBe('2025-03-25');
   });
@@ -43,10 +41,7 @@ describe('TestConfigServiceImpl', () => {
     // Arrange
     const cliOptions = {
       debug: true,
-      slack: true,
-      help: false,
-      version: false,
-      limit: 10
+      help: false
     };
     
     // Act
@@ -59,9 +54,6 @@ describe('TestConfigServiceImpl', () => {
   it('should use provided app config', () => {
     // Arrange
     const appConfig = {
-      appName: 'CustomTestApp',
-      version: '2.0.0-test',
-      apiUrl: 'https://test-api.example.com',
       slack: {
         enabled: true,
         botToken: 'test-token',
@@ -73,9 +65,6 @@ describe('TestConfigServiceImpl', () => {
     const configService = new TestConfigServiceImpl({}, {}, appConfig);
     
     // Assert
-    expect(configService.getAppName()).toBe('CustomTestApp');
-    expect(configService.getVersion()).toBe('2.0.0-test');
-    expect(configService.getApiUrl()).toBe('https://test-api.example.com');
     expect(configService.getConfig().slack.botToken).toBe('test-token');
   });
 
@@ -101,14 +90,11 @@ describe('TestConfigServiceImpl', () => {
     
     // Act
     configService.setCliOptions({
-      debug: true,
-      limit: 20
+      debug: true
     });
     
     // Assert
     expect(configService.getCliOptions().debug).toBe(true);
-    expect(configService.getCliOptions().limit).toBe(20);
-    expect(configService.getCliOptions().slack).toBe(false); // Unchanged
   });
 
   it('should allow updating app config', () => {
@@ -117,7 +103,6 @@ describe('TestConfigServiceImpl', () => {
     
     // Act
     configService.setAppConfig({
-      appName: 'UpdatedApp',
       slack: {
         enabled: false,
         channel: 'updated-channel'
@@ -125,7 +110,6 @@ describe('TestConfigServiceImpl', () => {
     });
     
     // Assert
-    expect(configService.getAppName()).toBe('UpdatedApp');
     expect(configService.getConfig().slack.channel).toBe('updated-channel');
     expect(configService.getConfig().slack.enabled).toBe(false); // Unchanged default
   });

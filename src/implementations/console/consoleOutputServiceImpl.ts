@@ -22,14 +22,9 @@ export interface ConsoleCliArgs extends Arguments {
   networks: string[];
   genres: string[];
   languages: string[];
-  query: string;
-  slack: boolean;
-  showId: number;
-  limit: number;
-  help: boolean;
-  version: boolean;
   debug: boolean;
   fetch: 'network' | 'web' | 'all';
+  help: boolean;
 }
 
 /**
@@ -250,37 +245,18 @@ export class ConsoleOutputServiceImpl implements OutputService {
           coerce: (arg: string) => arg.split(',')
         },
         genres: {
-          describe: 'Genres to include (e.g., Drama,Comedy)',
+          alias: 'g',
+          describe: 'Filter by genres (comma-separated)',
           type: 'string',
+          default: '',
           coerce: (arg: string) => arg.split(',')
         },
         languages: {
-          describe: 'Languages to include (e.g., English,Spanish)',
+          alias: 'L',
+          describe: 'Filter by languages (comma-separated)',
           type: 'string',
+          default: '',
           coerce: (arg: string) => arg.split(',')
-        },
-        query: {
-          alias: 'q',
-          describe: 'Search query for shows',
-          type: 'string',
-          default: ''
-        },
-        slack: {
-          alias: 's',
-          describe: 'Output to Slack',
-          type: 'boolean',
-          default: false
-        },
-        showId: {
-          describe: 'Show ID to get episodes for',
-          type: 'number',
-          default: 0
-        },
-        limit: {
-          alias: 'l',
-          describe: 'Maximum number of shows to display',
-          type: 'number',
-          default: 0
         },
         debug: {
           alias: 'D',
@@ -300,18 +276,10 @@ export class ConsoleOutputServiceImpl implements OutputService {
           describe: 'Show help',
           type: 'boolean',
           default: false
-        },
-        version: {
-          alias: 'v',
-          describe: 'Show version',
-          type: 'boolean',
-          default: false
         }
       })
       .help()
       .alias('help', 'h')
-      .version()
-      .alias('version', 'v')
       .parseSync() as ConsoleCliArgs;
   }
 
@@ -319,7 +287,7 @@ export class ConsoleOutputServiceImpl implements OutputService {
    * Display application header
    */
   public displayHeader(): void {
-    this.output.log(`\n${this.configService.getAppName()} v${this.configService.getVersion()}`);
+    this.output.log('\nWhatsOnTV v1.0.0');
     this.output.log('='.repeat(30));
   }
 
@@ -328,6 +296,6 @@ export class ConsoleOutputServiceImpl implements OutputService {
    */
   public displayFooter(): void {
     this.output.log('\n' + '='.repeat(30));
-    this.output.log(`Data provided by TVMaze API (${this.configService.getApiUrl()})`);
+    this.output.log('Data provided by TVMaze API (https://api.tvmaze.com)');
   }
 }
