@@ -145,7 +145,12 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
   } finally {
     // Restore original services
     container.register('ConsoleOutput', { useValue: originalConsoleOutput });
-    container.register('ConfigService', { useValue: container.resolve<ConfigService>('ConfigService') });
+    container.register(
+      'ConfigService', 
+      { 
+        useValue: container.resolve<ConfigService>('ConfigService') 
+      }
+    );
   }
 
   return {

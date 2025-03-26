@@ -209,6 +209,62 @@ describe('ConsoleConfigServiceImpl', () => {
     expect(showOptions.networks).toEqual(cliArgs.networks);
   });
 
+  it('should correctly use filter arrays from config file when no CLI arguments provided', () => {
+    // Arrange
+    const mockConfig = {
+      country: 'CA',
+      types: ['comedy', 'drama'],
+      networks: ['CBC', 'Netflix'],
+      genres: ['action', 'thriller']
+    };
+    
+    // Act
+    const configService = new TestConsoleConfigService({
+      fileExists: true,
+      fileContents: JSON.stringify(mockConfig)
+    });
+    
+    // Assert
+    const showOptions = configService.getShowOptions();
+    expect(showOptions.country).toBe(mockConfig.country);
+    expect(showOptions.types).toEqual(mockConfig.types);
+    expect(showOptions.networks).toEqual(mockConfig.networks);
+    expect(showOptions.genres).toEqual(mockConfig.genres);
+  });
+
+  it('should correctly merge empty CLI filter arrays with config file arrays', () => {
+    // Arrange
+    const cliArgs: Partial<CliArgs> = {
+      country: 'UK',
+      // Empty arrays should not override config values
+      types: [],
+      networks: [],
+      genres: []
+    };
+    
+    const mockConfig = {
+      country: 'CA',
+      types: ['comedy', 'drama'],
+      networks: ['CBC', 'Netflix'],
+      genres: ['action', 'thriller']
+    };
+    
+    // Act
+    const configService = new TestConsoleConfigService({
+      cliArgs,
+      fileExists: true,
+      fileContents: JSON.stringify(mockConfig)
+    });
+    
+    // Assert
+    const showOptions = configService.getShowOptions();
+    expect(showOptions.country).toBe(cliArgs.country); // Country should be overridden
+    // Filter arrays should use config values when CLI arrays are empty
+    expect(showOptions.types).toEqual(mockConfig.types);
+    expect(showOptions.networks).toEqual(mockConfig.networks);
+    expect(showOptions.genres).toEqual(mockConfig.genres);
+  });
+
   it('should handle empty CLI arguments', () => {
     // Arrange
     const mockConfig = {

@@ -46,10 +46,19 @@ export class ConsoleConfigServiceImpl implements ConfigService {
     this.showOptions = {
       date: this.cliArgs.date ?? getTodayDate(),
       country: this.cliArgs.country ?? this.appConfig.country,
-      types: this.cliArgs.types ?? this.appConfig.types,
-      networks: this.cliArgs.networks ?? this.appConfig.networks,
-      genres: this.cliArgs.genres ?? this.appConfig.genres,
-      languages: this.cliArgs.languages ?? this.appConfig.languages,
+      // Use arrays from config file, ensuring they're always arrays
+      types: Array.isArray(this.cliArgs.types) && this.cliArgs.types.length > 0 
+        ? this.cliArgs.types 
+        : [...(Array.isArray(this.appConfig.types) ? this.appConfig.types : [])],
+      networks: Array.isArray(this.cliArgs.networks) && this.cliArgs.networks.length > 0 
+        ? this.cliArgs.networks 
+        : [...(Array.isArray(this.appConfig.networks) ? this.appConfig.networks : [])],
+      genres: Array.isArray(this.cliArgs.genres) && this.cliArgs.genres.length > 0 
+        ? this.cliArgs.genres 
+        : [...(Array.isArray(this.appConfig.genres) ? this.appConfig.genres : [])],
+      languages: Array.isArray(this.cliArgs.languages) && this.cliArgs.languages.length > 0 
+        ? this.cliArgs.languages 
+        : [...(Array.isArray(this.appConfig.languages) ? this.appConfig.languages : [])],
       webOnly: this.cliArgs.webOnly ?? false,
       showAll: this.cliArgs.showAll ?? false
     };
@@ -66,11 +75,49 @@ export class ConsoleConfigServiceImpl implements ConfigService {
   }
   
   /**
-   * Get the complete show options configuration
-   * @returns Configuration options for fetching and displaying shows
+   * Get the show options from the configuration
+   * @returns ShowOptions object with all show filters and options
    */
   getShowOptions(): ShowOptions {
-    return { ...this.showOptions };
+    // Get the base show options from the config
+    const configOptions = { ...this.showOptions };
+    
+    // Get command line arguments
+    const args = this.parseArgs();
+    
+    // Create a merged options object
+    const mergedOptions: ShowOptions = {
+      ...configOptions,
+      // Override with command line arguments if provided
+      date: args.date || configOptions.date,
+      country: args.country || configOptions.country,
+      showAll: args.showAll || configOptions.showAll,
+      webOnly: args.webOnly || configOptions.webOnly,
+      // Use the filter arrays from the config file
+      types: [...(configOptions.types || [])],
+      genres: [...(configOptions.genres || [])],
+      networks: [...(configOptions.networks || [])],
+      languages: [...(configOptions.languages || [])]
+    };
+    
+    // Override with command line arguments if provided
+    if (Array.isArray(args.types) && args.types.length > 0) {
+      mergedOptions.types = args.types;
+    }
+    
+    if (Array.isArray(args.genres) && args.genres.length > 0) {
+      mergedOptions.genres = args.genres;
+    }
+    
+    if (Array.isArray(args.networks) && args.networks.length > 0) {
+      mergedOptions.networks = args.networks;
+    }
+    
+    if (Array.isArray(args.languages) && args.languages.length > 0) {
+      mergedOptions.languages = args.languages;
+    }
+    
+    return mergedOptions;
   }
   
   /**
@@ -263,7 +310,7 @@ export class ConsoleConfigServiceImpl implements ConfigService {
     }
     
     // Merge default and user config
-    return {
+    const mergedConfig = {
       ...defaultConfig,
       ...userConfig,
       // Ensure slack config is properly merged
@@ -272,6 +319,8 @@ export class ConsoleConfigServiceImpl implements ConfigService {
         ...(userConfig.slack || {})
       }
     };
+    
+    return mergedConfig;
   }
   
   /**
@@ -376,7 +425,7 @@ export class ConsoleConfigServiceImpl implements ConfigService {
    */
   protected handleConfigError(error: unknown): void {
     if (error instanceof Error) {
-      console.warn(`Warning: Could not load config.json: ${error.message}`);
+      console.error(`Warning: Could not load config.json: ${error.message}`);
     }
   }
 }
