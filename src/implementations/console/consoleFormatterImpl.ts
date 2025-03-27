@@ -5,6 +5,7 @@ import type { ShowFormatter } from '../../interfaces/showFormatter.js';
 import type { StyleService } from '../../interfaces/styleService.js';
 import type { TvShowService } from '../../interfaces/tvShowService.js';
 import type { Show } from '../../types/tvShowModel.js';
+import { compareEpisodes, sortShowsByTime } from '../../utils/showUtils.js';
 
 /**
  * Console implementation of the ShowFormatter interface
@@ -188,7 +189,7 @@ export class ConsoleFormatterImpl implements ShowFormatter {
     // Process each network
     for (const network of networks) {
       // Get shows for this network
-      const shows = networkGroups[network];
+      let shows = networkGroups[network];
       
       // Skip empty networks
       if (shows.length === 0) {
@@ -216,58 +217,22 @@ export class ConsoleFormatterImpl implements ShowFormatter {
       
       // Sort shows by time if requested
       if (groupByNetwork && timeSort) {
-        shows.sort((a, b) => {
-          // Handle shows without airtime
-          if (a.airtime === undefined || a.airtime === null || a.airtime === '') {
-            return 1;
-          }
-          if (b.airtime === undefined || b.airtime === null || b.airtime === '') {
-            return -1;
-          }
-          
-          // Convert airtime strings to minutes since midnight for proper comparison
-          const getTimeInMinutes = (timeStr: string): number => {
-            // Normalize the time format
-            let hours = 0;
-            let minutes = 0;
-            
-            // Handle various time formats
-            if (timeStr.includes(':')) {
-              // Format: "HH:MM" or "H:MM" with optional AM/PM
-              const timeParts = timeStr.split(':');
-              hours = parseInt(timeParts[0], 10);
-              
-              // Extract minutes, removing any AM/PM suffix
-              const minutesPart = timeParts[1].replace(/\s*[APap][Mm].*$/, '');
-              minutes = parseInt(minutesPart, 10);
-              
-              // Handle AM/PM if present
-              const isPM = /\s*[Pp][Mm]/.test(timeStr);
-              const isAM = /\s*[Aa][Mm]/.test(timeStr);
-              
-              if (isPM && hours < 12) {
-                hours += 12;
-              } else if (isAM && hours === 12) {
-                hours = 0;
-              }
-            } else {
-              // Format without colon, assume it's just hours
-              hours = parseInt(timeStr, 10);
-            }
-            
-            return hours * 60 + minutes;
-          };
-          
-          const aMinutes = getTimeInMinutes(a.airtime);
-          const bMinutes = getTimeInMinutes(b.airtime);
-          
-          return aMinutes - bMinutes;
-        });
+        // Use the improved sortShowsByTime function from showUtils
+        shows = sortShowsByTime(shows);
       }
       
-      // Format each show or show group
-      for (const showId of Object.keys(showGroups)) {
+      // Process each show group in the order of the sorted shows
+      const processedShowIds = new Set<string>();
+      
+      // First process shows in the sorted order
+      for (const show of shows) {
+        const showId = show.id.toString();
+        if (processedShowIds.has(showId)) {
+          continue;
+        }
+        
         const showGroup = showGroups[showId];
+        processedShowIds.add(showId);
         
         // Format based on number of episodes
         if (showGroup.length === 1) {
@@ -277,10 +242,14 @@ export class ConsoleFormatterImpl implements ShowFormatter {
           return show.airtime === undefined || show.airtime === null || show.airtime === '';
         })) {
           // Multiple episodes without airtime
-          output.push(...this.formatMultipleEpisodes(showGroup));
+          // Sort episodes by season and episode number
+          const sortedEpisodes = [...showGroup].sort(compareEpisodes);
+          output.push(...this.formatMultipleEpisodes(sortedEpisodes));
         } else {
           // Multiple episodes with different airtimes
-          for (const show of showGroup) {
+          // Sort by airtime, then by episode number
+          const sortedEpisodes = sortShowsByTime(showGroup);
+          for (const show of sortedEpisodes) {
             output.push(this.formatShow(show));
           }
         }

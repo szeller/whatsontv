@@ -4,13 +4,12 @@
  */
 
 import type { Show } from '../types/tvShowModel.js';
+import { convertTimeToMinutes } from './dateUtils.js';
 
 /**
  * Type for grouping shows by network
  */
-export interface NetworkGroups {
-  [network: string]: Show[];
-}
+export type NetworkGroups = Record<string, Show[]>;
 
 /**
  * Group shows by their network
@@ -35,6 +34,21 @@ export function groupShowsByNetwork(shows: Show[]): NetworkGroups {
 }
 
 /**
+ * Sort episodes by season and episode number
+ * @param a - First episode
+ * @param b - Second episode
+ * @returns Comparison result (-1, 0, or 1)
+ */
+export function compareEpisodes(a: Show, b: Show): number {
+  // Sort by season first
+  if (a.season !== b.season) {
+    return a.season - b.season;
+  }
+  // Then by episode number
+  return a.number - b.number;
+}
+
+/**
  * Sort shows by their airtime
  * @param shows - Array of shows to sort
  * @returns Sorted array of shows
@@ -47,18 +61,32 @@ export function sortShowsByTime(shows: Show[]): Show[] {
     
     // If both shows have airtimes, sort by time
     if (aTime !== '' && bTime !== '') {
-      // If airtimes are the same, sort by name
-      if (aTime === bTime) {
-        return a.name.localeCompare(b.name);
+      // Convert times to minutes for comparison
+      const aMinutes = convertTimeToMinutes(aTime);
+      const bMinutes = convertTimeToMinutes(bTime);
+      
+      // If times are different, sort by time
+      if (aMinutes !== bMinutes) {
+        return aMinutes - bMinutes;
       }
-      return aTime.localeCompare(bTime);
+      
+      // If times are the same, sort by name, then by episode
+      if (a.name === b.name) {
+        // Use the episode comparison function
+        return compareEpisodes(a, b);
+      }
+      return a.name.localeCompare(b.name);
     }
     
     // If only one show has an airtime, prioritize it
     if (aTime !== '' && bTime === '') return -1;
     if (aTime === '' && bTime !== '') return 1;
     
-    // If neither show has an airtime, sort by name
+    // If neither show has an airtime, sort by name, then by episode
+    if (a.name === b.name) {
+      // Use the episode comparison function
+      return compareEpisodes(a, b);
+    }
     return a.name.localeCompare(b.name);
   });
 }

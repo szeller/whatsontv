@@ -140,6 +140,63 @@ describe('ShowUtils', () => {
       expect(result[1].name).toBe('Show B');
       expect(result[2].name).toBe('Show C');
     });
+
+    it('sorts episodes of the same show by season and episode number', () => {
+      // Create test data with same show but different episodes
+      const shows: Show[] = [
+        createTestShowWithEpisode('Same Show', '20:00', 2, 3),
+        createTestShowWithEpisode('Same Show', '20:00', 1, 5),
+        createTestShowWithEpisode('Same Show', '20:00', 2, 1)
+      ];
+      
+      // Call the function
+      const result = sortShowsByTime(shows);
+      
+      // Assert the result - same show and time, so should be sorted by season and episode
+      expect(result[0].season).toBe(1); // Season 1 comes first
+      expect(result[0].number).toBe(5);
+      expect(result[1].season).toBe(2); // Then Season 2
+      expect(result[1].number).toBe(1); // Episode 1 before Episode 3
+      expect(result[2].season).toBe(2);
+      expect(result[2].number).toBe(3);
+    });
+
+    it('sorts episodes without airtime by season and episode number', () => {
+      // Create test data with same show but different episodes and no airtime
+      const shows: Show[] = [
+        createTestShowWithEpisode('Same Show', null, 3, 1),
+        createTestShowWithEpisode('Same Show', null, 1, 2),
+        createTestShowWithEpisode('Same Show', null, 2, 5)
+      ];
+      
+      // Call the function
+      const result = sortShowsByTime(shows);
+      
+      // Assert the result - no airtime, so should be sorted by season and episode
+      expect(result[0].season).toBe(1);
+      expect(result[0].number).toBe(2);
+      expect(result[1].season).toBe(2);
+      expect(result[1].number).toBe(5);
+      expect(result[2].season).toBe(3);
+      expect(result[2].number).toBe(1);
+    });
+
+    it('prioritizes shows with airtime over shows without airtime', () => {
+      // Create test data with mix of shows with and without airtime
+      const shows: Show[] = [
+        createTestShowWithEpisode('Show A', null, 1, 1),
+        createTestShowWithEpisode('Show B', '22:00', 1, 1),
+        createTestShowWithEpisode('Show C', '20:00', 1, 1)
+      ];
+      
+      // Call the function
+      const result = sortShowsByTime(shows);
+      
+      // Shows with airtime should come first, sorted by time
+      expect(result[0].name).toBe('Show C'); // 20:00
+      expect(result[1].name).toBe('Show B'); // 22:00
+      expect(result[2].name).toBe('Show A'); // null airtime
+    });
   });
   
   describe('formatTime', () => {
@@ -382,5 +439,25 @@ function createTestShowWithLanguage(name: string, language: string): Show {
     airtime: null,
     season: 1,
     number: 1
+  };
+}
+
+function createTestShowWithEpisode(
+  name: string, 
+  airtime: string | null, 
+  season: number, 
+  number: number
+): Show {
+  return {
+    id: Math.floor(Math.random() * 1000),
+    name,
+    type: 'Drama',
+    language: 'English',
+    genres: [],
+    network: 'NBC',
+    summary: null,
+    airtime,
+    season,
+    number
   };
 }
