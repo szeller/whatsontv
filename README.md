@@ -2,7 +2,7 @@
 
 [![CI Status](https://github.com/szeller/whatsontv/actions/workflows/ci.yml/badge.svg)](https://github.com/szeller/whatsontv/actions)
 [![Dependabot Status](https://img.shields.io/badge/Dependabot-enabled-brightgreen.svg)](https://github.com/szeller/whatsontv/blob/main/.github/dependabot.yml)
-[![Coverage Status](https://img.shields.io/badge/Coverage-91%25-brightgreen.svg)](https://github.com/szeller/whatsontv/actions)
+[![Coverage Status](https://img.shields.io/badge/Coverage-85%25-green.svg)](https://github.com/szeller/whatsontv/actions)
 
 ## Overview
 A TypeScript application that fetches TV shows for the current day and sends notifications to a specified Slack channel using the TVMaze API. It supports filtering shows by type, network, genre, and language. It can be used both as a CLI tool and a Slack notification service.
