@@ -470,9 +470,10 @@ describe('ConsoleOutputServiceImpl', () => {
       
       // Assert
       const logFn = jest.spyOn(mockConsoleOutput, 'log');
-      expect(logFn).toHaveBeenCalledTimes(2);
-      expect(logFn).toHaveBeenNthCalledWith(1, '\nWhatsOnTV v1.0.0');
-      expect(logFn).toHaveBeenNthCalledWith(2, '==============================');
+      expect(logFn).toHaveBeenCalledTimes(3);
+      expect(logFn).toHaveBeenNthCalledWith(1, '');
+      expect(logFn).toHaveBeenNthCalledWith(2, 'WhatsOnTV v1.0.0');
+      expect(logFn).toHaveBeenNthCalledWith(3, '==============================');
     });
   });
   
@@ -486,10 +487,11 @@ describe('ConsoleOutputServiceImpl', () => {
       
       // Assert
       const logFn = jest.spyOn(mockConsoleOutput, 'log');
-      expect(logFn).toHaveBeenCalledTimes(2);
-      expect(logFn).toHaveBeenNthCalledWith(1, '\n==============================');
+      expect(logFn).toHaveBeenCalledTimes(3);
+      expect(logFn).toHaveBeenNthCalledWith(1, '');
+      expect(logFn).toHaveBeenNthCalledWith(2, '==============================');
       expect(logFn).toHaveBeenNthCalledWith(
-        2, 
+        3, 
         'Data provided by TVMaze API (https://api.tvmaze.com)'
       );
     });

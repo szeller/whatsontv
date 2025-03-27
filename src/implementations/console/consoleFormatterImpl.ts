@@ -190,9 +190,16 @@ export class ConsoleFormatterImpl implements ShowFormatter {
       
       // Add network header if grouping by network
       if (groupByNetwork) {
-        output.push(this.styleService.boldCyan(`\n${network}:`));
+        // Add extra line before each network (except the first one)
+        if (output.length > 0) {
+          output.push('');
+        }
         
-        // Add separator line
+        // Create a more prominent header with network name
+        const networkHeader = `${network}:`;
+        output.push(this.styleService.boldCyan(networkHeader));
+        
+        // Add a more visible separator line
         const separatorLine = '-'.repeat(network.length + 1);
         output.push(this.styleService.dim(separatorLine));
       }

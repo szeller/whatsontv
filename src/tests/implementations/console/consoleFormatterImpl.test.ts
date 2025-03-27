@@ -165,13 +165,17 @@ describe('ConsoleFormatterImpl', () => {
       const result = formatter.formatNetworkGroups(networkGroups);
       
       // Networks are sorted alphabetically, so "Another Network" comes first
-      expect(result).toHaveLength(6); // 2 networks with a header, separator, and show line each
+      // This test case checks the length of the result array
+      expect(result).toHaveLength(7); 
+      
+      // This test case checks the contents of the result array
       expect(result[0]).toContain('Another Network');
       expect(result[1]).toContain('---------------'); // Separator line
       expect(result[2]).toContain('Test Show');
-      expect(result[3]).toContain('Test Network');
-      expect(result[4]).toContain('------------'); // Separator line
-      expect(result[5]).toContain('Test Show');
+      expect(result[3]).toBe(''); // Empty line between networks
+      expect(result[4]).toContain('Test Network');
+      expect(result[5]).toContain('------------'); // Separator line
+      expect(result[6]).toContain('Test Show');
     });
     
     it('should apply custom sorting when timeSort is true', () => {
