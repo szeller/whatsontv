@@ -29,4 +29,10 @@ export interface ConfigService {
    * @returns The full application configuration
    */
   getConfig(): AppConfig;
+  
+  /**
+   * Get help text for the application
+   * @returns The help text to display to users
+   */
+  getHelpText?(): string;
 }

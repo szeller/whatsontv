@@ -26,4 +26,10 @@ export interface OutputService {
    * Display application footer
    */
   displayFooter(): void;
+  
+  /**
+   * Display help information to the user
+   * @param helpText The help text to display
+   */
+  displayHelp?(helpText: string): void;
 }
