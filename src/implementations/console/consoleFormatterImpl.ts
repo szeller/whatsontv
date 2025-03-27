@@ -25,7 +25,7 @@ export class ConsoleFormatterImpl implements ShowFormatter {
     network: 15,
     type: 10,
     showName: 25,
-    episodeInfo: 10
+    episodeInfo: 20
   };
   
   /**
@@ -147,26 +147,18 @@ export class ConsoleFormatterImpl implements ShowFormatter {
     const showNameStr: string = this.styleService.green(
       showName.padEnd(this.PAD_LENGTHS.showName)
     );
-    const multipleStr: string = this.styleService.yellow(
-      this.MULTIPLE_EPISODES.padEnd(this.PAD_LENGTHS.episodeInfo)
+    
+    // Create comma-separated list of episodes
+    const episodeList = episodes.map(episode => `S${episode.season}E${episode.number}`).join(', ');
+    const episodeInfoStr: string = this.styleService.yellow(
+      episodeList.padEnd(this.PAD_LENGTHS.episodeInfo)
     );
     
-    // Create header line
-    const headerLine = `${timeStr} ${networkStr} ${typeStr} ${showNameStr} ${multipleStr}`;
+    // Create a single line with all episodes
+    const formattedLine = `${timeStr} ${networkStr} ${typeStr} ${showNameStr} ${episodeInfoStr}`;
     
-    // Format individual episodes
-    const episodeLines = episodes.map(episode => {
-      const episodeInfo = `S${episode.season}E${episode.number}`;
-      const episodeInfoStr: string = this.styleService.yellow(
-        episodeInfo.padEnd(this.PAD_LENGTHS.episodeInfo)
-      );
-      
-      // Indent episode lines for better readability
-      return `    ${episodeInfoStr}`;
-    });
-    
-    // Return as array of strings
-    return [headerLine, ...episodeLines];
+    // Return as array with a single string
+    return [formattedLine];
   }
 
   /**

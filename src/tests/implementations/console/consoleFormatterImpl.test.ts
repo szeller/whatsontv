@@ -126,19 +126,18 @@ describe('ConsoleFormatterImpl', () => {
       
       const result = formatter.formatMultipleEpisodes(episodes);
       
-      // Should have 3 lines: header + 2 episodes
-      expect(result.length).toBe(3);
+      // Should have 1 line with comma-separated episodes
+      expect(result.length).toBe(1);
       
-      // Header should contain show info
+      // Line should contain show info and all episodes
       expect(result[0]).toContain('N/A');
       expect(result[0]).toContain('Test Network');
       expect(result[0]).toContain('Scripted');
       expect(result[0]).toContain('Test Show');
-      expect(result[0]).toContain('Multiple');
+      expect(result[0]).toContain('S1E1, S1E2');
       
-      // Episode lines should contain episode info
-      expect(result[1]).toContain('S1E1');
-      expect(result[2]).toContain('S1E2');
+      // Should not contain the "Multiple Episodes" label
+      expect(result[0]).not.toContain('Multiple Episodes');
     });
 
     it('should return empty array for empty array', () => {
