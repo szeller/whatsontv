@@ -16,7 +16,7 @@ import { TvMazeServiceImpl } from '../../implementations/tvMazeServiceImpl.js';
 import { MockHttpClient } from '../utils/mockHttpClient.js';
 import { groupShowsByNetwork } from '../../utils/showUtils.js';
 import { transformSchedule } from '../../types/tvmazeModel.js';
-import { TvMazeFixtures } from '../fixtures/tvmaze/tvMazeFixtures.js';
+import { TvMazeFixtures } from '../fixtures/index.js';
 import { getNetworkScheduleUrl, getWebScheduleUrl } from '../../utils/tvMazeUtils.js';
 
 // Load fixture data

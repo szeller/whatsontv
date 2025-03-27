@@ -14,7 +14,7 @@ import {
   getWebScheduleUrl, 
   setupTvMazeMocks 
 } from '../../utils/tvMazeTestUtils.js';
-import { TvMazeFixtures } from '../../fixtures/tvmaze/tvMazeFixtures.js';
+import { TvMazeFixtures } from '../../fixtures/index.js';
 import { PlainStyleServiceImpl } from '../../../implementations/test/plainStyleServiceImpl.js';
 import type { StyleService } from '../../../interfaces/styleService.js';
 import { describe, expect, test, beforeEach, afterEach, jest } from '@jest/globals';

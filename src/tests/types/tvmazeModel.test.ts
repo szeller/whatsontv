@@ -10,7 +10,7 @@ import {
   webScheduleItemSchema,
   showSchema
 } from '../../types/tvmazeModel.js';
-import { TvMazeFixtures } from '../fixtures/tvmaze/tvMazeFixtures.js';
+import { TvMazeFixtures } from '../fixtures/index.js';
 
 describe('TVMaze Domain Model', () => {
   // Load test fixtures using the utility class

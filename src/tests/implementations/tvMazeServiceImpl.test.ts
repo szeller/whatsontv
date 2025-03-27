@@ -7,7 +7,7 @@ import { container } from 'tsyringe';
 import { TvMazeServiceImpl } from '../../implementations/tvMazeServiceImpl.js';
 import type { HttpClient } from '../../interfaces/httpClient.js';
 import type { Show } from '../../types/tvShowModel.js';
-import { TvMazeFixtures } from '../fixtures/tvmaze/tvMazeFixtures.js';
+import { TvMazeFixtures } from '../fixtures/index.js';
 import { getNetworkScheduleUrl, getWebScheduleUrl } from '../../utils/tvMazeUtils.js';
 import { MockHttpClient } from '../utils/mockHttpClient.js';
 import { getTodayDate } from '../../utils/dateUtils.js';

@@ -4,7 +4,7 @@
  * Provides helper functions for testing with the TVMaze API
  */
 import type { HttpResponse } from '../../interfaces/httpClient.js';
-import { TvMazeFixtures } from '../fixtures/tvmaze/tvMazeFixtures.js';
+import { TvMazeFixtures } from '../fixtures/index.js';
 
 /**
  * Interface for network schedule item
