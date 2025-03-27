@@ -70,14 +70,14 @@ export function sortShowsByTime(shows: Show[]): Show[] {
  */
 export function formatTime(time: string | null): string {
   if (time === null || time === '') {
-    return 'TBA';
+    return 'N/A';
   }
   
   // Parse hours and minutes
   const [hoursStr, minutesStr] = time.split(':');
   
   if (hoursStr === undefined || minutesStr === undefined) {
-    return 'TBA';
+    return 'N/A';
   }
   
   const hours = parseInt(hoursStr, 10);

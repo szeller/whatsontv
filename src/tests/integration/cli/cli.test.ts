@@ -408,8 +408,8 @@ describe('CLI Integration Tests', () => {
       
       // Check for time-sorted format (shows should have time prefixes)
       const hasTimeFormat = result.stdout.some(line => {
-        // Look for time format like "20:00" or "TBA" at the beginning of a line
-        const timePattern = /^(\d+:\d+|TBA)\s+/;
+        // Look for time format like "20:00" or "N/A" at the beginning of a line
+        const timePattern = /^(\d+:\d+|N\/A)\s+/;
         return timePattern.test(line);
       });
       

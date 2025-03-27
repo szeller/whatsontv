@@ -151,10 +151,10 @@ describe('ShowUtils', () => {
       expect(formatTime('23:59')).toBe('11:59 PM');
     });
     
-    it('handles null or invalid time strings', () => {
-      expect(formatTime(null)).toBe('TBA');
-      expect(formatTime('')).toBe('TBA');
-      expect(formatTime('invalid')).toBe('TBA');
+    it('should handle invalid time strings', () => {
+      expect(formatTime(null)).toBe('N/A');
+      expect(formatTime('')).toBe('N/A');
+      expect(formatTime('invalid')).toBe('N/A');
     });
   });
   

@@ -15,7 +15,7 @@ export class ConsoleFormatterImpl implements ShowFormatter {
   // Constants for formatting
   private readonly UNKNOWN_SHOW = 'Unknown Show';
   private readonly UNKNOWN_TYPE = 'Unknown';
-  private readonly NO_AIRTIME = 'TBA';
+  private readonly NO_AIRTIME = 'N/A';
   private readonly MULTIPLE_EPISODES = 'Multiple Episodes';
   
   // Padding lengths for consistent column widths

@@ -101,7 +101,7 @@ describe('ConsoleFormatterImpl', () => {
   describe('formatUntimedShow', () => {
     it('should format a show without airtime correctly', () => {
       const result = formatter.formatUntimedShow(mockShowNoAirtime);
-      expect(result).toContain('TBA');
+      expect(result).toContain('N/A');
       expect(result).toContain('Test Network');
       expect(result).toContain('Scripted');
       expect(result).toContain('Test Show');
@@ -130,7 +130,7 @@ describe('ConsoleFormatterImpl', () => {
       expect(result.length).toBe(3);
       
       // Header should contain show info
-      expect(result[0]).toContain('TBA');
+      expect(result[0]).toContain('N/A');
       expect(result[0]).toContain('Test Network');
       expect(result[0]).toContain('Scripted');
       expect(result[0]).toContain('Test Show');
