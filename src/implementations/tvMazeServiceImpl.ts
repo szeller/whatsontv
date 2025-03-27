@@ -1,26 +1,15 @@
 /**
- * Implementation of the TvShowService interface for the TVMaze API
+ * Implementation of the TvShowService interface using the TVMaze API
  */
-import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
-
-// Type imports
-import type { TvShowService } from '../interfaces/tvShowService.js';
-import type { Show } from '../types/tvShowModel.js';
 import type { HttpClient } from '../interfaces/httpClient.js';
-import { 
-  filterByGenre, 
-  filterByLanguage, 
-  filterByNetwork, 
-  filterByType,
-  filterByCountry
-} from '../utils/showUtils.js';
-import { getTodayDate } from '../utils/dateUtils.js';
+import type { Show } from '../types/tvShowModel.js';
+import type { ShowOptions } from '../types/tvShowOptions.js';
+import type { TvShowService } from '../interfaces/tvShowService.js';
 import { transformSchedule } from '../types/tvmazeModel.js';
-
-// Constants
-const TV_MAZE_API = 'https://api.tvmaze.com';
-const NO_DATA_MESSAGE = 'No data returned';
+import { getNetworkScheduleUrl, getWebScheduleUrl } from '../utils/tvMazeUtils.js';
+import { getTodayDate } from '../utils/dateUtils.js';
+import { getStringOrDefault } from '../utils/stringUtils.js';
 
 /**
  * Implementation of the TvShowService interface for the TVMaze API
@@ -29,92 +18,155 @@ const NO_DATA_MESSAGE = 'No data returned';
 export class TvMazeServiceImpl implements TvShowService {
   private _apiClient: HttpClient;
 
-  constructor(@inject('HttpClient') httpClient: HttpClient) {
-    this._apiClient = httpClient;
+  constructor(@inject('HttpClient') apiClient: HttpClient) {
+    this._apiClient = apiClient;
   }
 
   /**
-   * Get shows for a specific date
-   * @param date - Date in YYYY-MM-DD format
-   * @returns Promise resolving to an array of shows
+   * Generic method to fetch schedule data from any TVMaze API endpoint
+   * @param url - The full URL to fetch data from
+   * @returns Promise resolving to an array of raw schedule items
+   * @private
    */
-  async getShowsByDate(date: string): Promise<Show[]> {
+  private async getSchedule(url: string): Promise<Record<string, unknown>[]> {
     try {
-      const endpoint = `${TV_MAZE_API}/schedule?date=${date}&country=US`;
-      
-      // Make the API request
-      const response = await this._apiClient.get(endpoint);
-      
-      // If no data is returned, throw an error
-      if (!Array.isArray(response.data) || response.data.length === 0) {
-        throw new Error(NO_DATA_MESSAGE);
+      const response = await this._apiClient.get<unknown[]>(url);
+      if (Array.isArray(response.data)) {
+        return response.data as Record<string, unknown>[];
       }
-      
-      // Transform the data using our new domain model
-      return transformSchedule(response.data);
+      return [];
     } catch (error) {
-      // Only log errors in production environments, not during tests
-      if (process.env.NODE_ENV !== 'test') {
-        console.error('TvMazeServiceImpl.getShowsByDate error:', error);
+      // Only log errors in production environments
+      if (process.env.NODE_ENV === 'production') {
+        console.error(`Error fetching schedule from ${url}:`, error);
       }
-      
-      // Return empty array instead of rethrowing
       return [];
     }
   }
 
   /**
-   * Fetch shows with advanced filtering options
+   * Fetch TV shows based on the provided options
    * @param options Options for filtering shows
-   * @returns Promise resolving to array of shows
+   * @returns Promise resolving to an array of shows
    */
-  async fetchShowsWithOptions(options: {
-    date?: string;
-    country?: string;
-    types?: string[];
-    networks?: string[];
-    genres?: string[];
-    languages?: string[];
-  }): Promise<Show[]> {
+  async fetchShows(options?: Partial<ShowOptions>): Promise<Show[]> {
+    // Default options
+    const defaultOptions: ShowOptions = {
+      date: '',
+      country: 'US',
+      fetchSource: 'all',
+      types: [],
+      genres: [],
+      languages: [],
+      networks: []
+    };
+
+    // Merge options with defaults
+    const mergedOptions: ShowOptions = {
+      ...defaultOptions,
+      ...options
+    };
+
+    // Get date string, default to today if not provided
+    const dateStr = getStringOrDefault(mergedOptions.date, getTodayDate());
+    const countryStr = getStringOrDefault(mergedOptions.country, 'US');
+    
     try {
-      // Get the date to fetch shows for
-      const date = options.date !== undefined && options.date !== '' 
-        ? options.date 
-        : getTodayDate();
-      
-      // Fetch shows for the specified date
-      let shows = await this.getShowsByDate(date);
-      
-      // Apply filters
-      if (options.country !== undefined && options.country !== '') {
-        shows = filterByCountry(shows, options.country);
+      // URLs to fetch based on options
+      const urlsToFetch: string[] = [];
+
+      // Determine which sources to fetch based on fetchSource
+      if (mergedOptions.fetchSource === 'all' || mergedOptions.fetchSource === 'network') {
+        urlsToFetch.push(getNetworkScheduleUrl(dateStr, countryStr));
       }
-      
-      if (options.types !== undefined && options.types.length > 0) {
-        shows = filterByType(shows, options.types);
+
+      if (mergedOptions.fetchSource === 'all' || mergedOptions.fetchSource === 'web') {
+        urlsToFetch.push(getWebScheduleUrl(dateStr));
       }
+
+      // Fetch all schedules in parallel
+      const schedulePromises = urlsToFetch.map(url => this.getSchedule(url));
+      const scheduleResults = await Promise.all(schedulePromises);
       
-      if (options.networks !== undefined && options.networks.length > 0) {
-        shows = filterByNetwork(shows, options.networks);
-      }
+      // Transform and combine all schedule results using a functional approach
+      let shows = scheduleResults
+        .map(scheduleResult => transformSchedule(scheduleResult))
+        .flat();
       
-      if (options.genres !== undefined && options.genres.length > 0) {
-        shows = filterByGenre(shows, options.genres);
-      }
-      
-      if (options.languages !== undefined && options.languages.length > 0) {
-        shows = filterByLanguage(shows, options.languages);
-      }
+      // Always apply filters - the applyFilters method will handle empty filter arrays
+      shows = this.applyFilters(shows, mergedOptions);
       
       return shows;
     } catch (error) {
-      // Only log errors in production environments, not during tests
-      if (process.env.NODE_ENV !== 'test') {
-        console.error('TvMazeServiceImpl.fetchShowsWithOptions error:', error);
+      // Only log errors in production environments
+      if (process.env.NODE_ENV === 'production') {
+        console.error('Error fetching shows:', error);
       }
-      
-      // Return empty array instead of rethrowing
       return [];
     }
+  }
+
+  /**
+   * Apply filters to shows based on options
+   * @param shows Shows to filter
+   * @param options Filter options
+   * @returns Filtered shows
+   * @private
+   */
+  private applyFilters(shows: Show[], options: ShowOptions): Show[] {
+    if (!Array.isArray(shows) || shows.length === 0) {
+      return [];
+    }
+
+    let filteredShows = [...shows];
+
+    // Apply type filter
+    const typeValues = options.types;
+    if (Array.isArray(typeValues) && typeValues.length > 0) {
+      filteredShows = filteredShows.filter((show: Show) => {
+        return typeof show.type === 'string' && 
+               typeValues.some((type: string) => 
+                 show.type.toLowerCase() === type.toLowerCase()
+               );
+      });
+    }
+
+    // Apply network filter
+    const networkValues = options.networks;
+    if (Array.isArray(networkValues) && networkValues.length > 0) {
+      filteredShows = filteredShows.filter((show: Show) => {
+        return typeof show.network === 'string' && 
+               networkValues.some((network: string) => 
+                 show.network.toLowerCase().includes(network.toLowerCase())
+               );
+      });
+    }
+
+    // Apply genre filter
+    const genreValues = options.genres;
+    if (Array.isArray(genreValues) && genreValues.length > 0) {
+      filteredShows = filteredShows.filter((show: Show) => {
+        return Array.isArray(show.genres) && 
+               genreValues.some((genre: string) => 
+                 show.genres.some((showGenre: string) => 
+                   showGenre.toLowerCase() === genre.toLowerCase()
+                 )
+               );
+      });
+    }
+
+    // Apply language filter
+    const languageValues = options.languages;
+    if (Array.isArray(languageValues) && languageValues.length > 0) {
+      filteredShows = filteredShows.filter((show: Show) => {
+        return typeof show.language === 'string' && 
+               show.language !== null && 
+               languageValues.some((language: string) => 
+                 show.language?.toLowerCase() === language.toLowerCase()
+               );
+      });
+    }
+
+    return filteredShows;
   }
 }

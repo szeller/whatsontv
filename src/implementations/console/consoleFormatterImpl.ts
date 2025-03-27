@@ -57,7 +57,7 @@ export class ConsoleFormatterImpl implements ShowFormatter {
     // Extract show information
     // Use the actual airtime value directly for tests to pass
     const time = show.airtime !== null && show.airtime !== '' ? show.airtime : this.NO_AIRTIME;
-    const network = show.channel !== null && show.channel !== '' ? show.channel : 'N/A';
+    const network = show.network !== null && show.network !== '' ? show.network : 'N/A';
     const type = show.type !== null && show.type !== '' ? show.type : 'N/A';
     const showName = show.name !== null && show.name !== '' ? show.name : 'Unknown';
     const episodeInfo = `S${show.season}E${show.number}`;
@@ -88,7 +88,7 @@ export class ConsoleFormatterImpl implements ShowFormatter {
    */
   public formatUntimedShow(show: Show): string {
     // Extract show information
-    const network = show.channel !== null && show.channel !== '' ? show.channel : 'Unknown';
+    const network = show.network !== null && show.network !== '' ? show.network : 'Unknown';
     const type = show.type !== null && show.type !== '' ? show.type : 'Unknown';
     const showName = show.name !== null && show.name !== '' ? show.name : 'Unknown';
     const episodeInfo = `S${show.season}E${show.number}`;
@@ -126,8 +126,8 @@ export class ConsoleFormatterImpl implements ShowFormatter {
     const firstEpisode = episodes[0];
     
     // Extract show information
-    const network = firstEpisode.channel !== null && firstEpisode.channel !== '' 
-      ? firstEpisode.channel 
+    const network = firstEpisode.network !== null && firstEpisode.network !== '' 
+      ? firstEpisode.network 
       : 'Unknown';
     const type = firstEpisode.type !== null && firstEpisode.type !== '' 
       ? firstEpisode.type 
@@ -171,10 +171,15 @@ export class ConsoleFormatterImpl implements ShowFormatter {
   /**
    * Format shows grouped by network
    * @param networkGroups Shows grouped by network
-   * @param timeSort Whether to sort shows by time
+   * @param groupByNetwork Whether to group shows by network (true) or show as a flat list (false)
+   * @param timeSort Whether to sort shows by time (true) or not (false)
    * @returns Formatted shows string array
    */
-  public formatNetworkGroups(networkGroups: Record<string, Show[]>, timeSort = false): string[] {
+  public formatNetworkGroups(
+    networkGroups: Record<string, Show[]>, 
+    groupByNetwork = true,
+    timeSort = false
+  ): string[] {
     const output: string[] = [];
     
     // Get network names and sort them alphabetically
@@ -190,12 +195,14 @@ export class ConsoleFormatterImpl implements ShowFormatter {
         continue;
       }
       
-      // Add network header
-      output.push(this.styleService.boldCyan(`\n${network}:`));
-      
-      // Add separator line
-      const separatorLine = '-'.repeat(network.length + 1);
-      output.push(this.styleService.dim(separatorLine));
+      // Add network header if grouping by network
+      if (groupByNetwork) {
+        output.push(this.styleService.boldCyan(`\n${network}:`));
+        
+        // Add separator line
+        const separatorLine = '-'.repeat(network.length + 1);
+        output.push(this.styleService.dim(separatorLine));
+      }
       
       // Group shows by show ID to handle multiple episodes
       const showGroups: Record<string, Show[]> = {};
@@ -208,14 +215,53 @@ export class ConsoleFormatterImpl implements ShowFormatter {
       }
       
       // Sort shows by time if requested
-      if (timeSort && shows.length > 0) {
+      if (groupByNetwork && timeSort) {
         shows.sort((a, b) => {
           // Handle shows without airtime
-          if (a.airtime === undefined || a.airtime === null || a.airtime === '') return 1;
-          if (b.airtime === undefined || b.airtime === null || b.airtime === '') return -1;
+          if (a.airtime === undefined || a.airtime === null || a.airtime === '') {
+            return 1;
+          }
+          if (b.airtime === undefined || b.airtime === null || b.airtime === '') {
+            return -1;
+          }
           
-          // Compare airtime strings - at this point we know both are non-null strings
-          return a.airtime.localeCompare(b.airtime);
+          // Convert airtime strings to minutes since midnight for proper comparison
+          const getTimeInMinutes = (timeStr: string): number => {
+            // Normalize the time format
+            let hours = 0;
+            let minutes = 0;
+            
+            // Handle various time formats
+            if (timeStr.includes(':')) {
+              // Format: "HH:MM" or "H:MM" with optional AM/PM
+              const timeParts = timeStr.split(':');
+              hours = parseInt(timeParts[0], 10);
+              
+              // Extract minutes, removing any AM/PM suffix
+              const minutesPart = timeParts[1].replace(/\s*[APap][Mm].*$/, '');
+              minutes = parseInt(minutesPart, 10);
+              
+              // Handle AM/PM if present
+              const isPM = /\s*[Pp][Mm]/.test(timeStr);
+              const isAM = /\s*[Aa][Mm]/.test(timeStr);
+              
+              if (isPM && hours < 12) {
+                hours += 12;
+              } else if (isAM && hours === 12) {
+                hours = 0;
+              }
+            } else {
+              // Format without colon, assume it's just hours
+              hours = parseInt(timeStr, 10);
+            }
+            
+            return hours * 60 + minutes;
+          };
+          
+          const aMinutes = getTimeInMinutes(a.airtime);
+          const bMinutes = getTimeInMinutes(b.airtime);
+          
+          return aMinutes - bMinutes;
         });
       }
       

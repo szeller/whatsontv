@@ -17,6 +17,13 @@ export interface ConsoleOutput {
   error: (message?: string, ...args: unknown[]) => void;
   
   /**
+   * Log a warning message to the console
+   * @param message Warning message
+   * @param args Additional arguments
+   */
+  warn: (message?: string, ...args: unknown[]) => void;
+  
+  /**
    * Log a message with a specific level
    * @param level Log level (log or error)
    * @param message Message to log

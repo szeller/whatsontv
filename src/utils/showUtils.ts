@@ -21,18 +21,14 @@ export function groupShowsByNetwork(shows: Show[]): NetworkGroups {
   const groups: NetworkGroups = {};
   
   for (const show of shows) {
-    // Get the channel name from our simplified model
-    const networkName = show.channel !== null && show.channel !== '' 
-      ? show.channel 
-      : 'Unknown Network';
+    // Get the network name from our simplified model
+    const networkName = show.network ?? 'Unknown Network';
     
     if (!Object.prototype.hasOwnProperty.call(groups, networkName)) {
       groups[networkName] = [];
     }
     
-    if (Object.prototype.hasOwnProperty.call(groups, networkName)) {
-      groups[networkName].push(show);
-    }
+    groups[networkName].push(show);
   }
   
   return groups;
@@ -123,11 +119,18 @@ export function filterByNetwork(shows: Show[], networks: string[]): Show[] {
   }
   
   return shows.filter(show => {
-    // In our new model, channel is a string
-    const channelName = show.channel !== null ? show.channel : '';
+    // In our new model, network is a string
+    const networkName = show.network !== null ? show.network : '';
     
+    // If network name is empty, this show won't match any network filter
+    if (networkName === '') {
+      return false;
+    }
+    
+    // Check if the network name matches any of the networks
+    // This works for both traditional networks and streaming services
     return networks.some(network => 
-      channelName.toLowerCase().includes(network.toLowerCase())
+      networkName.toLowerCase().includes(network.toLowerCase())
     );
   });
 }

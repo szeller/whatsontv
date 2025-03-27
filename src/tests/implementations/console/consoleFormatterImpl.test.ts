@@ -35,8 +35,7 @@ describe('ConsoleFormatterImpl', () => {
       type: 'Scripted',
       language: 'English',
       genres: ['Drama'],
-      channel: 'Test Network',
-      isStreaming: false,
+      network: 'Test Network',
       summary: 'Test summary',
       airtime: '20:00',
       season: 1,
@@ -84,8 +83,7 @@ describe('ConsoleFormatterImpl', () => {
         type: '',
         language: null,
         genres: [],
-        channel: '',
-        isStreaming: false,
+        network: '',
         summary: null,
         airtime: '21:00',
         season: 2,
@@ -154,13 +152,13 @@ describe('ConsoleFormatterImpl', () => {
         'Test Network': [
           {
             ...mockShow,
-            channel: 'Test Network'
+            network: 'Test Network'
           }
         ],
         'Another Network': [
           {
             ...mockShow,
-            channel: 'Another Network'
+            network: 'Another Network'
           }
         ]
       };

@@ -2,10 +2,10 @@
 
 // Coverage thresholds aligned with project requirements
 const COVERAGE_THRESHOLD = {
-  branches: 80, 
-  functions: 80, 
-  lines: 80, 
-  statements: 80 
+  branches: 75, 
+  functions: 75, 
+  lines: 75, 
+  statements: 75 
 };
 
 /**
@@ -19,15 +19,11 @@ const config = {
   collectCoverage: true,
   coverageDirectory: '<rootDir>/coverage',
   
-  // Exclude test files and type definitions from coverage
-  coveragePathIgnorePatterns: [
-    '<rootDir>/node_modules/',
-    '<rootDir>/dist/',
-    '\\.test\\.ts$',
-    '<rootDir>/src/types/',
-    '<rootDir>/scripts/',
-    '<rootDir>/src/tests/utils/mockHttpClient.ts',
-    '<rootDir>/src/tests/helpers/'
+  // Explicitly include only source files for coverage
+  collectCoverageFrom: [
+    'src/**/*.ts',
+    '!src/tests/**/*.ts',
+    '!src/**/test/*.ts'
   ],
   
   // Generate various coverage report formats

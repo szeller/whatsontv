@@ -23,6 +23,7 @@ export function createMockConsoleOutput(): jest.Mocked<ConsoleOutput> {
   return {
     log: jest.fn(),
     error: jest.fn(),
+    warn: jest.fn(),
     logWithLevel: jest.fn()
   };
 }
@@ -47,14 +48,15 @@ export function createMockFormatter(): jest.Mocked<ShowFormatter> {
  */
 export function createMockTvShowService(): TvShowService {
   return {
-    getShowsByDate: jest.fn<(date: string) => Promise<Show[]>>().mockResolvedValue([]),
-    fetchShowsWithOptions: jest.fn<(options: {
+    fetchShows: jest.fn<(options: {
       date?: string;
       country?: string;
       types?: string[];
       networks?: string[];
       genres?: string[];
       languages?: string[];
+      webOnly?: boolean;
+      showAll?: boolean;
     }) => Promise<Show[]>>().mockResolvedValue([])
   };
 }

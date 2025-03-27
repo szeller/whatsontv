@@ -2,50 +2,15 @@
  * Tests for the TvMazeServiceImpl implementation
  */
 import 'reflect-metadata';
-import { jest, describe, it, expect, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import { container } from 'tsyringe';
 import { TvMazeServiceImpl } from '../../implementations/tvMazeServiceImpl.js';
-import type { HttpClient, HttpResponse } from '../../interfaces/httpClient.js';
+import type { HttpClient } from '../../interfaces/httpClient.js';
 import type { Show } from '../../types/tvShowModel.js';
-import { TvMazeFixtures } from '../fixtures/tvmaze/tvMazeFixtures.js';
-
-/**
- * Create a mock implementation of HttpClient for testing
- */
-class MockHttpClient implements HttpClient {
-  public getMock = jest.fn<
-    (url: string, params?: Record<string, string>) => Promise<HttpResponse<unknown>>
-  >();
-  public postMock = jest.fn<
-    (
-      url: string, 
-      data?: unknown, 
-      params?: Record<string, string>
-    ) => Promise<HttpResponse<unknown>>
-  >();
-
-  public lastUrl = '';
-
-  async get<T>(
-    url: string, 
-    params?: Record<string, string>
-  ): Promise<HttpResponse<T>> {
-    this.lastUrl = url;
-    return this.getMock(url, params) as Promise<HttpResponse<T>>;
-  }
-
-  async post<T>(
-    url: string, 
-    data?: unknown, 
-    params?: Record<string, string>
-  ): Promise<HttpResponse<T>> {
-    return this.postMock(url, data, params) as Promise<HttpResponse<T>>;
-  }
-
-  mockGet(url: string, response: HttpResponse<unknown>): void {
-    this.getMock.mockResolvedValue(response);
-  }
-}
+import { TvMazeFixtures } from '../fixtures/index.js';
+import { getNetworkScheduleUrl, getWebScheduleUrl } from '../../utils/tvMazeUtils.js';
+import { MockHttpClient } from '../utils/mockHttpClient.js';
+import { getTodayDate } from '../../utils/dateUtils.js';
 
 describe('TvMazeServiceImpl', () => {
   let tvMazeService: TvMazeServiceImpl;
@@ -63,8 +28,7 @@ describe('TvMazeServiceImpl', () => {
       type: 'Scripted',
       language: 'English',
       genres: ['Drama', 'Crime'],
-      channel: 'CBS',
-      isStreaming: false,
+      network: 'CBS',
       summary: 'NCIS is a show about naval criminal investigators.',
       airtime: '20:00',
       season: 1,
@@ -79,63 +43,151 @@ describe('TvMazeServiceImpl', () => {
     tvMazeService = new TvMazeServiceImpl(mockHttpClient);
   });
   
-  describe('getShowsByDate', () => {
+  describe('fetchShows', () => {
     it('returns shows for a specific date', async () => {
       // Mock the HTTP client for this specific endpoint
-      mockHttpClient.mockGet('https://api.tvmaze.com/schedule?date=2023-01-01&country=US', {
+      mockHttpClient.mockGet(getNetworkScheduleUrl('2023-01-01', 'US'), {
         data: TvMazeFixtures.getNetworkSchedule(),
         status: 200,
         headers: {}
       });
 
-      const result = await tvMazeService.getShowsByDate('2023-01-01');
+      const result = await tvMazeService.fetchShows({ date: '2023-01-01' });
       expect(result.length).toBeGreaterThan(0);
     });
 
     it('fetches shows for today', async () => {
       // Mock the HTTP client for this specific endpoint
-      const todayDate = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
-      mockHttpClient.mockGet(`https://api.tvmaze.com/schedule?date=${todayDate}&country=US`, {
+      const todayDate = getTodayDate(); // Format: YYYY-MM-DD
+      mockHttpClient.mockGet(getNetworkScheduleUrl(todayDate, 'US'), {
         data: TvMazeFixtures.getNetworkSchedule(),
         status: 200,
         headers: {}
       });
 
-      const result = await tvMazeService.getShowsByDate(todayDate);
+      const result = await tvMazeService.fetchShows({ date: todayDate });
       expect(result.length).toBeGreaterThan(0);
     });
 
     it('handles empty responses', async () => {
       // Mock empty response
-      mockHttpClient.mockGet('https://api.tvmaze.com/schedule?date=2099-01-01&country=US', {
+      mockHttpClient.mockGet(getNetworkScheduleUrl('2099-01-01', 'US'), {
         data: [],
         status: 200,
         headers: {}
       });
 
-      const result = await tvMazeService.getShowsByDate('2099-01-01');
+      const result = await tvMazeService.fetchShows({ date: '2099-01-01' });
       expect(result).toHaveLength(0);
     });
-  });
 
-  describe('fetchShowsWithOptions', () => {
-    it('fetches shows with filtering options', async () => {
+    it('applies multiple filters', async () => {
       // Mock the HTTP client for this specific endpoint
-      const todayDate = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
-      mockHttpClient.mockGet(`https://api.tvmaze.com/schedule?date=${todayDate}&country=US`, {
-        data: TvMazeFixtures.getNetworkSchedule(),
+      const todayDate = getTodayDate();
+      
+      // Create a properly typed mock show that will match our filter criteria
+      const mockShow = {
+        id: 1,
+        url: 'https://www.tvmaze.com/episodes/1',
+        name: 'Test Episode',
+        season: 1,
+        number: 1,
+        type: 'regular',
+        airdate: todayDate,
+        airtime: '20:00',
+        airstamp: `${todayDate}T20:00:00-05:00`,
+        runtime: 60,
+        rating: { average: 8.5 },
+        image: null,
+        summary: '<p>Test episode summary</p>',
+        show: {
+          id: 1,
+          url: 'https://www.tvmaze.com/shows/1',
+          name: 'Test Show',
+          type: 'Scripted',
+          language: 'English',
+          genres: ['Drama'],
+          status: 'Running',
+          runtime: 60,
+          premiered: '2023-01-01',
+          officialSite: 'https://www.example.com',
+          schedule: { time: '20:00', days: ['Monday'] },
+          rating: { average: 8.5 },
+          weight: 100,
+          network: {
+            id: 1,
+            name: 'ABC',
+            country: {
+              name: 'United States',
+              code: 'US',
+              timezone: 'America/New_York'
+            }
+          },
+          webChannel: null,
+          externals: { tvrage: null, thetvdb: null, imdb: null },
+          image: null,
+          summary: '<p>Test show summary</p>',
+          updated: 1609459200,
+          _links: { self: { href: 'https://api.tvmaze.com/shows/1' } }
+        }
+      };
+      
+      // Mock the HTTP client with our mock data
+      mockHttpClient.mockGet(getNetworkScheduleUrl(todayDate, 'US'), {
+        data: [mockShow],
         status: 200,
         headers: {}
       });
-
-      const result = await tvMazeService.fetchShowsWithOptions({
+      
+      // Call the method being tested with filters that match our mock show
+      const result = await tvMazeService.fetchShows({
         types: ['Scripted'],
-        networks: ['CBS'],
+        networks: ['ABC'],
         genres: ['Drama'],
         languages: ['English']
       });
 
       expect(result.length).toBeGreaterThan(0);
+    });
+    
+    it('fetches web-only shows', async () => {
+      // Mock the web schedule endpoint
+      const todayDate = getTodayDate();
+      mockHttpClient.mockGet(getWebScheduleUrl(todayDate), {
+        data: TvMazeFixtures.getWebSchedule(),
+        status: 200,
+        headers: {}
+      });
+      
+      const result = await tvMazeService.fetchShows({ fetchSource: 'web' });
+      
+      expect(result.length).toBeGreaterThan(0);
+      expect(result[0].network).toMatch(/^Apple TV\+$/);
+    });
+    
+    it('fetches both network and web shows when fetchSource is all', async () => {
+      // Mock both endpoints
+      const todayDate = getTodayDate();
+      mockHttpClient.mockGet(getNetworkScheduleUrl(todayDate, 'US'), {
+        data: TvMazeFixtures.getNetworkSchedule(),
+        status: 200,
+        headers: {}
+      });
+      
+      mockHttpClient.mockGet(getWebScheduleUrl(todayDate), {
+        data: TvMazeFixtures.getWebSchedule(),
+        status: 200,
+        headers: {}
+      });
+      
+      const result = await tvMazeService.fetchShows({ fetchSource: 'all' });
+      
+      expect(result.length).toBeGreaterThan(0);
+      // Verify we have both types of shows
+      const networkShowsCount = result.filter(show => !show.network?.match(/^Apple TV\+$/)).length;
+      const webShowsCount = result.filter(show => show.network?.match(/^Apple TV\+$/)).length;
+      expect(networkShowsCount).toBeGreaterThan(0);
+      expect(webShowsCount).toBeGreaterThan(0);
     });
   });
 });

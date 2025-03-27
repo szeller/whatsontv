@@ -24,6 +24,11 @@ export function createMockConsole(): ConsoleOutput & { getOutput: () => string[]
         output.push(`ERROR: ${message} ${args.join(' ')}`);
       }
     },
+    warn: (message?: string, ...args: unknown[]): void => {
+      if (message !== undefined) {
+        output.push(`WARN: ${message} ${args.join(' ')}`);
+      }
+    },
     logWithLevel: (level: 'log' | 'error', message?: string, ...args: unknown[]): void => {
       if (message !== undefined) {
         if (level === 'log') {

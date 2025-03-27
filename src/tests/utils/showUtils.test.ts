@@ -76,14 +76,16 @@ describe('ShowUtils', () => {
       const result = groupShowsByNetwork(shows);
       
       // Assert the result
-      expect(Object.keys(result).length).toBe(2);
+      expect(Object.keys(result).length).toBe(3);
       expect(result['NBC'].length).toBe(1);
-      expect(result['Unknown Network'].length).toBe(2);
+      expect(result['Unknown Network'].length).toBe(1);
       
       // Check that the shows are in the right groups
       expect(result['NBC'][0].name).toBe('Show 1');
       expect(result['Unknown Network'][0].name).toBe('Show 2');
-      expect(result['Unknown Network'][1].name).toBe('Show 3');
+      // Empty string network is treated as its own group, not 'Unknown Network'
+      expect(result[''].length).toBe(1);
+      expect(result[''][0].name).toBe('Show 3');
     });
   });
   
@@ -323,15 +325,14 @@ describe('ShowUtils', () => {
 });
 
 // Helper functions for creating test data
-function createTestShow(name: string, type: string, channel: string | null): Show {
+function createTestShow(name: string, type: string, network: string | null): Show {
   return {
     id: Math.floor(Math.random() * 1000),
     name,
     type,
     language: 'English',
     genres: [],
-    channel: channel === null ? 'Unknown Network' : channel,
-    isStreaming: false,
+    network: network === null ? 'Unknown Network' : network,
     summary: null,
     airtime: null,
     season: 1,
@@ -346,8 +347,7 @@ function createTestShowWithTime(name: string, airtime: string | null): Show {
     type: 'Drama',
     language: 'English',
     genres: [],
-    channel: 'NBC',
-    isStreaming: false,
+    network: 'NBC',
     summary: null,
     airtime,
     season: 1,
@@ -362,8 +362,7 @@ function createTestShowWithGenres(name: string, genres: string[]): Show {
     type: 'Drama',
     language: 'English',
     genres,
-    channel: 'NBC',
-    isStreaming: false,
+    network: 'NBC',
     summary: null,
     airtime: null,
     season: 1,
@@ -378,8 +377,7 @@ function createTestShowWithLanguage(name: string, language: string): Show {
     type: 'Drama',
     language,
     genres: [],
-    channel: 'NBC',
-    isStreaming: false,
+    network: 'NBC',
     summary: null,
     airtime: null,
     season: 1,

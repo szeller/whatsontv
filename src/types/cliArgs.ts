@@ -24,40 +24,20 @@ export interface CliArgs {
   networks: string[];
   
   /**
-   * Whether to sort shows by time
-   */
-  timeSort: boolean;
-  
-  /**
-   * Search query for shows
-   */
-  query: string;
-  
-  /**
-   * Whether to output to Slack
-   */
-  slack: boolean;
-  
-  /**
    * Whether to show help information
    */
   help: boolean;
   
   /**
-   * Whether to show version information
-   */
-  version: boolean;
-  
-  /**
    * Whether to enable debug mode
    */
   debug: boolean;
-  
+
   /**
-   * Maximum number of shows to display
+   * Source to fetch shows from: 'web', 'network', or 'all'
    */
-  limit: number;
-  
+  fetch: 'web' | 'network' | 'all';
+
   /**
    * Genres to filter shows by
    */
