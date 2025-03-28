@@ -42,27 +42,3 @@ export { domainShows, domainNetworks, tvmazeModels };
 
 // Export types for convenience
 export type { Show, NetworkGroups } from '../../types/tvShowModel.js';
-
-// Legacy compatibility exports
-/**
- * @deprecated Use Fixtures.domain instead
- */
-export class DomainFixtures {
-  static getNetworkShows = domainShows.getNetworkShows;
-  static getStreamingShows = domainShows.getStreamingShows;
-  static getNetworkGroups = domainNetworks.getNetworkGroups;
-}
-
-/**
- * @deprecated Use Fixtures.tvMaze instead
- */
-export class TvMazeFixtures {
-  static getSchedule = tvmazeModels.getSchedule;
-  static getScheduleString = tvmazeModels.getScheduleString;
-  static getNetworkSchedule = tvmazeModels.getNetworkSchedule;
-  static getWebSchedule = tvmazeModels.getWebSchedule;
-  static getCombinedSchedule = tvmazeModels.getCombinedSchedule;
-  static loadNetworkShows = tvmazeModels.loadNetworkShows;
-  static loadWebShows = tvmazeModels.loadWebShows;
-  static loadCombinedShows = tvmazeModels.loadCombinedShows;
-}

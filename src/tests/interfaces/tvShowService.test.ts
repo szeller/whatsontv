@@ -16,12 +16,12 @@ import { TvMazeServiceImpl } from '../../implementations/tvMazeServiceImpl.js';
 import { MockHttpClient } from '../testutils/mockHttpClient.js';
 import { groupShowsByNetwork } from '../../utils/showUtils.js';
 import { transformSchedule } from '../../types/tvmazeModel.js';
-import { TvMazeFixtures } from '../fixtures/index.js';
+import { Fixtures } from '../fixtures/index.js';
 import { getNetworkScheduleUrl, getWebScheduleUrl } from '../../utils/tvMazeUtils.js';
 
 // Load fixture data
-const networkScheduleFixtures = TvMazeFixtures.getNetworkSchedule();
-const webScheduleFixtures = TvMazeFixtures.getWebSchedule();
+const networkScheduleFixtures = Fixtures.tvMaze.getSchedule('network-schedule');
+const webScheduleFixtures = Fixtures.tvMaze.getSchedule('web-schedule');
 
 // Helper functions to ensure we have the right test data
 const ensureNetworkShows = (): Show[] => {

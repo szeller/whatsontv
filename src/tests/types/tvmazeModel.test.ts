@@ -18,7 +18,7 @@ import {
   scheduleItemSchema,
   episodeSchema
 } from '../../types/tvmazeModel.js';
-import { TvMazeFixtures } from '../fixtures/index.js';
+import { Fixtures } from '../fixtures/index.js';
 
 // Type definition for the show property to help TypeScript
 interface ShowWithId {
@@ -62,12 +62,10 @@ const testNullableString = z.union([
 
 describe('TVMaze Domain Model', () => {
   // Load test fixtures using the utility class and add type assertions
-  const networkSchedule = TvMazeFixtures.getNetworkSchedule() as Array<NetworkScheduleItem & { 
-    show: ShowWithId 
-  }>;
-  const webSchedule = TvMazeFixtures.getWebSchedule() as Array<WebScheduleItem & { 
-    _embedded: { show: ShowWithId } 
-  }>;
+  const networkSchedule = Fixtures.tvMaze.getSchedule('network-schedule') as 
+    Array<NetworkScheduleItem & { show: ShowWithId }>;
+  const webSchedule = Fixtures.tvMaze.getSchedule('web-schedule') as 
+    Array<WebScheduleItem & { _embedded: { show: ShowWithId } }>;
 
   describe('Schema Validation', () => {
     describe('networkSchema', () => {

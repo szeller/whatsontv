@@ -14,7 +14,7 @@ import {
   getWebScheduleUrl, 
   setupTvMazeMocks 
 } from '../../testutils/tvMazeTestUtils.js';
-import { TvMazeFixtures } from '../../fixtures/index.js';
+import { Fixtures } from '../../fixtures/index.js';
 import { PlainStyleServiceImpl } from '../../../implementations/test/plainStyleServiceImpl.js';
 import type { StyleService } from '../../../interfaces/styleService.js';
 import { describe, expect, test, beforeEach, afterEach, jest } from '@jest/globals';
@@ -110,7 +110,8 @@ describe('CLI Integration Tests', () => {
       const result = await runCli({});
       
       // Verify that the output contains expected show information
-      const networkData = TvMazeFixtures.getNetworkSchedule() as TvMazeNetworkScheduleItem[];
+      const networkData = Fixtures.tvMaze.getSchedule('network-schedule') as 
+        TvMazeNetworkScheduleItem[];
       
       // Get all show names from the fixture
       const showNames = networkData
@@ -130,7 +131,8 @@ describe('CLI Integration Tests', () => {
       const result = await runCli({ fetch: 'web' });
       
       // Load web schedule fixture
-      const webData = TvMazeFixtures.getWebSchedule() as TvMazeWebScheduleItem[];
+      const webData = Fixtures.tvMaze.getSchedule('web-schedule') as 
+        TvMazeWebScheduleItem[];
       
       // Get all show names from the fixture
       const showNames = webData
@@ -162,8 +164,10 @@ describe('CLI Integration Tests', () => {
       const result = await runCli({ fetch: 'all' });
       
       // Verify that the output contains shows from both sources
-      const networkData = TvMazeFixtures.getNetworkSchedule() as TvMazeNetworkScheduleItem[];
-      const webData = TvMazeFixtures.getWebSchedule() as TvMazeWebScheduleItem[];
+      const networkData = Fixtures.tvMaze.getSchedule('network-schedule') as 
+        TvMazeNetworkScheduleItem[];
+      const webData = Fixtures.tvMaze.getSchedule('web-schedule') as 
+        TvMazeWebScheduleItem[];
       
       // Check for network shows
       const networkShowNames = networkData
@@ -306,7 +310,8 @@ describe('CLI Integration Tests', () => {
       const result = await runCli({ networks: ['CBS'] });
       
       // Get all shows from the network fixture
-      const networkData = TvMazeFixtures.getNetworkSchedule() as TvMazeNetworkScheduleItem[];
+      const networkData = Fixtures.tvMaze.getSchedule('network-schedule') as 
+        TvMazeNetworkScheduleItem[];
       
       // Find shows on CBS
       const cbsShows = networkData
@@ -351,7 +356,8 @@ describe('CLI Integration Tests', () => {
       const result = await runCli({ genres: ['Drama'] });
       
       // Get all shows from the network fixture
-      const networkData = TvMazeFixtures.getNetworkSchedule() as TvMazeNetworkScheduleItem[];
+      const networkData = Fixtures.tvMaze.getSchedule('network-schedule') as 
+        TvMazeNetworkScheduleItem[];
       
       // Find drama shows
       const dramaShows = networkData
