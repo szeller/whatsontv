@@ -6,8 +6,11 @@ import type { HttpClient } from '../interfaces/httpClient.js';
 import type { Show } from '../types/tvShowModel.js';
 import type { ShowOptions } from '../types/tvShowOptions.js';
 import type { TvShowService } from '../interfaces/tvShowService.js';
-import { transformSchedule } from '../types/tvmazeModel.js';
-import { getNetworkScheduleUrl, getWebScheduleUrl } from '../utils/tvMazeUtils.js';
+import { 
+  transformSchedule, 
+  getNetworkScheduleUrl, 
+  getWebScheduleUrl 
+} from '../utils/tvMazeUtils.js';
 import { getTodayDate } from '../utils/dateUtils.js';
 import { getStringOrDefault } from '../utils/stringUtils.js';
 

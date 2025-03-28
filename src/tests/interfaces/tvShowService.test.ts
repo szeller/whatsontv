@@ -5,7 +5,13 @@
  * rather than implementation details.
  */
 import 'reflect-metadata';
-import { describe, it, beforeEach, afterEach, expect } from '@jest/globals';
+import { 
+  describe, 
+  it, 
+  beforeEach, 
+  afterEach, 
+  expect 
+} from '@jest/globals';
 import { container } from 'tsyringe';
 
 import type { Show } from '../../types/tvShowModel.js';
@@ -15,9 +21,12 @@ import type { HttpClient } from '../../interfaces/httpClient.js';
 import { TvMazeServiceImpl } from '../../implementations/tvMazeServiceImpl.js';
 import { MockHttpClient } from '../testutils/mockHttpClient.js';
 import { groupShowsByNetwork } from '../../utils/showUtils.js';
-import { transformSchedule } from '../../types/tvmazeModel.js';
+import { 
+  transformSchedule, 
+  getNetworkScheduleUrl, 
+  getWebScheduleUrl 
+} from '../../utils/tvMazeUtils.js';
 import { Fixtures } from '../fixtures/index.js';
-import { getNetworkScheduleUrl, getWebScheduleUrl } from '../../utils/tvMazeUtils.js';
 
 // Load fixture data
 const networkScheduleFixtures = Fixtures.tvMaze.getSchedule('network-schedule');

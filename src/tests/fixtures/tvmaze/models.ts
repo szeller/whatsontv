@@ -3,7 +3,7 @@
  * 
  * Provides test fixtures for TVMaze API models and transformations
  */
-import { transformSchedule } from '../../../types/tvmazeModel.js';
+import { transformSchedule } from '../../../utils/tvMazeUtils.js';
 import type { Show } from '../../../types/tvShowModel.js';
 import { loadFixture } from '../../helpers/fixtureLoader.js';
 

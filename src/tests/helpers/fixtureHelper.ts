@@ -7,7 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import type { Show, NetworkGroups } from '../../types/tvShowModel.js';
-import { transformSchedule } from '../../types/tvmazeModel.js';
+import { transformSchedule } from '../../utils/tvMazeUtils.js';
 
 // Get the directory name in ESM
 const __filename = fileURLToPath(import.meta.url);
