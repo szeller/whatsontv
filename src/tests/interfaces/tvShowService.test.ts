@@ -13,7 +13,7 @@ import type { ShowOptions } from '../../types/tvShowOptions.js';
 import type { TvShowService } from '../../interfaces/tvShowService.js';
 import type { HttpClient } from '../../interfaces/httpClient.js';
 import { TvMazeServiceImpl } from '../../implementations/tvMazeServiceImpl.js';
-import { MockHttpClient } from '../utils/mockHttpClient.js';
+import { MockHttpClient } from '../testutils/mockHttpClient.js';
 import { groupShowsByNetwork } from '../../utils/showUtils.js';
 import { transformSchedule } from '../../types/tvmazeModel.js';
 import { TvMazeFixtures } from '../fixtures/index.js';

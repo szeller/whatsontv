@@ -9,7 +9,7 @@ import type { HttpClient } from '../../interfaces/httpClient.js';
 import type { Show } from '../../types/tvShowModel.js';
 import { TvMazeFixtures } from '../fixtures/index.js';
 import { getNetworkScheduleUrl, getWebScheduleUrl } from '../../utils/tvMazeUtils.js';
-import { MockHttpClient } from '../utils/mockHttpClient.js';
+import { MockHttpClient } from '../testutils/mockHttpClient.js';
 import { getTodayDate } from '../../utils/dateUtils.js';
 
 describe('TvMazeServiceImpl', () => {

@@ -2,7 +2,7 @@ import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import { container, InjectionToken } from 'tsyringe';
 
 import { ConsoleFormatterImpl } from '../../../implementations/console/consoleFormatterImpl';
-import { createMockTvShowService } from '../../utils/testHelpers';
+import { createMockTvShowService } from '../../testutils/testHelpers';
 import type { Show } from '../../../types/tvShowModel.js';
 import type { TvShowService } from '../../../interfaces/tvShowService';
 import type { StyleService } from '../../../interfaces/styleService';

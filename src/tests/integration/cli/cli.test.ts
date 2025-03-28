@@ -6,7 +6,7 @@
  */
 import { container } from '../../../container.js';
 import { runCli } from './cliTestRunner.js';
-import { MockHttpClient } from '../../utils/mockHttpClient.js';
+import { MockHttpClient } from '../../testutils/mockHttpClient.js';
 import type { HttpClient } from '../../../interfaces/httpClient.js';
 import { getTodayDate } from '../../../utils/dateUtils.js';
 import { 
