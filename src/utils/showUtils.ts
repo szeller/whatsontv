@@ -119,6 +119,84 @@ export function formatTime(time: string | null): string {
 }
 
 /**
+ * Format episodes into a compact representation with ranges
+ * @param episodes - Array of episodes to format
+ * @returns Formatted episode string with ranges (e.g., "S1E1-3, S1E5, S2E1-2")
+ */
+export function formatEpisodeRanges(episodes: Show[]): string {
+  if (episodes.length === 0) {
+    return '';
+  }
+  
+  // Sort episodes by season and episode number
+  const sortedEpisodes = [...episodes].sort(compareEpisodes);
+  
+  // Group episodes by season
+  const seasonGroups: Record<number, number[]> = {};
+  
+  for (const episode of sortedEpisodes) {
+    if (!Object.prototype.hasOwnProperty.call(seasonGroups, episode.season)) {
+      seasonGroups[episode.season] = [];
+    }
+    seasonGroups[episode.season].push(episode.number);
+  }
+  
+  // Format each season's episodes with ranges
+  const formattedSeasons: string[] = [];
+  
+  for (const season of Object.keys(seasonGroups).map(Number).sort((a, b) => a - b)) {
+    const episodeNumbers = seasonGroups[season];
+    const ranges: string[] = [];
+    
+    let rangeStart = episodeNumbers[0];
+    let rangeEnd = rangeStart;
+    
+    // Detect ranges using a sliding window approach
+    for (let i = 1; i < episodeNumbers.length; i++) {
+      const current = episodeNumbers[i];
+      const previous = episodeNumbers[i - 1];
+      
+      // If current episode follows the previous one sequentially
+      if (current === previous + 1) {
+        rangeEnd = current;
+      } else {
+        // End of a range, add it to the result
+        ranges.push(formatRange(season, rangeStart, rangeEnd));
+        // Start a new range
+        rangeStart = current;
+        rangeEnd = current;
+      }
+    }
+    
+    // Add the last range
+    ranges.push(formatRange(season, rangeStart, rangeEnd));
+    
+    // Join all ranges for this season
+    formattedSeasons.push(ranges.join(', '));
+  }
+  
+  // Join all seasons
+  return formattedSeasons.join(', ');
+}
+
+/**
+ * Format a single episode range
+ * @param season - Season number
+ * @param start - Starting episode number
+ * @param end - Ending episode number
+ * @returns Formatted range string
+ */
+function formatRange(season: number, start: number, end: number): string {
+  if (start === end) {
+    // Single episode
+    return `S${season}E${start}`;
+  } else {
+    // Episode range
+    return `S${season}E${start}-${end}`;
+  }
+}
+
+/**
  * Filter shows by type
  * @param shows - Shows to filter
  * @param types - Types to include

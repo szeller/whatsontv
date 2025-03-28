@@ -134,7 +134,7 @@ describe('ConsoleFormatterImpl', () => {
       expect(result[0]).toContain('Test Network');
       expect(result[0]).toContain('Scripted');
       expect(result[0]).toContain('Test Show');
-      expect(result[0]).toContain('S1E1, S1E2');
+      expect(result[0]).toContain('S1E1-2');
       
       // Should not contain the "Multiple Episodes" label
       expect(result[0]).not.toContain('Multiple Episodes');

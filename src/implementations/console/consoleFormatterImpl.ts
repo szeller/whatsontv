@@ -5,7 +5,7 @@ import type { ShowFormatter } from '../../interfaces/showFormatter.js';
 import type { StyleService } from '../../interfaces/styleService.js';
 import type { TvShowService } from '../../interfaces/tvShowService.js';
 import type { Show } from '../../types/tvShowModel.js';
-import { compareEpisodes, sortShowsByTime } from '../../utils/showUtils.js';
+import { compareEpisodes, sortShowsByTime, formatEpisodeRanges } from '../../utils/showUtils.js';
 
 /**
  * Console implementation of the ShowFormatter interface
@@ -114,8 +114,8 @@ export class ConsoleFormatterImpl implements ShowFormatter {
   }
 
   /**
-   * Format multiple episodes of the same show with no specific airtime
-   * @param episodes Episodes to format
+   * Format multiple episodes of the same show
+   * @param episodes Array of episodes to format
    * @returns Formatted episodes string array
    */
   public formatMultipleEpisodes(episodes: Show[]): string[] {
@@ -148,8 +148,8 @@ export class ConsoleFormatterImpl implements ShowFormatter {
       showName.padEnd(this.PAD_LENGTHS.showName)
     );
     
-    // Create comma-separated list of episodes
-    const episodeList = episodes.map(episode => `S${episode.season}E${episode.number}`).join(', ');
+    // Create smart episode ranges instead of comma-separated list
+    const episodeList = formatEpisodeRanges(episodes);
     const episodeInfoStr: string = this.styleService.yellow(
       episodeList.padEnd(this.PAD_LENGTHS.episodeInfo)
     );
