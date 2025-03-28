@@ -113,9 +113,9 @@ export default [
       ...strictTypeRules,
       
       // Rules with many violations temporarily disabled - to be fixed in GitHub issue #49
-      '@typescript-eslint/no-unsafe-member-access': 'off',
-      '@typescript-eslint/no-unsafe-call': 'off',
-      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'error',
+      '@typescript-eslint/no-unsafe-call': 'error',
+      '@typescript-eslint/no-unsafe-assignment': 'error',
       
       // Strict type checking rules - previously warnings, now errors
       '@typescript-eslint/no-unsafe-argument': 'error',
