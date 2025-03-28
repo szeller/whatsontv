@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, beforeEach } from '@jest/globals';
 
-import { MockHttpClient } from './mockHttpClient.js';
+import { MockHttpClient } from '../testutils/mockHttpClient.js';
 import type { HttpResponse } from '../../interfaces/httpClient.js';
 
 describe('MockHttpClient', () => {

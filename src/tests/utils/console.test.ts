@@ -2,7 +2,7 @@
  * Tests for the console test helpers
  */
 import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
-import { createMockConsole } from './consoleTestHelpers.js';
+import { createMockConsole } from '../testutils/consoleTestHelpers.js';
 
 describe('Console Test Helpers', () => {
   describe('createMockConsole', () => {

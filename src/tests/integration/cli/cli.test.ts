@@ -13,7 +13,7 @@ import {
   getNetworkScheduleUrl, 
   getWebScheduleUrl, 
   setupTvMazeMocks 
-} from '../../utils/tvMazeTestUtils.js';
+} from '../../testutils/tvMazeTestUtils.js';
 import { TvMazeFixtures } from '../../fixtures/index.js';
 import { PlainStyleServiceImpl } from '../../../implementations/test/plainStyleServiceImpl.js';
 import type { StyleService } from '../../../interfaces/styleService.js';
