@@ -288,7 +288,8 @@ export function isWebScheduleItem(item: unknown): boolean {
   const itemObj = item as Record<string, unknown>;
   return itemObj._embedded !== undefined && 
          itemObj._embedded !== null && 
-         typeof itemObj._embedded === 'object';
+         typeof itemObj._embedded === 'object' &&
+         (itemObj._embedded as Record<string, unknown>).show !== undefined;
 }
 
 /**

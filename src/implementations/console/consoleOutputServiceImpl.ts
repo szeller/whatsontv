@@ -93,12 +93,12 @@ export class ConsoleOutputServiceImpl implements OutputService {
       ? this.groupShowsByNetwork(sortedShows) 
       : { 'All Shows': sortedShows };
     
-    // Format the shows - pass the groupByNetwork value as timeSort
-    // This maintains compatibility with existing tests
-    const formattedOutput = this.formatter.formatNetworkGroups(networkGroups, groupByNetwork);
-    
-    // Display each line of output
     try {
+      // Format the shows - pass the groupByNetwork value as timeSort
+      // This maintains compatibility with existing tests
+      const formattedOutput = this.formatter.formatNetworkGroups(networkGroups, groupByNetwork);
+      
+      // Display each line of output
       for (const line of formattedOutput) {
         await Promise.resolve(this.output.log(line));
       }
@@ -183,13 +183,13 @@ export class ConsoleOutputServiceImpl implements OutputService {
     networkGroups: NetworkGroups,
     timeSort: boolean = false
   ): Promise<void> {
-    const formattedOutput = this.formatter.formatNetworkGroups(
-      networkGroups,
-      timeSort
-    );
-
-    // Display each line of output
     try {
+      const formattedOutput = this.formatter.formatNetworkGroups(
+        networkGroups,
+        timeSort
+      );
+
+      // Display each line of output
       for (const line of formattedOutput) {
         await Promise.resolve(this.output.log(line));
       }
