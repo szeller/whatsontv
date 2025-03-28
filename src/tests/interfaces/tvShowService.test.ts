@@ -170,17 +170,23 @@ describe('TvShowService Interface', () => {
     });
     
     it('fetches both network and web shows when fetchSource is all', async () => {
-      // Create simple test fixtures that we know will work
+      // Create simple test fixtures that match our schema requirements
       const simpleNetworkFixture = [{
-        id: 9001,
-        name: 'CBS Show',
+        id: 3777,
+        name: 'CBS Episode',
         airdate: '2025-03-26',
         airtime: '20:00',
         show: {
-          id: 9001,
+          id: 3777,
           name: 'CBS Show',
           network: {
-            name: 'CBS'
+            id: 1,
+            name: 'CBS',
+            country: {
+              name: 'United States',
+              code: 'US',
+              timezone: 'America/New_York'
+            }
           },
           language: 'English',
           type: 'Scripted',
@@ -193,7 +199,7 @@ describe('TvShowService Interface', () => {
       
       const simpleWebFixture = [{
         id: 9003,
-        name: 'Apple TV+ Show',
+        name: 'Apple TV+ Episode',
         airdate: '2025-03-26',
         airtime: '20:00',
         _embedded: {
@@ -201,7 +207,9 @@ describe('TvShowService Interface', () => {
             id: 9003,
             name: 'Apple TV+ Show',
             webChannel: {
-              name: 'Apple TV+'
+              id: 2,
+              name: 'Apple TV+',
+              country: null
             },
             language: 'English',
             type: 'Scripted',
@@ -245,8 +253,8 @@ describe('TvShowService Interface', () => {
       
       // Should have both network and web shows
       const networks = result.map(show => show.network);
-      expect(networks).toContain('CBS');
-      expect(networks.some(network => network?.includes('Apple TV+'))).toBe(true);
+      expect(networks).toContain('CBS (US)');
+      expect(networks.some(network => network === 'Apple TV+')).toBe(true);
     });
     
     it('applies language filter correctly', async () => {

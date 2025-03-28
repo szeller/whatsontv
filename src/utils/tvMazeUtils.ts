@@ -2,7 +2,12 @@
  * Utility functions for TVMaze API operations
  */
 import { getStringOrDefault } from './stringUtils.js';
-import type { Show } from '../types/tvShowModel.js';
+import { validateDataOrNull } from './validationUtils.js';
+import { 
+  networkScheduleItemSchema, 
+  webScheduleItemSchema 
+} from '../schemas/tvmaze.js';
+import type { Show } from '../schemas/domain.js';
 
 /**
  * Base URL for TVMaze API
@@ -15,7 +20,10 @@ const TV_MAZE_BASE_URL = 'https://api.tvmaze.com';
  * @param country Optional country code (e.g., 'US')
  * @returns Full URL for network schedule endpoint
  */
-export function getNetworkScheduleUrl(date: string, country?: string): string {
+export function getNetworkScheduleUrl(
+  date: string, 
+  country?: string
+): string {
   const baseUrl = `${TV_MAZE_BASE_URL}/schedule`;
   const params = new URLSearchParams();
   
@@ -30,7 +38,9 @@ export function getNetworkScheduleUrl(date: string, country?: string): string {
   }
   
   const queryString = params.toString();
-  return queryString ? `${baseUrl}?${queryString}` : baseUrl;
+  return queryString 
+    ? `${baseUrl}?${queryString}` 
+    : baseUrl;
 }
 
 /**
@@ -38,15 +48,18 @@ export function getNetworkScheduleUrl(date: string, country?: string): string {
  * @param date Date in YYYY-MM-DD format
  * @returns Full URL for web schedule endpoint
  */
-export function getWebScheduleUrl(date: string): string {
+export function getWebScheduleUrl(
+  date: string
+): string {
   const trimmedDate = getStringOrDefault(date, '');
-  return `${TV_MAZE_BASE_URL}/schedule/web${trimmedDate ? `?date=${trimmedDate}` : ''}`;
+  return `${TV_MAZE_BASE_URL}/schedule/web` + 
+    (trimmedDate ? `?date=${trimmedDate}` : '');
 }
 
 /**
- * Check if an item is from the web schedule endpoint
- * @param item The schedule item to check
- * @returns True if the item is from the web schedule endpoint
+ * Check if an item is a web schedule item
+ * @param item Item to check
+ * @returns True if the item is a web schedule item, false otherwise
  */
 export function isWebScheduleItem(item: unknown): boolean {
   if (item === null || item === undefined || typeof item !== 'object') {
@@ -54,10 +67,58 @@ export function isWebScheduleItem(item: unknown): boolean {
   }
   
   const itemObj = item as Record<string, unknown>;
-  return itemObj._embedded !== undefined && 
-         itemObj._embedded !== null && 
-         typeof itemObj._embedded === 'object' &&
-         (itemObj._embedded as Record<string, unknown>).show !== undefined;
+  
+  // Web schedule items have an _embedded property with a show property
+  return (
+    '_embedded' in itemObj && 
+    itemObj._embedded !== null && 
+    typeof itemObj._embedded === 'object' &&
+    (itemObj._embedded as Record<string, unknown>).show !== undefined
+  );
+}
+
+/**
+ * Format network name with country code if available
+ * 
+ * @param show Show data containing network or webChannel information
+ * @returns Formatted network name
+ */
+function formatNetworkName(
+  show: Record<string, unknown>
+): string {
+  let networkName = 'Unknown Network';
+  
+  if (show.network !== undefined && 
+      show.network !== null && 
+      typeof show.network === 'object') {
+    const network = show.network as Record<string, unknown>;
+    if (network.name !== undefined && 
+        typeof network.name === 'string') {
+      networkName = network.name;
+      
+      const hasCountry = network.country !== undefined && 
+                         network.country !== null && 
+                         typeof network.country === 'object';
+      
+      if (hasCountry) {
+        const country = network.country as Record<string, unknown>;
+        if (country.code !== undefined && 
+            typeof country.code === 'string') {
+          networkName += ` (${country.code})`;
+        }
+      }
+    }
+  } else if (show.webChannel !== undefined && 
+             show.webChannel !== null && 
+             typeof show.webChannel === 'object') {
+    const webChannel = show.webChannel as Record<string, unknown>;
+    if (webChannel.name !== undefined && 
+        typeof webChannel.name === 'string') {
+      networkName = webChannel.name;
+    }
+  }
+  
+  return networkName;
 }
 
 /**
@@ -68,134 +129,56 @@ export function isWebScheduleItem(item: unknown): boolean {
  * @param item TVMaze schedule item (either network or streaming format)
  * @returns Show object or null if transformation fails
  */
-export function transformScheduleItem(item: unknown): Show | null {
-  if (item === null || item === undefined || typeof item !== 'object') {
-    return null;
-  }
-
+export function transformScheduleItem(
+  item: unknown
+): Show | null {
   try {
-    // Cast item to a record to access properties
-    const itemObj = item as Record<string, unknown>;
-    
-    // Extract show data based on the structure
-    let showData: unknown;
-    
-    // Check if this is a web/streaming item (has _embedded.show)
-    if (isWebScheduleItem(item)) {
-      const embedded = itemObj._embedded as Record<string, unknown>;
-      if (embedded?.show !== undefined && embedded?.show !== null) {
-        showData = embedded.show;
-      }
+    // Try to parse as a network schedule item
+    const networkItem = validateDataOrNull(
+      networkScheduleItemSchema, 
+      item
+    );
+    if (networkItem !== null) {
+      return {
+        id: networkItem.show.id ?? 0,
+        name: networkItem.show.name ?? 'Unknown Show',
+        type: networkItem.show.type ?? 'unknown',
+        language: networkItem.show.language ?? null,
+        genres: networkItem.show.genres ?? [],
+        network: formatNetworkName(
+          networkItem.show as Record<string, unknown>
+        ),
+        summary: networkItem.show.summary ?? null,
+        airtime: networkItem.airtime ?? null,
+        season: networkItem.season ?? 0,
+        number: networkItem.number ?? 0
+      };
     }
     
-    // If not found in _embedded.show, check if it's a network item (has direct show property)
-    if (showData === undefined && itemObj.show !== undefined && itemObj.show !== null) {
-      showData = itemObj.show;
+    // If not a network item, try as a web schedule item
+    const webItem = validateDataOrNull(
+      webScheduleItemSchema, 
+      item
+    );
+    if (webItem !== null && 
+        webItem._embedded?.show !== undefined) {
+      return {
+        id: webItem._embedded.show.id ?? 0,
+        name: webItem._embedded.show.name ?? 'Unknown Show',
+        type: webItem._embedded.show.type ?? 'unknown',
+        language: webItem._embedded.show.language ?? null,
+        genres: webItem._embedded.show.genres ?? [],
+        network: formatNetworkName(
+          webItem._embedded.show as Record<string, unknown>
+        ),
+        summary: webItem._embedded.show.summary ?? null,
+        airtime: webItem.airtime ?? null,
+        season: webItem.season ?? 0,
+        number: webItem.number ?? 0
+      };
     }
     
-    // If we couldn't find show data, return null
-    if (showData === undefined || showData === null || typeof showData !== 'object') {
-      return null;
-    }
-
-    // Extract show fields
-    const show = showData as Record<string, unknown>;
-
-    // Extract episode data from the item (for airtime, season, number)
-    const episode = item as {
-      airtime?: string | null;
-      season?: number | string;
-      number?: number | string;
-    };
-
-    // Convert season/number to numbers regardless of input type
-    let seasonNum = 0;
-    if (typeof episode.season === 'string') {
-      const trimmedSeason = getStringOrDefault(episode.season, '');
-      if (trimmedSeason) {
-        seasonNum = parseInt(trimmedSeason, 10);
-        if (isNaN(seasonNum)) {
-          seasonNum = 0;
-        }
-      }
-    } else if (typeof episode.season === 'number') {
-      seasonNum = episode.season;
-    }
-    
-    let episodeNum = 0;
-    if (typeof episode.number === 'string') {
-      const trimmedNumber = getStringOrDefault(episode.number, '');
-      if (trimmedNumber) {
-        episodeNum = parseInt(trimmedNumber, 10);
-        if (isNaN(episodeNum)) {
-          episodeNum = 0;
-        }
-      }
-    } else if (typeof episode.number === 'number') {
-      episodeNum = episode.number;
-    }
-
-    // Get show properties
-    const name = typeof show.name === 'string' ? show.name : 'Unknown Show';
-    const type = typeof show.type === 'string' ? show.type : 'unknown';
-    const language = show.language !== undefined ? show.language as string | null : null;
-    const genres = Array.isArray(show.genres) ? show.genres as string[] : [];
-    const summary = show.summary !== undefined ? show.summary as string | null : null;
-    const id = typeof show.id === 'number' ? show.id : 0;
-
-    // Get network information
-    let networkName = 'Unknown Network';
-    
-    // Check for network property
-    const network = show.network;
-    const webChannel = show.webChannel;
-    
-    if (network !== null && 
-        network !== undefined && 
-        typeof network === 'object') {
-      // It's a network show
-      const networkObj = network as Record<string, unknown>;
-      if (networkObj.name !== undefined && 
-          networkObj.name !== null && 
-          typeof networkObj.name === 'string') {
-        networkName = networkObj.name;
-        
-        // Append country code if available
-        if (networkObj.country !== undefined && 
-            networkObj.country !== null && 
-            typeof networkObj.country === 'object') {
-          const countryObj = networkObj.country as Record<string, unknown>;
-          if (countryObj.code !== undefined && 
-              countryObj.code !== null && 
-              typeof countryObj.code === 'string') {
-            networkName += ` (${countryObj.code})`;
-          }
-        }
-      }
-    } else if (webChannel !== null && 
-              webChannel !== undefined && 
-              typeof webChannel === 'object') {
-      // It's a streaming show
-      const webChannelObj = webChannel as Record<string, unknown>;
-      if (webChannelObj.name !== undefined && 
-          webChannelObj.name !== null && 
-          typeof webChannelObj.name === 'string') {
-        networkName = webChannelObj.name;
-      }
-    }
-
-    return {
-      id,
-      name,
-      type,
-      language,
-      genres,
-      network: networkName,
-      summary,
-      airtime: episode.airtime ?? null,
-      season: seasonNum,
-      number: episodeNum
-    };
+    return null;
   } catch (error) {
     // Only log errors in production environments
     if (process.env.NODE_ENV === 'production') {
@@ -210,7 +193,9 @@ export function transformScheduleItem(item: unknown): Show | null {
  * @param data Raw TVMaze API schedule data
  * @returns Array of transformed Show objects
  */
-export function transformSchedule(data: unknown[]): Show[] {
+export function transformSchedule(
+  data: unknown[]
+): Show[] {
   if (!Array.isArray(data)) {
     return [];
   }
