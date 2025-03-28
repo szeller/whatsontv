@@ -4,7 +4,7 @@
  * Provides helper functions for testing with the TVMaze API
  */
 import type { HttpResponse } from '../../interfaces/httpClient.js';
-import { TvMazeFixtures } from '../fixtures/index.js';
+import { Fixtures } from '../fixtures/index.js';
 
 /**
  * Interface for network schedule item
@@ -106,8 +106,8 @@ export function setupTvMazeMocks(
     mockHttpClient.mockFixture(webEndpoint, 'web-schedule.json');
     
     // Set up individual show mocks for any show IDs that might be requested
-    const networkData = TvMazeFixtures.getNetworkSchedule() as NetworkScheduleItem[];
-    const webData = TvMazeFixtures.getWebSchedule() as WebScheduleItem[];
+    const networkData = Fixtures.tvMaze.getSchedule('network-schedule') as NetworkScheduleItem[];
+    const webData = Fixtures.tvMaze.getSchedule('web-schedule') as WebScheduleItem[];
     
     // Set up mocks for individual shows if needed
     if (Array.isArray(networkData)) {

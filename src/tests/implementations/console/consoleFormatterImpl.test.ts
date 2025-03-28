@@ -2,7 +2,7 @@ import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import { container, InjectionToken } from 'tsyringe';
 
 import { ConsoleFormatterImpl } from '../../../implementations/console/consoleFormatterImpl';
-import { createMockTvShowService } from '../../utils/testHelpers';
+import { createMockTvShowService } from '../../testutils/testHelpers';
 import type { Show } from '../../../types/tvShowModel.js';
 import type { TvShowService } from '../../../interfaces/tvShowService';
 import type { StyleService } from '../../../interfaces/styleService';
@@ -101,7 +101,7 @@ describe('ConsoleFormatterImpl', () => {
   describe('formatUntimedShow', () => {
     it('should format a show without airtime correctly', () => {
       const result = formatter.formatUntimedShow(mockShowNoAirtime);
-      expect(result).toContain('TBA');
+      expect(result).toContain('N/A');
       expect(result).toContain('Test Network');
       expect(result).toContain('Scripted');
       expect(result).toContain('Test Show');
@@ -126,19 +126,18 @@ describe('ConsoleFormatterImpl', () => {
       
       const result = formatter.formatMultipleEpisodes(episodes);
       
-      // Should have 3 lines: header + 2 episodes
-      expect(result.length).toBe(3);
+      // Should have 1 line with comma-separated episodes
+      expect(result.length).toBe(1);
       
-      // Header should contain show info
-      expect(result[0]).toContain('TBA');
+      // Line should contain show info and all episodes
+      expect(result[0]).toContain('N/A');
       expect(result[0]).toContain('Test Network');
       expect(result[0]).toContain('Scripted');
       expect(result[0]).toContain('Test Show');
-      expect(result[0]).toContain('Multiple');
+      expect(result[0]).toContain('S1E1-2');
       
-      // Episode lines should contain episode info
-      expect(result[1]).toContain('S1E1');
-      expect(result[2]).toContain('S1E2');
+      // Should not contain the "Multiple Episodes" label
+      expect(result[0]).not.toContain('Multiple Episodes');
     });
 
     it('should return empty array for empty array', () => {
@@ -166,13 +165,17 @@ describe('ConsoleFormatterImpl', () => {
       const result = formatter.formatNetworkGroups(networkGroups);
       
       // Networks are sorted alphabetically, so "Another Network" comes first
-      expect(result).toHaveLength(6); // 2 networks with a header, separator, and show line each
+      // This test case checks the length of the result array
+      expect(result).toHaveLength(7); 
+      
+      // This test case checks the contents of the result array
       expect(result[0]).toContain('Another Network');
       expect(result[1]).toContain('---------------'); // Separator line
       expect(result[2]).toContain('Test Show');
-      expect(result[3]).toContain('Test Network');
-      expect(result[4]).toContain('------------'); // Separator line
-      expect(result[5]).toContain('Test Show');
+      expect(result[3]).toBe(''); // Empty line between networks
+      expect(result[4]).toContain('Test Network');
+      expect(result[5]).toContain('------------'); // Separator line
+      expect(result[6]).toContain('Test Show');
     });
     
     it('should apply custom sorting when timeSort is true', () => {

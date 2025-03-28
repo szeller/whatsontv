@@ -2,7 +2,7 @@
  * Tests for the console output implementation
  */
 import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
-import { createMockConsole } from '../../utils/consoleTestHelpers.js';
+import { createMockConsole } from '../../testutils/consoleTestHelpers.js';
 import { ConsoleOutputImpl } from '../../../implementations/console/consoleOutputImpl.js';
 
 describe('ConsoleOutputImpl', () => {

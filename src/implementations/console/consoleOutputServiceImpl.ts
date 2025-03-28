@@ -93,12 +93,12 @@ export class ConsoleOutputServiceImpl implements OutputService {
       ? this.groupShowsByNetwork(sortedShows) 
       : { 'All Shows': sortedShows };
     
-    // Format the shows - pass the groupByNetwork value as timeSort
-    // This maintains compatibility with existing tests
-    const formattedOutput = this.formatter.formatNetworkGroups(networkGroups, groupByNetwork);
-
-    // Display each line of output
     try {
+      // Format the shows - pass the groupByNetwork value as timeSort
+      // This maintains compatibility with existing tests
+      const formattedOutput = this.formatter.formatNetworkGroups(networkGroups, groupByNetwork);
+      
+      // Display each line of output
       for (const line of formattedOutput) {
         await Promise.resolve(this.output.log(line));
       }
@@ -183,13 +183,13 @@ export class ConsoleOutputServiceImpl implements OutputService {
     networkGroups: NetworkGroups,
     timeSort: boolean = false
   ): Promise<void> {
-    const formattedOutput = this.formatter.formatNetworkGroups(
-      networkGroups,
-      timeSort
-    );
-
-    // Display each line of output
     try {
+      const formattedOutput = this.formatter.formatNetworkGroups(
+        networkGroups,
+        timeSort
+      );
+
+      // Display each line of output
       for (const line of formattedOutput) {
         await Promise.resolve(this.output.log(line));
       }
@@ -287,15 +287,28 @@ export class ConsoleOutputServiceImpl implements OutputService {
    * Display application header
    */
   public displayHeader(): void {
-    this.output.log('\nWhatsOnTV v1.0.0');
-    this.output.log('='.repeat(30));
+    // Use package version (hardcoded for now, could be imported from package.json)
+    const version = '1.0.0';
+    
+    // Create a header with app name and version
+    const appHeader = `WhatsOnTV v${version}`;
+    const separator = '==============================';
+    
+    // Display header
+    this.output.log('');
+    this.output.log(appHeader);
+    this.output.log(separator);
   }
-
+  
   /**
    * Display application footer
    */
   public displayFooter(): void {
-    this.output.log('\n' + '='.repeat(30));
+    const separator = '==============================';
+    
+    // Display footer
+    this.output.log('');
+    this.output.log(separator);
     this.output.log('Data provided by TVMaze API (https://api.tvmaze.com)');
   }
 }

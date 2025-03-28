@@ -207,30 +207,3 @@ export class Fixtures {
     }
   };
 }
-
-// Keep the old classes for backward compatibility
-/**
- * @deprecated Use Fixtures.tvMaze instead
- */
-export class TvMazeFixtures {
-  static getSchedule = (
-    name: 'network-schedule' | 'web-schedule' | 'combined-schedule'
-  ): Record<string, unknown>[] => Fixtures.tvMaze.getSchedule(name);
-  
-  static getScheduleString = (
-    name: 'network-schedule' | 'web-schedule' | 'combined-schedule'
-  ): string => Fixtures.tvMaze.getScheduleString(name);
-  
-  static loadNetworkShows = (): Show[] => Fixtures.tvMaze.loadNetworkShows();
-  static loadWebShows = (): Show[] => Fixtures.tvMaze.loadWebShows();
-  static loadCombinedShows = (): Show[] => Fixtures.tvMaze.loadCombinedShows();
-}
-
-/**
- * @deprecated Use Fixtures.domain instead
- */
-export class DomainFixtures {
-  static getNetworkShows = (): Show[] => Fixtures.domain.getNetworkShows();
-  static getStreamingShows = (): Show[] => Fixtures.domain.getStreamingShows();
-  static getNetworkGroups = (): NetworkGroups => Fixtures.domain.getNetworkGroups();
-}

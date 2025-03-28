@@ -7,9 +7,9 @@ import { container } from 'tsyringe';
 import { TvMazeServiceImpl } from '../../implementations/tvMazeServiceImpl.js';
 import type { HttpClient } from '../../interfaces/httpClient.js';
 import type { Show } from '../../types/tvShowModel.js';
-import { TvMazeFixtures } from '../fixtures/index.js';
+import { Fixtures } from '../fixtures/index.js';
 import { getNetworkScheduleUrl, getWebScheduleUrl } from '../../utils/tvMazeUtils.js';
-import { MockHttpClient } from '../utils/mockHttpClient.js';
+import { MockHttpClient } from '../testutils/mockHttpClient.js';
 import { getTodayDate } from '../../utils/dateUtils.js';
 
 describe('TvMazeServiceImpl', () => {
@@ -47,7 +47,7 @@ describe('TvMazeServiceImpl', () => {
     it('returns shows for a specific date', async () => {
       // Mock the HTTP client for this specific endpoint
       mockHttpClient.mockGet(getNetworkScheduleUrl('2023-01-01', 'US'), {
-        data: TvMazeFixtures.getNetworkSchedule(),
+        data: Fixtures.tvMaze.getSchedule('network-schedule'),
         status: 200,
         headers: {}
       });
@@ -60,7 +60,7 @@ describe('TvMazeServiceImpl', () => {
       // Mock the HTTP client for this specific endpoint
       const todayDate = getTodayDate(); // Format: YYYY-MM-DD
       mockHttpClient.mockGet(getNetworkScheduleUrl(todayDate, 'US'), {
-        data: TvMazeFixtures.getNetworkSchedule(),
+        data: Fixtures.tvMaze.getSchedule('network-schedule'),
         status: 200,
         headers: {}
       });
@@ -154,7 +154,7 @@ describe('TvMazeServiceImpl', () => {
       // Mock the web schedule endpoint
       const todayDate = getTodayDate();
       mockHttpClient.mockGet(getWebScheduleUrl(todayDate), {
-        data: TvMazeFixtures.getWebSchedule(),
+        data: Fixtures.tvMaze.getSchedule('web-schedule'),
         status: 200,
         headers: {}
       });
@@ -169,13 +169,13 @@ describe('TvMazeServiceImpl', () => {
       // Mock both endpoints
       const todayDate = getTodayDate();
       mockHttpClient.mockGet(getNetworkScheduleUrl(todayDate, 'US'), {
-        data: TvMazeFixtures.getNetworkSchedule(),
+        data: Fixtures.tvMaze.getSchedule('network-schedule'),
         status: 200,
         headers: {}
       });
       
       mockHttpClient.mockGet(getWebScheduleUrl(todayDate), {
-        data: TvMazeFixtures.getWebSchedule(),
+        data: Fixtures.tvMaze.getSchedule('web-schedule'),
         status: 200,
         headers: {}
       });

@@ -5,6 +5,7 @@ import type { ShowFormatter } from '../../interfaces/showFormatter.js';
 import type { StyleService } from '../../interfaces/styleService.js';
 import type { TvShowService } from '../../interfaces/tvShowService.js';
 import type { Show } from '../../types/tvShowModel.js';
+import { compareEpisodes, sortShowsByTime, formatEpisodeRanges } from '../../utils/showUtils.js';
 
 /**
  * Console implementation of the ShowFormatter interface
@@ -15,7 +16,7 @@ export class ConsoleFormatterImpl implements ShowFormatter {
   // Constants for formatting
   private readonly UNKNOWN_SHOW = 'Unknown Show';
   private readonly UNKNOWN_TYPE = 'Unknown';
-  private readonly NO_AIRTIME = 'TBA';
+  private readonly NO_AIRTIME = 'N/A';
   private readonly MULTIPLE_EPISODES = 'Multiple Episodes';
   
   // Padding lengths for consistent column widths
@@ -24,7 +25,7 @@ export class ConsoleFormatterImpl implements ShowFormatter {
     network: 15,
     type: 10,
     showName: 25,
-    episodeInfo: 10
+    episodeInfo: 20
   };
   
   /**
@@ -113,8 +114,8 @@ export class ConsoleFormatterImpl implements ShowFormatter {
   }
 
   /**
-   * Format multiple episodes of the same show with no specific airtime
-   * @param episodes Episodes to format
+   * Format multiple episodes of the same show
+   * @param episodes Array of episodes to format
    * @returns Formatted episodes string array
    */
   public formatMultipleEpisodes(episodes: Show[]): string[] {
@@ -146,26 +147,18 @@ export class ConsoleFormatterImpl implements ShowFormatter {
     const showNameStr: string = this.styleService.green(
       showName.padEnd(this.PAD_LENGTHS.showName)
     );
-    const multipleStr: string = this.styleService.yellow(
-      this.MULTIPLE_EPISODES.padEnd(this.PAD_LENGTHS.episodeInfo)
+    
+    // Create smart episode ranges instead of comma-separated list
+    const episodeList = formatEpisodeRanges(episodes);
+    const episodeInfoStr: string = this.styleService.yellow(
+      episodeList.padEnd(this.PAD_LENGTHS.episodeInfo)
     );
     
-    // Create header line
-    const headerLine = `${timeStr} ${networkStr} ${typeStr} ${showNameStr} ${multipleStr}`;
+    // Create a single line with all episodes
+    const formattedLine = `${timeStr} ${networkStr} ${typeStr} ${showNameStr} ${episodeInfoStr}`;
     
-    // Format individual episodes
-    const episodeLines = episodes.map(episode => {
-      const episodeInfo = `S${episode.season}E${episode.number}`;
-      const episodeInfoStr: string = this.styleService.yellow(
-        episodeInfo.padEnd(this.PAD_LENGTHS.episodeInfo)
-      );
-      
-      // Indent episode lines for better readability
-      return `    ${episodeInfoStr}`;
-    });
-    
-    // Return as array of strings
-    return [headerLine, ...episodeLines];
+    // Return as array with a single string
+    return [formattedLine];
   }
 
   /**
@@ -188,7 +181,7 @@ export class ConsoleFormatterImpl implements ShowFormatter {
     // Process each network
     for (const network of networks) {
       // Get shows for this network
-      const shows = networkGroups[network];
+      let shows = networkGroups[network];
       
       // Skip empty networks
       if (shows.length === 0) {
@@ -197,9 +190,16 @@ export class ConsoleFormatterImpl implements ShowFormatter {
       
       // Add network header if grouping by network
       if (groupByNetwork) {
-        output.push(this.styleService.boldCyan(`\n${network}:`));
+        // Add extra line before each network (except the first one)
+        if (output.length > 0) {
+          output.push('');
+        }
         
-        // Add separator line
+        // Create a more prominent header with network name
+        const networkHeader = `${network}:`;
+        output.push(this.styleService.boldCyan(networkHeader));
+        
+        // Add a more visible separator line
         const separatorLine = '-'.repeat(network.length + 1);
         output.push(this.styleService.dim(separatorLine));
       }
@@ -216,58 +216,22 @@ export class ConsoleFormatterImpl implements ShowFormatter {
       
       // Sort shows by time if requested
       if (groupByNetwork && timeSort) {
-        shows.sort((a, b) => {
-          // Handle shows without airtime
-          if (a.airtime === undefined || a.airtime === null || a.airtime === '') {
-            return 1;
-          }
-          if (b.airtime === undefined || b.airtime === null || b.airtime === '') {
-            return -1;
-          }
-          
-          // Convert airtime strings to minutes since midnight for proper comparison
-          const getTimeInMinutes = (timeStr: string): number => {
-            // Normalize the time format
-            let hours = 0;
-            let minutes = 0;
-            
-            // Handle various time formats
-            if (timeStr.includes(':')) {
-              // Format: "HH:MM" or "H:MM" with optional AM/PM
-              const timeParts = timeStr.split(':');
-              hours = parseInt(timeParts[0], 10);
-              
-              // Extract minutes, removing any AM/PM suffix
-              const minutesPart = timeParts[1].replace(/\s*[APap][Mm].*$/, '');
-              minutes = parseInt(minutesPart, 10);
-              
-              // Handle AM/PM if present
-              const isPM = /\s*[Pp][Mm]/.test(timeStr);
-              const isAM = /\s*[Aa][Mm]/.test(timeStr);
-              
-              if (isPM && hours < 12) {
-                hours += 12;
-              } else if (isAM && hours === 12) {
-                hours = 0;
-              }
-            } else {
-              // Format without colon, assume it's just hours
-              hours = parseInt(timeStr, 10);
-            }
-            
-            return hours * 60 + minutes;
-          };
-          
-          const aMinutes = getTimeInMinutes(a.airtime);
-          const bMinutes = getTimeInMinutes(b.airtime);
-          
-          return aMinutes - bMinutes;
-        });
+        // Use the improved sortShowsByTime function from showUtils
+        shows = sortShowsByTime(shows);
       }
       
-      // Format each show or show group
-      for (const showId of Object.keys(showGroups)) {
+      // Process each show group in the order of the sorted shows
+      const processedShowIds = new Set<string>();
+      
+      // First process shows in the sorted order
+      for (const show of shows) {
+        const showId = show.id.toString();
+        if (processedShowIds.has(showId)) {
+          continue;
+        }
+        
         const showGroup = showGroups[showId];
+        processedShowIds.add(showId);
         
         // Format based on number of episodes
         if (showGroup.length === 1) {
@@ -277,10 +241,14 @@ export class ConsoleFormatterImpl implements ShowFormatter {
           return show.airtime === undefined || show.airtime === null || show.airtime === '';
         })) {
           // Multiple episodes without airtime
-          output.push(...this.formatMultipleEpisodes(showGroup));
+          // Sort episodes by season and episode number
+          const sortedEpisodes = [...showGroup].sort(compareEpisodes);
+          output.push(...this.formatMultipleEpisodes(sortedEpisodes));
         } else {
           // Multiple episodes with different airtimes
-          for (const show of showGroup) {
+          // Sort by airtime, then by episode number
+          const sortedEpisodes = sortShowsByTime(showGroup);
+          for (const show of sortedEpisodes) {
             output.push(this.formatShow(show));
           }
         }

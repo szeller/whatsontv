@@ -162,6 +162,8 @@ The project documentation is organized into the following structure:
 
 - [Architecture Documentation](docs/architecture/): System design, architecture decisions, and API references
 - [Development Documentation](docs/development/): Development guides, standards, and processes
+  - [Testing Standards](docs/development/testingStandards.md): Comprehensive testing guidelines and fixture usage
+  - [Test Coverage Improvement Plan](docs/development/improveTestCoverage.md): Detailed plan for improving test coverage
 - [Archive](docs/archive/): Historical documentation for completed work
 
 ## Development
@@ -169,10 +171,11 @@ The project documentation is organized into the following structure:
 - Uses Jest for testing with coverage requirements:
   - Target: 80% coverage across all metrics
   - Current coverage:
-    - Statements: 56.15%
-    - Branches: 51.78%
-    - Functions: 52.27%
-    - Lines: 56.70%
+    - Statements: 90.45%
+    - Branches: 82.32%
+    - Functions: 89.23%
+    - Lines: 90.22%
+- Comprehensive test fixtures system for consistent testing
 - ESM modules for better tree-shaking
 - Follows modern TypeScript best practices
 - Code style enforced via ESLint v9 with TypeScript-ESLint v8:

@@ -49,24 +49,24 @@ export function getStreamingShows(): Show[] {
       name: 'Sample Streaming Show 1',
       type: 'scripted',
       language: 'English',
-      genres: ['Comedy', 'Drama'],
+      genres: ['Drama', 'Sci-Fi'],
       network: 'Netflix',
       summary: 'A sample streaming show for testing',
-      airtime: null,
+      airtime: '',
       season: 1,
       number: 1
     },
     {
       id: 4,
       name: 'Sample Streaming Show 2',
-      type: 'documentary',
+      type: 'reality',
       language: 'English',
-      genres: ['Documentary'],
+      genres: ['Reality'],
       network: 'Hulu',
       summary: 'Another sample streaming show for testing',
-      airtime: null,
-      season: 1,
-      number: 2
+      airtime: '',
+      season: 3,
+      number: 5
     }
   ];
 }
@@ -79,15 +79,27 @@ export function getCableShows(): Show[] {
   return [
     {
       id: 5,
-      name: 'Sample Cable Show',
+      name: 'Sample Cable Show 1',
       type: 'scripted',
       language: 'English',
-      genres: ['Drama'],
+      genres: ['Drama', 'Crime'],
       network: 'HBO',
       summary: 'A sample cable show for testing',
-      airtime: '21:00',
-      season: 1,
-      number: 1
+      airtime: '22:00',
+      season: 2,
+      number: 4
+    },
+    {
+      id: 6,
+      name: 'Sample Cable Show 2',
+      type: 'talk show',
+      language: 'English',
+      genres: ['Talk Show'],
+      network: 'Showtime',
+      summary: 'Another sample cable show for testing',
+      airtime: '23:00',
+      season: 5,
+      number: 12
     }
   ];
 }
@@ -101,5 +113,64 @@ export function getAllShows(): Show[] {
     ...getNetworkShows(),
     ...getStreamingShows(),
     ...getCableShows()
+  ];
+}
+
+/**
+ * Get sample shows with specific episode sequences
+ * @param count Number of episodes to create
+ * @param season Season number
+ * @param startNumber Starting episode number
+ * @returns Array of sequential episode shows
+ */
+export function getEpisodeSequence(
+  count: number,
+  season = 1,
+  startNumber = 1
+): Show[] {
+  return Array.from({ length: count }, (_, index) => ({
+    id: 1000 + index,
+    name: `Episode ${startNumber + index}`,
+    type: 'scripted',
+    language: 'English',
+    genres: ['Drama'],
+    network: 'ABC',
+    summary: 'A test episode in a sequence',
+    airtime: '',
+    season,
+    number: startNumber + index
+  }));
+}
+
+/**
+ * Get sample shows with mixed airtime values
+ * @returns Array of shows with and without airtimes
+ */
+export function getMixedAirtimeShows(): Show[] {
+  return [
+    {
+      id: 101,
+      name: 'Show with time',
+      type: 'scripted',
+      language: 'English',
+      genres: ['Drama'],
+      network: 'ABC',
+      summary: 'A show with airtime',
+      airtime: '20:00',
+      season: 1,
+      number: 1
+    },
+    {
+      id: 102,
+      name: 'Show without time',
+      type: 'scripted',
+      language: 'English',
+      genres: ['Drama'],
+      network: 'ABC',
+      summary: 'A show without airtime',
+      airtime: '',
+      season: 1,
+      number: 2
+    }
   ];
 }
