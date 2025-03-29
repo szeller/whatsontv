@@ -49,4 +49,4 @@ export const Fixtures = {
 export { domainShows, domainNetworks, tvmazeModels };
 
 // Export types for convenience
-export type { Show, NetworkGroups } from '../../types/tvShowModel.js';
+export type { Show, NetworkGroups } from '../../schemas/domain.js';
