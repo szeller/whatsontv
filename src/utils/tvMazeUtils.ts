@@ -57,7 +57,8 @@ export function getWebScheduleUrl(
 }
 
 /**
- * Check if an item is a web schedule item
+ * Check if an item is a web schedule item (from /schedule/web endpoint)
+ * 
  * @param item Item to check
  * @returns True if the item is a web schedule item, false otherwise
  */
@@ -133,57 +134,59 @@ export function transformScheduleItem(
   item: unknown
 ): Show | null {
   try {
-    // Try to parse as a network schedule item
-    const networkItem = validateDataOrNull(
-      networkScheduleItemSchema, 
-      item
-    );
-    if (networkItem !== null) {
-      return {
-        id: networkItem.show.id ?? 0,
-        name: networkItem.show.name ?? 'Unknown Show',
-        type: networkItem.show.type ?? 'unknown',
-        language: networkItem.show.language ?? null,
-        genres: networkItem.show.genres ?? [],
-        network: formatNetworkName(
-          networkItem.show as Record<string, unknown>
-        ),
-        summary: networkItem.show.summary ?? null,
-        airtime: networkItem.airtime ?? null,
-        season: networkItem.season ?? 0,
-        number: networkItem.number ?? 0
-      };
-    }
+    // First determine if this is a web schedule item
+    const isWeb = isWebScheduleItem(item);
     
-    // If not a network item, try as a web schedule item
-    const webItem = validateDataOrNull(
-      webScheduleItemSchema, 
-      item
-    );
-    if (webItem !== null && 
-        webItem._embedded?.show !== undefined) {
-      return {
-        id: webItem._embedded.show.id ?? 0,
-        name: webItem._embedded.show.name ?? 'Unknown Show',
-        type: webItem._embedded.show.type ?? 'unknown',
-        language: webItem._embedded.show.language ?? null,
-        genres: webItem._embedded.show.genres ?? [],
-        network: formatNetworkName(
-          webItem._embedded.show as Record<string, unknown>
-        ),
-        summary: webItem._embedded.show.summary ?? null,
-        airtime: webItem.airtime ?? null,
-        season: webItem.season ?? 0,
-        number: webItem.number ?? 0
-      };
+    if (isWeb) {
+      // Only try to parse as a web schedule item
+      const webItem = validateDataOrNull(
+        webScheduleItemSchema, 
+        item
+      );
+      if (webItem !== null && 
+          webItem._embedded?.show !== undefined) {
+        return {
+          id: webItem._embedded.show.id ?? 0,
+          name: webItem._embedded.show.name ?? 'Unknown Show',
+          type: webItem._embedded.show.type ?? 'unknown',
+          language: webItem._embedded.show.language ?? null,
+          genres: webItem._embedded.show.genres ?? [],
+          network: formatNetworkName(
+            webItem._embedded.show as Record<string, unknown>
+          ),
+          summary: webItem._embedded.show.summary ?? null,
+          airtime: webItem.airtime ?? null,
+          season: webItem.season ?? 0,
+          number: webItem.number ?? 0
+        };
+      }
+    } else {
+      // Only try to parse as a network schedule item
+      const networkItem = validateDataOrNull(
+        networkScheduleItemSchema, 
+        item
+      );
+      if (networkItem !== null) {
+        return {
+          id: networkItem.show.id ?? 0,
+          name: networkItem.show.name ?? 'Unknown Show',
+          type: networkItem.show.type ?? 'unknown',
+          language: networkItem.show.language ?? null,
+          genres: networkItem.show.genres ?? [],
+          network: formatNetworkName(
+            networkItem.show as Record<string, unknown>
+          ),
+          summary: networkItem.show.summary ?? null,
+          airtime: networkItem.airtime ?? null,
+          season: networkItem.season ?? 0,
+          number: networkItem.number ?? 0
+        };
+      }
     }
     
     return null;
   } catch (error) {
-    // Only log errors in production environments
-    if (process.env.NODE_ENV === 'production') {
-      console.error('Error transforming schedule item:', error);
-    }
+    console.error('Error transforming schedule item:', error);
     return null;
   }
 }

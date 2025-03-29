@@ -4,6 +4,15 @@
 import { z } from 'zod';
 
 /**
+ * Check if we're in a test environment
+ * @returns true if we're in a test environment
+ */
+function isTestEnvironment(): boolean {
+  return process.env.NODE_ENV === 'test' || 
+         process.env.JEST_WORKER_ID !== undefined;
+}
+
+/**
  * Validates data against a schema and returns the validated data
  * Throws an error if validation fails
  * 
@@ -20,7 +29,10 @@ export function validateData<T extends z.ZodType>(
   const result = schema.safeParse(data);
   
   if (!result.success) {
-    console.error('Validation error:', result.error);
+    // Only log errors in development environments and not in tests
+    if (process.env.NODE_ENV !== 'production' && !isTestEnvironment()) {
+      console.error('Validation error:', result.error);
+    }
     throw new Error(errorMessage);
   }
   
@@ -43,7 +55,10 @@ export function validateDataOrNull<T extends z.ZodType>(
   const result = schema.safeParse(data);
   
   if (!result.success) {
-    console.error('Validation error:', result.error);
+    // Only log errors in development environments and not in tests
+    if (process.env.NODE_ENV !== 'production' && !isTestEnvironment()) {
+      console.error('Validation error:', result.error);
+    }
     return null;
   }
   

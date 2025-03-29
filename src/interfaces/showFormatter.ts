@@ -1,4 +1,4 @@
-import type { NetworkGroups, Show } from '../types/tvShowModel.js';
+import type { NetworkGroups, Show } from '../schemas/domain.js';
 
 /**
  * Interface for formatters that format TV show information

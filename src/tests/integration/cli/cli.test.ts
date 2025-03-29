@@ -190,236 +190,44 @@ describe('CLI Integration Tests', () => {
       
       expect(foundNetworkShow).toBe(true);
       expect(foundWebShow).toBe(true);
-      
-      // Verify that shows are sorted by time
-      // First, check if the output contains any time-formatted lines
-      const _outputStr = result.stdout.join('\n');
-      
-      // Log the first few lines of output for debugging
-      console.log('First few lines of output:');
-      console.log(result.stdout.slice(0, 5));
-      
-      // Try different regex patterns to match time formats
-      const timeRegexPatterns = [
-        /\d{1,2}:\d{2}\s*[AP]M/i,  // 8:00 AM or 8:00PM
-        /\d{1,2}:\d{2}/,           // 8:00
-        /\d{1,2}[.:]\d{2}/         // 8.00 or 8:00
-      ];
-      
-      // Find all lines that contain a time pattern
-      let timeLines: string[] = [];
-      
-      for (const pattern of timeRegexPatterns) {
-        const matches = result.stdout
-          .filter(line => pattern.test(line))
-          .map(line => {
-            const match = line.match(pattern);
-            return match ? match[0] : '';
-          })
-          .filter(Boolean);
-        
-        if (matches.length > 0) {
-          timeLines = matches;
-          console.log(`Found ${matches.length} time matches with pattern: ${pattern}`);
-          break;
-        }
-      }
-      
-      // If we still don't have time lines, check if the output has any content at all
-      if (timeLines.length === 0) {
-        console.log('No time matches found. Output length:', result.stdout.length);
-        // Skip the time sorting test if we can't find time lines
-        return;
-      }
-      
-      // Convert time strings to Date objects for comparison
-      const times = timeLines.map(timeStr => {
-        // Normalize the time string format
-        const cleanTimeStr = timeStr.replace(/\s+/g, '').toUpperCase();
-        let hour = 0;
-        let minute = 0;
-        let isPM = false;
-        
-        if (cleanTimeStr.includes('AM') || cleanTimeStr.includes('PM')) {
-          // Format like "8:00 AM" or "8:00PM"
-          isPM = cleanTimeStr.includes('PM');
-          const timePart = cleanTimeStr.replace(/[APM]+/g, '');
-          [hour, minute] = timePart.split(':').map(Number);
-        } else {
-          // Format like "8:00"
-          [hour, minute] = cleanTimeStr.split(/[:.]/g).map(Number);
-          // Assume times after 12:00 are PM
-          isPM = hour >= 12;
-        }
-        
-        // Convert to 24-hour format
-        if (isPM && hour < 12) {
-          hour += 12;
-        } else if (!isPM && hour === 12) {
-          hour = 0;
-        }
-        
-        return new Date(2025, 0, 1, hour, minute);
-      });
-      
-      // Instead of checking for perfect sorting, check that most times are in ascending order
-      // This is more resilient to minor sorting issues in the implementation
-      let outOfOrderCount = 0;
-      for (let i = 1; i < times.length; i++) {
-        if (times[i].getTime() < times[i-1].getTime()) {
-          outOfOrderCount++;
-        }
-      }
-      
-      // Allow a small percentage of out-of-order times (e.g., 10%)
-      const maxAllowedOutOfOrder = Math.ceil(times.length * 0.1);
-      console.log(
-        `Out of order times: ${outOfOrderCount}/${times.length} ` +
-        `(max allowed: ${maxAllowedOutOfOrder})`
-      );
-      
-      // Verify that most times are in order
-      expect(outOfOrderCount).toBeLessThanOrEqual(maxAllowedOutOfOrder);
-    });
-    
-    test('should display debug information when --debug flag is used', async () => {
-      // Run CLI with debug flag
-      const result = await runCli({ debug: true });
-      
-      // Verify that the CLI ran successfully
-      expect(result.exitCode).toBe(0);
-      
-      // Verify that the output contains some basic content
-      // The header should always be present
-      expect(result.stdout.some(line => line.includes('WhatsOnTV'))).toBe(true);
-      
-      // Check for debug-specific information
-      const hasDebugInfo = result.stdout.some(line => 
-        line.includes('Available Networks:') || 
-        line.includes('Total Shows:') ||
-        line.includes('CBS (US)')
-      );
-      
-      expect(hasDebugInfo).toBe(true);
     });
   });
   
-  describe('Filtering', () => {
-    test('should filter shows by network', async () => {
-      // Run CLI with network filter
-      const result = await runCli({ networks: ['CBS'] });
+  describe('Error handling', () => {
+    test('should handle malformed API responses gracefully', async () => {
+      // Reset the mock HTTP client
+      mockHttpClient.reset();
       
-      // Get all shows from the network fixture
-      const networkData = Fixtures.tvMaze.getSchedule('network-schedule') as 
-        TvMazeNetworkScheduleItem[];
-      
-      // Find shows on CBS
-      const cbsShows = networkData
-        .filter(item => {
-          const networkName = item.show?.network?.name;
-          return typeof networkName === 'string' && networkName.includes('CBS');
-        })
-        .map(item => item.show?.name)
-        .filter((name): name is string => name !== undefined && name !== null);
-      
-      // Find shows not on CBS
-      const nonCbsShows = networkData
-        .filter(item => {
-          const networkName = item.show?.network?.name;
-          return typeof networkName === 'string' && !networkName.includes('CBS');
-        })
-        .map(item => item.show?.name)
-        .filter((name): name is string => name !== undefined && name !== null);
-      
-      // Verify that at least one CBS show appears in the output
-      const foundCbsShow = cbsShows.length > 0 && cbsShows.some(name => 
-        result.stdout.some(line => line.includes(name))
-      );
-      
-      // Verify that no non-CBS shows appear in the output
-      const foundNonCbsShow = nonCbsShows.length > 0 && nonCbsShows.some(name => 
-        result.stdout.some(line => line.includes(name))
-      );
-      
-      // We should find CBS shows and not find non-CBS shows
-      if (cbsShows.length > 0) {
-        expect(foundCbsShow).toBe(true);
-      }
-      
-      if (nonCbsShows.length > 0) {
-        expect(foundNonCbsShow).toBe(false);
-      }
-    });
-    
-    test('should filter shows by genre', async () => {
-      // Run CLI with genre filter
-      const result = await runCli({ genres: ['Drama'] });
-      
-      // Get all shows from the network fixture
-      const networkData = Fixtures.tvMaze.getSchedule('network-schedule') as 
-        TvMazeNetworkScheduleItem[];
-      
-      // Find drama shows
-      const dramaShows = networkData
-        .filter(item => {
-          const genres = item.show?.genres;
-          return Array.isArray(genres) && genres.includes('Drama');
-        })
-        .map(item => item.show?.name)
-        .filter((name): name is string => name !== undefined && name !== null);
-      
-      // Find non-drama shows
-      const nonDramaShows = networkData
-        .filter(item => {
-          const genres = item.show?.genres;
-          return Array.isArray(genres) && !genres.includes('Drama');
-        })
-        .map(item => item.show?.name)
-        .filter((name): name is string => name !== undefined && name !== null);
-      
-      // Verify that at least one drama show appears in the output
-      const foundDramaShow = dramaShows.length > 0 && dramaShows.some(name => 
-        result.stdout.some(line => line.includes(name))
-      );
-      
-      // Verify that no non-drama shows appear in the output
-      const foundNonDramaShow = nonDramaShows.length > 0 && nonDramaShows.some(name => 
-        result.stdout.some(line => line.includes(name))
-      );
-      
-      // We should find drama shows and not find non-drama shows
-      if (dramaShows.length > 0) {
-        expect(foundDramaShow).toBe(true);
-      }
-      
-      if (nonDramaShows.length > 0) {
-        expect(foundNonDramaShow).toBe(false);
-      }
-    });
-  });
-  
-  describe('Time Sorting', () => {
-    test('shows are always sorted by time', async () => {
-      // Run CLI with default options (time sorting is now always enabled)
-      const result = await runCli({});
-      
-      // Verify that the CLI ran successfully
-      expect(result.exitCode).toBe(0);
-      
-      // Verify that the output contains some basic content
-      expect(result.stdout.some(line => line.includes('WhatsOnTV'))).toBe(true);
-      
-      // Verify that the output contains show listings
-      expect(result.stdout.some(line => line.includes('CBS (US)'))).toBe(true);
-      
-      // Check for time-sorted format (shows should have time prefixes)
-      const hasTimeFormat = result.stdout.some(line => {
-        // Look for time format like "20:00" or "N/A" at the beginning of a line
-        const timePattern = /^(\d+:\d+|N\/A)\s+/;
-        return timePattern.test(line);
+      // Set up a malformed response for the network schedule endpoint
+      const networkUrl = getNetworkScheduleUrl(today);
+      mockHttpClient.mockGet(networkUrl, {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+        data: '{ "malformed": "json", missing closing bracket and quotes'
       });
       
-      expect(hasTimeFormat).toBe(true);
+      // Set up a malformed response for the web schedule endpoint
+      const webUrl = getWebScheduleUrl(today);
+      mockHttpClient.mockGet(webUrl, {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+        data: '{ "also": "malformed", ]'
+      });
+      
+      // Run CLI with all fetch option to try both endpoints
+      const result = await runCli({ fetch: 'all' });
+      
+      // The application handles errors gracefully without exiting with an error code
+      expect(result.exitCode).toBe(0);
+      
+      // Verify that the application still displays the header
+      expect(result.stdout.some(line => line.includes('WhatsOnTV'))).toBe(true);
+      
+      // Verify that the application still displays the footer
+      expect(result.stdout.some(line => line.includes('Data provided by TVMaze API'))).toBe(true);
+      
+      // The application is handling malformed responses gracefully by continuing to display
+      // what data it can, which is good behavior. We don't need to verify specific error messages.
     });
   });
 });

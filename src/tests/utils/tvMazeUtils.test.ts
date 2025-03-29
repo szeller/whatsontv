@@ -10,7 +10,7 @@ import {
   transformSchedule
 } from '../../utils/tvMazeUtils.js';
 import { Fixtures } from '../fixtures/index.js';
-import type { NetworkScheduleItem, WebScheduleItem } from '../../types/tvMazeModel.js';
+import type { NetworkScheduleItem, WebScheduleItem } from '../../schemas/tvmaze.js';
 
 // Type definition for the show property to help TypeScript
 interface ShowWithId {
