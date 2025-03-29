@@ -14,8 +14,6 @@ import {
 } from '@jest/globals';
 import { container } from 'tsyringe';
 
-import type { Show } from '../../types/tvShowModel.js';
-import type { ShowOptions } from '../../types/tvShowOptions.js';
 import type { TvShowService } from '../../interfaces/tvShowService.js';
 import type { HttpClient } from '../../interfaces/httpClient.js';
 import { TvMazeServiceImpl } from '../../implementations/tvMazeServiceImpl.js';
@@ -27,6 +25,8 @@ import {
   getWebScheduleUrl 
 } from '../../utils/tvMazeUtils.js';
 import { Fixtures } from '../fixtures/index.js';
+import type { Show } from '../../schemas/domain.js';
+import type { ShowOptions } from '../../types/tvShowOptions.js';
 
 // Load fixture data
 const networkScheduleFixtures = Fixtures.tvMaze.getSchedule('network-schedule');
