@@ -19,12 +19,14 @@ function isTestEnvironment(): boolean {
  * @param schema The Zod schema to validate against
  * @param data The data to validate
  * @param errorMessage Optional custom error message
+ * @param includeDetails Whether to include detailed validation errors in the message
  * @returns The validated data with proper type inference
  */
 export function validateData<T extends z.ZodType>(
   schema: T,
   data: unknown,
-  errorMessage = 'Validation error'
+  errorMessage = 'Validation error',
+  includeDetails = false
 ): z.infer<T> {
   const result = schema.safeParse(data);
   
@@ -33,7 +35,13 @@ export function validateData<T extends z.ZodType>(
     if (process.env.NODE_ENV !== 'production' && !isTestEnvironment()) {
       console.error('Validation error:', result.error);
     }
-    throw new Error(errorMessage);
+    
+    if (includeDetails) {
+      const formattedError = JSON.stringify(result.error.format(), null, 2);
+      throw new Error(`${errorMessage}\n${formattedError}`);
+    } else {
+      throw new Error(errorMessage);
+    }
   }
   
   // Type assertion is safe because we've verified the data with safeParse
@@ -65,4 +73,22 @@ export function validateDataOrNull<T extends z.ZodType>(
   // Type assertion is safe because we've verified the data with safeParse
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return result.data;
+}
+
+/**
+ * Validates an array of data against a schema for each item
+ * @param schema Schema for array items
+ * @param data Array data to validate
+ * @param errorMessage Optional custom error message
+ * @param includeDetails Whether to include detailed validation errors in the message
+ * @returns Validated array with proper typing
+ */
+export function validateArray<T extends z.ZodType>(
+  schema: T,
+  data: unknown[],
+  errorMessage = 'Array validation error',
+  includeDetails = false
+): z.infer<T>[] {
+  const arraySchema = z.array(schema);
+  return validateData(arraySchema, data, errorMessage, includeDetails);
 }

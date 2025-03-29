@@ -8,6 +8,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import type { Show, NetworkGroups } from '../../types/tvShowModel.js';
 import { transformSchedule } from '../../utils/tvMazeUtils.js';
+import { validateData, validateArray } from '../../utils/validationUtils.js';
+import type { z } from 'zod';
 
 // Get the directory name in ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -44,6 +46,56 @@ export function loadFixture<T>(relativePath: string): T {
 export function loadFixtureString(relativePath: string): string {
   const fullPath = getFixturePath(relativePath);
   return fs.readFileSync(fullPath, 'utf-8');
+}
+
+/**
+ * Load and validate a fixture file against a schema
+ * @param schema Zod schema to validate against
+ * @param relativePath Path to the fixture file, relative to the fixtures directory
+ * @param includeDetails Whether to include detailed validation errors in the message
+ * @returns The validated fixture data with proper typing
+ * @throws Error if validation fails
+ */
+export function loadValidatedFixture<T extends z.ZodType>(
+  schema: T,
+  relativePath: string,
+  includeDetails = true
+): z.infer<T> {
+  const fileContent = loadFixtureString(relativePath);
+  const data = JSON.parse(fileContent);
+  return validateData(
+    schema, 
+    data, 
+    `Fixture validation failed for ${relativePath}`,
+    includeDetails
+  );
+}
+
+/**
+ * Load and validate an array fixture against a schema
+ * @param schema Schema for array items
+ * @param relativePath Path to the fixture file
+ * @param includeDetails Whether to include detailed validation errors in the message
+ * @returns Validated array with proper typing
+ */
+export function loadValidatedArrayFixture<T extends z.ZodType>(
+  schema: T,
+  relativePath: string,
+  includeDetails = true
+): z.infer<T>[] {
+  const fileContent = loadFixtureString(relativePath);
+  const data = JSON.parse(fileContent);
+  
+  if (!Array.isArray(data)) {
+    throw new Error(`Expected array data in fixture ${relativePath}, but got ${typeof data}`);
+  }
+  
+  return validateArray(
+    schema, 
+    data, 
+    `Array fixture validation failed for ${relativePath}`,
+    includeDetails
+  );
 }
 
 /**
