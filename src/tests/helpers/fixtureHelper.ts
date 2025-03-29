@@ -6,10 +6,10 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import type { Show, NetworkGroups } from '../../types/tvShowModel.js';
-import { transformSchedule } from '../../utils/tvMazeUtils.js';
 import { validateData, validateArray } from '../../utils/validationUtils.js';
 import type { z } from 'zod';
+import type { Show, NetworkGroups } from '../../schemas/domain.js';
+import { transformSchedule } from '../../utils/tvMazeUtils.js';
 
 // Get the directory name in ESM
 const __filename = fileURLToPath(import.meta.url);

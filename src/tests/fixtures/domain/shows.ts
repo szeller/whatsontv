@@ -3,9 +3,9 @@
  * 
  * Provides test fixtures for domain model Show objects
  */
-import type { Show } from '../../../types/tvShowModel.js';
-import { showSchema } from '../../../schemas/domain.js';
 import { loadValidatedArrayFixture } from '../../helpers/fixtureHelper.js';
+import { showSchema } from '../../../schemas/domain.js';
+import type { Show } from '../../../schemas/domain.js';
 
 /**
  * Get sample network shows for testing

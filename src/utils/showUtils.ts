@@ -1,9 +1,7 @@
 /**
- * Utility functions for working with TV show data
- * These functions are independent of the API used to fetch the shows
+ * Utility functions for working with TV shows
  */
-
-import type { Show } from '../types/tvShowModel.js';
+import type { Show } from '../schemas/domain.js';
 import { convertTimeToMinutes } from './dateUtils.js';
 
 /**

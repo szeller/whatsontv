@@ -3,14 +3,14 @@ import { inject, injectable } from 'tsyringe';
 import yargs from 'yargs';
 import type { Arguments } from 'yargs';
 
-import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
-import type { OutputService } from '../../interfaces/outputService.js';
+import type { ConfigService } from '../../interfaces/configService.js';
 import type { ShowFormatter } from '../../interfaces/showFormatter.js';
-import type { Show } from '../../types/tvShowModel.js';
+import type { Show } from '../../schemas/domain.js';
+import type { OutputService } from '../../interfaces/outputService.js';
+import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
 import type { NetworkGroups } from '../../utils/showUtils.js';
 import { groupShowsByNetwork } from '../../utils/showUtils.js';
 import { getTodayDate } from '../../utils/dateUtils.js';
-import type { ConfigService } from '../../interfaces/configService.js';
 
 /**
  * CLI arguments interface for console output

@@ -89,14 +89,17 @@ describe('Fixture Validation', () => {
   });
   
   describe('Error Handling', () => {
+    // Create a simple test schema for validation
+    const testSchema = z.object({
+      id: z.number(),
+      name: z.string(),
+      type: z.string()
+    });
+    
     it('should throw error for malformed JSON file', () => {
-      // Create a simple schema for testing
-      const testSchema = z.object({
-        id: z.number(),
-        name: z.string()
-      });
+      // This test verifies that validation correctly identifies malformed JSON
       
-      // Expect loadValidatedArrayFixture to throw when the JSON is malformed
+      // Expect validation to throw for malformed JSON
       expect(() => {
         fixtureHelper.loadValidatedArrayFixture(
           z.array(testSchema), 

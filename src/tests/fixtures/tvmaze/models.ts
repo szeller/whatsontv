@@ -1,21 +1,16 @@
 /**
- * TVMaze API model fixtures
- * 
- * Provides test fixtures for TVMaze API models and transformations
+ * TVMaze model fixtures for tests
  */
+import { loadFixtureString, loadValidatedArrayFixture } from '../../helpers/fixtureHelper.js';
 import { transformSchedule } from '../../../utils/tvMazeUtils.js';
-import type { Show } from '../../../types/tvShowModel.js';
-import { 
-  loadFixtureString,
-  loadValidatedArrayFixture 
-} from '../../helpers/fixtureHelper.js';
+import type { Show } from '../../../schemas/domain.js';
 import { 
   networkScheduleItemSchema, 
   webScheduleItemSchema, 
   scheduleItemSchema,
-  NetworkScheduleItem,
-  WebScheduleItem,
-  ScheduleItem
+  type NetworkScheduleItem, 
+  type WebScheduleItem, 
+  type ScheduleItem 
 } from '../../../schemas/tvmaze.js';
 
 /**
