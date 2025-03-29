@@ -6,7 +6,13 @@
 import * as domainShows from './domain/shows.js';
 import * as domainNetworks from './domain/networks.js';
 import * as tvmazeModels from './tvmaze/models.js';
-import { loadFixture, loadFixtureString, getFixturePath } from '../helpers/fixtureLoader.js';
+import { 
+  loadFixture, 
+  loadFixtureString, 
+  getFixturePath,
+  loadValidatedFixture,
+  loadValidatedArrayFixture
+} from '../helpers/fixtureHelper.js';
 
 /**
  * Consolidated test fixtures for the application
@@ -18,7 +24,9 @@ export const Fixtures = {
   utils: {
     loadFixture,
     loadFixtureString,
-    getFixturePath
+    getFixturePath,
+    loadValidatedFixture,
+    loadValidatedArrayFixture
   },
 
   /**
