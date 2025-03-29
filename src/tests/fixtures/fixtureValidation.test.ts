@@ -109,5 +109,39 @@ describe('Fixture Validation', () => {
         fixtureHelper.loadFixture('test/malformed.json');
       }).toThrow();
     });
+    
+    it('should throw error for well-formed but invalid schedule JSON', () => {
+      // This test verifies that validation correctly identifies JSON that is 
+      // syntactically correct but missing required fields according to the schema
+      
+      // Expect validation to throw for a schedule missing required fields
+      expect(() => {
+        fixtureHelper.loadValidatedArrayFixture(
+          networkScheduleItemSchema,
+          'test/invalid-schedule.json'
+        );
+      }).toThrow();
+      
+      // Load the fixture directly to confirm it's well-formed JSON
+      expect(() => {
+        fixtureHelper.loadFixture('test/invalid-schedule.json');
+      }).not.toThrow();
+      
+      // Manually validate to confirm the specific validation errors
+      try {
+        const invalidSchedule = fixtureHelper.loadFixture('test/invalid-schedule.json');
+        z.array(networkScheduleItemSchema).parse(invalidSchedule);
+        // If we get here, validation didn't throw as expected
+        expect(true).toBe(false); // Force test to fail
+      } catch (err) {
+        // Convert error to string to check for expected validation failures
+        const errorString = String(err);
+        
+        // Check for specific missing fields in the error message
+        expect(errorString).toContain('id');
+        expect(errorString).toContain('show');
+        expect(errorString).toContain('Required');
+      }
+    });
   });
 });

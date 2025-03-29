@@ -1,0 +1,16 @@
+[
+  {
+    "name": "Invalid Schedule Item",
+    "season": 1,
+    "number": 2,
+    "type": "regular",
+    "airdate": "2025-03-28",
+    "airtime": "20:00",
+    "airstamp": "2025-03-29T03:00:00+00:00",
+    "runtime": 30,
+    "rating": {
+      "average": 8.5
+    },
+    "summary": "This is a well-formed but invalid schedule item missing required fields"
+  }
+]
