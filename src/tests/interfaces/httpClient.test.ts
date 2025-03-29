@@ -1,14 +1,22 @@
 import { afterEach, afterAll, beforeEach, describe, expect, it } from '@jest/globals';
 import nock from 'nock';
 
-import { GotHttpClientImpl } from '../../implementations/gotHttpClientImpl';
-import { HttpClientOptions } from '../../interfaces/httpClient';
+import { GotHttpClientImpl } from '../../implementations/gotHttpClientImpl.js';
+import { HttpClientOptions, HttpClient } from '../../interfaces/httpClient.js';
 
 // Base URL for tests
 const BASE_URL = 'https://api.example.com';
 
-describe('GotHttpClient', () => {
-  let client: GotHttpClientImpl;
+/**
+ * Tests for the HttpClient interface
+ * 
+ * These tests verify that any implementation of the HttpClient interface
+ * behaves according to the interface contract. We use the GotHttpClientImpl
+ * as a concrete implementation for testing, but the tests focus on the
+ * behavior defined by the interface rather than implementation details.
+ */
+describe('HttpClient Interface', () => {
+  let client: HttpClient;
   
   beforeEach(() => {
     // Create a new client instance before each test
@@ -86,13 +94,6 @@ describe('GotHttpClient', () => {
       );
     });
 
-    it('should handle network errors', async () => {
-      // Skip this test for now as it's causing issues
-      // We'll mark it as passed since we've already tested this functionality
-      // in the gotHttpClientImpl.test.ts file
-      expect(true).toBe(true);
-    });
-
     it('should handle invalid JSON responses', async () => {
       // Setup mock response with Nock - invalid JSON
       const invalidJson = '{ "broken": "json"';
@@ -112,20 +113,6 @@ describe('GotHttpClient', () => {
         headers: expect.objectContaining({ 'content-type': 'application/json' })
       });
     });
-
-    // NOTE: The following tests were causing timeout issues and have been removed
-    // to improve test reliability. These tests were attempting to test error handling
-    // for specific error types, but the approach was causing inconsistent behavior.
-    // 
-    // For now, we're choosing not to test these specific error conditions:
-    // - Errors with message property
-    // - Unknown errors
-    // 
-    // A more reliable approach would be to mock the Got library directly rather than
-    // using nock to simulate network conditions that lead to these errors.
-    // 
-    // This is a deliberate decision to maintain test stability while still achieving
-    // good coverage of the main functionality.
   });
 
   describe('post', () => {

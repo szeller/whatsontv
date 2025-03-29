@@ -9,7 +9,6 @@ import {
   HttpResponse, 
   RequestOptions 
 } from '../interfaces/httpClient.js';
-import { validateData } from '../utils/validationUtils.js';
 
 /**
  * Implementation of the HttpClient interface using Got
@@ -128,8 +127,8 @@ export class GotHttpClientImpl implements HttpClient {
       
       const response = await this.client.get(normalizedUrl, this.buildOptions(options));
       
-      // Cast to Response<string> for type safety
-      const typedResponse = response as unknown as Response<string>;
+      // Ensure we have the correct type for the response
+      const typedResponse = response as Response<string>;
       
       // Check for error status codes (handle null/undefined case explicitly)
       if (typedResponse.statusCode !== undefined && 
@@ -148,7 +147,7 @@ export class GotHttpClientImpl implements HttpClient {
       
       // If the error is from Got and has a response property, handle it
       if (error !== null && typeof error === 'object' && 'response' in error) {
-        const errorResponse = error.response as unknown as Response;
+        const errorResponse = error.response as Response;
         if (
           errorResponse !== null && 
           typeof errorResponse === 'object' && 
@@ -205,8 +204,8 @@ export class GotHttpClientImpl implements HttpClient {
       
       const response = await this.client.post(normalizedUrl, gotOptions);
       
-      // Cast to Response<string> for type safety
-      const typedResponse = response as unknown as Response<string>;
+      // Ensure we have the correct type for the response
+      const typedResponse = response as Response<string>;
       
       // Check for error status codes (handle null/undefined case explicitly)
       if (typedResponse.statusCode !== undefined && 
@@ -239,47 +238,67 @@ export class GotHttpClientImpl implements HttpClient {
     schema?: z.ZodType<T>
   ): HttpResponse<T> {
     try {
+      // Handle empty response bodies
+      if (!response.body) {
+        // Cast empty string to T for type safety
+        const emptyData = '' as unknown;
+        return {
+          data: emptyData as T,
+          status: response.statusCode,
+          headers: response.headers
+        };
+      }
+      
       // Parse the response body as JSON
       let parsedData: unknown;
       try {
         parsedData = JSON.parse(response.body);
-      } catch (_) {
-        // If it's not valid JSON, use the raw body
-        parsedData = response.body;
+      } catch (error) {
+        this.log('error', 'Failed to parse JSON response:', error);
+        // If no schema is provided, return the raw body as the data
+        if (!schema) {
+          // Cast string to T for type safety
+          const stringData = response.body as unknown;
+          return {
+            data: stringData as T,
+            status: response.statusCode,
+            headers: response.headers
+          };
+        }
+        throw new Error('Invalid JSON response');
       }
       
-      // If a schema is provided, validate the response
-      if (schema) {
-        // validateData returns the validated data with the correct type
-        const validatedData = validateData(
-          schema, 
-          parsedData, 
-          'Invalid response from API'
-        );
-        
-        // Create a properly typed response
+      // If no schema is provided, return the parsed data
+      if (!schema) {
+        // Cast parsed data to T for type safety
         return {
-          data: validatedData,
+          data: parsedData as T,
           status: response.statusCode,
-          headers: response.headers as Record<string, string>
+          headers: response.headers
         };
       }
       
-      // No schema validation, just return the parsed data
-      return {
-        data: parsedData as T,
-        status: response.statusCode,
-        headers: response.headers as Record<string, string>
-      };
+      // Validate the parsed data against the schema
+      const validationResult = schema.safeParse(parsedData);
+      
+      if (validationResult.success) {
+        return {
+          data: validationResult.data,
+          status: response.statusCode,
+          headers: response.headers
+        };
+      } else {
+        // If validation fails, return the parsed data without validation
+        this.log('error', 'Schema validation failed:', validationResult.error);
+        return {
+          data: parsedData as T,
+          status: response.statusCode,
+          headers: response.headers
+        };
+      }
     } catch (error) {
       this.log('error', 'Error transforming response:', error);
-      
-      // For parsing errors, just return the raw body
-      return {
-        data: response.body as T,
-        status: response.statusCode,
-        headers: response.headers as Record<string, string>
-      };
+      throw error;
     }
   }
 
