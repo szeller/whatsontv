@@ -528,3 +528,200 @@ After all references have been updated, remove the original model files:
 - **Enhanced Developer Experience**: Better IDE support and clearer error messages
 - **Cleaner Project Structure**: No redundant files or circular dependencies
 - **Preparation for Future Interfaces**: Better organization supports the planned addition of interfaces beyond the console (e.g., Slack, web interface) as noted in issue #63
+
+## Fixture Validation
+
+### 10. Implement Fixture Validation
+
+To ensure test fixtures conform to our schemas, we'll enhance our validation utilities and fixture helpers:
+
+```typescript
+// src/utils/validationUtils.ts (additions)
+/**
+ * Validates data against a schema and returns the validated data
+ * Throws an error if validation fails
+ * 
+ * @param schema The Zod schema to validate against
+ * @param data The data to validate
+ * @param errorMessage Optional custom error message
+ * @param includeDetails Whether to include detailed validation errors in the message
+ * @returns The validated data with proper type inference
+ */
+export function validateData<T extends z.ZodType>(
+  schema: T,
+  data: unknown,
+  errorMessage = 'Validation error',
+  includeDetails = false
+): z.infer<T> {
+  const result = schema.safeParse(data);
+  
+  if (!result.success) {
+    // Only log errors in development environments and not in tests
+    if (process.env.NODE_ENV !== 'production' && !isTestEnvironment()) {
+      console.error('Validation error:', result.error);
+    }
+    
+    if (includeDetails) {
+      const formattedError = JSON.stringify(result.error.format(), null, 2);
+      throw new Error(`${errorMessage}\n${formattedError}`);
+    } else {
+      throw new Error(errorMessage);
+    }
+  }
+  
+  return result.data;
+}
+
+/**
+ * Validates an array of data against a schema for each item
+ * @param schema Schema for array items
+ * @param data Array data to validate
+ * @param errorMessage Optional custom error message
+ * @param includeDetails Whether to include detailed validation errors in the message
+ * @returns Validated array with proper typing
+ */
+export function validateArray<T extends z.ZodType>(
+  schema: T,
+  data: unknown[],
+  errorMessage = 'Array validation error',
+  includeDetails = false
+): z.infer<T>[] {
+  const arraySchema = z.array(schema);
+  return validateData(arraySchema, data, errorMessage, includeDetails);
+}
+```
+
+```typescript
+// src/tests/helpers/fixtureHelper.ts (additions)
+import { validateData, validateArray } from '../../utils/validationUtils.js';
+import type { z } from 'zod';
+
+/**
+ * Load and validate a fixture file against a schema
+ * @param schema Zod schema to validate against
+ * @param relativePath Path to the fixture file, relative to the fixtures directory
+ * @param includeDetails Whether to include detailed validation errors in the message
+ * @returns The validated fixture data with proper typing
+ * @throws Error if validation fails
+ */
+export function loadValidatedFixture<T extends z.ZodType>(
+  schema: T,
+  relativePath: string,
+  includeDetails = true
+): z.infer<T> {
+  const fileContent = loadFixtureString(relativePath);
+  const data = JSON.parse(fileContent);
+  return validateData(
+    schema, 
+    data, 
+    `Fixture validation failed for ${relativePath}`,
+    includeDetails
+  );
+}
+
+/**
+ * Load and validate an array fixture against a schema
+ * @param schema Schema for array items
+ * @param relativePath Path to the fixture file
+ * @param includeDetails Whether to include detailed validation errors in the message
+ * @returns Validated array with proper typing
+ */
+export function loadValidatedArrayFixture<T extends z.ZodType>(
+  schema: T,
+  relativePath: string,
+  includeDetails = true
+): z.infer<T>[] {
+  const fileContent = loadFixtureString(relativePath);
+  const data = JSON.parse(fileContent);
+  
+  if (!Array.isArray(data)) {
+    throw new Error(`Expected array data in fixture ${relativePath}, but got ${typeof data}`);
+  }
+  
+  return validateArray(
+    schema, 
+    data, 
+    `Array fixture validation failed for ${relativePath}`,
+    includeDetails
+  );
+}
+```
+
+Update the `Fixtures` class to use validated loading:
+
+```typescript
+// src/tests/helpers/fixtureHelper.ts (Fixtures class update)
+export class Fixtures {
+  static tvMaze = {
+    /**
+     * Get schedule fixture data as a parsed and validated JSON object
+     * @param name Base name of the fixture file (without .json extension)
+     * @returns Parsed and validated JSON data from the fixture
+     */
+    getSchedule(
+      name: 'network-schedule' | 'web-schedule' | 'combined-schedule'
+    ): z.infer<typeof scheduleItemSchema>[] {
+      const fixturePath = `tvmaze/${name}.json`;
+      return loadValidatedArrayFixture(scheduleItemSchema, fixturePath);
+    },
+    
+    // Update other methods similarly...
+  }
+}
+```
+
+Create dedicated fixture validation tests:
+
+```typescript
+// src/tests/fixtures/fixtures.test.ts
+import { describe, it, expect } from '@jest/globals';
+import { loadValidatedArrayFixture } from '../helpers/fixtureHelper.js';
+import {
+  networkScheduleItemSchema,
+  webScheduleItemSchema,
+  scheduleItemSchema
+} from '../../schemas/tvmaze.js';
+
+describe('Fixture Validation', () => {
+  describe('TVMaze Fixtures', () => {
+    it('should validate network schedule fixture against schema', () => {
+      expect(() => {
+        loadValidatedArrayFixture(networkScheduleItemSchema, 'tvmaze/network-schedule.json');
+      }).not.toThrow();
+    });
+    
+    it('should validate web schedule fixture against schema', () => {
+      expect(() => {
+        loadValidatedArrayFixture(webScheduleItemSchema, 'tvmaze/web-schedule.json');
+      }).not.toThrow();
+    });
+    
+    it('should validate combined schedule fixture against schema', () => {
+      expect(() => {
+        loadValidatedArrayFixture(scheduleItemSchema, 'tvmaze/combined-schedule.json');
+      }).not.toThrow();
+    });
+  });
+});
+```
+
+## Implementation Phases
+
+### Phase 2a: Fixture Validation (1 day)
+- Enhance validation utilities to support detailed error reporting
+- Add fixture validation functions to fixtureHelper.ts
+- Create tests to validate all fixture data against schemas
+- Update the Fixtures class to use validated loading
+
+## Testing Strategy
+
+4. **Fixture Validation Tests**:
+   - Verify all test fixtures conform to their schemas
+   - Test handling of malformed fixture data
+   - Ensure detailed error messages for invalid fixtures
+
+## Benefits
+
+- **Test Data Integrity**: Ensures test fixtures match expected schemas
+- **Documentation as Code**: Fixture validation serves as living documentation of API contracts
+- **Regression Prevention**: Prevents schema changes from silently breaking compatibility with test data
