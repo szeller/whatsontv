@@ -87,4 +87,27 @@ describe('Fixture Validation', () => {
       }).not.toThrow();
     });
   });
+  
+  describe('Error Handling', () => {
+    it('should throw error for malformed JSON file', () => {
+      // Create a simple schema for testing
+      const testSchema = z.object({
+        id: z.number(),
+        name: z.string()
+      });
+      
+      // Expect loadValidatedArrayFixture to throw when the JSON is malformed
+      expect(() => {
+        fixtureHelper.loadValidatedArrayFixture(
+          z.array(testSchema), 
+          'test/malformed.json'
+        );
+      }).toThrow();
+      
+      // Expect loadFixture to throw when the JSON is malformed
+      expect(() => {
+        fixtureHelper.loadFixture('test/malformed.json');
+      }).toThrow();
+    });
+  });
 });

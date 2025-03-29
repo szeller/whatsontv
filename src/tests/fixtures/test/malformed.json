@@ -1,0 +1,8 @@
+{
+  "id": 1,
+  "name": "Malformed JSON File",
+  "type": "test",
+  "missing_closing_brace": true,
+  "array": [
+    "item1",
+    "item2"
