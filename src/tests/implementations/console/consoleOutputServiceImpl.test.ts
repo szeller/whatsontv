@@ -5,7 +5,7 @@ import { ConsoleOutput } from '../../../interfaces/consoleOutput';
 import { ShowFormatter } from '../../../interfaces/showFormatter';
 import { ConfigService } from '../../../interfaces/configService';
 import { AppConfig, CliOptions } from '../../../types/configTypes';
-import { Show, NetworkGroups } from '../../../types/tvShowModel';
+import type { Show, NetworkGroups } from '../../../schemas/domain.js';
 
 // Extend the service to expose protected methods for testing
 class TestConsoleOutputService extends ConsoleOutputServiceImpl {

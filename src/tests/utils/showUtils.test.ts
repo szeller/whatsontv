@@ -14,7 +14,7 @@ import {
   filterByLanguage
 } from '../../utils/showUtils.js';
 import { getTodayDate } from '../../utils/dateUtils.js';
-import type { Show } from '../../types/tvShowModel.js';
+import type { Show } from '../../schemas/domain.js';
 
 describe('ShowUtils', () => {
   describe('getTodayDate', () => {

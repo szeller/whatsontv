@@ -1,8 +1,14 @@
 import 'reflect-metadata';
-import got, { Got, Options as GotOptions, Response } from 'got';
+import got, { Got, Options as GotOptions, Response, SearchParameters } from 'got';
 import { injectable } from 'tsyringe';
+import { z } from 'zod';
 
-import { HttpClient, HttpClientOptions, HttpResponse } from '../interfaces/httpClient.js';
+import { 
+  HttpClient, 
+  HttpClientOptions, 
+  HttpResponse, 
+  RequestOptions 
+} from '../interfaces/httpClient.js';
 
 /**
  * Implementation of the HttpClient interface using Got
@@ -29,6 +35,7 @@ export class GotHttpClientImpl implements HttpClient {
 
     // Use type assertion to handle the type mismatch between actual Got and our mock in tests
     this.client = got.extend(gotOptions) as unknown as Got;
+    
     // Check if we're in a test environment
     this.isTestEnvironment = process.env.NODE_ENV === 'test' || 
                              process.env.JEST_WORKER_ID !== undefined;
@@ -59,30 +66,82 @@ export class GotHttpClientImpl implements HttpClient {
   }
 
   /**
+   * Build Got options from our RequestOptions
+   * @param options Our request options
+   * @returns Got options
+   */
+  private buildOptions(options?: RequestOptions): Partial<GotOptions> {
+    if (!options) {
+      return {};
+    }
+
+    const gotOptions: Partial<GotOptions> = {};
+    
+    if (options.headers) {
+      gotOptions.headers = options.headers;
+    }
+    
+    // Ensure timeout is a positive number before using it
+    if (options.timeout !== undefined && 
+        options.timeout !== null && 
+        typeof options.timeout === 'number' && 
+        options.timeout > 0) {
+      gotOptions.timeout = {
+        request: options.timeout
+      };
+    }
+    
+    // Extract custom parameters for searchParams
+    const searchParams: SearchParameters = {};
+    Object.keys(options).forEach(key => {
+      if (key !== 'headers' && key !== 'timeout') {
+        searchParams[key] = options[key] as string | number | boolean;
+      }
+    });
+    
+    // Add any remaining properties as searchParams (query parameters)
+    if (Object.keys(searchParams).length > 0) {
+      gotOptions.searchParams = searchParams;
+    }
+    
+    return gotOptions;
+  }
+
+  /**
    * Make a GET request
    * @param url The URL to request
-   * @param params Optional query parameters
+   * @param options Optional request options
+   * @param schema Optional Zod schema to validate the response
    * @returns Promise resolving to the response
    */
-  async get<T>(url: string, params?: Record<string, string>): Promise<HttpResponse<T>> {
+  async get<T>(
+    url: string, 
+    options?: RequestOptions,
+    schema?: z.ZodType<T>
+  ): Promise<HttpResponse<T>> {
     try {
       // Remove leading slash if present (Got's prefixUrl requires this)
       const normalizedUrl = url.startsWith('/') ? url.slice(1) : url;
+      
       this.log('log', `Making GET request to: ${normalizedUrl}`);
       
-      // Type assertion for the response
-      const response = await this.client.get(normalizedUrl, {
-        searchParams: params
-      }) as Response<string>;
+      const response = await this.client.get(normalizedUrl, this.buildOptions(options));
       
-      // Check for error status codes
-      if (response.statusCode >= 400) {
-        throw new Error(`HTTP Error ${response.statusCode}: ${
-          response.statusCode === 404 ? 'Not Found' : 'Request failed'
+      // Ensure we have the correct type for the response
+      const typedResponse = response as Response<string>;
+      
+      // Check for error status codes (handle null/undefined case explicitly)
+      if (typedResponse.statusCode !== undefined && 
+          typedResponse.statusCode !== null && 
+          typeof typedResponse.statusCode === 'number' &&
+          typedResponse.statusCode > 0 && 
+          typedResponse.statusCode >= 400) {
+        throw new Error(`HTTP Error ${typedResponse.statusCode}: ${
+          typedResponse.statusCode === 404 ? 'Not Found' : 'Request failed'
         }`);
       }
       
-      return this.transformResponse<T>(response);
+      return this.transformResponse<T>(typedResponse, schema);
     } catch (error) {
       this.log('error', 'GET request error:', error);
       
@@ -110,7 +169,9 @@ export class GotHttpClientImpl implements HttpClient {
       }
       
       // For network errors or other types of errors, use our generic handler
-      throw new Error(`Network Error: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `Network Error: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -118,67 +179,126 @@ export class GotHttpClientImpl implements HttpClient {
    * Make a POST request
    * @param url The URL to request
    * @param data Optional request body
-   * @param params Optional query parameters
+   * @param options Optional request options
+   * @param schema Optional Zod schema to validate the response
    * @returns Promise resolving to the response
    */
   async post<T, D = unknown>(
     url: string, 
     data?: D, 
-    params?: Record<string, string>
+    options?: RequestOptions,
+    schema?: z.ZodType<T>
   ): Promise<HttpResponse<T>> {
     try {
       // Remove leading slash if present (Got's prefixUrl requires this)
       const normalizedUrl = url.startsWith('/') ? url.slice(1) : url;
+      
       this.log('log', `Making POST request to: ${normalizedUrl}`);
       
-      // Type assertion for the response
-      const response = await this.client.post(normalizedUrl, {
-        json: data,
-        searchParams: params
-      }) as Response<string>;
+      const gotOptions = this.buildOptions(options);
       
-      // Check for error status codes
-      if (response.statusCode >= 400) {
-        throw new Error(`HTTP Error ${response.statusCode}: ${
-          response.statusCode === 404 ? 'Not Found' : 'Request failed'
+      // Add JSON body if data is provided
+      if (data !== undefined) {
+        gotOptions.json = data;
+      }
+      
+      const response = await this.client.post(normalizedUrl, gotOptions);
+      
+      // Ensure we have the correct type for the response
+      const typedResponse = response as Response<string>;
+      
+      // Check for error status codes (handle null/undefined case explicitly)
+      if (typedResponse.statusCode !== undefined && 
+          typedResponse.statusCode !== null && 
+          typeof typedResponse.statusCode === 'number' &&
+          typedResponse.statusCode > 0 && 
+          typedResponse.statusCode >= 400) {
+        throw new Error(`HTTP Error ${typedResponse.statusCode}: ${
+          typedResponse.statusCode === 404 ? 'Not Found' : 'Request failed'
         }`);
       }
       
-      return this.transformResponse<T>(response);
+      return this.transformResponse<T>(typedResponse, schema);
     } catch (error) {
       this.log('error', 'POST request error:', error);
+      
+      // Handle errors using our common error handler
       throw this.handleError(error);
     }
   }
 
   /**
-   * Transform Got response to our HttpResponse format
+   * Transform a Got response to our HttpResponse
    * @param response The Got response
-   * @returns Transformed response
+   * @param schema Optional Zod schema to validate the response
+   * @returns Our HttpResponse
    */
-  private transformResponse<T>(response: Response): HttpResponse<T> {
+  private transformResponse<T>(
+    response: Response<string>, 
+    schema?: z.ZodType<T>
+  ): HttpResponse<T> {
     try {
-      // Get the content type from the headers
-      const contentType = response.headers['content-type'] || '';
-      const responseBody = String(response.body); // Convert to string explicitly
+      // Handle empty response bodies
+      if (!response.body) {
+        // Cast empty string to T for type safety
+        const emptyData = '' as unknown;
+        return {
+          data: emptyData as T,
+          status: response.statusCode,
+          headers: response.headers
+        };
+      }
       
-      const data: T = contentType.includes('application/json')
-        ? JSON.parse(responseBody) as T
-        : response.body as unknown as T;
+      // Parse the response body as JSON
+      let parsedData: unknown;
+      try {
+        parsedData = JSON.parse(response.body);
+      } catch (error) {
+        this.log('error', 'Failed to parse JSON response:', error);
+        // If no schema is provided, return the raw body as the data
+        if (!schema) {
+          // Cast string to T for type safety
+          const stringData = response.body as unknown;
+          return {
+            data: stringData as T,
+            status: response.statusCode,
+            headers: response.headers
+          };
+        }
+        throw new Error('Invalid JSON response');
+      }
       
-      return {
-        data,
-        status: response.statusCode,
-        headers: response.headers as unknown as Record<string, string>
-      };
+      // If no schema is provided, return the parsed data
+      if (!schema) {
+        // Cast parsed data to T for type safety
+        return {
+          data: parsedData as T,
+          status: response.statusCode,
+          headers: response.headers
+        };
+      }
+      
+      // Validate the parsed data against the schema
+      const validationResult = schema.safeParse(parsedData);
+      
+      if (validationResult.success) {
+        return {
+          data: validationResult.data,
+          status: response.statusCode,
+          headers: response.headers
+        };
+      } else {
+        // If validation fails, return the parsed data without validation
+        this.log('error', 'Schema validation failed:', validationResult.error);
+        return {
+          data: parsedData as T,
+          status: response.statusCode,
+          headers: response.headers
+        };
+      }
     } catch (error) {
       this.log('error', 'Error transforming response:', error);
-      // For parsing errors, just return the raw body
-      return {
-        data: response.body as unknown as T,
-        status: response.statusCode,
-        headers: response.headers as unknown as Record<string, string>
-      };
+      throw error;
     }
   }
 
@@ -193,7 +313,7 @@ export class GotHttpClientImpl implements HttpClient {
     if (error !== null && error !== undefined && typeof error === 'object') {
       // Handle Got errors
       if ('response' in error && error.response !== null && error.response !== undefined) {
-        const response = error.response as Response;
+        const response = error.response as unknown as Response;
         const statusText = typeof response.body === 'string' ? 
           response.body : 'Not Found';
         return new Error(
@@ -213,6 +333,8 @@ export class GotHttpClientImpl implements HttpClient {
     }
     
     // Handle any other errors
-    return new Error(`Network Error: ${error instanceof Error ? error.message : String(error)}`);
+    return new Error(
+      `Network Error: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
 }

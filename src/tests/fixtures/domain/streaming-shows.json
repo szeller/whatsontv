@@ -1,0 +1,26 @@
+[
+  {
+    "id": 3,
+    "name": "Sample Streaming Show 1",
+    "type": "scripted",
+    "language": "English",
+    "genres": ["Drama", "Sci-Fi"],
+    "network": "Netflix",
+    "summary": "A sample streaming show for testing",
+    "airtime": "",
+    "season": 1,
+    "number": 1
+  },
+  {
+    "id": 4,
+    "name": "Sample Streaming Show 2",
+    "type": "reality",
+    "language": "English",
+    "genres": ["Reality"],
+    "network": "Hulu",
+    "summary": "Another sample streaming show for testing",
+    "airtime": "",
+    "season": 3,
+    "number": 5
+  }
+]

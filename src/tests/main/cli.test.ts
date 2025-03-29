@@ -11,7 +11,7 @@ import type { OutputService } from '../../interfaces/outputService';
 import type { TvShowService } from '../../interfaces/tvShowService';
 import type { ConfigService } from '../../interfaces/configService';
 import type { ConsoleOutput } from '../../interfaces/consoleOutput';
-import type { Show } from '../../types/tvShowModel';
+import type { Show } from '../../schemas/domain.js';
 import type { CliOptions, AppConfig } from '../../types/configTypes';
 import type { ShowOptions } from '../../types/tvShowOptions';
 import type { CliServices } from '../../cli';

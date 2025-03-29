@@ -3,11 +3,14 @@
  */
 import { inject, injectable } from 'tsyringe';
 import type { HttpClient } from '../interfaces/httpClient.js';
-import type { Show } from '../types/tvShowModel.js';
-import type { ShowOptions } from '../types/tvShowOptions.js';
 import type { TvShowService } from '../interfaces/tvShowService.js';
-import { transformSchedule } from '../types/tvmazeModel.js';
-import { getNetworkScheduleUrl, getWebScheduleUrl } from '../utils/tvMazeUtils.js';
+import type { Show } from '../schemas/domain.js';
+import type { ShowOptions } from '../types/tvShowOptions.js';
+import { 
+  getNetworkScheduleUrl, 
+  getWebScheduleUrl, 
+  transformSchedule 
+} from '../utils/tvMazeUtils.js';
 import { getTodayDate } from '../utils/dateUtils.js';
 import { getStringOrDefault } from '../utils/stringUtils.js';
 

@@ -3,7 +3,7 @@
  * 
  * Provides test fixtures for domain model NetworkGroups
  */
-import type { NetworkGroups } from '../../../types/tvShowModel.js';
+import type { NetworkGroups } from '../../../schemas/domain.js';
 import { 
   getNetworkShows, 
   getStreamingShows, 

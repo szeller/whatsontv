@@ -153,10 +153,18 @@ export class ConsoleConfigServiceImpl implements ConfigService {
     return {
       date: typeof parsedArgs.date === 'string' ? parsedArgs.date : getTodayDate(),
       country: typeof parsedArgs.country === 'string' ? parsedArgs.country : 'US',
-      types: Array.isArray(parsedArgs.types) ? parsedArgs.types : [],
-      networks: Array.isArray(parsedArgs.networks) ? parsedArgs.networks : [],
-      genres: Array.isArray(parsedArgs.genres) ? parsedArgs.genres : [],
-      languages: Array.isArray(parsedArgs.languages) ? parsedArgs.languages : [],
+      types: Array.isArray(parsedArgs.types) 
+        ? parsedArgs.types.map((item) => String(item)) 
+        : [],
+      networks: Array.isArray(parsedArgs.networks) 
+        ? parsedArgs.networks.map((item) => String(item)) 
+        : [],
+      genres: Array.isArray(parsedArgs.genres) 
+        ? parsedArgs.genres.map((item) => String(item)) 
+        : [],
+      languages: Array.isArray(parsedArgs.languages) 
+        ? parsedArgs.languages.map((item) => String(item)) 
+        : [],
       help: Boolean(parsedArgs.help),
       debug: Boolean(parsedArgs.debug),
       fetch: this.validateFetchSource(parsedArgs.fetch)

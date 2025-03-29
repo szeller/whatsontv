@@ -12,7 +12,7 @@ import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
 import type { ShowFormatter } from '../../interfaces/showFormatter.js';
 import type { StyleService } from '../../interfaces/styleService.js';
 import type { TvShowService } from '../../interfaces/tvShowService.js';
-import type { Show } from '../../types/tvShowModel.js';
+import type { Show } from '../../schemas/domain.js';
 import type { NetworkGroups } from '../../utils/showUtils.js';
 
 /**

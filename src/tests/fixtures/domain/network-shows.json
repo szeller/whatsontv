@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "name": "Sample Network Show 1",
+    "type": "scripted",
+    "language": "English",
+    "genres": ["Drama", "Action"],
+    "network": "ABC",
+    "summary": "A sample network show for testing",
+    "airtime": "20:00",
+    "season": 1,
+    "number": 1
+  },
+  {
+    "id": 2,
+    "name": "Sample Network Show 2",
+    "type": "reality",
+    "language": "English",
+    "genres": ["Reality"],
+    "network": "NBC",
+    "summary": "Another sample network show for testing",
+    "airtime": "21:00",
+    "season": 2,
+    "number": 3
+  }
+]

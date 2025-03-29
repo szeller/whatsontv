@@ -1,12 +1,15 @@
-import { jest, describe, it, expect, beforeEach } from '@jest/globals';
-import { container, InjectionToken } from 'tsyringe';
-
-import { ConsoleFormatterImpl } from '../../../implementations/console/consoleFormatterImpl';
-import { createMockTvShowService } from '../../testutils/testHelpers';
-import type { Show } from '../../../types/tvShowModel.js';
-import type { TvShowService } from '../../../interfaces/tvShowService';
-import type { StyleService } from '../../../interfaces/styleService';
-import { PlainStyleServiceImpl } from '../../../implementations/test/plainStyleServiceImpl';
+/**
+ * Tests for the console formatter implementation
+ */
+import 'reflect-metadata';
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { container } from 'tsyringe';
+import type { Show } from '../../../schemas/domain.js';
+import { ConsoleFormatterImpl } from '../../../implementations/console/consoleFormatterImpl.js';
+import { ChalkStyleServiceImpl } from '../../../implementations/console/chalkStyleServiceImpl.js';
+import type { StyleService } from '../../../interfaces/styleService.js';
+import type { TvShowService } from '../../../interfaces/tvShowService.js';
+import { createMockTvShowService } from '../../testutils/testHelpers.js';
 
 describe('ConsoleFormatterImpl', () => {
   let formatter: ConsoleFormatterImpl;
@@ -18,15 +21,15 @@ describe('ConsoleFormatterImpl', () => {
     // Reset container for each test
     container.clearInstances();
     
-    // Register the PlainStyleService for testing
-    container.registerInstance<StyleService>('StyleService', new PlainStyleServiceImpl());
-    
     // Create a mock TvShowService
     mockTvShowService = createMockTvShowService();
-    container.registerInstance<TvShowService>('TvShowService', mockTvShowService);
+    container.registerInstance('TvShowService', mockTvShowService);
     
-    // Create the formatter instance with proper type casting
-    formatter = container.resolve(ConsoleFormatterImpl as InjectionToken<ConsoleFormatterImpl>);
+    // Register a style service
+    container.registerInstance<StyleService>('StyleService', new ChalkStyleServiceImpl());
+    
+    // Create the formatter instance
+    formatter = container.resolve(ConsoleFormatterImpl);
     
     // Create mock show data
     mockShow = {
@@ -42,13 +45,11 @@ describe('ConsoleFormatterImpl', () => {
       number: 1
     };
     
+    // Create a mock show with no airtime
     mockShowNoAirtime = {
       ...mockShow,
       airtime: null
     };
-    
-    // Reset all mocks before each test
-    jest.clearAllMocks();
   });
 
   describe('formatShow', () => {

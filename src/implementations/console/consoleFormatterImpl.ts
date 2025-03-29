@@ -1,10 +1,13 @@
+/**
+ * Implementation of the formatter for console output
+ */
 import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
 
 import type { ShowFormatter } from '../../interfaces/showFormatter.js';
 import type { StyleService } from '../../interfaces/styleService.js';
 import type { TvShowService } from '../../interfaces/tvShowService.js';
-import type { Show } from '../../types/tvShowModel.js';
+import type { Show } from '../../schemas/domain.js';
 import { compareEpisodes, sortShowsByTime, formatEpisodeRanges } from '../../utils/showUtils.js';
 
 /**

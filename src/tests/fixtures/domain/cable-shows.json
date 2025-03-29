@@ -1,0 +1,26 @@
+[
+  {
+    "id": 5,
+    "name": "Sample Cable Show 1",
+    "type": "scripted",
+    "language": "English",
+    "genres": ["Drama", "Crime"],
+    "network": "HBO",
+    "summary": "A sample cable show for testing",
+    "airtime": "22:00",
+    "season": 2,
+    "number": 4
+  },
+  {
+    "id": 6,
+    "name": "Sample Cable Show 2",
+    "type": "talk show",
+    "language": "English",
+    "genres": ["Talk Show"],
+    "network": "Showtime",
+    "summary": "Another sample cable show for testing",
+    "airtime": "23:00",
+    "season": 5,
+    "number": 12
+  }
+]

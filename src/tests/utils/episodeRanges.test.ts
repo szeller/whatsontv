@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from '@jest/globals';
 import { formatEpisodeRanges } from '../../utils/showUtils.js';
-import type { Show } from '../../types/tvShowModel.js';
+import type { Show } from '../../schemas/domain.js';
 
 describe('formatEpisodeRanges', () => {
   /**

@@ -49,181 +49,125 @@ A TypeScript application that fetches TV shows for the current day and sends not
 5. Run the application:
    ```bash
    # Run as CLI tool
-   npm run shows
-
-   # Run as Slack notifier
+   npm start
+   
+   # Or with specific options
+   npm start -- --date 2023-01-15 --country US
+   
+   # Run as a Slack notification service
    npm run slack
    ```
 
+## Features
+
+- **TV Show Listings**: Fetch and display TV shows airing today
+- **Filtering**: Filter shows by type, network, genre, and language
+- **Date Selection**: View shows for any specific date
+- **Country Selection**: View shows for different countries
+- **Slack Integration**: Send formatted show listings to Slack
+- **Scheduled Notifications**: Set up daily notifications at a specific time
+- **Colorized Output**: Enhanced terminal output with colors and formatting
+
+## CLI Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--date`, `-d` | Date in YYYY-MM-DD format | Today |
+| `--country`, `-c` | Country code (e.g., US, GB) | From config |
+| `--config`, `-f` | Path to config file | `./config.json` |
+| `--help`, `-h` | Show help | |
+| `--version`, `-v` | Show version number | |
+
 ## Configuration
 
-### Config File (config.json)
-- `country`: Default country code for TV listings (e.g., "US", "GB")
-- `types`: Default show types to filter by (e.g., ["Reality", "Scripted"])
-- `networks`: Default networks to filter by (e.g., ["Discovery", "CBS"])
-- `genres`: Default genres to filter by (e.g., ["Drama", "Comedy"])
-- `languages`: Default languages to filter by (e.g., ["English"])
-- `notificationTime`: When to send daily Slack notifications (24-hour format)
-- `slack.enabled`: Whether to enable Slack notifications
-- `slack.channel`: Default Slack channel for notifications
+The `config.json` file supports the following options:
 
-### CLI Options
-- `--date, -d`: Date to fetch shows for (YYYY-MM-DD)
-- `--country, -c`: Country code (e.g., US, GB)
-- `--types, -t`: Show types to filter by
-- `--networks, -n`: Networks to filter by
-- `--genres, -g`: Genres to filter by
-- `--languages, -l`: Languages to filter by
-- `--time-sort, -s`: Sort shows by time instead of network
-- `--help`: Show help menu
-
-### Available Show Types
-- Reality
-- Scripted
-- News
-- Talk Show
-- Game Show
-- Panel Show
-- Sports
-- Animation
-- Documentary
-- Variety
-
-### Example Commands
-```bash
-# Show all shows for today
-npm run shows
-
-# Show Reality shows on Discovery
-npm run shows -- --types Reality --networks Discovery
-
-# Show English Drama shows on CBS and NBC
-npm run shows -- --types Scripted --networks CBS NBC --genres Drama --languages English
-
-# Show tomorrow's schedule
-npm run shows -- --date 2025-02-22
-
-# Show help
-npm run shows -- --help
-```
-
-## Features
-- Written in TypeScript for improved type safety and developer experience
-- Uses TVMaze API to fetch TV show data (no API key required)
-- Filter shows by:
-  - Type (e.g., Reality, Scripted)
-  - Network (e.g., CBS, Netflix)
-  - Genre (e.g., Drama, Comedy)
-  - Language (e.g., English, Spanish)
-- Sort by time or group by network
-- Command-line interface for quick lookups
-- Configurable daily Slack notifications with:
-  - Show name and type
-  - Episode name
-  - Season and episode number
-  - Network and air time
-- Customizable through config file
-- Automatic daily notifications at configurable time
+| Option | Type | Description |
+|--------|------|-------------|
+| `country` | string | Country code for TV listings |
+| `types` | string[] | Show types to include (e.g., "Reality", "Scripted") |
+| `networks` | string[] | Networks to include |
+| `genres` | string[] | Genres to include |
+| `languages` | string[] | Languages to include |
+| `notificationTime` | string | Time to send daily notifications (HH:MM) |
+| `slack.enabled` | boolean | Whether to enable Slack notifications |
+| `slack.channel` | string | Slack channel for notifications |
 
 ## Architecture
 
-### Clean Architecture
-The application follows a clean architecture with clear separation of interfaces and implementations:
+The application follows clean architecture principles with a strong emphasis on type safety and validation:
 
-- **Interfaces** (`src/interfaces/`): Define contracts for all services
-- **Implementations** (`src/implementations/`): Concrete implementations of interfaces
-  - Platform-specific code in dedicated subdirectories (console, slack)
-- **Utilities** (`src/utils/`): Pure utility functions
-- **Entry Points** (`src/cli.ts`, `src/slack.ts`): Application entry points
+### Key Components
 
-### Dependency Injection
-The application uses tsyringe for dependency injection:
+- **Domain Layer**: Core business logic and entities
+- **Interface Layer**: Abstract contracts for services
+- **Implementation Layer**: Concrete implementations of interfaces
+- **Schema System**: Zod schemas for validation and type safety
+- **Dependency Injection**: Using TSyringe for inversion of control
 
-- All services are injectable and registered in a central container
-- Dependencies are injected through constructor parameters
-- Clear separation between interfaces and implementations
-- Consistent use of dependency injection throughout the application
+### Schema System
 
-### Directory Structure
+The application uses [Zod](https://zod.dev/) for runtime validation and type safety:
+
+- **Domain Schemas**: Define the core business entities
+- **API Schemas**: Validate external API responses
+- **Runtime Validation**: Ensure data integrity beyond compile-time checks
+- **Type Inference**: Generate TypeScript types from schemas
+
+For more details, see the [schema documentation](./src/schemas/README.md).
+
+## Project Structure
+
 ```
 src/
-├── interfaces/                # All interface definitions
-├── implementations/           # All concrete implementations
-│   ├── console/               # Console-specific implementations
-│   └── slack/                 # Slack-specific implementations
-├── utils/                     # Utility functions and helpers
-├── cli.ts                     # CLI entry point
-└── slack.ts                   # Slack entry point
+├── interfaces/            # Interface definitions
+├── implementations/       # Interface implementations
+│   ├── console/           # Console-specific implementations
+│   └── slack/             # Slack-specific implementations
+├── schemas/               # Zod schemas for validation and types
+│   ├── common.ts          # Common utility schemas
+│   ├── domain.ts          # Domain model schemas
+│   └── tvmaze.ts          # TVMaze API schemas
+├── utils/                 # Utility functions and helpers
+├── cli.ts                 # CLI entry point
+└── slack.ts               # Slack entry point
 ```
 
-## Documentation
-
-The project documentation is organized into the following structure:
-
-- [Architecture Documentation](docs/architecture/): System design, architecture decisions, and API references
-- [Development Documentation](docs/development/): Development guides, standards, and processes
-  - [Testing Standards](docs/development/testingStandards.md): Comprehensive testing guidelines and fixture usage
-  - [Test Coverage Improvement Plan](docs/development/improveTestCoverage.md): Detailed plan for improving test coverage
-- [Archive](docs/archive/): Historical documentation for completed work
-
 ## Development
-- Written in TypeScript 5.8.2 with strict mode enabled
-- Uses Jest for testing with coverage requirements:
-  - Target: 80% coverage across all metrics
-  - Current coverage:
-    - Statements: 90.45%
-    - Branches: 82.32%
-    - Functions: 89.23%
-    - Lines: 90.22%
-- Comprehensive test fixtures system for consistent testing
-- ESM modules for better tree-shaking
-- Follows modern TypeScript best practices
-- Code style enforced via ESLint v9 with TypeScript-ESLint v8:
-  - Single source of truth for code quality and formatting
-  - Strict boolean expressions with no implicit conversions
-  - No floating promises allowed
-  - Explicit function return types required
-  - Single quotes for strings
-  - Required semicolons
-  - No trailing commas
-  - 2-space indentation
-  - 100 character line width
 
-### Development Workflow
-1. Create a feature branch for your changes
-2. Make changes following the code style guidelines
-3. Ensure tests pass and meet coverage thresholds:
-   ```bash
-   # Run tests with coverage
-   npm test
-   ```
-4. Create a pull request for review
+### Building
 
-### Dependency Maintenance
-This project uses Dependabot to automate dependency updates with the following strategy:
+```bash
+npm run build
+```
 
-#### Automated Updates
-- **Weekly npm dependency checks** - PRs created for minor and patch updates
-- **Monthly GitHub Actions checks** - Keeps CI workflows up to date
-- **Intelligent dependency grouping**:
-  - ESLint ecosystem (eslint, @eslint/*, @typescript-eslint/*, plugins)
-  - TypeScript ecosystem (typescript, ts-*, @types/*)
-  - Testing tools (jest, @jest/*, nock, supertest)
-  - HTTP clients (got, axios, node-fetch)
-  - Production dependencies (grouped separately)
+### Testing
 
-#### Handling Updates
-1. **Automated PRs**: Dependabot creates PRs for compatible updates
-2. **Review Process**:
-   - Check that all tests pass in the PR
-   - Verify that coverage thresholds are maintained
-   - Review any breaking changes or deprecation notices
-3. **Merge Strategy**:
-   - Minor/patch updates merged automatically if tests pass
-   - Major updates require manual review and testing
-   - Dependency groups updated together to maintain compatibility
+```bash
+# Run all tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run tests in watch mode
+npm run test:watch
+```
+
+### Linting
+
+```bash
+npm run lint
+```
+
+### Type Checking
+
+```bash
+npm run typecheck
+```
 
 ## Contributing
+
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'feat: add some amazing feature'`)
@@ -231,12 +175,11 @@ This project uses Dependabot to automate dependency updates with the following s
 5. Open a Pull Request
 
 ## License
+
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Acknowledgments
-- [TVMaze API](https://www.tvmaze.com/api) for providing the TV show data
-- [tsyringe](https://github.com/microsoft/tsyringe) for dependency injection
-- [got](https://github.com/sindresorhus/got) for HTTP requests
-- [chalk](https://github.com/chalk/chalk) for terminal styling
-- [node-schedule](https://github.com/node-schedule/node-schedule) for scheduling
-- [yargs](https://github.com/yargs/yargs) for command-line argument parsing
+
+- [TVMaze API](https://www.tvmaze.com/api) for providing TV show data
+- [Zod](https://zod.dev/) for schema validation and type safety
+- [TSyringe](https://github.com/microsoft/tsyringe) for dependency injection

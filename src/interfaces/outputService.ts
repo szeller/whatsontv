@@ -1,4 +1,4 @@
-import type { Show } from '../types/tvShowModel.js';
+import type { Show } from '../schemas/domain.js';
 
 /**
  * Interface for output services that display TV show information

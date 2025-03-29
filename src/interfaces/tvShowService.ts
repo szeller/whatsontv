@@ -1,8 +1,7 @@
 /**
- * Interface for TV show service operations
- * Responsible for fetching TV show data from external APIs
+ * Interface for services that fetch TV show information
  */
-import type { Show } from '../types/tvShowModel.js';
+import type { Show } from '../schemas/domain.js';
 import type { ShowOptions } from '../types/tvShowOptions.js';
 
 export interface TvShowService {

@@ -3,39 +3,16 @@
  * 
  * Provides test fixtures for domain model Show objects
  */
-import type { Show } from '../../../types/tvShowModel.js';
+import { loadValidatedArrayFixture } from '../../helpers/fixtureHelper.js';
+import { showSchema } from '../../../schemas/domain.js';
+import type { Show } from '../../../schemas/domain.js';
 
 /**
  * Get sample network shows for testing
  * @returns Array of network shows in domain model format
  */
 export function getNetworkShows(): Show[] {
-  return [
-    {
-      id: 1,
-      name: 'Sample Network Show 1',
-      type: 'scripted',
-      language: 'English',
-      genres: ['Drama', 'Action'],
-      network: 'ABC',
-      summary: 'A sample network show for testing',
-      airtime: '20:00',
-      season: 1,
-      number: 1
-    },
-    {
-      id: 2,
-      name: 'Sample Network Show 2',
-      type: 'reality',
-      language: 'English',
-      genres: ['Reality'],
-      network: 'NBC',
-      summary: 'Another sample network show for testing',
-      airtime: '21:00',
-      season: 2,
-      number: 3
-    }
-  ];
+  return loadValidatedArrayFixture(showSchema, 'domain/network-shows.json');
 }
 
 /**
@@ -43,32 +20,7 @@ export function getNetworkShows(): Show[] {
  * @returns Array of streaming shows in domain model format
  */
 export function getStreamingShows(): Show[] {
-  return [
-    {
-      id: 3,
-      name: 'Sample Streaming Show 1',
-      type: 'scripted',
-      language: 'English',
-      genres: ['Drama', 'Sci-Fi'],
-      network: 'Netflix',
-      summary: 'A sample streaming show for testing',
-      airtime: '',
-      season: 1,
-      number: 1
-    },
-    {
-      id: 4,
-      name: 'Sample Streaming Show 2',
-      type: 'reality',
-      language: 'English',
-      genres: ['Reality'],
-      network: 'Hulu',
-      summary: 'Another sample streaming show for testing',
-      airtime: '',
-      season: 3,
-      number: 5
-    }
-  ];
+  return loadValidatedArrayFixture(showSchema, 'domain/streaming-shows.json');
 }
 
 /**
@@ -76,32 +28,7 @@ export function getStreamingShows(): Show[] {
  * @returns Array of cable shows in domain model format
  */
 export function getCableShows(): Show[] {
-  return [
-    {
-      id: 5,
-      name: 'Sample Cable Show 1',
-      type: 'scripted',
-      language: 'English',
-      genres: ['Drama', 'Crime'],
-      network: 'HBO',
-      summary: 'A sample cable show for testing',
-      airtime: '22:00',
-      season: 2,
-      number: 4
-    },
-    {
-      id: 6,
-      name: 'Sample Cable Show 2',
-      type: 'talk show',
-      language: 'English',
-      genres: ['Talk Show'],
-      network: 'Showtime',
-      summary: 'Another sample cable show for testing',
-      airtime: '23:00',
-      season: 5,
-      number: 12
-    }
-  ];
+  return loadValidatedArrayFixture(showSchema, 'domain/cable-shows.json');
 }
 
 /**
@@ -128,18 +55,24 @@ export function getEpisodeSequence(
   season = 1,
   startNumber = 1
 ): Show[] {
-  return Array.from({ length: count }, (_, index) => ({
-    id: 1000 + index,
-    name: `Episode ${startNumber + index}`,
-    type: 'scripted',
-    language: 'English',
-    genres: ['Drama'],
-    network: 'ABC',
-    summary: 'A test episode in a sequence',
-    airtime: '',
-    season,
-    number: startNumber + index
-  }));
+  const episodes: Show[] = [];
+  
+  for (let i = 0; i < count; i++) {
+    episodes.push({
+      id: 100 + i,
+      name: `Episode ${startNumber + i}`,
+      type: 'scripted',
+      language: 'English',
+      genres: ['Drama'],
+      network: 'Test Network',
+      summary: `Test episode ${startNumber + i} for season ${season}`,
+      airtime: '20:00',
+      season,
+      number: startNumber + i
+    });
+  }
+  
+  return episodes;
 }
 
 /**
@@ -149,28 +82,40 @@ export function getEpisodeSequence(
 export function getMixedAirtimeShows(): Show[] {
   return [
     {
-      id: 101,
-      name: 'Show with time',
+      id: 201,
+      name: 'Show with airtime',
       type: 'scripted',
       language: 'English',
       genres: ['Drama'],
-      network: 'ABC',
-      summary: 'A show with airtime',
+      network: 'Test Network',
+      summary: 'Show with a valid airtime',
       airtime: '20:00',
       season: 1,
       number: 1
     },
     {
-      id: 102,
-      name: 'Show without time',
+      id: 202,
+      name: 'Show without airtime',
       type: 'scripted',
       language: 'English',
       genres: ['Drama'],
-      network: 'ABC',
-      summary: 'A show without airtime',
+      network: 'Test Network',
+      summary: 'Show with an empty airtime',
       airtime: '',
       season: 1,
       number: 2
+    },
+    {
+      id: 203,
+      name: 'Show with null airtime',
+      type: 'scripted',
+      language: 'English',
+      genres: ['Drama'],
+      network: 'Test Network',
+      summary: 'Show with a null airtime',
+      airtime: null,
+      season: 1,
+      number: 3
     }
   ];
 }
