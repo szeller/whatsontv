@@ -8,6 +8,7 @@ import {
   webScheduleItemSchema,
   scheduleItemSchema
 } from '../../schemas/tvmaze.js';
+import { showSchema } from '../../schemas/domain.js';
 import { z } from 'zod';
 
 describe('Fixture Validation', () => {
@@ -55,6 +56,35 @@ describe('Fixture Validation', () => {
         const arraySchema = z.array(testSchema);
         arraySchema.parse(parsed);
       }).toThrow();
+    });
+  });
+  
+  describe('Domain Model Fixtures', () => {
+    it('should validate network shows fixture against schema', () => {
+      expect(() => {
+        fixtureHelper.loadValidatedArrayFixture(
+          showSchema, 
+          'domain/network-shows.json'
+        );
+      }).not.toThrow();
+    });
+    
+    it('should validate streaming shows fixture against schema', () => {
+      expect(() => {
+        fixtureHelper.loadValidatedArrayFixture(
+          showSchema, 
+          'domain/streaming-shows.json'
+        );
+      }).not.toThrow();
+    });
+    
+    it('should validate cable shows fixture against schema', () => {
+      expect(() => {
+        fixtureHelper.loadValidatedArrayFixture(
+          showSchema, 
+          'domain/cable-shows.json'
+        );
+      }).not.toThrow();
     });
   });
 });
