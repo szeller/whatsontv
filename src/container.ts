@@ -14,7 +14,7 @@ import { ConsoleConfigServiceImpl } from './implementations/console/consoleConfi
 import { ConsoleFormatterImpl } from './implementations/console/consoleFormatterImpl.js';
 import { ConsoleOutputImpl } from './implementations/console/consoleOutputImpl.js';
 import { ConsoleOutputServiceImpl } from './implementations/console/consoleOutputServiceImpl.js';
-import { GotHttpClientImpl } from './implementations/gotHttpClientImpl.js';
+import { FetchHttpClientImpl } from './implementations/fetchHttpClientImpl.js';
 import { TvMazeServiceImpl } from './implementations/tvMazeServiceImpl.js';
 
 // Interface imports
@@ -50,7 +50,7 @@ container.register<OutputService>('OutputService', {
 
 // Register HttpClient with factory to provide empty options object
 container.register<HttpClient>('HttpClient', {
-  useFactory: () => new GotHttpClientImpl({})
+  useFactory: () => new FetchHttpClientImpl({})
 });
 
 // Register named implementations for specific platforms
