@@ -8,7 +8,7 @@ TVMaze is a free, community-driven TV show database with a public API that provi
 
 ## Base URL
 
-```
+```bash
 https://api.tvmaze.com
 ```
 
@@ -228,6 +228,76 @@ interface WebScheduleItem {
   };
 }
 ```
+
+## Data Transformation
+
+The application uses Zod schemas to transform TVMaze API data into our internal domain model. This approach provides type safety, validation, and consistent error handling.
+
+### Transformation Process
+
+1. **Schema Definition**: We define Zod schemas that match the TVMaze API response structure
+2. **Schema Transformation**: We use Zod's transform capabilities to convert API data to our domain model
+3. **Error Handling**: We handle validation errors gracefully, returning null for invalid data
+
+### Implementation
+
+The transformation logic is implemented in two key locations:
+
+1. **Schema Transformations** (`src/schemas/tvmaze.ts`):
+   - `networkScheduleToShowSchema`: Transforms network schedule items to our domain model
+   - `webScheduleToShowSchema`: Transforms web schedule items to our domain model
+
+2. **Utility Functions** (`src/utils/tvMazeUtils.ts`):
+   - `transformScheduleItem`: Determines the type of schedule item and applies the appropriate schema transformation
+   - `transformSchedule`: Processes an array of schedule items, filtering out any null results
+
+### Example: Network Schedule Transformation
+
+```typescript
+// Schema definition with transformation
+export const networkScheduleToShowSchema = networkScheduleItemSchema.transform((item) => {
+  // Extract show data with safe defaults
+  const show = item.show ?? {};
+  const id = typeof show.id === 'number' ? show.id : 0;
+  const name = typeof show.name === 'string' && show.name.length > 0 ? show.name : 'Unknown Show';
+  
+  return {
+    id,
+    name,
+    // Additional properties...
+  };
+});
+```
+
+```typescript
+// Usage in utility function
+export function transformScheduleItem(item: unknown): Show | null {
+  try {
+    const isWeb = isWebScheduleItem(item);
+    
+    if (isWeb) {
+      return webScheduleToShowSchema.safeParse(item).success 
+        ? webScheduleToShowSchema.parse(item)
+        : null;
+    } else {
+      return networkScheduleToShowSchema.safeParse(item).success
+        ? networkScheduleToShowSchema.parse(item)
+        : null;
+    }
+  } catch (error) {
+    console.error('Error transforming schedule item:', error);
+    return null;
+  }
+}
+```
+
+### Benefits of This Approach
+
+1. **Type Safety**: The transformation process is fully typed
+2. **Validation**: Input data is validated against the schema
+3. **Default Values**: Missing or null fields are handled with sensible defaults
+4. **Centralized Logic**: Transformation logic is defined in one place
+5. **Testability**: Schema transformations are easy to test in isolation
 
 ## Type Inconsistencies and Edge Cases
 
