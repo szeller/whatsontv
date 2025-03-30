@@ -6,6 +6,7 @@ import { ShowFormatter } from '../../../interfaces/showFormatter';
 import { ConfigService } from '../../../interfaces/configService';
 import { AppConfig, CliOptions } from '../../../types/configTypes';
 import type { Show, NetworkGroups } from '../../../schemas/domain.js';
+import { getTodayDate } from '../../../utils/dateUtils.js';
 
 // Extend the service to expose protected methods for testing
 class TestConsoleOutputService extends ConsoleOutputServiceImpl {
@@ -15,37 +16,44 @@ class TestConsoleOutputService extends ConsoleOutputServiceImpl {
   }
 
   public async displayNetworkGroups(
-    networkGroups: NetworkGroups,
+    networkGroups: NetworkGroups, 
     timeSort = false
   ): Promise<void> {
     return super.displayNetworkGroups(networkGroups, timeSort);
   }
 
-  public filterShowsByType(shows: Show[], types: string[]): Show[] {
-    // Implement this test helper method
+  public filterShowsByType(
+    shows: Show[], 
+    types: string[]
+  ): Show[] {
     return shows.filter((show): boolean => 
       types.length === 0 || Boolean(types.includes(show.type))
     );
   }
 
-  public filterShowsByNetwork(shows: Show[], networks: string[]): Show[] {
-    // Implement this test helper method
+  public filterShowsByNetwork(
+    shows: Show[], 
+    networks: string[]
+  ): Show[] {
     return shows.filter((show): boolean => 
-      networks.length === 0 || 
-      (networks.includes(show.network))
+      networks.length === 0 || networks.includes(show.network)
     );
   }
 
-  public filterShowsByGenre(shows: Show[], genres: string[]): Show[] {
-    // Implement this test helper method
+  public filterShowsByGenre(
+    shows: Show[], 
+    genres: string[]
+  ): Show[] {
     return shows.filter((show): boolean => 
       genres.length === 0 || 
       show.genres.some((genre): boolean => genres.includes(genre))
     );
   }
 
-  public filterShowsBySearch(shows: Show[], searchTerm: string): Show[] {
-    // Implement this test helper method
+  public filterShowsBySearch(
+    shows: Show[], 
+    searchTerm: string
+  ): Show[] {
     if (searchTerm === '') return shows;
     const term = searchTerm.toLowerCase();
     return shows.filter((show): boolean => {
@@ -56,17 +64,27 @@ class TestConsoleOutputService extends ConsoleOutputServiceImpl {
     });
   }
 
-  public groupShowsByNetwork(shows: Show[]): NetworkGroups {
+  public groupShowsByNetwork(
+    shows: Show[]
+  ): NetworkGroups {
     return super.groupShowsByNetwork(shows);
   }
 
-  public async displayShows(shows: Show[]): Promise<void> {
-    if (shows.length === 0) {
-      this.consoleOutput.log('No shows found for the specified criteria.');
-      return;
-    }
-    const networkGroups = this.groupShowsByNetwork(shows);
-    await this.displayNetworkGroups(networkGroups);
+  public async displayShows(
+    shows: Show[], 
+    groupByNetwork = true
+  ): Promise<void> {
+    return super.displayShows(shows, groupByNetwork);
+  }
+
+  // Access the private sortShowsByTime method for testing
+  // Use type assertion to avoid TypeScript errors
+  public sortShowsByTimeTest(
+    shows: Show[]
+  ): Show[] {
+    // Using type casting with explicit type for the private method
+    type SortMethod = (shows: Show[]) => Show[];
+    return (this as unknown as { sortShowsByTime: SortMethod })['sortShowsByTime'](shows);
   }
 }
 
@@ -154,7 +172,8 @@ describe('ConsoleOutputServiceImpl', () => {
       getShowOptions: jest.fn(),
       getShowOption: jest.fn(),
       getCliOptions: jest.fn(),
-      getConfig: jest.fn()
+      getConfig: jest.fn(),
+      getHelpText: jest.fn()
     } as jest.Mocked<ConfigService>;
     
     // Create the service with our test subclass
@@ -238,6 +257,56 @@ describe('ConsoleOutputServiceImpl', () => {
       );
       expect(mockShowFormatter.formatNetworkGroups).not.toHaveBeenCalled();
     });
+
+    it('should display shows without grouping when groupByNetwork is false', async () => {
+      // Arrange
+      const formattedOutput = ['Line 1', 'Line 2', 'Line 3'];
+      mockShowFormatter.formatNetworkGroups.mockReturnValue(formattedOutput);
+      
+      // Act
+      await service.displayShows(shows, false);
+
+      // Assert
+      expect(mockShowFormatter.formatNetworkGroups).toHaveBeenCalledTimes(1);
+      
+      // Check that the shows were not grouped by network
+      const networkGroups = mockShowFormatter.formatNetworkGroups.mock.calls[0][0];
+      expect(Object.keys(networkGroups)).toEqual(['All Shows']);
+      expect(networkGroups['All Shows'].length).toBe(shows.length);
+      
+      // Check that the timeSort parameter was passed correctly
+      expect(mockShowFormatter.formatNetworkGroups.mock.calls[0][1]).toBe(false);
+    });
+
+    it('should handle error in formatter', async () => {
+      // Arrange
+      mockShowFormatter.formatNetworkGroups.mockImplementation(() => {
+        throw new Error('Formatter error');
+      });
+      
+      // Act
+      await service.displayShows(shows);
+
+      // Assert
+      expect(mockConsoleOutput.error).toHaveBeenCalledWith(
+        'Error displaying output: Formatter error'
+      );
+    });
+
+    it('should handle non-Error exceptions in formatter', async () => {
+      // Arrange
+      mockShowFormatter.formatNetworkGroups.mockImplementation(() => {
+        throw 'String error'; // Non-Error exception
+      });
+      
+      // Act
+      await service.displayShows(shows);
+
+      // Assert
+      expect(mockConsoleOutput.error).toHaveBeenCalledWith(
+        'Error displaying output: String error'
+      );
+    });
   });
 
   describe('filterShowsByNetwork', () => {
@@ -248,9 +317,10 @@ describe('ConsoleOutputServiceImpl', () => {
       // Assert
       expect(filteredShows.length).toBe(2);
       
-      const allABC = filteredShows.every(
-        (show): boolean => show.network === 'ABC'
-      );
+      // Check that all shows are from the ABC network
+      const allABC = filteredShows.every((show) => {
+        return show.network === 'ABC';
+      });
       expect(allABC).toBe(true);
     });
 
@@ -322,13 +392,29 @@ describe('ConsoleOutputServiceImpl', () => {
 
       // Assert
       expect(mockShowFormatter.formatNetworkGroups).toHaveBeenCalledWith(
-        networkGroups, 
+        networkGroups,
         true
       );
       expect(mockConsoleOutput.log).toHaveBeenCalledTimes(formattedOutput.length);
       formattedOutput.forEach(line => {
         expect(mockConsoleOutput.log).toHaveBeenCalledWith(line);
       });
+    });
+
+    it('should handle error in formatter during displayNetworkGroups', async () => {
+      // Arrange
+      const networkGroups: NetworkGroups = { 'ABC': shows.slice(0, 2) };
+      mockShowFormatter.formatNetworkGroups.mockImplementation(() => {
+        throw new Error('Formatter error');
+      });
+      
+      // Act
+      await service.displayNetworkGroups(networkGroups);
+
+      // Assert
+      expect(mockConsoleOutput.error).toHaveBeenCalledWith(
+        'Error displaying output: Formatter error'
+      );
     });
   });
 
@@ -348,6 +434,194 @@ describe('ConsoleOutputServiceImpl', () => {
       
       // Assert
       expect(filteredShows.length).toBe(shows.length);
+    });
+  });
+
+  describe('sortShowsByTime', () => {
+    it('should sort shows by airtime', () => {
+      // Create shows with different airtimes
+      const unsortedShows: Show[] = [
+        { ...shows[0], airtime: '21:00' },
+        { ...shows[1], airtime: '19:30' },
+        { ...shows[2], airtime: '20:15' }
+      ];
+
+      // Act
+      const sortedShows = service.sortShowsByTimeTest(unsortedShows);
+
+      // Assert
+      expect(sortedShows[0].airtime).toBe('19:30');
+      expect(sortedShows[1].airtime).toBe('20:15');
+      expect(sortedShows[2].airtime).toBe('21:00');
+    });
+
+    it('should handle shows with missing airtime', () => {
+      // Create shows with some missing airtimes
+      const unsortedShows: Show[] = [
+        { ...shows[0], airtime: '21:00' },
+        { ...shows[1], airtime: '' },
+        { ...shows[2], airtime: '20:15' },
+        { ...shows[3], airtime: null }
+      ];
+
+      // Act
+      const sortedShows = service.sortShowsByTimeTest(unsortedShows);
+
+      // Assert
+      expect(sortedShows[0].airtime).toBe('20:15');
+      expect(sortedShows[1].airtime).toBe('21:00');
+      // Shows with missing airtimes should be at the end
+      expect(sortedShows[2].airtime).toBe('');
+      expect(sortedShows[3].airtime).toBeNull();
+    });
+
+    it('should handle AM/PM time formats', () => {
+      // Create shows with AM/PM time formats
+      const unsortedShows: Show[] = [
+        { ...shows[0], airtime: '9:00 PM' },
+        { ...shows[1], airtime: '10:30 AM' },
+        { ...shows[2], airtime: '12:15 PM' },
+        { ...shows[3], airtime: '12:45 AM' }
+      ];
+
+      // Act
+      const sortedShows = service.sortShowsByTimeTest(unsortedShows);
+
+      // Assert
+      expect(sortedShows[0].airtime).toBe('12:45 AM');
+      expect(sortedShows[1].airtime).toBe('10:30 AM');
+      expect(sortedShows[2].airtime).toBe('12:15 PM');
+      expect(sortedShows[3].airtime).toBe('9:00 PM');
+    });
+
+    it('should handle time formats without colons', () => {
+      // Create shows with time formats without colons
+      const unsortedShows: Show[] = [
+        { ...shows[0], airtime: '21' },
+        { ...shows[1], airtime: '9' },
+        { ...shows[2], airtime: '15' }
+      ];
+
+      // Act
+      const sortedShows = service.sortShowsByTimeTest(unsortedShows);
+
+      // Assert
+      expect(sortedShows[0].airtime).toBe('9');
+      expect(sortedShows[1].airtime).toBe('15');
+      expect(sortedShows[2].airtime).toBe('21');
+    });
+  });
+
+  describe('isInitialized', () => {
+    it('should return true when all dependencies are initialized', () => {
+      // Act
+      const result = service.isInitialized();
+
+      // Assert
+      expect(result).toBe(true);
+    });
+
+    it('should return false when formatter is not initialized', () => {
+      // Arrange
+      const uninitializedService = new TestConsoleOutputService(
+        mockShowFormatter,
+        mockConsoleOutput,
+        mockConfigService,
+        true // Skip initialization
+      );
+
+      // Act
+      const result = uninitializedService.isInitialized();
+
+      // Assert
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('parseArgs', () => {
+    it('should parse command line arguments with defaults', () => {
+      // Act
+      const args = service.parseArgs([]);
+
+      // Assert
+      expect(args.date).toBe(getTodayDate());
+      expect(args.country).toBe('US');
+      expect(args.fetch).toBe('all');
+      expect(args.debug).toBe(false);
+      // The help property may be undefined in the actual implementation
+      expect(args.help).toBeFalsy();
+    });
+
+    it('should parse command line arguments with custom values', () => {
+      // Act
+      const args = service.parseArgs([
+        '--date', '2025-01-01',
+        '--country', 'GB',
+        '--types', 'Scripted,Reality',
+        '--networks', 'ABC,NBC',
+        '--genres', 'Drama,Comedy',
+        '--languages', 'English,Spanish',
+        '--debug',
+        '--fetch', 'network'
+      ]);
+
+      // Assert
+      expect(args.date).toBe('2025-01-01');
+      expect(args.country).toBe('GB');
+      expect(args.types).toEqual(['Scripted', 'Reality']);
+      expect(args.networks).toEqual(['ABC', 'NBC']);
+      expect(args.genres).toEqual(['Drama', 'Comedy']);
+      expect(args.languages).toEqual(['English', 'Spanish']);
+      expect(args.debug).toBe(true);
+      expect(args.fetch).toBe('network');
+    });
+
+    it('should handle aliases for arguments', () => {
+      // Act
+      const args = service.parseArgs([
+        '-d', '2025-01-01',
+        '-c', 'GB',
+        '-g', 'Drama,Comedy',
+        '-L', 'English,Spanish',
+        '-D',
+        '-f', 'web'
+      ]);
+
+      // Assert
+      expect(args.date).toBe('2025-01-01');
+      expect(args.country).toBe('GB');
+      expect(args.genres).toEqual(['Drama', 'Comedy']);
+      expect(args.languages).toEqual(['English', 'Spanish']);
+      expect(args.debug).toBe(true);
+      expect(args.fetch).toBe('web');
+    });
+  });
+
+  describe('displayHeader and displayFooter', () => {
+    it('should display application header', () => {
+      // Act
+      service.displayHeader();
+
+      // Assert
+      expect(mockConsoleOutput.log).toHaveBeenCalledTimes(3);
+      expect(mockConsoleOutput.log).toHaveBeenCalledWith('');
+      expect(mockConsoleOutput.log).toHaveBeenCalledWith('WhatsOnTV v1.0.0');
+      expect(mockConsoleOutput.log).toHaveBeenCalledWith('==============================');
+    });
+
+    it('should display application footer', () => {
+      // Reset mock before this specific test to ensure accurate call count
+      mockConsoleOutput.log.mockClear();
+      
+      // Act
+      service.displayFooter();
+
+      // Assert
+      expect(mockConsoleOutput.log).toHaveBeenCalledTimes(3);
+      expect(mockConsoleOutput.log).toHaveBeenCalledWith('==============================');
+      expect(mockConsoleOutput.log).toHaveBeenCalledWith('');
+      // The actual implementation may have an additional call
+      expect(mockConsoleOutput.log).toHaveBeenNthCalledWith(1, '');
     });
   });
 });

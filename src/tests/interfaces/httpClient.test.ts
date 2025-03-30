@@ -1,7 +1,7 @@
 import { afterEach, afterAll, beforeEach, describe, expect, it } from '@jest/globals';
 import nock from 'nock';
 
-import { GotHttpClientImpl } from '../../implementations/gotHttpClientImpl.js';
+import { FetchHttpClientImpl } from '../../implementations/fetchHttpClientImpl.js';
 import { HttpClientOptions, HttpClient } from '../../interfaces/httpClient.js';
 
 // Base URL for tests
@@ -11,7 +11,7 @@ const BASE_URL = 'https://api.example.com';
  * Tests for the HttpClient interface
  * 
  * These tests verify that any implementation of the HttpClient interface
- * behaves according to the interface contract. We use the GotHttpClientImpl
+ * behaves according to the interface contract. We use the FetchHttpClientImpl
  * as a concrete implementation for testing, but the tests focus on the
  * behavior defined by the interface rather than implementation details.
  */
@@ -20,7 +20,7 @@ describe('HttpClient Interface', () => {
   
   beforeEach(() => {
     // Create a new client instance before each test
-    client = new GotHttpClientImpl({ baseUrl: BASE_URL } as HttpClientOptions);
+    client = new FetchHttpClientImpl({ baseUrl: BASE_URL } as HttpClientOptions);
     
     // Disable real network connections
     nock.disableNetConnect();
@@ -103,15 +103,18 @@ describe('HttpClient Interface', () => {
         .get('/test')
         .reply(200, invalidJson, { 'content-type': 'application/json' });
       
-      // Execute the method
-      const result = await client.get<unknown>('/test');
+      // Verify the error is thrown correctly
+      await expect(client.get<unknown>('/test')).rejects.toThrow();
+    });
+
+    it('should handle network errors', async () => {
+      // Setup mock network error with Nock
+      nock(BASE_URL)
+        .get('/test')
+        .replyWithError('Network error');
       
-      // Verify the result - should return the raw body
-      expect(result).toEqual({
-        data: invalidJson,
-        status: 200,
-        headers: expect.objectContaining({ 'content-type': 'application/json' })
-      });
+      // Verify the error is thrown correctly
+      await expect(client.get<unknown>('/test')).rejects.toThrow();
     });
   });
 

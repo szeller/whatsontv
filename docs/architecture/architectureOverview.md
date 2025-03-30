@@ -34,7 +34,7 @@ The application follows a clean architecture with clear separation of interfaces
 
 2. **Implementations** (`src/implementations/`)
    - `tvMazeServiceImpl.ts`: TVMaze API implementation of TvShowService
-   - `gotHttpClientImpl.ts`: HTTP client implementation using got
+   - `fetchHttpClientImpl.ts`: HTTP client implementation using Ky (Fetch API wrapper)
    - `styleServiceImpl.ts`: Styling service implementation
    - Console-specific implementations (`src/implementations/console/`):
      - `consoleOutputImpl.ts`: Implementation of low-level console operations
@@ -113,7 +113,7 @@ graph TD
 
 ### External Dependencies
 1. **API Communication**
-   - `got`: Robust HTTP client with TypeScript support
+   - `ky`: Robust HTTP client with TypeScript support and Fetch API wrapper
    - No API key required for TVMaze
 
 2. **CLI Interface**
