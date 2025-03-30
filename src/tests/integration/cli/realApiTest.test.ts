@@ -72,9 +72,13 @@ describe('Real API CLI Integration Test', () => {
     // Check that we got at least one show (should be failing if no shows are found)
     expect(outputText).not.toContain('No shows found for the specified criteria');
     
-    // Log the output for debugging
-    console.log('Network schedule output:');
-    console.log(outputText);
+    // Verify specific networks are present
+    expect(outputText).toContain('CBS (US):');
+    
+    // Verify some basic formatting elements
+    expect(outputText).toContain('20:00');  // Check for a time format
+    expect(outputText).toContain('Scripted');  // Check for show type
+    expect(outputText).toContain('S');  // Check for season indicator
     
     // Check for error messages
     expect(result.stderr.length).toBe(0);
@@ -106,9 +110,21 @@ describe('Real API CLI Integration Test', () => {
     // Check that we got at least one show (should be failing if no shows are found)
     expect(outputText).not.toContain('No shows found for the specified criteria');
     
-    // Log the output for debugging
-    console.log('Web schedule output:');
-    console.log(outputText);
+    // Verify at least one streaming service is present
+    const streamingServices = [
+      'Netflix', 
+      'Hulu', 
+      'Prime Video', 
+      'Disney+', 
+      'Apple TV+', 
+      'Paramount+', 
+      'HBO Max'
+    ];
+    const hasStreamingService = streamingServices.some(service => outputText.includes(service));
+    expect(hasStreamingService).toBe(true);
+    
+    // Verify web shows have N/A for time
+    expect(outputText).toContain('N/A');
     
     // Check for error messages
     expect(result.stderr.length).toBe(0);
@@ -142,9 +158,20 @@ describe('Real API CLI Integration Test', () => {
     // Check that we got at least one show (should be failing if no shows are found)
     expect(outputText).not.toContain('No shows found for the specified criteria');
     
-    // Log the output for debugging
-    console.log('All shows output:');
-    console.log(outputText);
+    // Verify that we have both network and web shows
+    // Network shows have times (check for some common hour values)
+    expect(outputText).toMatch(/20:00|21:00|22:00/);
+    // Web shows have N/A for time
+    expect(outputText).toContain('N/A');
+    
+    // Verify we have multiple networks/platforms
+    // The network headings end with a colon and are followed by a line of dashes
+    const networkHeadings = outputText.split('\n').filter(line => 
+      line.includes(':') && 
+      !line.includes('WhatsOnTV') && 
+      !line.includes('Data provided')
+    );
+    expect(networkHeadings.length).toBeGreaterThan(1);
     
     // Check for error messages
     expect(result.stderr.length).toBe(0);

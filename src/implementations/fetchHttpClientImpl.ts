@@ -66,11 +66,7 @@ export class FetchHttpClientImpl implements HttpClient {
       retry: 0, // Don't retry by default
       hooks: {
         beforeRequest: [
-          request => {
-            if (!this.isTestEnvironment) {
-              console.warn(`Making request to: ${request.url}`);
-            }
-          },
+          // No longer logging request URLs
           ...(options.hooks?.beforeRequest || [])
         ],
         afterResponse: [
