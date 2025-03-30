@@ -45,7 +45,9 @@ describe('FetchHttpClientImpl', () => {
       });
       
       const result = await client.get<typeof mockResponseData>('shows/1');
-      expect(result).toEqual(mockResponseData);
+      expect(result.data).toEqual(mockResponseData);
+      expect(result.status).toBe(200);
+      expect(result.headers).toHaveProperty('content-type');
       expect(mockBeforeRequestHook).toHaveBeenCalled();
     });
 
@@ -109,7 +111,9 @@ describe('FetchHttpClientImpl', () => {
         schema
       );
       
-      expect(result).toEqual(mockResponseData);
+      expect(result.data).toEqual(mockResponseData);
+      expect(result.status).toBe(200);
+      expect(result.headers).toHaveProperty('content-type');
     });
 
     it('should throw an error if the request fails', async () => {
@@ -120,7 +124,9 @@ describe('FetchHttpClientImpl', () => {
         });
       });
       
-      await expect(client.get('shows/1')).rejects.toThrow();
+      await expect(client.get('shows/999')).rejects.toThrow(
+        'Request Error: HTTP Error 404: Not Found'
+      );
     });
   });
 
@@ -148,7 +154,9 @@ describe('FetchHttpClientImpl', () => {
         requestData
       );
       
-      expect(result).toEqual(mockResponseData);
+      expect(result.data).toEqual(mockResponseData);
+      expect(result.status).toBe(200);
+      expect(result.headers).toHaveProperty('content-type');
       expect(capturedRequest).toBeDefined();
       if (capturedRequest) {
         expect(capturedRequest.method).toBe('POST');
@@ -192,7 +200,9 @@ describe('FetchHttpClientImpl', () => {
       });
       
       const promise = client.post('shows', { title: 'Test' });
-      await expect(promise).rejects.toThrow();
+      await expect(promise).rejects.toThrow(
+        'Request Error: HTTP Error 400: Request failed'
+      );
     });
   });
 });

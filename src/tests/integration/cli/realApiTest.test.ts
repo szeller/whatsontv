@@ -6,7 +6,7 @@
  * It keeps console output mocked for stability and test isolation.
  */
 import { container } from '../../../container.js';
-import { GotHttpClientImpl } from '../../../implementations/gotHttpClientImpl.js';
+import { FetchHttpClientImpl } from '../../../implementations/fetchHttpClientImpl.js';
 import { TvMazeServiceImpl } from '../../../implementations/tvMazeServiceImpl.js';
 import type { HttpClient } from '../../../interfaces/httpClient.js';
 import type { TvShowService } from '../../../interfaces/tvShowService.js';
@@ -14,14 +14,13 @@ import { getTodayDate } from '../../../utils/dateUtils.js';
 import { describe, expect, test, beforeEach, afterEach } from '@jest/globals';
 import { runCli } from './cliTestRunner.js';
 
-// Skipping this test until we decide what to do about console output
-describe.skip('Real API CLI Integration Test', () => {
+describe('Real API CLI Integration Test', () => {
   // Original services
   let originalHttpClient: HttpClient;
   let originalTvShowService: TvShowService;
   
   // Real HTTP client for API calls
-  let realHttpClient: GotHttpClientImpl;
+  let realHttpClient: FetchHttpClientImpl;
   
   beforeEach(() => {
     // Save original services
@@ -29,7 +28,7 @@ describe.skip('Real API CLI Integration Test', () => {
     originalTvShowService = container.resolve<TvShowService>('TvShowService');
     
     // Create real HTTP client
-    realHttpClient = new GotHttpClientImpl();
+    realHttpClient = new FetchHttpClientImpl();
     
     // Create real TV show service that uses the real HTTP client
     const realTvShowService = new TvMazeServiceImpl(realHttpClient);
@@ -70,6 +69,9 @@ describe.skip('Real API CLI Integration Test', () => {
     expect(outputText).toContain('WhatsOnTV v1.0.0');
     expect(outputText).toContain('Data provided by TVMaze API');
     
+    // Check that we got at least one show (should be failing if no shows are found)
+    expect(outputText).not.toContain('No shows found for the specified criteria');
+    
     // Log the output for debugging
     console.log('Network schedule output:');
     console.log(outputText);
@@ -101,7 +103,7 @@ describe.skip('Real API CLI Integration Test', () => {
     expect(outputText).toContain('WhatsOnTV v1.0.0');
     expect(outputText).toContain('Data provided by TVMaze API');
     
-    // Check that we got at least one show (BBC iPlayer shows were found in previous run)
+    // Check that we got at least one show (should be failing if no shows are found)
     expect(outputText).not.toContain('No shows found for the specified criteria');
     
     // Log the output for debugging
@@ -136,6 +138,9 @@ describe.skip('Real API CLI Integration Test', () => {
     const outputText = result.stdout.join('\n');
     expect(outputText).toContain('WhatsOnTV v1.0.0');
     expect(outputText).toContain('Data provided by TVMaze API');
+    
+    // Check that we got at least one show (should be failing if no shows are found)
+    expect(outputText).not.toContain('No shows found for the specified criteria');
     
     // Log the output for debugging
     console.log('All shows output:');
