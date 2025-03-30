@@ -24,7 +24,7 @@ Contains schemas for the internal domain model, independent of any particular AP
 
 ### `tvmaze.ts`
 
-Contains schemas for TVMaze API responses:
+Contains schemas for TVMaze API responses and transformations:
 
 - `networkSchema` - Schema for TV networks
 - `baseShowSchema` - Base schema for show information
@@ -32,12 +32,16 @@ Contains schemas for TVMaze API responses:
 - `networkScheduleItemSchema` - Schema for items from the network schedule endpoint
 - `webScheduleItemSchema` - Schema for items from the web schedule endpoint
 - `scheduleItemSchema` - Union schema that handles both network and web schedule items
+- `networkScheduleToShowSchema` - Transform schema that converts network schedule items to domain model
+- `webScheduleToShowSchema` - Transform schema that converts web schedule items to domain model
 
 ## Usage Guidelines
 
-### Validation
+### Validation and Transformation
 
-Use the utility functions in `src/utils/validationUtils.ts` to validate data against schemas:
+Zod schemas are used for both validation and transformation. There are two main approaches:
+
+#### 1. Using Utility Functions
 
 ```typescript
 import { validateData, validateDataOrNull } from '../utils/validationUtils.js';
@@ -48,6 +52,31 @@ const validatedShow = validateData(showSchema, inputData);
 
 // Returns null if validation fails
 const maybeShow = validateDataOrNull(showSchema, inputData);
+```
+
+#### 2. Using Zod's Transform Capabilities (Preferred)
+
+```typescript
+import { networkScheduleToShowSchema } from '../schemas/tvmaze.js';
+
+// Safe parsing with error handling
+const result = networkScheduleToShowSchema.safeParse(inputData);
+if (result.success) {
+  // Use the transformed data
+  const show = result.data;
+} else {
+  // Handle validation error
+  console.error('Validation failed:', result.error);
+}
+
+// Direct parsing (throws on error)
+try {
+  const show = networkScheduleToShowSchema.parse(inputData);
+  // Use the transformed data
+} catch (error) {
+  // Handle validation error
+  console.error('Validation failed:', error);
+}
 ```
 
 ### Type Inference
@@ -86,9 +115,33 @@ const extendedShowSchema = showSchema.extend({
 
 1. **Single Source of Truth**: Define schemas once and reuse them
 2. **Validation at Boundaries**: Always validate external data
-3. **Error Handling**: Use try/catch blocks with schema validation
-4. **Performance**: Consider caching validation results for frequently used data
-5. **Testing**: Test both valid and invalid data scenarios
+3. **Declarative Transformations**: Use Zod's transform capabilities for data conversions
+4. **Null Handling**: Always handle null and undefined values explicitly in schemas
+5. **Default Values**: Provide sensible defaults for optional fields
+6. **Error Handling**: Use try/catch blocks with schema validation
+7. **Performance**: Consider caching validation results for frequently used data
+8. **Testing**: Test both valid and invalid data scenarios
+
+## Implementation Notes
+
+### Transformation Schemas
+
+The transformation schemas in `tvmaze.ts` follow these principles:
+
+1. **Defensive Programming**: All transformations handle null/undefined values gracefully
+2. **Type Safety**: Strong typing throughout the transformation pipeline
+3. **Default Values**: Sensible defaults for missing or invalid data
+4. **Centralized Logic**: Transformation logic is defined in the schema, not scattered in utility functions
+
+Example of a transformation schema:
+
+```typescript
+export const networkScheduleToShowSchema = networkScheduleItemSchema.transform((item) => ({
+  id: item.show.id ?? 0,
+  name: item.show.name ?? 'Unknown Show',
+  // Additional transformations...
+}));
+```
 
 ## Future Improvements
 

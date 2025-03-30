@@ -1,12 +1,11 @@
 /**
  * Utility functions for TVMaze API operations
  */
-import { getStringOrDefault } from './stringUtils.js';
-import { validateDataOrNull } from './validationUtils.js';
 import { 
-  networkScheduleItemSchema, 
-  webScheduleItemSchema 
+  networkScheduleToShowSchema,
+  webScheduleToShowSchema
 } from '../schemas/tvmaze.js';
+import { getStringOrDefault } from './stringUtils.js';
 import type { Show } from '../schemas/domain.js';
 
 /**
@@ -79,50 +78,6 @@ export function isWebScheduleItem(item: unknown): boolean {
 }
 
 /**
- * Format network name with country code if available
- * 
- * @param show Show data containing network or webChannel information
- * @returns Formatted network name
- */
-function formatNetworkName(
-  show: Record<string, unknown>
-): string {
-  let networkName = 'Unknown Network';
-  
-  if (show.network !== undefined && 
-      show.network !== null && 
-      typeof show.network === 'object') {
-    const network = show.network as Record<string, unknown>;
-    if (network.name !== undefined && 
-        typeof network.name === 'string') {
-      networkName = network.name;
-      
-      const hasCountry = network.country !== undefined && 
-                         network.country !== null && 
-                         typeof network.country === 'object';
-      
-      if (hasCountry) {
-        const country = network.country as Record<string, unknown>;
-        if (country.code !== undefined && 
-            typeof country.code === 'string') {
-          networkName += ` (${country.code})`;
-        }
-      }
-    }
-  } else if (show.webChannel !== undefined && 
-             show.webChannel !== null && 
-             typeof show.webChannel === 'object') {
-    const webChannel = show.webChannel as Record<string, unknown>;
-    if (webChannel.name !== undefined && 
-        typeof webChannel.name === 'string') {
-      networkName = webChannel.name;
-    }
-  }
-  
-  return networkName;
-}
-
-/**
  * Transform a single TVMaze schedule item to our domain model
  * This function handles both network shows (/schedule endpoint) and
  * streaming shows (/schedule/web endpoint) based on their structure.
@@ -138,53 +93,16 @@ export function transformScheduleItem(
     const isWeb = isWebScheduleItem(item);
     
     if (isWeb) {
-      // Only try to parse as a web schedule item
-      const webItem = validateDataOrNull(
-        webScheduleItemSchema, 
-        item
-      );
-      if (webItem !== null && 
-          webItem._embedded?.show !== undefined) {
-        return {
-          id: webItem._embedded.show.id ?? 0,
-          name: webItem._embedded.show.name ?? 'Unknown Show',
-          type: webItem._embedded.show.type ?? 'unknown',
-          language: webItem._embedded.show.language ?? null,
-          genres: webItem._embedded.show.genres ?? [],
-          network: formatNetworkName(
-            webItem._embedded.show as Record<string, unknown>
-          ),
-          summary: webItem._embedded.show.summary ?? null,
-          airtime: webItem.airtime ?? null,
-          season: webItem.season ?? 0,
-          number: webItem.number ?? 0
-        };
-      }
+      // Use Zod schema to transform web schedule item
+      return webScheduleToShowSchema.safeParse(item).success 
+        ? webScheduleToShowSchema.parse(item)
+        : null;
     } else {
-      // Only try to parse as a network schedule item
-      const networkItem = validateDataOrNull(
-        networkScheduleItemSchema, 
-        item
-      );
-      if (networkItem !== null) {
-        return {
-          id: networkItem.show.id ?? 0,
-          name: networkItem.show.name ?? 'Unknown Show',
-          type: networkItem.show.type ?? 'unknown',
-          language: networkItem.show.language ?? null,
-          genres: networkItem.show.genres ?? [],
-          network: formatNetworkName(
-            networkItem.show as Record<string, unknown>
-          ),
-          summary: networkItem.show.summary ?? null,
-          airtime: networkItem.airtime ?? null,
-          season: networkItem.season ?? 0,
-          number: networkItem.number ?? 0
-        };
-      }
+      // Use Zod schema to transform network schedule item
+      return networkScheduleToShowSchema.safeParse(item).success
+        ? networkScheduleToShowSchema.parse(item)
+        : null;
     }
-    
-    return null;
   } catch (error) {
     console.error('Error transforming schedule item:', error);
     return null;
@@ -202,7 +120,9 @@ export function transformSchedule(
   if (!Array.isArray(data)) {
     return [];
   }
-
-  return data.map(item => transformScheduleItem(item))
+  
+  // Map each item through the transform function and filter out nulls
+  return data
+    .map(item => transformScheduleItem(item))
     .filter((show): show is Show => show !== null);
 }

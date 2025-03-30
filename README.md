@@ -4,59 +4,76 @@
 [![Dependabot Status](https://img.shields.io/badge/Dependabot-enabled-brightgreen.svg)](https://github.com/szeller/whatsontv/blob/main/.github/dependabot.yml)
 [![Coverage Status](https://img.shields.io/badge/Coverage-92%25-brightgreen.svg)](https://github.com/szeller/whatsontv/actions)
 
+
 ## Overview
+
 A TypeScript application that fetches TV shows for the current day and sends notifications to a specified Slack channel using the TVMaze API. It supports filtering shows by type, network, genre, and language. It can be used both as a CLI tool and a Slack notification service.
 
+
 ## Prerequisites
+
 - Node.js 18.18.0+
 - Slack Bot Token (optional, only needed for Slack notifications)
+
 
 ## Setup
 
 1. Clone the repository
 
+```bash
+git clone https://github.com/szeller/whatsontv.git
+cd whatsontv
+```
+
 2. Install dependencies:
-   ```
-   npm install
-   ```
+
+```bash
+npm install
+```
 
 3. Create a `.env` file with the following variables (only needed for Slack notifications):
-   ```
-   SLACK_BOT_TOKEN=your_slack_bot_token
-   SLACK_CHANNEL=#your_channel
-   ```
+
+```bash
+SLACK_BOT_TOKEN=your_slack_bot_token
+SLACK_CHANNEL=#your_channel
+```
 
 4. Copy the example config file and customize it:
-   ```
-   cp config.json.example config.json
-   ```
-   Edit `config.json` to set your preferences:
-   ```json
-   {
-       "country": "US",
-       "types": ["Reality", "Scripted"],
-       "networks": ["Discovery", "CBS", "Netflix"],
-       "genres": ["Drama", "Comedy"],
-       "languages": ["English"],
-       "notificationTime": "9:00",
-       "slack": {
-           "enabled": true,
-           "channel": "#tv-shows"
-       }
-   }
-   ```
+
+```bash
+cp config.json.example config.json
+```
+
+Edit `config.json` to set your preferences:
+
+```json
+{
+    "country": "US",
+    "types": ["Reality", "Scripted"],
+    "networks": ["Discovery", "CBS", "Netflix"],
+    "genres": ["Drama", "Comedy"],
+    "languages": ["English"],
+    "notificationTime": "9:00",
+    "slack": {
+        "enabled": true,
+        "channel": "#tv-shows"
+    }
+}
+```
 
 5. Run the application:
-   ```bash
-   # Run as CLI tool
-   npm start
-   
-   # Or with specific options
-   npm start -- --date 2023-01-15 --country US
-   
-   # Run as a Slack notification service
-   npm run slack
-   ```
+
+```bash
+# Run as CLI tool
+npm start
+
+# Or with specific options
+npm start -- --date 2023-01-15 --country US
+
+# Run as a Slack notification service
+npm run slack
+```
+
 
 ## Features
 
@@ -68,6 +85,7 @@ A TypeScript application that fetches TV shows for the current day and sends not
 - **Scheduled Notifications**: Set up daily notifications at a specific time
 - **Colorized Output**: Enhanced terminal output with colors and formatting
 
+
 ## CLI Options
 
 | Option | Description | Default |
@@ -77,6 +95,7 @@ A TypeScript application that fetches TV shows for the current day and sends not
 | `--config`, `-f` | Path to config file | `./config.json` |
 | `--help`, `-h` | Show help | |
 | `--version`, `-v` | Show version number | |
+
 
 ## Configuration
 
@@ -93,6 +112,7 @@ The `config.json` file supports the following options:
 | `slack.enabled` | boolean | Whether to enable Slack notifications |
 | `slack.channel` | string | Slack channel for notifications |
 
+
 ## Architecture
 
 The application follows clean architecture principles with a strong emphasis on type safety and validation:
@@ -102,23 +122,28 @@ The application follows clean architecture principles with a strong emphasis on 
 - **Domain Layer**: Core business logic and entities
 - **Interface Layer**: Abstract contracts for services
 - **Implementation Layer**: Concrete implementations of interfaces
-- **Schema System**: Zod schemas for validation and type safety
+- **Schema System**: Zod schemas for validation, transformation, and type safety
 - **Dependency Injection**: Using TSyringe for inversion of control
+- **Data Transformation**: Declarative transformation of external API data to domain models
+
 
 ### Schema System
 
-The application uses [Zod](https://zod.dev/) for runtime validation and type safety:
+The application uses [Zod](https://zod.dev/) for runtime validation, transformation, and type safety:
 
 - **Domain Schemas**: Define the core business entities
 - **API Schemas**: Validate external API responses
+- **Transformation Schemas**: Convert API data to domain models
 - **Runtime Validation**: Ensure data integrity beyond compile-time checks
 - **Type Inference**: Generate TypeScript types from schemas
+- **Default Values**: Handle missing or null data gracefully
 
 For more details, see the [schema documentation](./src/schemas/README.md).
 
+
 ## Project Structure
 
-```
+```typescript
 src/
 ├── interfaces/            # Interface definitions
 ├── implementations/       # Interface implementations
@@ -127,11 +152,12 @@ src/
 ├── schemas/               # Zod schemas for validation and types
 │   ├── common.ts          # Common utility schemas
 │   ├── domain.ts          # Domain model schemas
-│   └── tvmaze.ts          # TVMaze API schemas
+│   └── tvmaze.ts          # TVMaze API schemas and transformations
 ├── utils/                 # Utility functions and helpers
 ├── cli.ts                 # CLI entry point
 └── slack.ts               # Slack entry point
 ```
+
 
 ## Development
 
@@ -150,8 +176,11 @@ npm test
 # Run tests with coverage
 npm run test:coverage
 
-# Run tests in watch mode
-npm run test:watch
+# Run linting
+npm run lint
+
+# Run type checking
+npm run typecheck
 ```
 
 ### Linting
@@ -166,6 +195,7 @@ npm run lint
 npm run typecheck
 ```
 
+
 ## Contributing
 
 1. Fork the repository
@@ -174,9 +204,11 @@ npm run typecheck
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
 
 ## Acknowledgments
 

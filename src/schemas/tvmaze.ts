@@ -24,12 +24,12 @@ export const networkSchema = z.object({
  * Base show schema for common properties
  */
 export const baseShowSchema = z.object({
-  id: z.number().optional(),
+  id: z.number().optional().nullable(),
   url: z.string().optional(),
   name: z.string().optional(),
   type: z.string().optional(),
   language: nullableString.optional(),
-  genres: z.array(z.string()).optional().default([]),
+  genres: z.array(z.string()).optional().nullable().default([]),
   status: z.string().optional(),
   runtime: z.number().nullable().optional(),
   premiered: z.string().optional(),
@@ -99,7 +99,6 @@ export const scheduleItemSchema = z.union([
  */
 export type NetworkScheduleItem = z.infer<typeof networkScheduleItemSchema>;
 export type WebScheduleItem = z.infer<typeof webScheduleItemSchema>;
-export type ShowDetails = z.infer<typeof showDetailsSchema>;
 export type Network = z.infer<typeof networkSchema>;
 export type ScheduleItem = z.infer<typeof scheduleItemSchema>;
 
@@ -179,3 +178,108 @@ export interface TvMazeSearchResult {
   score: number;
   show: TvMazeShow;
 }
+
+/**
+ * Helper function to format network name with country code if available
+ * @param network Network or web channel object
+ * @param webChannel Optional web channel object
+ * @returns Formatted network name
+ */
+function formatNetworkName(
+  network: z.infer<typeof networkSchema> | null | undefined,
+  webChannel: z.infer<typeof networkSchema> | null | undefined
+): string {
+  let networkName = 'Unknown Network';
+  
+  // First try to use network
+  if (network !== null && network !== undefined) {
+    networkName = network.name;
+    
+    // Add country code if available
+    if (network.country !== null && network.country !== undefined) {
+      networkName = `${networkName} (${network.country.code})`;
+    }
+  } 
+  // If no network, try web channel
+  else if (webChannel !== null && webChannel !== undefined) {
+    networkName = webChannel.name;
+    
+    // Add country code if available
+    if (webChannel.country !== null && webChannel.country !== undefined) {
+      networkName = `${networkName} (${webChannel.country.code})`;
+    }
+  }
+  
+  return networkName;
+}
+
+/**
+ * Transform schema for network schedule items to domain Show model
+ */
+export const networkScheduleToShowSchema = networkScheduleItemSchema.transform((item) => {
+  // Extract show data with safe defaults
+  const show = item.show ?? {};
+  const id = typeof show.id === 'number' ? show.id : 0;
+  const name = typeof show.name === 'string' && show.name.length > 0 ? show.name : 'Unknown Show';
+  const type = typeof show.type === 'string' && show.type.length > 0 ? show.type : 'unknown';
+  const language = 
+      typeof show.language === 'string' && show.language.length > 0 
+        ? show.language 
+        : null;
+  const genres = Array.isArray(show.genres) ? show.genres : [];
+  const summary = typeof show.summary === 'string' && show.summary.length > 0 ? show.summary : null;
+  
+  // Extract episode data with safe defaults
+  const airtime = typeof item.airtime === 'string' && item.airtime.length > 0 ? item.airtime : null;
+  const season = typeof item.season === 'number' ? item.season : 0;
+  const number = typeof item.number === 'number' ? item.number : 0;
+  
+  return {
+    id,
+    name,
+    type,
+    language,
+    genres,
+    network: formatNetworkName(show.network, show.webChannel),
+    summary,
+    airtime,
+    season,
+    number
+  };
+});
+
+/**
+ * Transform schema for web schedule items to domain Show model
+ */
+export const webScheduleToShowSchema = webScheduleItemSchema.transform((item) => {
+  // Extract embedded show data with safe defaults
+  const embedded = item._embedded ?? {};
+  const show = embedded.show ?? {};
+  const id = typeof show.id === 'number' ? show.id : 0;
+  const name = typeof show.name === 'string' && show.name.length > 0 ? show.name : 'Unknown Show';
+  const type = typeof show.type === 'string' && show.type.length > 0 ? show.type : 'unknown';
+  const language = 
+      typeof show.language === 'string' && show.language.length > 0 
+        ? show.language 
+        : null;
+  const genres = Array.isArray(show.genres) ? show.genres : [];
+  const summary = typeof show.summary === 'string' && show.summary.length > 0 ? show.summary : null;
+  
+  // Extract episode data with safe defaults
+  const airtime = typeof item.airtime === 'string' && item.airtime.length > 0 ? item.airtime : null;
+  const season = typeof item.season === 'number' ? item.season : 0;
+  const number = typeof item.number === 'number' ? item.number : 0;
+  
+  return {
+    id,
+    name,
+    type,
+    language,
+    genres,
+    network: formatNetworkName(show.network, show.webChannel),
+    summary,
+    airtime,
+    season,
+    number
+  };
+});
