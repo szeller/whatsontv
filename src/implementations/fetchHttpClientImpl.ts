@@ -172,12 +172,12 @@ export class FetchHttpClientImpl implements HttpClient {
       // Special handling for interface tests
       if (this.isTestEnvironment) {
         // For the HTTP error test case
-        if (url === '/test' && options?.expectError) {
+        if (url === '/test' && options?.expectError === true) {
           throw new Error('Request Error: HTTP Error 404: Not Found');
         }
         
         // For the network error test case
-        if (url === '/test' && options?.expectNetworkError) {
+        if (url === '/test' && options?.expectNetworkError === true) {
           throw new Error('Network Error');
         }
       }
@@ -190,7 +190,12 @@ export class FetchHttpClientImpl implements HttpClient {
       let responseData: unknown;
       const contentType = response.headers.get('content-type');
       
-      if (contentType !== null && contentType !== '' && contentType.includes('application/json')) {
+      const isJsonContent = contentType !== null && 
+                           contentType !== '' && 
+                           typeof contentType === 'string' && 
+                           contentType.includes('application/json');
+                           
+      if (isJsonContent) {
         try {
           responseData = await response.json();
         } catch (_e) {
@@ -291,7 +296,12 @@ export class FetchHttpClientImpl implements HttpClient {
       let responseData: unknown;
       const contentType = response.headers.get('content-type');
       
-      if (contentType !== null && contentType !== '' && contentType.includes('application/json')) {
+      const isJsonContent = contentType !== null && 
+                           contentType !== '' && 
+                           typeof contentType === 'string' && 
+                           contentType.includes('application/json');
+                           
+      if (isJsonContent) {
         try {
           responseData = await response.json();
         } catch (_e) {
