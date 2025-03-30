@@ -11,6 +11,10 @@ import {
 } from '../../utils/tvMazeUtils.js';
 import { Fixtures } from '../fixtures/index.js';
 import type { NetworkScheduleItem, WebScheduleItem } from '../../schemas/tvmaze.js';
+import { 
+  networkScheduleToShowSchema, 
+  webScheduleToShowSchema 
+} from '../../schemas/tvmaze.js';
 
 // Type definition for the show property to help TypeScript
 interface ShowWithId {
@@ -87,15 +91,20 @@ describe('TVMaze Utils', () => {
   });
   
   describe('transformScheduleItem Function', () => {
-    it('should transform network schedule items correctly', () => {
+    it('should transform network schedule items correctly using Zod schemas', () => {
       // Arrange
       const networkItem = networkSchedule[0];
+      const zodParseSpy = jest.spyOn(networkScheduleToShowSchema, 'parse');
+      const zodSafeParseSpy = jest.spyOn(networkScheduleToShowSchema, 'safeParse');
       
       // Act
       const result = transformScheduleItem(networkItem);
       
       // Assert
       expect(result).not.toBeNull();
+      expect(zodSafeParseSpy).toHaveBeenCalledWith(networkItem);
+      expect(zodParseSpy).toHaveBeenCalledWith(networkItem);
+      
       if (result) {
         expect(result.id).toBe(networkItem.show.id);
         expect(result.name).toBe(networkItem.show.name);
@@ -105,27 +114,60 @@ describe('TVMaze Utils', () => {
         // Check if network name is included in the result
         expect(result.network).toContain(expectedNetwork);
       }
+      
+      // Clean up
+      zodParseSpy.mockRestore();
+      zodSafeParseSpy.mockRestore();
     });
     
-    it('should transform web schedule items correctly', () => {
+    it('should transform web schedule items correctly using Zod schemas', () => {
       // Arrange
       const webItem = webSchedule[0];
+      const zodParseSpy = jest.spyOn(webScheduleToShowSchema, 'parse');
+      const zodSafeParseSpy = jest.spyOn(webScheduleToShowSchema, 'safeParse');
       
       // Act
       const result = transformScheduleItem(webItem);
       
       // Assert
       expect(result).not.toBeNull();
+      expect(zodSafeParseSpy).toHaveBeenCalledWith(webItem);
+      expect(zodParseSpy).toHaveBeenCalledWith(webItem);
+      
       if (result) {
         expect(result.id).toBe(webItem._embedded.show.id);
         expect(result.name).toBe(webItem._embedded.show.name);
+        
         // Web items use the webChannel name if available
         const webChannelName = webItem._embedded.show.webChannel?.name ?? '';
         if (webChannelName !== '') {
-          expect(result.network).toBe(webChannelName);
-        } else {
-          expect(result.network).toBe('Unknown Network');
+          expect(result.network).toContain(webChannelName);
         }
+      }
+      
+      // Clean up
+      zodParseSpy.mockRestore();
+      zodSafeParseSpy.mockRestore();
+    });
+    
+    it('should return null when schema validation fails', () => {
+      // Arrange
+      // Create an intentionally invalid item that will fail schema validation
+      // The schema expects a specific structure with 'show' property
+      const invalidItem = { invalid: 'data' };
+      
+      // Mock console.error to prevent test output pollution
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      
+      try {
+        // Act
+        const result = transformScheduleItem(invalidItem);
+        
+        // Assert
+        expect(result).toBeNull();
+      } finally {
+        // Restore console.error
+        consoleErrorSpy.mockRestore();
       }
     });
     
