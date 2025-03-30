@@ -11,6 +11,11 @@ import { TvMazeServiceImpl } from '../../../implementations/tvMazeServiceImpl.js
 import type { HttpClient } from '../../../interfaces/httpClient.js';
 import type { TvShowService } from '../../../interfaces/tvShowService.js';
 import { getTodayDate } from '../../../utils/dateUtils.js';
+import { 
+  containsFormattedShowLine, 
+  containsNetworkHeading, 
+  countNetworkHeadings 
+} from '../../utils/testOutputUtils.js';
 import { describe, expect, test, beforeEach, afterEach } from '@jest/globals';
 import { runCli } from './cliTestRunner.js';
 
@@ -66,19 +71,18 @@ describe('Real API CLI Integration Test', () => {
     
     // Check for expected content in the output
     const outputText = result.stdout.join('\n');
+    
     expect(outputText).toContain('WhatsOnTV v1.0.0');
     expect(outputText).toContain('Data provided by TVMaze API');
     
     // Check that we got at least one show (should be failing if no shows are found)
     expect(outputText).not.toContain('No shows found for the specified criteria');
     
-    // Verify specific networks are present
-    expect(outputText).toContain('CBS (US):');
+    // Verify that we have at least one network heading
+    expect(containsNetworkHeading(outputText)).toBe(true);
     
-    // Verify some basic formatting elements
-    expect(outputText).toContain('20:00');  // Check for a time format
-    expect(outputText).toContain('Scripted');  // Check for show type
-    expect(outputText).toContain('S');  // Check for season indicator
+    // Verify that the output contains properly formatted show lines
+    expect(containsFormattedShowLine(outputText)).toBe(true);
     
     // Check for error messages
     expect(result.stderr.length).toBe(0);
@@ -109,6 +113,12 @@ describe('Real API CLI Integration Test', () => {
     
     // Check that we got at least one show (should be failing if no shows are found)
     expect(outputText).not.toContain('No shows found for the specified criteria');
+    
+    // Verify that we have at least one network heading
+    expect(containsNetworkHeading(outputText)).toBe(true);
+    
+    // Verify that the output contains properly formatted show lines
+    expect(containsFormattedShowLine(outputText)).toBe(true);
     
     // Verify at least one streaming service is present
     const streamingServices = [
@@ -158,6 +168,9 @@ describe('Real API CLI Integration Test', () => {
     // Check that we got at least one show (should be failing if no shows are found)
     expect(outputText).not.toContain('No shows found for the specified criteria');
     
+    // Verify that the output contains properly formatted show lines
+    expect(containsFormattedShowLine(outputText)).toBe(true);
+    
     // Verify that we have both network and web shows
     // Network shows have times (check for some common hour values)
     expect(outputText).toMatch(/20:00|21:00|22:00/);
@@ -165,13 +178,8 @@ describe('Real API CLI Integration Test', () => {
     expect(outputText).toContain('N/A');
     
     // Verify we have multiple networks/platforms
-    // The network headings end with a colon and are followed by a line of dashes
-    const networkHeadings = outputText.split('\n').filter(line => 
-      line.includes(':') && 
-      !line.includes('WhatsOnTV') && 
-      !line.includes('Data provided')
-    );
-    expect(networkHeadings.length).toBeGreaterThan(1);
+    const networkCount = countNetworkHeadings(outputText);
+    expect(networkCount).toBeGreaterThan(1);
     
     // Check for error messages
     expect(result.stderr.length).toBe(0);
