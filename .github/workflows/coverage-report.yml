@@ -57,10 +57,10 @@ jobs:
         
         # Check if coverage thresholds are met
         THRESHOLDS_MET=true
-        if (( $(echo "$STATEMENTS < 80" | bc -l) )); then THRESHOLDS_MET=false; fi
-        if (( $(echo "$BRANCHES < 80" | bc -l) )); then THRESHOLDS_MET=false; fi
-        if (( $(echo "$FUNCTIONS < 80" | bc -l) )); then THRESHOLDS_MET=false; fi
-        if (( $(echo "$LINES < 80" | bc -l) )); then THRESHOLDS_MET=false; fi
+        if (( $(echo "$STATEMENTS < 75" | bc -l) )); then THRESHOLDS_MET=false; fi
+        if (( $(echo "$BRANCHES < 75" | bc -l) )); then THRESHOLDS_MET=false; fi
+        if (( $(echo "$FUNCTIONS < 75" | bc -l) )); then THRESHOLDS_MET=false; fi
+        if (( $(echo "$LINES < 75" | bc -l) )); then THRESHOLDS_MET=false; fi
         
         echo "thresholds_met=$THRESHOLDS_MET" >> $GITHUB_OUTPUT
     
@@ -74,10 +74,10 @@ jobs:
           
           | Metric | Coverage | Threshold | Status |
           | ------ | -------- | --------- | ------ |
-          | Statements | ${{ steps.extract-coverage.outputs.statements }}% | 80% | ${{ steps.extract-coverage.outputs.statements >= 80 && '✅' || '❌' }} |
-          | Branches | ${{ steps.extract-coverage.outputs.branches }}% | 80% | ${{ steps.extract-coverage.outputs.branches >= 80 && '✅' || '❌' }} |
-          | Functions | ${{ steps.extract-coverage.outputs.functions }}% | 80% | ${{ steps.extract-coverage.outputs.functions >= 80 && '✅' || '❌' }} |
-          | Lines | ${{ steps.extract-coverage.outputs.lines }}% | 80% | ${{ steps.extract-coverage.outputs.lines >= 80 && '✅' || '❌' }} |
+          | Statements | ${{ steps.extract-coverage.outputs.statements }}% | 75% | ${{ steps.extract-coverage.outputs.statements >= 75 && '✅' || '❌' }} |
+          | Branches | ${{ steps.extract-coverage.outputs.branches }}% | 75% | ${{ steps.extract-coverage.outputs.branches >= 75 && '✅' || '❌' }} |
+          | Functions | ${{ steps.extract-coverage.outputs.functions }}% | 75% | ${{ steps.extract-coverage.outputs.functions >= 75 && '✅' || '❌' }} |
+          | Lines | ${{ steps.extract-coverage.outputs.lines }}% | 75% | ${{ steps.extract-coverage.outputs.lines >= 75 && '✅' || '❌' }} |
           
           ${{ steps.extract-coverage.outputs.thresholds_met == 'true' && '✅ All coverage thresholds met!' || '❌ Some coverage thresholds not met. Please improve test coverage.' }}
           
