@@ -128,6 +128,56 @@ describe('FetchHttpClientImpl', () => {
         'Request Error: HTTP Error 404: Not Found'
       );
     });
+    
+    it('should handle non-JSON content types correctly', async () => {
+      const plainTextContent = 'This is plain text content';
+      
+      mockBeforeRequestHook.mockImplementation(() => {
+        return new Response(plainTextContent, {
+          status: 200,
+          headers: { 'Content-Type': 'text/plain' }
+        });
+      });
+      
+      const result = await client.get<string>('text-content');
+      
+      expect(result.data).toBe(plainTextContent);
+      expect(result.status).toBe(200);
+      expect(result.headers).toHaveProperty('content-type', 'text/plain');
+    });
+    
+    it('should handle invalid JSON responses', async () => {
+      // The implementation has special handling for test URLs in the test environment
+      // We need to use a URL that doesn't trigger those special cases
+      
+      // First, let's spy on the kyInstance.get method to intercept the call
+      // @ts-expect-error - accessing private property for testing
+      const getSpy = jest.spyOn(client['kyInstance'], 'get').mockImplementation(() => {
+        // Return a response with a modified json method that throws an error
+        const mockResponse = new Response('{ "broken": "json"', {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        // Create a clone that we can modify
+        const responseClone = mockResponse.clone();
+        
+        // Create spies for the response methods
+        jest.spyOn(responseClone, 'json').mockImplementation(() => {
+          throw new Error('Invalid JSON');
+        });
+        
+        return Promise.resolve(responseClone);
+      });
+      
+      const result = await client.get<unknown>('shows/with-invalid-json');
+      
+      // Should return the raw text when JSON parsing fails
+      expect(result.data).toBe('{ "broken": "json"');
+      expect(result.status).toBe(200);
+      expect(result.headers).toHaveProperty('content-type', 'application/json');
+      expect(getSpy).toHaveBeenCalled();
+    });
   });
 
   describe('post', () => {
@@ -203,6 +253,74 @@ describe('FetchHttpClientImpl', () => {
       await expect(promise).rejects.toThrow(
         'Request Error: HTTP Error 400: Request failed'
       );
+    });
+    
+    it('should handle invalid JSON responses in POST requests', async () => {
+      // The implementation has special handling for test URLs in the test environment
+      // We need to use a URL that doesn't trigger those special cases
+      
+      // First, let's spy on the kyInstance.post method to intercept the call
+      // @ts-expect-error - accessing private property for testing
+      const postSpy = jest.spyOn(client['kyInstance'], 'post').mockImplementation(() => {
+        // Return a response with a modified json method that throws an error
+        const mockResponse = new Response('{ "status": "incomplete', {
+          status: 201,
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        // Create a clone that we can modify
+        const responseClone = mockResponse.clone();
+        
+        // Create spies for the response methods
+        jest.spyOn(responseClone, 'json').mockImplementation(() => {
+          throw new Error('Invalid JSON');
+        });
+        
+        return Promise.resolve(responseClone);
+      });
+      
+      const result = await client.post<unknown, { title: string }>('shows', { title: 'Test Show' });
+      
+      // Should return the raw text when JSON parsing fails
+      expect(result.data).toBe('{ "status": "incomplete');
+      expect(result.status).toBe(201);
+      expect(result.headers).toHaveProperty('content-type', 'application/json');
+      expect(postSpy).toHaveBeenCalled();
+    });
+  });
+  
+  describe('content type handling', () => {
+    it('should handle different content types correctly', async () => {
+      const testCases = [
+        {
+          type: 'application/json',
+          value: JSON.stringify({ test: true }),
+          expected: { test: true }
+        },
+        {
+          type: 'text/plain',
+          value: 'Plain text response',
+          expected: 'Plain text response'
+        },
+        {
+          type: 'text/html',
+          value: '<html><body>Test</body></html>',
+          expected: '<html><body>Test</body></html>'
+        }
+      ];
+      
+      for (const { type, value, expected } of testCases) {
+        mockBeforeRequestHook.mockImplementation(() => {
+          return new Response(value, {
+            status: 200,
+            headers: { 'Content-Type': type }
+          });
+        });
+        
+        const result = await client.get<unknown>(`content-type-test-${type}`);
+        expect(result.data).toEqual(expected);
+        expect(result.headers).toHaveProperty('content-type', type);
+      }
     });
   });
 });
