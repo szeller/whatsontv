@@ -15,7 +15,7 @@ import {
   containsFormattedShowLine, 
   containsNetworkHeading, 
   countNetworkHeadings 
-} from '../../utils/testOutputUtils.js';
+} from '../../testutils/testOutputUtils.js';
 import { describe, expect, test, beforeEach, afterEach } from '@jest/globals';
 import { runCli } from './cliTestRunner.js';
 
