@@ -1,14 +1,14 @@
 /**
- * Tests for the console formatter implementation
+ * Tests for the Console Formatter Implementation
  */
-import 'reflect-metadata';
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import { container } from 'tsyringe';
-import type { Show } from '../../../schemas/domain.js';
 import { ConsoleFormatterImpl } from '../../../implementations/console/consoleFormatterImpl.js';
-import { ChalkStyleServiceImpl } from '../../../implementations/console/chalkStyleServiceImpl.js';
 import type { StyleService } from '../../../interfaces/styleService.js';
+import type { Show } from '../../../schemas/domain.js';
 import type { TvShowService } from '../../../interfaces/tvShowService.js';
+import { ChalkStyleServiceImpl } from '../../../implementations/console/chalkStyleServiceImpl.js';
+import { ShowBuilder } from '../../fixtures/helpers/showFixtureBuilder.js';
 import { createMockTvShowService } from '../../testutils/testHelpers.js';
 
 describe('ConsoleFormatterImpl', () => {
@@ -25,31 +25,37 @@ describe('ConsoleFormatterImpl', () => {
     mockTvShowService = createMockTvShowService();
     container.registerInstance('TvShowService', mockTvShowService);
     
-    // Register a style service
+    // Register the style service
     container.registerInstance<StyleService>('StyleService', new ChalkStyleServiceImpl());
-    
+
     // Create the formatter instance
     formatter = container.resolve(ConsoleFormatterImpl);
     
-    // Create mock show data
-    mockShow = {
-      id: 1,
-      name: 'Test Show',
-      type: 'Scripted',
-      language: 'English',
-      genres: ['Drama'],
-      network: 'Test Network',
-      summary: 'Test summary',
-      airtime: '20:00',
-      season: 1,
-      number: 1
-    };
+    // Create mock show data using ShowBuilder
+    mockShow = new ShowBuilder()
+      .withId(1)
+      .withName('Test Show')
+      .withType('Scripted')
+      .withLanguage('English')
+      .withGenres(['Drama'])
+      .withNetwork('Test Network')
+      .withSummary('Test summary')
+      .withAirtime('20:00')
+      .withEpisode(1, 1)
+      .build();
     
     // Create a mock show with no airtime
-    mockShowNoAirtime = {
-      ...mockShow,
-      airtime: null
-    };
+    mockShowNoAirtime = new ShowBuilder()
+      .withId(1)
+      .withName('Test Show')
+      .withType('Scripted')
+      .withLanguage('English')
+      .withGenres(['Drama'])
+      .withNetwork('Test Network')
+      .withSummary('Test summary')
+      .withAirtime(null)
+      .withEpisode(1, 1)
+      .build();
   });
 
   describe('formatShow', () => {
@@ -78,23 +84,22 @@ describe('ConsoleFormatterImpl', () => {
     });
 
     it('should handle shows with missing information', () => {
-      const incompleteShow: Show = {
-        id: 0,
-        name: 'Unknown Show',
-        type: '',
-        language: null,
-        genres: [],
-        network: '',
-        summary: null,
-        airtime: '21:00',
-        season: 2,
-        number: 3
-      };
-      
+      const incompleteShow = new ShowBuilder()
+        .withId(0)
+        .withName('Unknown Show')
+        .withType('')
+        .withLanguage(null)
+        .withGenres([])
+        .withNetwork('')
+        .withSummary(null)
+        .withAirtime('21:00')
+        .withEpisode(2, 3)
+        .build();
+        
       const result = formatter.formatTimedShow(incompleteShow);
       expect(result).toContain('21:00');
-      expect(result).toContain('N/A');
-      expect(result).toContain('Unknown');
+      expect(result).toContain('N/A');  // Empty network is replaced with 'N/A' in formatTimedShow
+      expect(result).toContain('Unknown Show');
       expect(result).toContain('S2E3');
     });
   });
@@ -113,16 +118,28 @@ describe('ConsoleFormatterImpl', () => {
   describe('formatMultipleEpisodes', () => {
     it('should format multiple episodes of the same show correctly', () => {
       const episodes = [
-        {
-          ...mockShow,
-          season: 1,
-          number: 1
-        },
-        {
-          ...mockShow,
-          season: 1,
-          number: 2
-        }
+        new ShowBuilder()
+          .withId(1)
+          .withName('Test Show')
+          .withType('Scripted')
+          .withLanguage('English')
+          .withGenres(['Drama'])
+          .withNetwork('Test Network')
+          .withSummary('Test summary')
+          .withAirtime('20:00')
+          .withEpisode(1, 1)
+          .build(),
+        new ShowBuilder()
+          .withId(1)
+          .withName('Test Show')
+          .withType('Scripted')
+          .withLanguage('English')
+          .withGenres(['Drama'])
+          .withNetwork('Test Network')
+          .withSummary('Test summary')
+          .withAirtime('20:00')
+          .withEpisode(1, 2)
+          .build()
       ];
       
       const result = formatter.formatMultipleEpisodes(episodes);
@@ -150,16 +167,30 @@ describe('ConsoleFormatterImpl', () => {
     it('should format network groups correctly', () => {
       const networkGroups = {
         'Test Network': [
-          {
-            ...mockShow,
-            network: 'Test Network'
-          }
+          new ShowBuilder()
+            .withId(1)
+            .withName('Test Show')
+            .withType('Scripted')
+            .withLanguage('English')
+            .withGenres(['Drama'])
+            .withNetwork('Test Network')
+            .withSummary('Test summary')
+            .withAirtime('20:00')
+            .withEpisode(1, 1)
+            .build()
         ],
         'Another Network': [
-          {
-            ...mockShow,
-            network: 'Another Network'
-          }
+          new ShowBuilder()
+            .withId(2)
+            .withName('Another Show')
+            .withType('Scripted')
+            .withLanguage('English')
+            .withGenres(['Drama'])
+            .withNetwork('Another Network')
+            .withSummary('Test summary')
+            .withAirtime('20:00')
+            .withEpisode(1, 1)
+            .build()
         ]
       };
       
@@ -172,7 +203,7 @@ describe('ConsoleFormatterImpl', () => {
       // This test case checks the contents of the result array
       expect(result[0]).toContain('Another Network');
       expect(result[1]).toContain('---------------'); // Separator line
-      expect(result[2]).toContain('Test Show');
+      expect(result[2]).toContain('Another Show');
       expect(result[3]).toBe(''); // Empty line between networks
       expect(result[4]).toContain('Test Network');
       expect(result[5]).toContain('------------'); // Separator line
@@ -181,7 +212,19 @@ describe('ConsoleFormatterImpl', () => {
     
     it('should apply custom sorting when timeSort is true', () => {
       const networkGroups = {
-        'Test Network': [mockShow]
+        'Test Network': [
+          new ShowBuilder()
+            .withId(1)
+            .withName('Test Show')
+            .withType('Scripted')
+            .withLanguage('English')
+            .withGenres(['Drama'])
+            .withNetwork('Test Network')
+            .withSummary('Test summary')
+            .withAirtime('20:00')
+            .withEpisode(1, 1)
+            .build()
+        ]
       };
       
       // Create a spy to observe the internal sorting logic
@@ -211,18 +254,28 @@ describe('ConsoleFormatterImpl', () => {
     it('should sort shows by airtime when timeSort is true', () => {
       const networkGroups = {
         'Test Network': [
-          {
-            ...mockShow,
-            id: 1,
-            name: 'Late Show',
-            airtime: '22:00'
-          },
-          {
-            ...mockShow,
-            id: 2,
-            name: 'Early Show',
-            airtime: '08:00'
-          }
+          new ShowBuilder()
+            .withId(1)
+            .withName('Late Show')
+            .withType('Scripted')
+            .withLanguage('English')
+            .withGenres(['Drama'])
+            .withNetwork('Test Network')
+            .withSummary('Test summary')
+            .withAirtime('22:00')
+            .withEpisode(1, 1)
+            .build(),
+          new ShowBuilder()
+            .withId(2)
+            .withName('Early Show')
+            .withType('Scripted')
+            .withLanguage('English')
+            .withGenres(['Drama'])
+            .withNetwork('Test Network')
+            .withSummary('Test summary')
+            .withAirtime('08:00')
+            .withEpisode(1, 1)
+            .build()
         ]
       };
       
@@ -245,18 +298,28 @@ describe('ConsoleFormatterImpl', () => {
     it('should handle shows with missing airtime when sorting', () => {
       const networkGroups = {
         'Test Network': [
-          {
-            ...mockShow,
-            id: 1,
-            name: 'Show Without Airtime',
-            airtime: null
-          },
-          {
-            ...mockShow,
-            id: 2,
-            name: 'Show With Airtime',
-            airtime: '20:00'
-          }
+          new ShowBuilder()
+            .withId(1)
+            .withName('Show Without Airtime')
+            .withType('Scripted')
+            .withLanguage('English')
+            .withGenres(['Drama'])
+            .withNetwork('Test Network')
+            .withSummary('Test summary')
+            .withAirtime(null)
+            .withEpisode(1, 1)
+            .build(),
+          new ShowBuilder()
+            .withId(2)
+            .withName('Show With Airtime')
+            .withType('Scripted')
+            .withLanguage('English')
+            .withGenres(['Drama'])
+            .withNetwork('Test Network')
+            .withSummary('Test summary')
+            .withAirtime('20:00')
+            .withEpisode(1, 1)
+            .build()
         ]
       };
       
@@ -279,22 +342,28 @@ describe('ConsoleFormatterImpl', () => {
     it('should handle multiple episodes of the same show with different airtimes', () => {
       const networkGroups = {
         'Test Network': [
-          {
-            ...mockShow,
-            id: 1,
-            name: 'Same Show',
-            airtime: '20:00',
-            season: 1,
-            number: 1
-          },
-          {
-            ...mockShow,
-            id: 1,
-            name: 'Same Show',
-            airtime: '21:00',
-            season: 1,
-            number: 2
-          }
+          new ShowBuilder()
+            .withId(1)
+            .withName('Same Show')
+            .withType('Scripted')
+            .withLanguage('English')
+            .withGenres(['Drama'])
+            .withNetwork('Test Network')
+            .withSummary('Test summary')
+            .withAirtime('20:00')
+            .withEpisode(1, 1)
+            .build(),
+          new ShowBuilder()
+            .withId(1)
+            .withName('Same Show')
+            .withType('Scripted')
+            .withLanguage('English')
+            .withGenres(['Drama'])
+            .withNetwork('Test Network')
+            .withSummary('Test summary')
+            .withAirtime('21:00')
+            .withEpisode(1, 2)
+            .build()
         ]
       };
       
