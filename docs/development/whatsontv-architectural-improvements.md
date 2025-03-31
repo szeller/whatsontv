@@ -87,31 +87,63 @@ Several utility functions are embedded within console-specific implementations t
 
 #### Current State Analysis
 
-Testing approaches are inconsistent across the codebase:
+The current test fixtures and mocking approach has undergone several iterations and now provides a good foundation. However, there are still some areas that need attention:
 
-- ES module mocking challenges
-- Scattered test fixtures with inconsistent structure
-- Multiple mocking strategies with limited standardization
+1. **Inconsistent Test Data Creation**: Some tests construct domain data directly rather than using fixtures
+2. **Missing Specific Fixtures**: Certain testing scenarios lack appropriate fixtures
+3. **Limited Fixture Utility Methods**: Helpers for manipulating fixture data could improve test readability
 
-#### Key Improvements
+#### Proposed Improvements
 
-1. **Standardized Fixture Structure**:
-   - Well-organized directory structure
-   - Domain-specific fixture organization
-   - Factory functions for common test scenarios
+The focus of this work will be targeted at three specific areas:
 
-2. **Consistent Mocking Approach**:
-   - Clear guidelines for different mocking scenarios
-   - Robust mock implementations for core services
-   - Focus on behavior testing rather than implementation details
+1. **Fixture Usage Standardization**
+   - Identify tests that construct domain data directly and convert them to use fixtures
+   - Create guidelines for fixture usage vs. direct construction
+   - Ensure consistent use of fixtures across similar tests
+
+2. **New Specific Fixtures**
+   - Identify and create missing fixtures for common test scenarios
+   - Ensure fixtures cover edge cases and specific testing needs
+   - Document the purpose and usage of each fixture type
+
+3. **Fixture Utility Methods**
+   - Create helper functions for common fixture manipulations
+   - Build utilities for combining or extending fixtures
+   - Develop tools for validating fixture data integrity
+
+We'll maintain the current fixture structure which separates TVMaze fixtures from domain model data, as this has proven effective.
 
 #### Implementation Plan
 
-1. **Phase 1**: Standardize test fixtures and create helpers
-2. **Phase 2**: Define and document mocking best practices
-3. **Phase 3**: Refactor tests to use the standardized approach
-4. **Phase 4**: Improve testing infrastructure
-5. **Phase 5**: Create comprehensive documentation
+1. **Audit Current Tests**
+   - Review all tests for domain data construction patterns
+   - Identify tests using direct construction instead of fixtures
+   - Document common patterns and inconsistencies
+
+2. **Create Missing Fixtures**
+   - Based on the audit, identify fixture gaps
+   - Implement new fixtures for identified needs
+   - Add documentation for each new fixture
+
+3. **Develop Fixture Utilities**
+   - Create helper functions for common fixture manipulations
+   - Ensure utilities follow consistent patterns
+   - Add comprehensive tests for utility functions
+
+4. **Refactor Existing Tests**
+   - Update tests to use fixtures consistently
+   - Apply new utility methods where appropriate
+   - Verify test behavior remains unchanged
+
+#### Benefits
+
+1. **Improved Test Maintainability**: Consistent fixture usage makes tests easier to understand and maintain
+2. **Reduced Test Duplication**: Common fixture utilities reduce code duplication
+3. **Better Test Coverage**: Well-designed fixtures encourage thorough testing of edge cases
+4. **Faster Test Writing**: Standardized approaches make writing new tests more efficient
+
+This focused approach will improve test quality without requiring large-scale architectural changes to the existing fixture system.
 
 ## Integration Strategy
 

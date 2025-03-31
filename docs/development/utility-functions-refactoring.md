@@ -4,6 +4,13 @@
 
 This document provides a detailed plan for refactoring utility functions from console-specific implementations to shared utility modules. This refactoring will improve code reusability, maintainability, and facilitate the implementation of additional interfaces beyond the console.
 
+## Key Principles
+
+1. **Focus on Current Use Cases**: This refactoring targets only functionality currently used in the application, not speculative future needs
+2. **Clear Separation of Concerns**: Separate generic utilities from domain-specific and UI-specific ones
+3. **Maintain Testability**: Ensure all utilities are easily testable in isolation
+4. **Preserve Behavior**: Existing functionality should remain unchanged after refactoring
+
 ## Utility Functions to Refactor
 
 ### Time Handling Utilities (`dateUtils.ts`)
@@ -14,7 +21,15 @@ This document provides a detailed plan for refactoring utility functions from co
 | `getTimeInMinutes` | `consoleOutputServiceImpl.ts` (inside `sortShowsByTime`) | `getTimeInMinutes(timeStr: string): number` | Converts a time string to minutes since midnight for comparison |
 | `formatTimeWithPeriod` | `consoleFormatterImpl.ts` (implicit in `formatTimedShow`) | `formatTimeWithPeriod(time: string): string` | Formats a time string to a standardized format with AM/PM indicator |
 | `isValidTime` | N/A (new utility) | `isValidTime(time: string): boolean` | Validates if a string is a valid time format |
-| `normalizeTimeFormat` | N/A (new utility) | `normalizeTimeFormat(time: string): string` | Standardizes time format for consistent display |
+
+### String Utilities (`stringUtils.ts`)
+
+| Function Name | Current Location | Proposed Signature | Functionality |
+|---------------|------------------|-------------------|---------------|
+| `padString` | `consoleFormatterImpl.ts` (implicit) | `padString(str: string, length: number, padChar: string = ' '): string` | Pads a string to a specific length with fallback handling |
+| `truncateString` | `consoleFormatterImpl.ts` (implicit) | `truncateString(str: string, maxLength: number, suffix: string = '...'): string` | Truncates a string to a maximum length with suffix |
+| `formatListWithSeparator` | N/A (extracted from formatting) | `formatListWithSeparator(items: string[], separator: string = ', '): string` | Joins list items with a separator and handles edge cases |
+| `wrapText` | N/A (extracted from formatting) | `wrapText(text: string, maxWidth: number): string[]` | Wraps text to fit within a specified width |
 
 ### Show Data Manipulation Utilities (`showUtils.ts`)
 
@@ -22,29 +37,18 @@ This document provides a detailed plan for refactoring utility functions from co
 |---------------|------------------|-------------------|---------------|
 | `sortShowsByTime` | `consoleOutputServiceImpl.ts` | `sortShowsByTime(shows: Show[]): Show[]` | Sorts shows by airtime (existing in `showUtils.ts` but implementation in `consoleOutputServiceImpl.ts` has more features) |
 | `getNetworkName` | `consoleOutputServiceImpl.ts` (inside `groupShowsByNetwork`) | `getNetworkName(show: Show): string` | Extracts network name with fallback to "Unknown Network" |
-| `buildShowKey` | N/A (new utility) | `buildShowKey(show: Show): string` | Creates a unique key for a show (useful for deduplication) |
-| `categorizeShowsByType` | N/A (new utility) | `categorizeShowsByType(shows: Show[]): Record<string, Show[]>` | Groups shows by their type (scripted, reality, etc.) |
-| `filterShowsByAttributes` | N/A (new utility) | `filterShowsByAttributes(shows: Show[], options: FilterOptions): Show[]` | Combined filter for multiple attributes (language, genre, etc.) |
 
-### Text Formatting Utilities (`formatUtils.ts`)
+### Console Formatting Utilities (`consoleFormatUtils.ts`)
 
 | Function Name | Current Location | Proposed Signature | Functionality |
 |---------------|------------------|-------------------|---------------|
-| `padString` | `consoleFormatterImpl.ts` (implicit) | `padString(str: string, length: number, padChar: string = ' '): string` | Pads a string to a specific length with fallback handling |
-| `truncateString` | `consoleFormatterImpl.ts` (implicit) | `truncateString(str: string, maxLength: number, suffix: string = '...'): string` | Truncates a string to a maximum length with suffix |
-| `formatNetworkName` | `consoleFormatterImpl.ts` (implicit in formatting) | `formatNetworkName(network: string): string` | Formats network name consistently with fallbacks |
-| `formatShowType` | `consoleFormatterImpl.ts` (implicit in formatting) | `formatShowType(type: string): string` | Formats show type consistently with fallbacks |
+| `formatNetworkName` | `consoleFormatterImpl.ts` (implicit in formatting) | `formatNetworkName(network: string): string` | Formats network name consistently with fallbacks for console display |
+| `formatShowType` | `consoleFormatterImpl.ts` (implicit in formatting) | `formatShowType(type: string): string` | Formats show type consistently with fallbacks for console display |
 | `formatEpisodeInfo` | `consoleFormatterImpl.ts` (implicit in formatting) | `formatEpisodeInfo(season: number, episode: number): string` | Formats episode information (S01E01 format) |
-
-### Output Formatting Utilities (`outputUtils.ts`)
-
-| Function Name | Current Location | Proposed Signature | Functionality |
-|---------------|------------------|-------------------|---------------|
-| `formatTableRow` | N/A (new utility) | `formatTableRow(columns: string[], widths: number[]): string` | Creates a formatted table row with proper spacing |
-| `createTableHeader` | N/A (new utility) | `createTableHeader(headers: string[], widths: number[]): string[]` | Creates a table header with optional separator line |
-| `formatListWithSeparator` | N/A (new utility) | `formatListWithSeparator(items: string[], separator: string = ', '): string` | Joins list items with a separator and handles edge cases |
-| `wrapText` | N/A (new utility) | `wrapText(text: string, maxWidth: number): string[]` | Wraps text to fit within a specified width |
-| `createBulletList` | N/A (new utility) | `createBulletList(items: string[], bulletChar: string = '• '): string[]` | Creates a bullet list from an array of items |
+| `formatShowForConsole` | `consoleFormatterImpl.ts` (variations) | `formatShowForConsole(show: Show, options?: FormatOptions): string` | Master function for consistent show formatting in console |
+| `formatTableRow` | N/A (new console utility) | `formatTableRow(columns: string[], widths: number[]): string` | Creates a formatted table row with proper spacing for console output |
+| `createTableHeader` | N/A (new console utility) | `createTableHeader(headers: string[], widths: number[]): string[]` | Creates a console table header with optional separator line |
+| `createBulletList` | N/A (new console utility) | `createBulletList(items: string[], bulletChar: string = '• '): string[]` | Creates a bullet list format suitable for console display |
 
 ## Detailed Function Specifications
 
@@ -100,6 +104,43 @@ export function getTimeInMinutes(timeStr: string): number {
 }
 ```
 
+### String Utilities
+
+#### `padString(str: string, length: number, padChar: string = ' '): string`
+
+**Current Location**: Implicit in `consoleFormatterImpl.ts`  
+**Description**: Generic string utility for padding a string to a specific length with proper null/undefined handling.
+
+```typescript
+export function padString(str: string | null | undefined, length: number, padChar: string = ' '): string {
+  const value = str !== null && str !== undefined ? String(str) : '';
+  return value.padEnd(length, padChar);
+}
+```
+
+#### `truncateString(str: string, maxLength: number, suffix: string = '...'): string`
+
+**Current Location**: Not explicit but needed for consistent formatting  
+**Description**: Generic string utility for truncating a string to a maximum length and adding a suffix if needed.
+
+```typescript
+export function truncateString(str: string | null | undefined, maxLength: number, suffix: string = '...'): string {
+  const value = str !== null && str !== undefined ? String(str) : '';
+  
+  if (value.length <= maxLength) {
+    return value;
+  }
+  
+  // Ensure there's room for the suffix
+  const truncatedLength = maxLength - suffix.length;
+  if (truncatedLength <= 0) {
+    return suffix.substring(0, maxLength);
+  }
+  
+  return value.substring(0, truncatedLength) + suffix;
+}
+```
+
 ### Show Data Manipulation Utilities
 
 #### `sortShowsByTime(shows: Show[]): Show[]`
@@ -138,42 +179,24 @@ export function getNetworkName(show: Show): string {
 }
 ```
 
-### Text Formatting Utilities
+## Module Organization
 
-#### `padString(str: string, length: number, padChar: string = ' '): string`
+The refactoring will organize utilities as follows:
 
-**Current Location**: Implicit in `consoleFormatterImpl.ts`  
-**Description**: Pads a string to a specific length with proper null/undefined handling.
+1. **Generic Utilities**: Non-domain specific utilities that could be used in any TypeScript application:
+   - `stringUtils.ts`: General string manipulation functions
+   - `dateUtils.ts`: Date and time manipulation functions
 
-```typescript
-export function padString(str: string | null | undefined, length: number, padChar: string = ' '): string {
-  const value = str !== null && str !== undefined ? String(str) : '';
-  return value.padEnd(length, padChar);
-}
-```
+2. **Domain Utilities**: Utilities specific to our domain model but not to a particular UI:
+   - `showUtils.ts`: Functions for manipulating and querying Show objects
 
-#### `truncateString(str: string, maxLength: number, suffix: string = '...'): string`
+3. **UI-Specific Utilities**: Utilities tied to a specific UI presentation:
+   - `consoleFormatUtils.ts`: Formatting utilities specific to console output
 
-**Current Location**: Not explicit but needed for consistent formatting  
-**Description**: Truncates a string to a maximum length and adds a suffix if needed.
-
-```typescript
-export function truncateString(str: string | null | undefined, maxLength: number, suffix: string = '...'): string {
-  const value = str !== null && str !== undefined ? String(str) : '';
-  
-  if (value.length <= maxLength) {
-    return value;
-  }
-  
-  // Ensure there's room for the suffix
-  const truncatedLength = maxLength - suffix.length;
-  if (truncatedLength <= 0) {
-    return suffix.substring(0, maxLength);
-  }
-  
-  return value.substring(0, truncatedLength) + suffix;
-}
-```
+This organization allows for:
+- Clear separation between generic code and domain-specific code
+- Easy reuse of domain utilities across different UIs (console, Slack)
+- UI-specific formatting isolated to dedicated modules
 
 ## Migration Strategy
 
@@ -193,8 +216,12 @@ This utility function refactoring will support the Application class refactoring
 
 ## Next Steps
 
-1. Implement new utility files and functions
+1. Implement new utility modules and functions
+
 2. Add comprehensive test coverage for all utilities
-3. Refactor console implementations to use shared utilities
+
+3. Refactor existing implementations to use shared utilities
+
 4. Validate behavior matches existing functionality
+
 5. Proceed with Application class refactoring (Issue #69)
