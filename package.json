@@ -39,7 +39,7 @@
     "url": "https://github.com/szeller/whatsontv.git"
   },
   "dependencies": {
-    "@slack/web-api": "^7.9.0",
+    "@slack/web-api": "^7.9.1",
     "boxen": "^8.0.1",
     "chalk": "^5.4.1",
     "commander": "^13.1.0",
