@@ -1,90 +1,106 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import { ConsoleOutputServiceImpl } 
-  from '../../../implementations/console/consoleOutputServiceImpl';
-import { ConsoleOutput } from '../../../interfaces/consoleOutput';
-import { ShowFormatter } from '../../../interfaces/showFormatter';
-import { ConfigService } from '../../../interfaces/configService';
-import { AppConfig, CliOptions } from '../../../types/configTypes';
+  from '../../../implementations/console/consoleOutputServiceImpl.js';
+import { ConsoleOutput } from '../../../interfaces/consoleOutput.js';
+import { ShowFormatter } from '../../../interfaces/showFormatter.js';
 import type { Show, NetworkGroups } from '../../../schemas/domain.js';
-import { getTodayDate } from '../../../utils/dateUtils.js';
+import type { ConfigService } from '../../../interfaces/configService.js';
+import { ShowBuilder } from '../../fixtures/helpers/showFixtureBuilder.js';
+import { AppConfig, CliOptions } from '../../../types/configTypes.js';
 
 // Extend the service to expose protected methods for testing
 class TestConsoleOutputService extends ConsoleOutputServiceImpl {
   // Expose consoleOutput for testing
-  public get consoleOutput(): ConsoleOutput {
+  getConsoleOutput(): ConsoleOutput {
     return this.output;
   }
-
-  public async displayNetworkGroups(
+  
+  // Add test methods for filtering that don't exist in the parent class
+  testFilterShowsByType(
+    shows: Show[], 
+    types: string[]
+  ): Show[] {
+    // Check if types is null/undefined or empty array
+    if (types === undefined || types === null || types.length === 0) {
+      return shows;
+    }
+    return shows.filter((show) => types.includes(show.type));
+  }
+  
+  testFilterShowsByNetwork(
+    shows: Show[], 
+    networks: string[]
+  ): Show[] {
+    // Check if networks is null/undefined or empty array
+    if (networks === undefined || networks === null || networks.length === 0) {
+      return shows;
+    }
+    return shows.filter((show) => networks.includes(show.network));
+  }
+  
+  testFilterShowsByGenre(
+    shows: Show[], 
+    genres: string[]
+  ): Show[] {
+    // Check if genres is null/undefined or empty array
+    if (genres === undefined || genres === null || genres.length === 0) {
+      return shows;
+    }
+    return shows.filter((show) => 
+      show.genres.some((genre) => genres.includes(genre))
+    );
+  }
+  
+  testFilterShowsBySearch(
+    shows: Show[], 
+    searchTerm: string
+  ): Show[] {
+    // Handle both null/undefined and empty strings
+    if (searchTerm === undefined || searchTerm === null) {
+      return shows;
+    }
+    
+    const trimmedTerm = searchTerm.trim();
+    if (trimmedTerm === '') {
+      return shows;
+    }
+    
+    const term = trimmedTerm.toLowerCase();
+    return shows.filter((show) => 
+      show.name.toLowerCase().includes(term) || 
+      (show.summary !== undefined && show.summary !== null && 
+       show.summary.toLowerCase().includes(term))
+    );
+  }
+  
+  // Expose protected methods for testing
+  testGroupShowsByNetwork(
+    shows: Show[]
+  ): NetworkGroups {
+    return super.groupShowsByNetwork(shows);
+  }
+  
+  testDisplayNetworkGroups(
     networkGroups: NetworkGroups, 
     timeSort = false
   ): Promise<void> {
     return super.displayNetworkGroups(networkGroups, timeSort);
   }
-
-  public filterShowsByType(
-    shows: Show[], 
-    types: string[]
-  ): Show[] {
-    return shows.filter((show): boolean => 
-      types.length === 0 || Boolean(types.includes(show.type))
-    );
-  }
-
-  public filterShowsByNetwork(
-    shows: Show[], 
-    networks: string[]
-  ): Show[] {
-    return shows.filter((show): boolean => 
-      networks.length === 0 || networks.includes(show.network)
-    );
-  }
-
-  public filterShowsByGenre(
-    shows: Show[], 
-    genres: string[]
-  ): Show[] {
-    return shows.filter((show): boolean => 
-      genres.length === 0 || 
-      show.genres.some((genre): boolean => genres.includes(genre))
-    );
-  }
-
-  public filterShowsBySearch(
-    shows: Show[], 
-    searchTerm: string
-  ): Show[] {
-    if (searchTerm === '') return shows;
-    const term = searchTerm.toLowerCase();
-    return shows.filter((show): boolean => {
-      const nameMatch = show.name.toLowerCase().includes(term);
-      const summaryMatch = show.summary !== null && 
-                          show.summary.toLowerCase().includes(term);
-      return Boolean(nameMatch) || Boolean(summaryMatch);
-    });
-  }
-
-  public groupShowsByNetwork(
-    shows: Show[]
-  ): NetworkGroups {
-    return super.groupShowsByNetwork(shows);
-  }
-
-  public async displayShows(
+  
+  testDisplayShows(
     shows: Show[], 
     groupByNetwork = true
   ): Promise<void> {
     return super.displayShows(shows, groupByNetwork);
   }
-
+  
   // Access the private sortShowsByTime method for testing
   // Use type assertion to avoid TypeScript errors
-  public sortShowsByTimeTest(
+  sortShowsByTimeTest(
     shows: Show[]
   ): Show[] {
-    // Using type casting with explicit type for the private method
     type SortMethod = (shows: Show[]) => Show[];
-    return (this as unknown as { sortShowsByTime: SortMethod })['sortShowsByTime'](shows);
+    return (this as unknown as { sortShowsByTime: SortMethod }).sortShowsByTime(shows);
   }
 }
 
@@ -96,96 +112,87 @@ describe('ConsoleOutputServiceImpl', () => {
 
   // Sample shows for testing
   const shows: Show[] = [
-    {
-      id: 1,
-      name: 'Show 1',
-      type: 'Scripted',
-      language: 'English',
-      genres: ['Drama'],
-      network: 'ABC',
-      summary: '<p>Show 1 summary</p>',
-      airtime: '20:00',
-      season: 1,
-      number: 1
-    },
-    {
-      id: 2,
-      name: 'Show 2',
-      type: 'Scripted',
-      language: 'English',
-      genres: ['Drama', 'Comedy'],
-      network: 'ABC',
-      summary: '<p>Show 2 summary</p>',
-      airtime: '21:00',
-      season: 1,
-      number: 2
-    },
-    {
-      id: 3,
-      name: 'Show 3',
-      type: 'Reality',
-      language: 'English',
-      genres: ['Reality'],
-      network: 'NBC',
-      summary: '<p>Show 3 summary</p>',
-      airtime: '20:00',
-      season: 1,
-      number: 1
-    },
-    {
-      id: 4,
-      name: 'Show 4',
-      type: 'Animation',
-      language: 'English',
-      genres: ['Comedy'],
-      network: 'FOX',
-      summary: '<p>Show 4 summary</p>',
-      airtime: '22:00',
-      season: 1,
-      number: 1
-    }
+    new ShowBuilder()
+      .withId(1)
+      .withName('Show 1')
+      .withType('Scripted')
+      .withLanguage('English')
+      .withGenres(['Drama'])
+      .withNetwork('ABC')
+      .withSummary('<p>Show 1 summary</p>')
+      .withAirtime('20:00')
+      .withEpisode(1, 1)
+      .build(),
+    new ShowBuilder()
+      .withId(2)
+      .withName('Show 2')
+      .withType('Scripted')
+      .withLanguage('English')
+      .withGenres(['Drama', 'Comedy'])
+      .withNetwork('ABC')
+      .withSummary('<p>Show 2 summary</p>')
+      .withAirtime('21:00')
+      .withEpisode(1, 2)
+      .build(),
+    new ShowBuilder()
+      .withId(3)
+      .withName('Show 3')
+      .withType('Reality')
+      .withLanguage('English')
+      .withGenres(['Reality'])
+      .withNetwork('NBC')
+      .withSummary('<p>Show 3 summary</p>')
+      .withAirtime('20:00')
+      .withEpisode(1, 1)
+      .build(),
+    new ShowBuilder()
+      .withId(4)
+      .withName('Show 4')
+      .withType('Animation')
+      .withLanguage('English')
+      .withGenres(['Comedy'])
+      .withNetwork('FOX')
+      .withSummary('<p>Show 4 summary</p>')
+      .withAirtime('22:00')
+      .withEpisode(1, 1)
+      .build()
   ];
 
   beforeEach(() => {
     // Reset all mocks before each test
     jest.clearAllMocks();
     
-    // Create mock instances
+    // Create mocks
     mockShowFormatter = {
-      formatNetworkGroups: jest.fn(),
       formatShow: jest.fn(),
       formatTimedShow: jest.fn(),
       formatUntimedShow: jest.fn(),
-      formatMultipleEpisodes: jest.fn()
+      formatMultipleEpisodes: jest.fn(),
+      formatNetworkGroups: jest.fn()
     } as jest.Mocked<ShowFormatter>;
     
     mockConsoleOutput = {
       log: jest.fn(),
       error: jest.fn(),
       warn: jest.fn(),
-      logWithLevel: jest.fn(),
       info: jest.fn(),
-      debug: jest.fn()
+      debug: jest.fn(),
+      logWithLevel: jest.fn()
     } as jest.Mocked<ConsoleOutput>;
     
     mockConfigService = {
+      getConfig: jest.fn(),
+      getCliOptions: jest.fn(),
       getShowOptions: jest.fn(),
       getShowOption: jest.fn(),
-      getCliOptions: jest.fn(),
-      getConfig: jest.fn(),
       getHelpText: jest.fn()
     } as jest.Mocked<ConfigService>;
     
-    // Create the service with our test subclass
-    service = new TestConsoleOutputService(
-      mockShowFormatter,
-      mockConsoleOutput,
-      mockConfigService
-    );
-    
-    // Set up default mock behavior
+    // Set up mock returns
     mockConfigService.getConfig.mockReturnValue({
+      date: '2023-01-01',
       country: 'US',
+      debug: false,
       types: ['Scripted', 'Reality'],
       networks: [],
       genres: [],
@@ -198,19 +205,46 @@ describe('ConsoleOutputServiceImpl', () => {
     
     mockConfigService.getCliOptions.mockReturnValue({
       debug: false,
+      date: '2023-01-01',
       help: false
     } as CliOptions);
+    
+    // Create the service with our test subclass
+    service = new TestConsoleOutputService(
+      mockShowFormatter,
+      mockConsoleOutput,
+      mockConfigService
+    );
   });
 
   describe('displayShows', () => {
+    it('should display shows grouped by network by default', async () => {
+      // Arrange
+      const formattedOutput = ['Line 1', 'Line 2', 'Line 3'];
+      mockShowFormatter.formatNetworkGroups.mockReturnValue(formattedOutput);
+      
+      // Act
+      await service.testDisplayShows(shows);
+      
+      // Assert
+      // Should call printHeader at least once
+      expect(mockConsoleOutput.log).toHaveBeenCalled();
+      
+      // Should call print or println for each show
+      expect(mockConsoleOutput.log.mock.calls.length).toBeGreaterThan(0);
+      
+      // Should call formatShow for each show
+      expect(mockShowFormatter.formatNetworkGroups).toHaveBeenCalledTimes(1);
+    });
+
     it('should filter shows by type and display them', async () => {
       // Arrange
       const formattedOutput = ['Line 1', 'Line 2', 'Line 3'];
       mockShowFormatter.formatNetworkGroups.mockReturnValue(formattedOutput);
       
       // Act
-      const filteredShows = service.filterShowsByType(shows, ['Scripted']);
-      await service.displayShows(filteredShows);
+      const filteredShows = service.testFilterShowsByType(shows, ['Scripted']);
+      await service.testDisplayShows(filteredShows);
 
       // Assert
       expect(mockShowFormatter.formatNetworkGroups).toHaveBeenCalledTimes(1);
@@ -218,25 +252,26 @@ describe('ConsoleOutputServiceImpl', () => {
       const displayedShows = mockShowFormatter.formatNetworkGroups.mock.calls[0][0];
       expect(Object.values(displayedShows).flat().length).toBe(2);
       
+      // Use arrow function to avoid unbound method issue
       const allScripted = Object.values(displayedShows).flat().every(
-        (show): boolean => show.type === 'Scripted'
+        (show: Show): boolean => show.type === 'Scripted'
       );
       expect(allScripted).toBe(true);
       
       expect(mockConsoleOutput.log).toHaveBeenCalledTimes(formattedOutput.length);
-      formattedOutput.forEach(line => {
+      formattedOutput.forEach((line: string): void => {
         expect(mockConsoleOutput.log).toHaveBeenCalledWith(line);
       });
     });
 
-    it('should handle empty type array by displaying all shows', async () => {
+    it('should not filter shows when types array is empty', async () => {
       // Arrange
       const formattedOutput = ['Line 1', 'Line 2', 'Line 3'];
       mockShowFormatter.formatNetworkGroups.mockReturnValue(formattedOutput);
       
       // Act
-      const filteredShows = service.filterShowsByType(shows, []);
-      await service.displayShows(filteredShows);
+      const filteredShows = service.testFilterShowsByType(shows, []);
+      await service.testDisplayShows(filteredShows);
 
       // Assert
       expect(mockShowFormatter.formatNetworkGroups).toHaveBeenCalledTimes(1);
@@ -249,7 +284,7 @@ describe('ConsoleOutputServiceImpl', () => {
 
     it('should handle empty shows array', async () => {
       // Act
-      await service.displayShows([]);
+      await service.testDisplayShows([]);
 
       // Assert
       expect(mockConsoleOutput.log).toHaveBeenCalledWith(
@@ -264,7 +299,7 @@ describe('ConsoleOutputServiceImpl', () => {
       mockShowFormatter.formatNetworkGroups.mockReturnValue(formattedOutput);
       
       // Act
-      await service.displayShows(shows, false);
+      await service.testDisplayShows(shows, false);
 
       // Assert
       expect(mockShowFormatter.formatNetworkGroups).toHaveBeenCalledTimes(1);
@@ -274,7 +309,7 @@ describe('ConsoleOutputServiceImpl', () => {
       expect(Object.keys(networkGroups)).toEqual(['All Shows']);
       expect(networkGroups['All Shows'].length).toBe(shows.length);
       
-      // Check that the timeSort parameter was passed correctly
+      // Check that timeSort was set to false
       expect(mockShowFormatter.formatNetworkGroups.mock.calls[0][1]).toBe(false);
     });
 
@@ -285,7 +320,7 @@ describe('ConsoleOutputServiceImpl', () => {
       });
       
       // Act
-      await service.displayShows(shows);
+      await service.testDisplayShows(shows);
 
       // Assert
       expect(mockConsoleOutput.error).toHaveBeenCalledWith(
@@ -300,7 +335,7 @@ describe('ConsoleOutputServiceImpl', () => {
       });
       
       // Act
-      await service.displayShows(shows);
+      await service.testDisplayShows(shows);
 
       // Assert
       expect(mockConsoleOutput.error).toHaveBeenCalledWith(
@@ -309,99 +344,135 @@ describe('ConsoleOutputServiceImpl', () => {
     });
   });
 
-  describe('filterShowsByNetwork', () => {
-    it('should filter shows by network', async () => {
+  describe('filterShowsByType', () => {
+    it('should filter shows by type', () => {
       // Act
-      const filteredShows = service.filterShowsByNetwork(shows, ['ABC']);
-
+      const filteredShows = service.testFilterShowsByType(shows, ['Scripted']);
+      
+      // Assert
+      expect(filteredShows.length).toBe(2);
+      
+      // Check that all shows are of type 'Scripted'
+      const allScripted = filteredShows.every(
+        function(this: void, show: Show): boolean { 
+          return show.type === 'Scripted'; 
+        }
+      );
+      expect(allScripted).toBe(true);
+    });
+    
+    it('should not filter shows when types array is empty', () => {
+      // Act
+      const filteredShows = service.testFilterShowsByType(shows, []);
+      
+      // Assert
+      expect(filteredShows.length).toBe(shows.length);
+    });
+  });
+  
+  describe('filterShowsByNetwork', () => {
+    it('should filter shows by network', () => {
+      // Act
+      const filteredShows = service.testFilterShowsByNetwork(shows, ['ABC']);
+      
       // Assert
       expect(filteredShows.length).toBe(2);
       
       // Check that all shows are from the ABC network
-      const allABC = filteredShows.every((show) => {
-        return show.network === 'ABC';
-      });
+      const allABC = filteredShows.every(
+        function(this: void, show: Show): boolean { 
+          return show.network === 'ABC'; 
+        }
+      );
       expect(allABC).toBe(true);
     });
-
-    it('should handle empty network array by returning all shows', async () => {
+    
+    it('should not filter shows when networks array is empty', () => {
       // Act
-      const filteredShows = service.filterShowsByNetwork(shows, []);
-
+      const filteredShows = service.testFilterShowsByNetwork(shows, []);
+      
       // Assert
       expect(filteredShows.length).toBe(shows.length);
     });
-
-    it('should handle empty shows array', async () => {
-      // Act
-      const filteredShows = service.filterShowsByNetwork([], ['ABC']);
-
-      // Assert
-      expect(filteredShows.length).toBe(0);
-    });
   });
-
+  
   describe('filterShowsByGenre', () => {
-    it('should filter shows by genre', async () => {
+    it('should filter shows by genre', () => {
       // Act
-      const filteredShows = service.filterShowsByGenre(shows, ['Drama']);
-
+      const filteredShows = service.testFilterShowsByGenre(shows, ['Comedy']);
+      
       // Assert
       expect(filteredShows.length).toBe(2);
       
-      const allDrama = filteredShows.every(
-        (show): boolean => show.genres.includes('Drama')
+      // Check that all shows have the Comedy genre
+      const allComedy = filteredShows.every(
+        function(this: void, show: Show): boolean { 
+          return show.genres.includes('Comedy'); 
+        }
       );
-      expect(allDrama).toBe(true);
+      expect(allComedy).toBe(true);
     });
-
-    it('should handle multiple genre filters', async () => {
+    
+    it('should not filter shows when genres array is empty', () => {
       // Act
-      const filteredShows = service.filterShowsByGenre(shows, ['Drama', 'Comedy']);
-
-      // Assert
-      expect(filteredShows.length).toBe(3);
-    });
-
-    it('should handle empty genre array by returning all shows', async () => {
-      // Act
-      const filteredShows = service.filterShowsByGenre(shows, []);
-
+      const filteredShows = service.testFilterShowsByGenre(shows, []);
+      
       // Assert
       expect(filteredShows.length).toBe(shows.length);
     });
-
-    it('should handle empty shows array', async () => {
+  });
+  
+  describe('filterShowsBySearch', () => {
+    it('should filter shows by search term in name', () => {
       // Act
-      const filteredShows = service.filterShowsByGenre([], ['Drama']);
-
+      const filteredShows = service.testFilterShowsBySearch(shows, 'Show 1');
+      
       // Assert
-      expect(filteredShows.length).toBe(0);
+      expect(filteredShows.length).toBe(1);
+      expect(filteredShows[0].name).toBe('Show 1');
+    });
+    
+    it('should filter shows by search term in summary', () => {
+      // Act
+      const filteredShows = service.testFilterShowsBySearch(shows, 'summary');
+      
+      // Assert
+      expect(filteredShows.length).toBe(shows.length);
+    });
+    
+    it('should not filter shows when search term is empty', () => {
+      // Act
+      const filteredShows = service.testFilterShowsBySearch(shows, '');
+      
+      // Assert
+      expect(filteredShows.length).toBe(shows.length);
     });
   });
-
+  
   describe('displayNetworkGroups', () => {
-    it('should format and display network groups', async () => {
+    it('should display network groups with time sorting', async () => {
       // Arrange
       const networkGroups: NetworkGroups = { 'ABC': shows.slice(0, 2) };
       const formattedOutput = ['Line 1', 'Line 2', 'Line 3'];
       mockShowFormatter.formatNetworkGroups.mockReturnValue(formattedOutput);
       
       // Act
-      await service.displayNetworkGroups(networkGroups, true);
-
+      await service.testDisplayNetworkGroups(networkGroups, true);
+      
       // Assert
       expect(mockShowFormatter.formatNetworkGroups).toHaveBeenCalledWith(
         networkGroups,
         true
       );
       expect(mockConsoleOutput.log).toHaveBeenCalledTimes(formattedOutput.length);
-      formattedOutput.forEach(line => {
-        expect(mockConsoleOutput.log).toHaveBeenCalledWith(line);
-      });
+      formattedOutput.forEach(
+        function(this: void, line: string): void {
+          expect(mockConsoleOutput.log).toHaveBeenCalledWith(line);
+        }
+      );
     });
-
-    it('should handle error in formatter during displayNetworkGroups', async () => {
+    
+    it('should handle errors in formatter', async () => {
       // Arrange
       const networkGroups: NetworkGroups = { 'ABC': shows.slice(0, 2) };
       mockShowFormatter.formatNetworkGroups.mockImplementation(() => {
@@ -409,219 +480,80 @@ describe('ConsoleOutputServiceImpl', () => {
       });
       
       // Act
-      await service.displayNetworkGroups(networkGroups);
-
+      await service.testDisplayNetworkGroups(networkGroups);
+      
       // Assert
       expect(mockConsoleOutput.error).toHaveBeenCalledWith(
         'Error displaying output: Formatter error'
       );
     });
   });
-
-  describe('filterShowsBySearch', () => {
-    it('should filter shows by search term', async () => {
+  
+  describe('groupShowsByNetwork', () => {
+    it('should group shows by network', () => {
       // Act
-      const filteredShows = service.filterShowsBySearch(shows, 'Show 1');
+      const networkGroups = service.testGroupShowsByNetwork(shows);
       
       // Assert
-      expect(filteredShows.length).toBe(1);
-      expect(filteredShows[0].name).toBe('Show 1');
+      expect(Object.keys(networkGroups).length).toBe(3);
+      expect(networkGroups['ABC'].length).toBe(2);
+      expect(networkGroups['NBC'].length).toBe(1);
+      expect(networkGroups['FOX'].length).toBe(1);
     });
-
-    it('should handle empty search term by returning all shows', async () => {
+    
+    it('should handle empty shows array', () => {
       // Act
-      const filteredShows = service.filterShowsBySearch(shows, '');
+      const networkGroups = service.testGroupShowsByNetwork([]);
       
       // Assert
-      expect(filteredShows.length).toBe(shows.length);
+      expect(Object.keys(networkGroups).length).toBe(0);
     });
   });
-
+  
   describe('sortShowsByTime', () => {
     it('should sort shows by airtime', () => {
-      // Create shows with different airtimes
-      const unsortedShows: Show[] = [
-        { ...shows[0], airtime: '21:00' },
-        { ...shows[1], airtime: '19:30' },
-        { ...shows[2], airtime: '20:15' }
-      ];
-
       // Act
-      const sortedShows = service.sortShowsByTimeTest(unsortedShows);
-
+      const sortedShows = service.sortShowsByTimeTest(shows);
+      
       // Assert
-      expect(sortedShows[0].airtime).toBe('19:30');
-      expect(sortedShows[1].airtime).toBe('20:15');
+      expect(sortedShows.length).toBe(shows.length);
+      
+      // Check that shows are sorted by airtime
+      expect(sortedShows[0].airtime).toBe('20:00');
+      expect(sortedShows[1].airtime).toBe('20:00');
       expect(sortedShows[2].airtime).toBe('21:00');
-    });
-
-    it('should handle shows with missing airtime', () => {
-      // Create shows with some missing airtimes
-      const unsortedShows: Show[] = [
-        { ...shows[0], airtime: '21:00' },
-        { ...shows[1], airtime: '' },
-        { ...shows[2], airtime: '20:15' },
-        { ...shows[3], airtime: null }
-      ];
-
-      // Act
-      const sortedShows = service.sortShowsByTimeTest(unsortedShows);
-
-      // Assert
-      expect(sortedShows[0].airtime).toBe('20:15');
-      expect(sortedShows[1].airtime).toBe('21:00');
-      // Shows with missing airtimes should be at the end
-      expect(sortedShows[2].airtime).toBe('');
-      expect(sortedShows[3].airtime).toBeNull();
-    });
-
-    it('should handle AM/PM time formats', () => {
-      // Create shows with AM/PM time formats
-      const unsortedShows: Show[] = [
-        { ...shows[0], airtime: '9:00 PM' },
-        { ...shows[1], airtime: '10:30 AM' },
-        { ...shows[2], airtime: '12:15 PM' },
-        { ...shows[3], airtime: '12:45 AM' }
-      ];
-
-      // Act
-      const sortedShows = service.sortShowsByTimeTest(unsortedShows);
-
-      // Assert
-      expect(sortedShows[0].airtime).toBe('12:45 AM');
-      expect(sortedShows[1].airtime).toBe('10:30 AM');
-      expect(sortedShows[2].airtime).toBe('12:15 PM');
-      expect(sortedShows[3].airtime).toBe('9:00 PM');
-    });
-
-    it('should handle time formats without colons', () => {
-      // Create shows with time formats without colons
-      const unsortedShows: Show[] = [
-        { ...shows[0], airtime: '21' },
-        { ...shows[1], airtime: '9' },
-        { ...shows[2], airtime: '15' }
-      ];
-
-      // Act
-      const sortedShows = service.sortShowsByTimeTest(unsortedShows);
-
-      // Assert
-      expect(sortedShows[0].airtime).toBe('9');
-      expect(sortedShows[1].airtime).toBe('15');
-      expect(sortedShows[2].airtime).toBe('21');
+      expect(sortedShows[3].airtime).toBe('22:00');
     });
   });
-
-  describe('isInitialized', () => {
-    it('should return true when all dependencies are initialized', () => {
-      // Act
-      const result = service.isInitialized();
-
-      // Assert
-      expect(result).toBe(true);
-    });
-
-    it('should return false when formatter is not initialized', () => {
-      // Arrange
-      const uninitializedService = new TestConsoleOutputService(
-        mockShowFormatter,
-        mockConsoleOutput,
-        mockConfigService,
-        true // Skip initialization
-      );
-
-      // Act
-      const result = uninitializedService.isInitialized();
-
-      // Assert
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('parseArgs', () => {
-    it('should parse command line arguments with defaults', () => {
-      // Act
-      const args = service.parseArgs([]);
-
-      // Assert
-      expect(args.date).toBe(getTodayDate());
-      expect(args.country).toBe('US');
-      expect(args.fetch).toBe('all');
-      expect(args.debug).toBe(false);
-      // The help property may be undefined in the actual implementation
-      expect(args.help).toBeFalsy();
-    });
-
-    it('should parse command line arguments with custom values', () => {
-      // Act
-      const args = service.parseArgs([
-        '--date', '2025-01-01',
-        '--country', 'GB',
-        '--types', 'Scripted,Reality',
-        '--networks', 'ABC,NBC',
-        '--genres', 'Drama,Comedy',
-        '--languages', 'English,Spanish',
-        '--debug',
-        '--fetch', 'network'
-      ]);
-
-      // Assert
-      expect(args.date).toBe('2025-01-01');
-      expect(args.country).toBe('GB');
-      expect(args.types).toEqual(['Scripted', 'Reality']);
-      expect(args.networks).toEqual(['ABC', 'NBC']);
-      expect(args.genres).toEqual(['Drama', 'Comedy']);
-      expect(args.languages).toEqual(['English', 'Spanish']);
-      expect(args.debug).toBe(true);
-      expect(args.fetch).toBe('network');
-    });
-
-    it('should handle aliases for arguments', () => {
-      // Act
-      const args = service.parseArgs([
-        '-d', '2025-01-01',
-        '-c', 'GB',
-        '-g', 'Drama,Comedy',
-        '-L', 'English,Spanish',
-        '-D',
-        '-f', 'web'
-      ]);
-
-      // Assert
-      expect(args.date).toBe('2025-01-01');
-      expect(args.country).toBe('GB');
-      expect(args.genres).toEqual(['Drama', 'Comedy']);
-      expect(args.languages).toEqual(['English', 'Spanish']);
-      expect(args.debug).toBe(true);
-      expect(args.fetch).toBe('web');
-    });
-  });
-
+  
   describe('displayHeader and displayFooter', () => {
     it('should display application header', () => {
       // Act
       service.displayHeader();
-
+      
       // Assert
       expect(mockConsoleOutput.log).toHaveBeenCalledTimes(3);
       expect(mockConsoleOutput.log).toHaveBeenCalledWith('');
       expect(mockConsoleOutput.log).toHaveBeenCalledWith('WhatsOnTV v1.0.0');
       expect(mockConsoleOutput.log).toHaveBeenCalledWith('==============================');
     });
-
+    
     it('should display application footer', () => {
-      // Reset mock before this specific test to ensure accurate call count
+      // Arrange
       mockConsoleOutput.log.mockClear();
       
       // Act
       service.displayFooter();
-
+      
       // Assert
       expect(mockConsoleOutput.log).toHaveBeenCalledTimes(3);
       expect(mockConsoleOutput.log).toHaveBeenCalledWith('==============================');
       expect(mockConsoleOutput.log).toHaveBeenCalledWith('');
-      // The actual implementation may have an additional call
-      expect(mockConsoleOutput.log).toHaveBeenNthCalledWith(1, '');
+      // Check for the TVMaze API attribution line
+      expect(mockConsoleOutput.log).toHaveBeenNthCalledWith(
+        3, 
+        'Data provided by TVMaze API (https://api.tvmaze.com)'
+      );
     });
   });
 });

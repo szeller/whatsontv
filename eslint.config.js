@@ -6,6 +6,7 @@ import securityPlugin from 'eslint-plugin-security';
 import sonarjsPlugin from 'eslint-plugin-sonarjs';
 import promisePlugin from 'eslint-plugin-promise';
 import unicornPlugin from 'eslint-plugin-unicorn';
+import jestPlugin from 'eslint-plugin-jest';
 
 /**
  * ESLint v9 configuration with TypeScript-ESLint v8.x
@@ -21,6 +22,7 @@ import unicornPlugin from 'eslint-plugin-unicorn';
  * - Promise handling (eslint-plugin-promise)
  * - Modern JavaScript practices (eslint-plugin-unicorn)
  * - TypeScript type checking (integrated with ESLint)
+ * - Jest testing (eslint-plugin-jest)
  */
 
 // Common TypeScript rules for both source and test files
@@ -181,11 +183,16 @@ export default [
     },
     plugins: {
       '@typescript-eslint': tseslint,
-      'import': importPlugin
+      'import': importPlugin,
+      'jest': jestPlugin
     },
     rules: {
       ...commonTsRules,
       ...strictTypeRules,
+      
+      // Disable TypeScript's unbound-method rule in favor of Jest's version
+      '@typescript-eslint/unbound-method': 'off',
+      'jest/unbound-method': 'error',
       
       // Only relax these specific rules for tests
       'no-console': 'off',
