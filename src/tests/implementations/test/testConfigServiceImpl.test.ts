@@ -41,7 +41,8 @@ describe('TestConfigServiceImpl', () => {
     // Arrange
     const cliOptions = {
       debug: true,
-      help: false
+      help: false,
+      groupByNetwork: false
     };
     
     // Act
@@ -90,11 +91,13 @@ describe('TestConfigServiceImpl', () => {
     
     // Act
     configService.setCliOptions({
-      debug: true
+      debug: true,
+      groupByNetwork: true
     });
     
     // Assert
     expect(configService.getCliOptions().debug).toBe(true);
+    expect(configService.getCliOptions().groupByNetwork).toBe(true);
   });
 
   it('should allow updating app config', () => {
