@@ -7,6 +7,7 @@ import type { Show, NetworkGroups } from '../../../schemas/domain.js';
 import type { ConfigService } from '../../../interfaces/configService.js';
 import { ShowBuilder } from '../../fixtures/helpers/showFixtureBuilder.js';
 import { AppConfig, CliOptions } from '../../../types/configTypes.js';
+import { sortShowsByTime } from '../../../utils/showUtils.js';
 
 // Extend the service to expose protected methods for testing
 class TestConsoleOutputService extends ConsoleOutputServiceImpl {
@@ -99,8 +100,7 @@ class TestConsoleOutputService extends ConsoleOutputServiceImpl {
   sortShowsByTimeTest(
     shows: Show[]
   ): Show[] {
-    type SortMethod = (shows: Show[]) => Show[];
-    return (this as unknown as { sortShowsByTime: SortMethod }).sortShowsByTime(shows);
+    return sortShowsByTime(shows);
   }
 }
 

@@ -9,9 +9,8 @@ import type { Show } from '../../schemas/domain.js';
 import type { OutputService } from '../../interfaces/outputService.js';
 import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
 import type { NetworkGroups } from '../../utils/showUtils.js';
-import { groupShowsByNetwork } from '../../utils/showUtils.js';
-import { getTodayDate, convertTimeToMinutes } from '../../utils/dateUtils.js';
-import { getStringValue } from '../../utils/stringUtils.js';
+import { groupShowsByNetwork, sortShowsByTime } from '../../utils/showUtils.js';
+import { getTodayDate } from '../../utils/dateUtils.js';
 
 /**
  * CLI arguments interface for console output
@@ -86,8 +85,8 @@ export class ConsoleOutputServiceImpl implements OutputService {
       return;
     }
 
-    // Always sort shows by time first
-    const sortedShows = this.sortShowsByTime(shows);
+    // Always sort shows by time first using the shared utility
+    const sortedShows = sortShowsByTime(shows);
     
     // Group shows by network if requested
     const networkGroups = groupByNetwork 
@@ -110,33 +109,6 @@ export class ConsoleOutputServiceImpl implements OutputService {
   }
 
   /**
-   * Sort shows by airtime
-   * @param shows Array of TV shows to sort
-   * @returns Sorted array of shows
-   * @private
-   */
-  private sortShowsByTime(shows: Show[]): Show[] {
-    return [...shows].sort((a, b) => {
-      // Handle shows without airtime
-      const aAirtime = getStringValue(a.airtime, '');
-      const bAirtime = getStringValue(b.airtime, '');
-      
-      if (aAirtime === '') {
-        return 1;
-      }
-      if (bAirtime === '') {
-        return -1;
-      }
-      
-      // Use the utility function from dateUtils.ts to convert time to minutes
-      const aMinutes = convertTimeToMinutes(aAirtime);
-      const bMinutes = convertTimeToMinutes(bAirtime);
-      
-      return aMinutes - bMinutes;
-    });
-  }
-
-  /**
    * Group shows by network
    * @param shows Array of TV shows to group
    * @returns Shows grouped by network
@@ -149,18 +121,21 @@ export class ConsoleOutputServiceImpl implements OutputService {
   /**
    * Display shows grouped by network
    * @param networkGroups Shows grouped by network
-   * @param timeSort Whether to sort shows by time within each network
+   * @param timeSort Whether to sort shows by time within each network 
+   *                (optional, for backward compatibility)
+   * @returns Promise that resolves when shows are displayed
    */
   public async displayNetworkGroups(
     networkGroups: NetworkGroups,
     timeSort: boolean = false
   ): Promise<void> {
     try {
+      // Format shows grouped by network
       const formattedOutput = this.formatter.formatNetworkGroups(
         networkGroups,
         timeSort
       );
-
+      
       // Display each line of output
       for (const line of formattedOutput) {
         await Promise.resolve(this.output.log(line));
@@ -169,6 +144,67 @@ export class ConsoleOutputServiceImpl implements OutputService {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.output.error(`Error displaying output: ${errorMessage}`);
     }
+  }
+
+  /**
+   * Parse command line arguments for the CLI
+   * @param args Command line arguments
+   * @returns Parsed arguments object
+   */
+  public parseArguments(args: string[]): ConsoleCliArgs {
+    const parsedArgs = yargs(args)
+      .options({
+        date: {
+          alias: 'd',
+          describe: 'Date to show schedule for (YYYY-MM-DD)',
+          default: getTodayDate(),
+          type: 'string'
+        },
+        country: {
+          alias: 'c',
+          describe: 'Country code (e.g., US)',
+          default: 'US',
+          type: 'string'
+        },
+        types: {
+          alias: 't',
+          describe: 'Show types to include',
+          type: 'array',
+          default: []
+        },
+        networks: {
+          alias: 'n',
+          describe: 'Networks to include',
+          type: 'array',
+          default: []
+        },
+        genres: {
+          alias: 'g',
+          describe: 'Genres to include',
+          type: 'array',
+          default: []
+        },
+        languages: {
+          alias: 'l',
+          describe: 'Languages to include',
+          type: 'array',
+          default: []
+        },
+        debug: {
+          describe: 'Show debug information',
+          type: 'boolean',
+          default: false
+        },
+        fetch: {
+          describe: 'Fetch data source (network, web, all)',
+          choices: ['network', 'web', 'all'],
+          default: 'all'
+        }
+      })
+      .help()
+      .argv as ConsoleCliArgs;
+    
+    return parsedArgs;
   }
 
   /**

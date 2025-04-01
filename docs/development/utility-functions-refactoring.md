@@ -11,177 +11,106 @@ This document provides a detailed plan for refactoring utility functions from co
 3. **Maintain Testability**: Ensure all utilities are easily testable in isolation
 4. **Preserve Behavior**: Existing functionality should remain unchanged after refactoring
 
-## Utility Functions to Refactor
+## Implemented Utility Functions
 
 ### Time Handling Utilities (`dateUtils.ts`)
 
-| Function Name | Current Location | Proposed Signature | Functionality |
-|---------------|------------------|-------------------|---------------|
-| `parseTimeString` | `consoleOutputServiceImpl.ts` (inside `sortShowsByTime`) | `parseTimeString(timeStr: string): { hours: number; minutes: number }` | Parses a time string in various formats (HH:MM, H:MM AM/PM) to hours and minutes |
-| `getTimeInMinutes` | `consoleOutputServiceImpl.ts` (inside `sortShowsByTime`) | `getTimeInMinutes(timeStr: string): number` | Converts a time string to minutes since midnight for comparison |
-| `formatTimeWithPeriod` | `consoleFormatterImpl.ts` (implicit in `formatTimedShow`) | `formatTimeWithPeriod(time: string): string` | Formats a time string to a standardized format with AM/PM indicator |
-| `isValidTime` | N/A (new utility) | `isValidTime(time: string): boolean` | Validates if a string is a valid time format |
+| Function Name | Description | Signature |
+|---------------|-------------|-----------|
+| `parseTimeString` | Parses a time string in various formats (HH:MM, H:MM AM/PM) | `parseTimeString(timeStr: string): { hours: number; minutes: number }` |
+| `getTimeInMinutes` | Converts a time string to minutes since midnight for comparison | `getTimeInMinutes(timeStr: string): number` |
+| `formatTimeWithPeriod` | Formats a time string with AM/PM indicator | `formatTimeWithPeriod(time: string): string` |
+| `isValidTime` | Validates if a string is a valid time format | `isValidTime(time: string): boolean` |
+| `getTodayDate` | Returns the current date | `getTodayDate(): Date` |
+| `formatDate` | Formats a date string | `formatDate(date: Date): string` |
 
 ### String Utilities (`stringUtils.ts`)
 
-| Function Name | Current Location | Proposed Signature | Functionality |
-|---------------|------------------|-------------------|---------------|
-| `padString` | `consoleFormatterImpl.ts` (implicit) | `padString(str: string, length: number, padChar: string = ' '): string` | Pads a string to a specific length with fallback handling |
-| `truncateString` | `consoleFormatterImpl.ts` (implicit) | `truncateString(str: string, maxLength: number, suffix: string = '...'): string` | Truncates a string to a maximum length with suffix |
-| `formatListWithSeparator` | N/A (extracted from formatting) | `formatListWithSeparator(items: string[], separator: string = ', '): string` | Joins list items with a separator and handles edge cases |
-| `wrapText` | N/A (extracted from formatting) | `wrapText(text: string, maxWidth: number): string[]` | Wraps text to fit within a specified width |
+| Function Name | Description | Signature |
+|---------------|-------------|-----------|
+| `padString` | Pads a string to a specific length with fallback handling | `padString(str: string, length: number, padChar: string = ' '): string` |
+| `truncateString` | Truncates a string to a maximum length with suffix | `truncateString(str: string, maxLength: number, suffix: string = '...'): string` |
+| `formatListWithSeparator` | Joins list items with a separator and handles edge cases | `formatListWithSeparator(items: string[], separator: string = ', '): string` |
+| `wrapText` | Wraps text to fit within a specified width | `wrapText(text: string, maxWidth: number): string[]` |
+| `getStringValue` | Provides safe access to string values with fallbacks | `getStringValue(str: string | null | undefined, fallback: string = ''): string` |
 
 ### Show Data Manipulation Utilities (`showUtils.ts`)
 
-| Function Name | Current Location | Proposed Signature | Functionality |
-|---------------|------------------|-------------------|---------------|
-| `sortShowsByTime` | `consoleOutputServiceImpl.ts` | `sortShowsByTime(shows: Show[]): Show[]` | Sorts shows by airtime (existing in `showUtils.ts` but implementation in `consoleOutputServiceImpl.ts` has more features) |
-| `getNetworkName` | `consoleOutputServiceImpl.ts` (inside `groupShowsByNetwork`) | `getNetworkName(show: Show): string` | Extracts network name with fallback to "Unknown Network" |
+| Function Name | Description | Signature |
+|---------------|-------------|-----------|
+| `sortShowsByTime` | Sorts shows by airtime (existing in `showUtils.ts` but implementation in `consoleOutputServiceImpl.ts` has more features) | `sortShowsByTime(shows: Show[]): Show[]` |
+| `getNetworkName` | Extracts network name with fallback to "Unknown Network" | `getNetworkName(show: Show): string` |
+| `groupShowsByNetwork` | Groups shows by network | `groupShowsByNetwork(shows: Show[]): { [network: string]: Show[] }` |
+| `compareEpisodes` | Compares episodes for sorting | `compareEpisodes(episode1: Episode, episode2: Episode): number` |
+| `formatEpisodeRanges` | Formats episodes into compact ranges (e.g., "S01E01-03, S01E05") | `formatEpisodeRanges(episodes: Episode[]): string` |
+| `filterByType` | Filters shows by their type | `filterByType(shows: Show[], type: string): Show[]` |
 
 ### Console Formatting Utilities (`consoleFormatUtils.ts`)
 
-| Function Name | Current Location | Proposed Signature | Functionality |
-|---------------|------------------|-------------------|---------------|
-| `formatNetworkName` | `consoleFormatterImpl.ts` (implicit in formatting) | `formatNetworkName(network: string): string` | Formats network name consistently with fallbacks for console display |
-| `formatShowType` | `consoleFormatterImpl.ts` (implicit in formatting) | `formatShowType(type: string): string` | Formats show type consistently with fallbacks for console display |
-| `formatEpisodeInfo` | `consoleFormatterImpl.ts` (implicit in formatting) | `formatEpisodeInfo(season: number, episode: number): string` | Formats episode information (S01E01 format) |
-| `formatShowForConsole` | `consoleFormatterImpl.ts` (variations) | `formatShowForConsole(show: Show, options?: FormatOptions): string` | Master function for consistent show formatting in console |
-| `formatTableRow` | N/A (new console utility) | `formatTableRow(columns: string[], widths: number[]): string` | Creates a formatted table row with proper spacing for console output |
-| `createTableHeader` | N/A (new console utility) | `createTableHeader(headers: string[], widths: number[]): string[]` | Creates a console table header with optional separator line |
-| `createBulletList` | N/A (new console utility) | `createBulletList(items: string[], bulletChar: string = '• '): string[]` | Creates a bullet list format suitable for console display |
+| Function Name | Description | Signature |
+|---------------|-------------|-----------|
+| `formatNetworkName` | Formats network name consistently with fallbacks for console display | `formatNetworkName(network: string): string` |
+| `formatShowType` | Formats show type consistently with fallbacks for console display | `formatShowType(type: string): string` |
+| `formatEpisodeInfo` | Formats episode information (S01E01 format) | `formatEpisodeInfo(season: number, episode: number): string` |
+| `formatShowForConsole` | Master function for consistent show formatting in console | `formatShowForConsole(show: Show, options?: FormatOptions): string` |
+| `formatTableRow` | Creates a formatted table row with proper spacing for console output | `formatTableRow(columns: string[], widths: number[]): string` |
+| `createTableHeader` | Creates a console table header with optional separator line | `createTableHeader(headers: string[], widths: number[]): string[]` |
+| `createBulletList` | Creates a bullet list format suitable for console display | `createBulletList(items: string[], bulletChar: string = '• '): string[]` |
 
 ## Detailed Function Specifications
 
 ### Time Handling Utilities
 
-#### `parseTimeString(timeStr: string): { hours: number; minutes: number }`
+The `dateUtils.ts` module provides utilities for handling dates and times:
 
-**Current Location**: Inside `sortShowsByTime` in `consoleOutputServiceImpl.ts`  
-**Description**: Parses a time string to extract hours and minutes, handling various formats including AM/PM notation.
-
-```typescript
-export function parseTimeString(timeStr: string): { hours: number; minutes: number } {
-  let hours = 0;
-  let minutes = 0;
-  
-  // Handle various time formats
-  if (timeStr.includes(':')) {
-    // Format: "HH:MM" or "H:MM" with optional AM/PM
-    const timeParts = timeStr.split(':');
-    hours = parseInt(timeParts[0], 10);
-    
-    // Extract minutes, removing any AM/PM suffix
-    const minutesPart = timeParts[1].replace(/\s*[APap][Mm].*$/, '');
-    minutes = parseInt(minutesPart, 10);
-    
-    // Handle AM/PM if present
-    const isPM = /\s*[Pp][Mm]/.test(timeStr);
-    const isAM = /\s*[Aa][Mm]/.test(timeStr);
-    
-    if (isPM && hours < 12) {
-      hours += 12;
-    } else if (isAM && hours === 12) {
-      hours = 0;
-    }
-  } else {
-    // Format without colon, assume it's just hours
-    hours = parseInt(timeStr, 10);
-  }
-  
-  return { hours, minutes };
-}
-```
-
-#### `getTimeInMinutes(timeStr: string): number`
-
-**Current Location**: Inside `sortShowsByTime` in `consoleOutputServiceImpl.ts`  
-**Description**: Converts a time string to minutes since midnight for easier comparison.
-
-```typescript
-export function getTimeInMinutes(timeStr: string): number {
-  const { hours, minutes } = parseTimeString(timeStr);
-  return hours * 60 + minutes;
-}
-```
+- `parseTimeString` parses time strings in various formats (12:30, 1:30 PM)
+- `convertTimeToMinutes` converts a time string to minutes since midnight for comparison
+- `formatTimeWithPeriod` ensures consistent time formatting with AM/PM indicator
+- `isValidTime` validates time string formats
+- `getTodayDate` and `formatDate` provide date formatting utilities
 
 ### String Utilities
 
-#### `padString(str: string, length: number, padChar: string = ' '): string`
+The `stringUtils.ts` module provides generic string manipulation utilities:
 
-**Current Location**: Implicit in `consoleFormatterImpl.ts`  
-**Description**: Generic string utility for padding a string to a specific length with proper null/undefined handling.
+- `padString` and `truncateString` handle text formatting with proper null/undefined handling
+- `formatListWithSeparator` joins arrays of strings with configurable separators
+- `wrapText` handles wrapping text to fit within specified widths
+- `getStringValue` provides safe access to string values with fallbacks
 
-```typescript
-export function padString(str: string | null | undefined, length: number, padChar: string = ' '): string {
-  const value = str !== null && str !== undefined ? String(str) : '';
-  return value.padEnd(length, padChar);
-}
-```
+### Show Data Manipulation
 
-#### `truncateString(str: string, maxLength: number, suffix: string = '...'): string`
+The `showUtils.ts` module provides utilities for working with Show objects:
 
-**Current Location**: Not explicit but needed for consistent formatting  
-**Description**: Generic string utility for truncating a string to a maximum length and adding a suffix if needed.
+- `sortShowsByTime` sorts shows by their airtime
+- `getNetworkName` and `groupShowsByNetwork` handle network-related operations
+- `compareEpisodes` provides consistent episode comparison
+- `formatEpisodeRanges` formats episodes into compact ranges (e.g., "S01E01-03, S01E05")
+- `filterByType` filters shows by their type
 
-```typescript
-export function truncateString(str: string | null | undefined, maxLength: number, suffix: string = '...'): string {
-  const value = str !== null && str !== undefined ? String(str) : '';
-  
-  if (value.length <= maxLength) {
-    return value;
-  }
-  
-  // Ensure there's room for the suffix
-  const truncatedLength = maxLength - suffix.length;
-  if (truncatedLength <= 0) {
-    return suffix.substring(0, maxLength);
-  }
-  
-  return value.substring(0, truncatedLength) + suffix;
-}
-```
+### Console Formatting
 
-### Show Data Manipulation Utilities
+The `consoleFormatUtils.ts` module provides console-specific formatting utilities:
 
-#### `sortShowsByTime(shows: Show[]): Show[]`
+- `formatNetworkName` and `formatShowType` ensure consistent formatting
+- `formatEpisodeInfo` handles episode information formatting (S01E01)
+- `formatShowForConsole` provides a comprehensive show formatting function
+- `formatTableRow` and `createTableHeader` create tabular console output
+- `createBulletList` formats data as bullet lists
 
-**Current Location**: `consoleOutputServiceImpl.ts` (more advanced version than in `showUtils.ts`)  
-**Description**: Sorts shows by their airtime, handling null/undefined values.
+## Key Implementation Decisions
 
-```typescript
-export function sortShowsByTime(shows: Show[]): Show[] {
-  return [...shows].sort((a, b) => {
-    // Handle shows without airtime
-    if (a.airtime === undefined || a.airtime === null || a.airtime === '') {
-      return 1;
-    }
-    if (b.airtime === undefined || b.airtime === null || b.airtime === '') {
-      return -1;
-    }
-    
-    // Convert airtime strings to minutes for comparison
-    const aMinutes = getTimeInMinutes(a.airtime);
-    const bMinutes = getTimeInMinutes(b.airtime);
-    
-    return aMinutes - bMinutes;
-  });
-}
-```
+1. **Consistent Episode Formatting**: Episode information is formatted with leading zeros by default (S01E01 instead of S1E1) but can be configured via the `padEpisodeNumbers` parameter.
 
-#### `getNetworkName(show: Show): string`
+2. **Null/Undefined Handling**: All utility functions properly handle null and undefined values with appropriate defaults.
 
-**Current Location**: Embedded in `groupShowsByNetwork` in both console implementations  
-**Description**: Extracts the network name from a show with proper fallback.
+3. **Flexible Formatting Options**: Functions like `formatShowForConsole` accept options to customize the output format.
 
-```typescript
-export function getNetworkName(show: Show): string {
-  return show.network ?? 'Unknown Network';
-}
-```
+4. **Separation of Concerns**: Clear separation between generic utilities, domain-specific utilities, and UI-specific formatting.
 
 ## Module Organization
 
-The refactoring will organize utilities as follows:
+The refactoring organizes utilities as follows:
 
 1. **Generic Utilities**: Non-domain specific utilities that could be used in any TypeScript application:
    - `stringUtils.ts`: General string manipulation functions
@@ -196,32 +125,33 @@ The refactoring will organize utilities as follows:
 This organization allows for:
 
 - Clear separation between generic code and domain-specific code
-- Easy reuse of domain utilities across different UIs (console, Slack)
+- Easy reuse of domain utilities across different UIs (console, web, etc.)
 - UI-specific formatting isolated to dedicated modules
 
+## Implementation Status
 
-## Migration Strategy
+All planned utility functions have been successfully implemented and integrated into the codebase. The refactoring has been completed with the following results:
 
-1. **Create New Functions**: Implement all utility functions in their appropriate files
-2. **Unit Testing**: Add comprehensive tests for each utility function
-3. **Refactor Implementations**: Update console implementations to use the shared utilities
-4. **Validate Behavior**: Ensure all existing tests continue to pass with the refactored code
-5. **Documentation**: Update JSDoc for all utility functions with examples
+1. **Console-Specific Code Reduction**: Console-specific implementations now use shared utility functions, reducing code duplication.
 
+2. **Improved Testability**: Each utility function has dedicated tests covering various edge cases.
 
-## Impact on Application Class Refactoring
+3. **Consistent Formatting**: Show data is now formatted consistently throughout the application.
 
-This utility function refactoring will support the Application class refactoring by:
+4. **Maintainability**: The code is now more maintainable with clear separation of concerns.
 
-1. **Simplifying Services**: Moving utility functions out of service implementations will make them cleaner
-2. **Improved Testability**: Utilities can be tested independently of services
-3. **Enhanced Reusability**: Shared utilities will facilitate implementing the Slack interface
+## Future Enhancements
 
+While the current refactoring meets all the requirements, some potential future enhancements include:
 
-## Next Steps
+1. **Additional Utility Functions**: As new interfaces are implemented, additional utility functions may be needed.
 
-1. Implement new utility modules and functions
-2. Add comprehensive test coverage for all utilities
-3. Refactor existing implementations to use shared utilities
-4. Validate behavior matches existing functionality
-5. Proceed with Application class refactoring (Issue #69)
+2. **Performance Optimizations**: Some utility functions could be optimized for performance if needed.
+
+3. **Extended Documentation**: More comprehensive examples in JSDoc comments could be added.
+
+4. **Internationalization Support**: Add support for different date/time formats based on locale.
+
+## Conclusion
+
+The utility functions refactoring has successfully improved the codebase by centralizing common functionality, reducing duplication, and ensuring consistent behavior across the application. This provides a solid foundation for implementing additional interfaces beyond the console.
