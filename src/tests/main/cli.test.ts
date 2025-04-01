@@ -46,7 +46,11 @@ describe('CLI', () => {
   };
 
   const mockConfigService = {
-    getCliOptions: jest.fn<() => CliOptions>().mockReturnValue({ debug: false, help: false }),
+    getCliOptions: jest.fn<() => CliOptions>().mockReturnValue({
+      debug: false,
+      help: false,
+      groupByNetwork: true
+    }),
     setCliOptions: jest.fn<(options: CliOptions) => void>(),
     getHelpText: jest.fn<() => string>().mockReturnValue('Help Text'),
     getOutputFormat: jest.fn<() => string>().mockReturnValue('text'),
@@ -95,9 +99,10 @@ describe('CLI', () => {
   });
 
   it('should show help when --help flag is provided', async () => {
-    mockConfigService.getCliOptions.mockReturnValue({ 
-      debug: false, 
-      help: true 
+    mockConfigService.getCliOptions.mockReturnValue({
+      debug: false,
+      help: true,
+      groupByNetwork: true
     });
 
     await runCli(mockServices);
@@ -113,9 +118,10 @@ describe('CLI', () => {
       Fixtures.domain.getStreamingShows()
     );
     
-    mockConfigService.getCliOptions.mockReturnValue({ 
-      debug: false, 
-      help: false 
+    mockConfigService.getCliOptions.mockReturnValue({
+      debug: false,
+      help: false,
+      groupByNetwork: true
     });
     mockConfigService.getShowType.mockReturnValue('all');
     mockTvShowService.fetchShows.mockResolvedValue(mockShows);
@@ -129,9 +135,10 @@ describe('CLI', () => {
   it('should show network shows when network type is requested', async () => {
     const mockNetworkShows = Fixtures.domain.getNetworkShows();
     
-    mockConfigService.getCliOptions.mockReturnValue({ 
-      debug: false, 
-      help: false
+    mockConfigService.getCliOptions.mockReturnValue({
+      debug: false,
+      help: false,
+      groupByNetwork: true
     });
     mockConfigService.getShowType.mockReturnValue('network');
     mockTvShowService.fetchShows.mockResolvedValue(mockNetworkShows);
@@ -145,9 +152,10 @@ describe('CLI', () => {
   it('should show streaming shows when streaming type is requested', async () => {
     const mockStreamingShows = Fixtures.domain.getStreamingShows();
     
-    mockConfigService.getCliOptions.mockReturnValue({ 
-      debug: false, 
-      help: false
+    mockConfigService.getCliOptions.mockReturnValue({
+      debug: false,
+      help: false,
+      groupByNetwork: true
     });
     mockConfigService.getShowType.mockReturnValue('streaming');
     mockTvShowService.fetchShows.mockResolvedValue(mockStreamingShows);
@@ -161,13 +169,19 @@ describe('CLI', () => {
   it('should handle errors when fetching shows', async () => {
     const mockError = new Error('Failed to fetch shows');
     
-    mockConfigService.getCliOptions.mockReturnValue({ debug: false, help: false });
+    mockConfigService.getCliOptions.mockReturnValue({
+      debug: false,
+      help: false,
+      groupByNetwork: true
+    });
     mockTvShowService.fetchShows.mockRejectedValue(mockError);
 
     await runCli(mockServices);
 
     expect(mockTvShowService.fetchShows).toHaveBeenCalled();
-    expect(mockConsoleOutput.error).toHaveBeenCalledWith('Error: Failed to fetch shows');
+    expect(mockConsoleOutput.error).toHaveBeenCalledWith(
+      'Error fetching TV shows: Failed to fetch shows'
+    );
   });
 
   it('should display debug info when debug flag is true', async () => {
@@ -177,9 +191,10 @@ describe('CLI', () => {
       { ...Fixtures.domain.getStreamingShows()[0], network: 'Netflix' }
     ];
     
-    mockConfigService.getCliOptions.mockReturnValue({ 
-      debug: true, 
-      help: false 
+    mockConfigService.getCliOptions.mockReturnValue({
+      debug: true,
+      help: false,
+      groupByNetwork: true
     });
     mockConfigService.isDebug.mockReturnValue(true);
     mockTvShowService.fetchShows.mockResolvedValue(mockShows);
@@ -212,6 +227,8 @@ describe('CLI', () => {
     await runCli(mockServices);
     
     // Verify that the error was handled correctly
-    expect(mockConsoleOutput.error).toHaveBeenCalledWith('Error: Test error');
+    expect(mockConsoleOutput.error).toHaveBeenCalledWith(
+      'Error fetching TV shows: Test error'
+    );
   });
 });

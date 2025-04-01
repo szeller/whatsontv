@@ -31,5 +31,5 @@ export interface OutputService {
    * Display help information to the user
    * @param helpText The help text to display
    */
-  displayHelp?(helpText: string): void;
+  displayHelp(helpText: string): void;
 }

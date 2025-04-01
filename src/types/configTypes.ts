@@ -30,4 +30,5 @@ export interface AppConfig {
 export interface CliOptions {
   debug: boolean;
   help: boolean;
+  groupByNetwork: boolean;
 }

@@ -330,7 +330,11 @@ describe('ConsoleConfigServiceImpl', () => {
     
     // Assert
     const cliOptions = configService.getCliOptions();
-    expect(cliOptions.debug).toBe(true);
+    expect(cliOptions).toEqual({
+      debug: true,
+      help: false,
+      groupByNetwork: false
+    });
   });
 
   it('should correctly get the complete config', () => {
@@ -475,7 +479,8 @@ describe('ConsoleConfigServiceImpl', () => {
     }));
     expect(configService.getCliOptions()).toEqual({
       debug: false,
-      help: false
+      help: false,
+      groupByNetwork: false
     });
   });
 

@@ -34,5 +34,5 @@ export interface ConfigService {
    * Get help text for the application
    * @returns The help text to display to users
    */
-  getHelpText?(): string;
+  getHelpText(): string;
 }

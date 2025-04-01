@@ -46,11 +46,27 @@ export class ConsoleConfigServiceImpl implements ConfigService {
     // Parse command line arguments
     this.cliArgs = this.parseArgs();
     
-    // Load and merge configurations
+    // Load configuration
     this.appConfig = this.loadConfig();
     
-    // Extract show options
-    this.showOptions = {
+    // Set CLI options
+    this.cliOptions = {
+      debug: Boolean(this.cliArgs.debug),
+      help: Boolean(this.cliArgs.help),
+      groupByNetwork: Boolean(this.cliArgs.groupByNetwork)
+    };
+    
+    // Set show options
+    this.showOptions = this.getShowOptionsFromConfig();
+  }
+
+  /**
+   * Get show options from the configuration and CLI arguments
+   * @returns ShowOptions object with merged values
+   * @protected
+   */
+  protected getShowOptionsFromConfig(): ShowOptions {
+    return {
       date: getStringValue(this.cliArgs.date, getTodayDate()),
       country: getStringValue(this.cliArgs.country, this.appConfig.country),
       // Use utility functions for array handling
@@ -71,12 +87,6 @@ export class ConsoleConfigServiceImpl implements ConfigService {
         toStringArray(this.appConfig.languages)
       ),
       fetchSource: coerceFetchSource(this.cliArgs.fetch)
-    };
-    
-    // Extract CLI options
-    this.cliOptions = {
-      debug: Boolean(this.cliArgs.debug),
-      help: Boolean(this.cliArgs.help)
     };
   }
   
@@ -146,26 +156,85 @@ export class ConsoleConfigServiceImpl implements ConfigService {
   }
   
   /**
+   * Get help text for the application
+   * @returns The help text to display to users
+   */
+  getHelpText(): string {
+    return `
+WhatsOnTV - TV Show Schedule Viewer
+
+Usage: whatsontv [options]
+
+Options:
+  --date, -d         Date to show TV schedule for (YYYY-MM-DD)
+  --country, -c      Country code (e.g., US, GB)
+  --type             Show types to include (e.g., Scripted,Reality)
+  --network          Networks to include (e.g., HBO,Netflix)
+  --genre            Genres to include (e.g., Drama,Comedy)
+  --language         Languages to include (e.g., English,Spanish)
+  --fetch, -f        Fetch source (web, network, all)
+  --debug, -D        Enable debug mode
+  --help, -h         Show this help message
+  --group-by-network Group shows by network (default: true)
+
+Examples:
+  whatsontv                         Show today's TV schedule
+  whatsontv --date 2023-04-01       Show schedule for April 1, 2023
+  whatsontv --network HBO,Netflix   Show only HBO and Netflix shows
+  whatsontv --type Scripted         Show only scripted shows
+  whatsontv --fetch web             Show only web/streaming shows
+`;
+  }
+  
+  /**
    * Parse command line arguments
-   * @param args Command line arguments (optional)
-   * @returns Parsed command line arguments
+   * @param args Optional array of command line arguments
+   * @returns Parsed CLI arguments
    * @protected
    */
   protected parseArgs(args?: string[]): CliArgs {
     const yargsInstance = this.createYargsInstance(args || process.argv.slice(2));
-    const parsedArgs = yargsInstance.parseSync();
+    
+    // In tests, we need to disable strict mode and exit behavior
+    const parsedArgs = yargsInstance
+      .parserConfiguration({
+        'boolean-negation': false,
+        'camel-case-expansion': false,
+        'dot-notation': false,
+        'duplicate-arguments-array': false,
+        'halt-at-non-option': false,
+        'strip-aliased': true,
+        'strip-dashed': true,
+        'unknown-options-as-args': true
+      })
+      .fail(false)
+      .parseSync();
+    
+    // Handle both singular and plural forms of arguments
+    const typeValue = parsedArgs.type !== undefined ? 
+      parsedArgs.type : parsedArgs.types;
+    const networkValue = parsedArgs.network !== undefined ? 
+      parsedArgs.network : parsedArgs.networks;
+    const genreValue = parsedArgs.genre !== undefined ? 
+      parsedArgs.genre : parsedArgs.genres;
+    const languageValue = parsedArgs.language !== undefined ? 
+      parsedArgs.language : parsedArgs.languages;
     
     // Convert to CliArgs type with proper handling of optional arrays
     return {
       date: getStringValue(String(parsedArgs.date), getTodayDate()),
       country: getStringValue(String(parsedArgs.country), 'US'),
-      types: toStringArray(parsedArgs.types as string | string[] | undefined),
-      networks: toStringArray(parsedArgs.networks as string | string[] | undefined),
-      genres: toStringArray(parsedArgs.genres as string | string[] | undefined),
-      languages: toStringArray(parsedArgs.languages as string | string[] | undefined),
+      types: toStringArray(typeValue as string | string[] | undefined),
+      networks: toStringArray(networkValue as string | string[] | undefined),
+      genres: toStringArray(genreValue as string | string[] | undefined),
+      languages: toStringArray(languageValue as string | string[] | undefined),
       help: Boolean(parsedArgs.help),
       debug: Boolean(parsedArgs.debug),
-      fetch: coerceFetchSource(parsedArgs.fetch)
+      fetch: parsedArgs.fetch !== undefined ? 
+        coerceFetchSource(parsedArgs.fetch as string) : 'network',
+      groupByNetwork: parsedArgs['group-by-network'] !== undefined 
+        ? Boolean(parsedArgs['group-by-network']) 
+        : true // Default to true if not specified
     };
   }
   
@@ -252,9 +321,7 @@ export class ConsoleConfigServiceImpl implements ConfigService {
         }
       })
       .help()
-      .alias('help', 'h')
-      .version()
-      .alias('version', 'v');
+      .alias('help', 'h');
   }
   
   /**

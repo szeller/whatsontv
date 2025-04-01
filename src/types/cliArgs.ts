@@ -47,4 +47,9 @@ export interface CliArgs {
    * Languages to filter shows by
    */
   languages: string[];
+
+  /**
+   * Whether to group shows by network
+   */
+  groupByNetwork: boolean;
 }

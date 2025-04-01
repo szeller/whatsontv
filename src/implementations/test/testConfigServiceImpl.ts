@@ -36,7 +36,8 @@ export class TestConfigServiceImpl implements ConfigService {
     // Initialize CLI options with defaults
     this.cliOptions = {
       debug: cliOptions.debug ?? false,
-      help: cliOptions.help ?? false
+      help: cliOptions.help ?? false,
+      groupByNetwork: cliOptions.groupByNetwork ?? false
     };
     
     // Initialize app config with defaults
@@ -71,11 +72,17 @@ export class TestConfigServiceImpl implements ConfigService {
   }
   
   /**
-   * Get CLI-specific flags and options
-   * @returns CLI-specific configuration options
+   * Get CLI options
    */
   getCliOptions(): CliOptions {
-    return { ...this.cliOptions };
+    return this.cliOptions;
+  }
+
+  /**
+   * Get help text for the CLI
+   */
+  getHelpText(): string {
+    return 'Test help text';
   }
   
   /**
