@@ -24,17 +24,16 @@ export function formatDate(date: Date): string {
 }
 
 /**
- * Convert a time string to minutes since midnight for comparison
- * Handles various time formats including "HH:MM", "H:MM", with optional AM/PM
- * @param timeStr - The time string to convert
- * @returns Minutes since midnight, or -1 if the time string is invalid
+ * Parse a time string to extract hours and minutes
+ * Handles various formats including "HH:MM", "H:MM", with optional AM/PM
+ * @param timeStr - The time string to parse
+ * @returns Object with hours and minutes, or null if invalid
  */
-export function convertTimeToMinutes(timeStr: string): number {
+export function parseTimeString(timeStr: string): { hours: number; minutes: number } | null {
   if (!timeStr || typeof timeStr !== 'string') {
-    return -1;
+    return null;
   }
 
-  // Normalize the time format
   let hours = 0;
   let minutes = 0;
   
@@ -43,7 +42,7 @@ export function convertTimeToMinutes(timeStr: string): number {
     // Format: "HH:MM" or "H:MM" with optional AM/PM
     const timeParts = timeStr.split(':');
     if (timeParts.length !== 2 || isNaN(parseInt(timeParts[0], 10))) {
-      return -1;
+      return null;
     }
     
     hours = parseInt(timeParts[0], 10);
@@ -51,7 +50,7 @@ export function convertTimeToMinutes(timeStr: string): number {
     // Extract minutes, removing any AM/PM suffix
     const minutesPart = timeParts[1].replace(/\s*[APap][Mm].*$/, '');
     if (isNaN(parseInt(minutesPart, 10))) {
-      return -1;
+      return null;
     }
     minutes = parseInt(minutesPart, 10);
     
@@ -67,10 +66,62 @@ export function convertTimeToMinutes(timeStr: string): number {
   } else {
     // Format without colon, assume it's just hours
     if (isNaN(parseInt(timeStr, 10))) {
-      return -1;
+      return null;
     }
     hours = parseInt(timeStr, 10);
   }
   
-  return hours * 60 + minutes;
+  return { hours, minutes };
+}
+
+/**
+ * Convert a time string to minutes since midnight for comparison
+ * Handles various time formats including "HH:MM", "H:MM", with optional AM/PM
+ * @param timeStr - The time string to convert
+ * @returns Minutes since midnight, or -1 if the time string is invalid
+ */
+export function convertTimeToMinutes(timeStr: string): number {
+  const parsedTime = parseTimeString(timeStr);
+  if (parsedTime === null) {
+    return -1;
+  }
+  
+  return parsedTime.hours * 60 + parsedTime.minutes;
+}
+
+/**
+ * Format time string to 12-hour format with AM/PM
+ * @param time - Time string in HH:MM format
+ * @returns Formatted time string (e.g., "8:30 PM")
+ */
+export function formatTimeWithPeriod(time: string | null | undefined): string {
+  if (time === null || time === undefined || time === '') {
+    return 'N/A';
+  }
+  
+  const parsedTime = parseTimeString(time);
+  if (parsedTime === null) {
+    return 'N/A';
+  }
+  
+  const { hours, minutes } = parsedTime;
+  
+  // Convert to 12-hour format
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const hours12 = hours % 12 || 12; // Convert 0 to 12 for 12 AM
+  
+  return `${hours12}:${String(minutes).padStart(2, '0')} ${period}`;
+}
+
+/**
+ * Validates if a string is a valid time format
+ * @param time - The time string to validate
+ * @returns True if the time is valid, false otherwise
+ */
+export function isValidTime(time: string | null | undefined): boolean {
+  if (time === null || time === undefined || time === '') {
+    return false;
+  }
+  
+  return parseTimeString(time) !== null;
 }

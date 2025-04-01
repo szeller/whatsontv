@@ -10,7 +10,8 @@ import type { OutputService } from '../../interfaces/outputService.js';
 import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
 import type { NetworkGroups } from '../../utils/showUtils.js';
 import { groupShowsByNetwork } from '../../utils/showUtils.js';
-import { getTodayDate } from '../../utils/dateUtils.js';
+import { getTodayDate, convertTimeToMinutes } from '../../utils/dateUtils.js';
+import { getStringValue } from '../../utils/stringUtils.js';
 
 /**
  * CLI arguments interface for console output
@@ -117,48 +118,19 @@ export class ConsoleOutputServiceImpl implements OutputService {
   private sortShowsByTime(shows: Show[]): Show[] {
     return [...shows].sort((a, b) => {
       // Handle shows without airtime
-      if (a.airtime === undefined || a.airtime === null || a.airtime === '') {
+      const aAirtime = getStringValue(a.airtime, '');
+      const bAirtime = getStringValue(b.airtime, '');
+      
+      if (aAirtime === '') {
         return 1;
       }
-      if (b.airtime === undefined || b.airtime === null || b.airtime === '') {
+      if (bAirtime === '') {
         return -1;
       }
       
-      // Convert airtime strings to minutes since midnight for proper comparison
-      const getTimeInMinutes = (timeStr: string): number => {
-        // Normalize the time format
-        let hours = 0;
-        let minutes = 0;
-        
-        // Handle various time formats
-        if (timeStr.includes(':')) {
-          // Format: "HH:MM" or "H:MM" with optional AM/PM
-          const timeParts = timeStr.split(':');
-          hours = parseInt(timeParts[0], 10);
-          
-          // Extract minutes, removing any AM/PM suffix
-          const minutesPart = timeParts[1].replace(/\s*[APap][Mm].*$/, '');
-          minutes = parseInt(minutesPart, 10);
-          
-          // Handle AM/PM if present
-          const isPM = /\s*[Pp][Mm]/.test(timeStr);
-          const isAM = /\s*[Aa][Mm]/.test(timeStr);
-          
-          if (isPM && hours < 12) {
-            hours += 12;
-          } else if (isAM && hours === 12) {
-            hours = 0;
-          }
-        } else {
-          // Format without colon, assume it's just hours
-          hours = parseInt(timeStr, 10);
-        }
-        
-        return hours * 60 + minutes;
-      };
-      
-      const aMinutes = getTimeInMinutes(a.airtime);
-      const bMinutes = getTimeInMinutes(b.airtime);
+      // Use the utility function from dateUtils.ts to convert time to minutes
+      const aMinutes = convertTimeToMinutes(aAirtime);
+      const bMinutes = convertTimeToMinutes(bAirtime);
       
       return aMinutes - bMinutes;
     });

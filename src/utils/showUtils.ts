@@ -10,6 +10,15 @@ import { convertTimeToMinutes } from './dateUtils.js';
 export type NetworkGroups = Record<string, Show[]>;
 
 /**
+ * Get the network name from a show with fallback to "Unknown Network"
+ * @param show - Show to get network name from
+ * @returns Network name or fallback value
+ */
+export function getNetworkName(show: Show): string {
+  return show.network ?? 'Unknown Network';
+}
+
+/**
  * Group shows by their network
  * @param shows - Array of shows to group
  * @returns Object with network names as keys and arrays of shows as values
@@ -18,8 +27,8 @@ export function groupShowsByNetwork(shows: Show[]): NetworkGroups {
   const groups: NetworkGroups = {};
   
   for (const show of shows) {
-    // Get the network name from our simplified model
-    const networkName = show.network ?? 'Unknown Network';
+    // Get the network name using the utility function
+    const networkName = getNetworkName(show);
     
     if (!Object.prototype.hasOwnProperty.call(groups, networkName)) {
       groups[networkName] = [];
