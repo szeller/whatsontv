@@ -22,7 +22,10 @@ export function getStringOrDefault(value: string | null | undefined, defaultValu
  * @param defaultValue - The default value to use
  * @returns The input value if valid, or the default value
  */
-export function getStringValue(value: string | null | undefined, defaultValue: string): string {
+export function getStringValue(
+  value: string | null | undefined, 
+  defaultValue: string = ''
+): string {
   if (value === null || value === undefined || value === '') {
     return defaultValue;
   }

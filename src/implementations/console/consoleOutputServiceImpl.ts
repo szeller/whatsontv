@@ -11,6 +11,7 @@ import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
 import type { NetworkGroups } from '../../utils/showUtils.js';
 import { groupShowsByNetwork, sortShowsByTime } from '../../utils/showUtils.js';
 import { getTodayDate } from '../../utils/dateUtils.js';
+import { padString } from '../../utils/stringUtils.js';
 
 /**
  * CLI arguments interface for console output
@@ -298,9 +299,9 @@ export class ConsoleOutputServiceImpl implements OutputService {
     // Use package version (hardcoded for now, could be imported from package.json)
     const version = '1.0.0';
     
-    // Create a header with app name and version
+    // Create a header with app name and version using string utilities
     const appHeader = `WhatsOnTV v${version}`;
-    const separator = '==============================';
+    const separator = this.createSeparator();
     
     // Display header
     this.output.log('');
@@ -312,11 +313,20 @@ export class ConsoleOutputServiceImpl implements OutputService {
    * Display application footer
    */
   public displayFooter(): void {
-    const separator = '==============================';
+    const separator = this.createSeparator();
     
     // Display footer
     this.output.log('');
     this.output.log(separator);
     this.output.log('Data provided by TVMaze API (https://api.tvmaze.com)');
+  }
+
+  /**
+   * Create a separator line with consistent length
+   * @returns Formatted separator string
+   * @private
+   */
+  private createSeparator(length: number = 30, char: string = '='): string {
+    return padString('', length, char);
   }
 }
