@@ -131,6 +131,50 @@ export class ShowBuilder {
 
   /**
    * Create a minimal show with only required fields
+   * @param options Optional overrides for the minimal show
+   * @returns A minimal show object with only required fields
+   */
+  static createMinimalShow(options: Partial<Show> = {}): Show {
+    const defaults = {
+      id: 1,
+      name: 'Minimal Show',
+      type: '',
+      language: null,
+      genres: [] as string[],
+      network: '',
+      summary: null,
+      airtime: null,
+      season: 1,
+      number: 1
+    };
+
+    return { ...defaults, ...options };
+  }
+
+  /**
+   * Create a test show with standard properties for testing
+   * @param options Optional overrides for the test show
+   * @returns A standard test show with common properties
+   */
+  static createTestShow(options: Partial<Show> = {}): Show {
+    const defaults = {
+      id: 1,
+      name: 'Test Show',
+      type: 'Scripted',
+      language: 'English',
+      genres: ['Drama'],
+      network: 'Test Network',
+      summary: 'Test summary',
+      airtime: '20:00',
+      season: 1,
+      number: 1
+    };
+
+    return { ...defaults, ...options };
+  }
+
+  /**
+   * Create a minimal show with only required fields
    * @returns A minimal Show object
    */
   static minimal(): Show {
@@ -183,9 +227,20 @@ export class ShowBuilder {
   /**
    * Create a collection of shows with different airtimes
    * @param count Number of shows to create
+   * @param customAirtimes Optional array of specific airtimes to use
    * @returns Array of shows with different airtimes
    */
-  static withDifferentAirtimes(count: number): Show[] {
+  static withDifferentAirtimes(count: number, customAirtimes?: string[]): Show[] {
+    if (customAirtimes && customAirtimes.length >= count) {
+      return Array.from({ length: count }, (_, index) => {
+        return new ShowBuilder()
+          .withId(4000 + index)
+          .withName(`Show at ${customAirtimes[index]}`)
+          .withAirtime(customAirtimes[index])
+          .build();
+      });
+    }
+
     return Array.from({ length: count }, (_, index) => {
       // Create shows with times spread throughout the day
       const hour = Math.floor((24 / count) * index);
@@ -194,10 +249,100 @@ export class ShowBuilder {
       const formattedMinute = minute.toString().padStart(2, '0');
       
       return new ShowBuilder()
+        .withId(4000 + index)
         .withName(`Show at ${formattedHour}:${formattedMinute}`)
         .withAirtime(`${formattedHour}:${formattedMinute}`)
         .build();
     });
+  }
+
+  /**
+   * Create a collection of shows with specific airtimes
+   * @param airtimes Array of airtimes to use
+   * @returns Array of shows with the specified airtimes
+   */
+  static withSpecificAirtimes(airtimes: (string | null)[]): Show[] {
+    return airtimes.map((airtime, index) => {
+      const name = airtime !== null && airtime !== '' 
+        ? `Show at ${airtime}` 
+        : 'Show with no airtime';
+        
+      return new ShowBuilder()
+        .withId(4500 + index)
+        .withName(name)
+        .withAirtime(airtime)
+        .build();
+    });
+  }
+
+  /**
+   * Create a collection of shows with different names but same other properties
+   * @param names Array of show names
+   * @returns Array of shows with different names
+   */
+  static withDifferentNames(names: string[]): Show[] {
+    return names.map((name, index) => {
+      return new ShowBuilder()
+        .withId(5000 + index)
+        .withName(name)
+        .build();
+    });
+  }
+
+  /**
+   * Create episodes for a specific show across multiple seasons
+   * @param showName The name of the show
+   * @param seasonEpisodes Map of season numbers to episode counts
+   * @returns Array of episodes for the show
+   */
+  static createEpisodeSequence(season: number, episodeNumbers: number[]): Show[] {
+    return episodeNumbers.map((episodeNumber, index) => {
+      return new ShowBuilder()
+        .withId(6000 + index)
+        .withName(`S${season}E${episodeNumber}`)
+        .withEpisode(season, episodeNumber)
+        .build();
+    });
+  }
+
+  /**
+   * Create a range of episodes for a specific season
+   * @param season Season number
+   * @param startEpisode Starting episode number
+   * @param endEpisode Ending episode number (inclusive)
+   * @returns Array of episodes in the range
+   */
+  static createEpisodeRange(season: number, startEpisode: number, endEpisode: number): Show[] {
+    const episodeNumbers = Array.from(
+      { length: endEpisode - startEpisode + 1 },
+      (_, i) => startEpisode + i
+    );
+    return ShowBuilder.createEpisodeSequence(season, episodeNumbers);
+  }
+
+  /**
+   * Create episodes across multiple seasons
+   * @param seasonEpisodes Map of season numbers to episode counts or arrays
+   * @returns Array of episodes across multiple seasons
+   */
+  static createMultiSeasonEpisodes(
+    seasonEpisodes: Record<number, number | number[]>
+  ): Show[] {
+    const episodes: Show[] = [];
+    
+    Object.entries(seasonEpisodes).forEach(([seasonStr, episodeInfo]) => {
+      const season = parseInt(seasonStr, 10);
+      
+      if (typeof episodeInfo === 'number') {
+        // Create sequential episodes from 1 to episodeInfo
+        episodes.push(...ShowBuilder.createEpisodeRange(season, 1, episodeInfo));
+      } else if (Array.isArray(episodeInfo)) {
+        // Create episodes with specific episode numbers
+        episodes.push(...ShowBuilder.createEpisodeSequence(season, episodeInfo));
+      }
+    });
+    
+    return episodes;
   }
 }
 
@@ -284,5 +429,100 @@ export class ShowFixtures {
         .withGenres(genres)
         .build();
     });
+  }
+
+  /**
+   * Create a collection of shows with different languages
+   * @param languages Array of languages
+   * @returns Array of shows with different languages
+   */
+  static withDifferentLanguages(languages: (string | null)[]): Show[] {
+    return languages.map((language, index) => {
+      const name = language !== null && language !== '' 
+        ? `${language} Show` 
+        : 'Unknown Language Show';
+        
+      return new ShowBuilder()
+        .withId(7000 + index)
+        .withName(name)
+        .withLanguage(language)
+        .build();
+    });
+  }
+
+  /**
+   * Create a collection of shows with specific properties for filtering tests
+   * @param options Configuration options for the test fixtures
+   * @returns Array of shows with the specified properties
+   */
+  static forFilteringTests(options: {
+    types?: string[];
+    networks?: string[];
+    genres?: string[][];
+    languages?: string[];
+  }): Show[] {
+    const shows: Show[] = [];
+    
+    if (options.types && options.types.length > 0) {
+      shows.push(...this.withDifferentTypes(options.types));
+    }
+    
+    if (options.networks && options.networks.length > 0) {
+      shows.push(...this.withDifferentNetworks(options.networks));
+    }
+    
+    if (options.genres && options.genres.length > 0) {
+      shows.push(...this.withDifferentGenres(options.genres));
+    }
+    
+    if (options.languages && options.languages.length > 0) {
+      shows.push(...this.withDifferentLanguages(options.languages));
+    }
+    
+    return shows;
+  }
+
+  /**
+   * Creates a minimal show with only the required fields
+   * @param options Optional overrides for the minimal show
+   * @returns A minimal show object with only required fields
+   */
+  static createMinimalShow(options: Partial<Show> = {}): Show {
+    const defaults = {
+      id: 1,
+      name: 'Minimal Show',
+      type: '',
+      language: null,
+      genres: [] as string[],
+      network: '',
+      summary: null,
+      airtime: null,
+      season: 1,
+      number: 1
+    };
+
+    return { ...defaults, ...options };
+  }
+
+  /**
+   * Creates a test show with standard properties for testing
+   * @param options Optional overrides for the test show
+   * @returns A standard test show with common properties
+   */
+  static createTestShow(options: Partial<Show> = {}): Show {
+    const defaults = {
+      id: 1,
+      name: 'Test Show',
+      type: 'Scripted',
+      language: 'English',
+      genres: ['Drama'],
+      network: 'Test Network',
+      summary: 'Test summary',
+      airtime: '20:00',
+      season: 1,
+      number: 1
+    };
+
+    return { ...defaults, ...options };
   }
 }

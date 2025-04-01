@@ -110,7 +110,7 @@ describe('ConsoleOutputServiceImpl', () => {
   let mockConsoleOutput: jest.Mocked<ConsoleOutput>;
   let mockConfigService: jest.Mocked<ConfigService>;
 
-  // Sample shows for testing
+  // Sample shows for testing - create them individually for better control
   const shows: Show[] = [
     new ShowBuilder()
       .withId(1)
@@ -512,11 +512,14 @@ describe('ConsoleOutputServiceImpl', () => {
   
   describe('sortShowsByTime', () => {
     it('should sort shows by airtime', () => {
+      // Create test data with specific airtimes
+      const testShows = ShowBuilder.withSpecificAirtimes(['20:00', '21:00', '20:00', '22:00']);
+      
       // Act
-      const sortedShows = service.sortShowsByTimeTest(shows);
+      const sortedShows = service.sortShowsByTimeTest(testShows);
       
       // Assert
-      expect(sortedShows.length).toBe(shows.length);
+      expect(sortedShows.length).toBe(testShows.length);
       
       // Check that shows are sorted by airtime
       expect(sortedShows[0].airtime).toBe('20:00');

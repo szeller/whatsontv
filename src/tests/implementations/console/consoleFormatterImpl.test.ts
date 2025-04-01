@@ -8,7 +8,7 @@ import type { StyleService } from '../../../interfaces/styleService.js';
 import type { Show } from '../../../schemas/domain.js';
 import type { TvShowService } from '../../../interfaces/tvShowService.js';
 import { ChalkStyleServiceImpl } from '../../../implementations/console/chalkStyleServiceImpl.js';
-import { ShowBuilder } from '../../fixtures/helpers/showFixtureBuilder.js';
+import { ShowBuilder, ShowFixtures } from '../../fixtures/helpers/showFixtureBuilder.js';
 import { createMockTvShowService } from '../../testutils/testHelpers.js';
 
 describe('ConsoleFormatterImpl', () => {
@@ -32,30 +32,10 @@ describe('ConsoleFormatterImpl', () => {
     formatter = container.resolve(ConsoleFormatterImpl);
     
     // Create mock show data using ShowBuilder
-    mockShow = new ShowBuilder()
-      .withId(1)
-      .withName('Test Show')
-      .withType('Scripted')
-      .withLanguage('English')
-      .withGenres(['Drama'])
-      .withNetwork('Test Network')
-      .withSummary('Test summary')
-      .withAirtime('20:00')
-      .withEpisode(1, 1)
-      .build();
+    mockShow = ShowFixtures.createTestShow();
     
     // Create a mock show with no airtime
-    mockShowNoAirtime = new ShowBuilder()
-      .withId(1)
-      .withName('Test Show')
-      .withType('Scripted')
-      .withLanguage('English')
-      .withGenres(['Drama'])
-      .withNetwork('Test Network')
-      .withSummary('Test summary')
-      .withAirtime(null)
-      .withEpisode(1, 1)
-      .build();
+    mockShowNoAirtime = ShowFixtures.createTestShow({ airtime: null });
   });
 
   describe('formatShow', () => {
@@ -84,17 +64,14 @@ describe('ConsoleFormatterImpl', () => {
     });
 
     it('should handle shows with missing information', () => {
-      const incompleteShow = new ShowBuilder()
-        .withId(0)
-        .withName('Unknown Show')
-        .withType('')
-        .withLanguage(null)
-        .withGenres([])
-        .withNetwork('')
-        .withSummary(null)
-        .withAirtime('21:00')
-        .withEpisode(2, 3)
-        .build();
+      // Create a minimal show with only required fields
+      const incompleteShow = ShowBuilder.createMinimalShow({
+        id: 0,
+        name: 'Unknown Show',
+        airtime: '21:00',
+        season: 2,
+        number: 3
+      });
         
       const result = formatter.formatTimedShow(incompleteShow);
       expect(result).toContain('21:00');
@@ -117,30 +94,13 @@ describe('ConsoleFormatterImpl', () => {
 
   describe('formatMultipleEpisodes', () => {
     it('should format multiple episodes of the same show correctly', () => {
-      const episodes = [
-        new ShowBuilder()
-          .withId(1)
-          .withName('Test Show')
-          .withType('Scripted')
-          .withLanguage('English')
-          .withGenres(['Drama'])
-          .withNetwork('Test Network')
-          .withSummary('Test summary')
-          .withAirtime('20:00')
-          .withEpisode(1, 1)
-          .build(),
-        new ShowBuilder()
-          .withId(1)
-          .withName('Test Show')
-          .withType('Scripted')
-          .withLanguage('English')
-          .withGenres(['Drama'])
-          .withNetwork('Test Network')
-          .withSummary('Test summary')
-          .withAirtime('20:00')
-          .withEpisode(1, 2)
-          .build()
-      ];
+      // Create multiple episodes of the same show using ShowBuilder
+      const episodes = ShowBuilder.createEpisodeSequence(1, [1, 2]).map(episode => {
+        return ShowFixtures.createTestShow({
+          season: episode.season,
+          number: episode.number
+        });
+      });
       
       const result = formatter.formatMultipleEpisodes(episodes);
       
@@ -165,33 +125,17 @@ describe('ConsoleFormatterImpl', () => {
 
   describe('formatNetworkGroups', () => {
     it('should format network groups correctly', () => {
+      // Create network groups using ShowFixtures
+      const testShow = ShowFixtures.createTestShow();
+      const anotherShow = ShowFixtures.createTestShow({
+        id: 2,
+        name: 'Another Show',
+        network: 'Another Network'
+      });
+      
       const networkGroups = {
-        'Test Network': [
-          new ShowBuilder()
-            .withId(1)
-            .withName('Test Show')
-            .withType('Scripted')
-            .withLanguage('English')
-            .withGenres(['Drama'])
-            .withNetwork('Test Network')
-            .withSummary('Test summary')
-            .withAirtime('20:00')
-            .withEpisode(1, 1)
-            .build()
-        ],
-        'Another Network': [
-          new ShowBuilder()
-            .withId(2)
-            .withName('Another Show')
-            .withType('Scripted')
-            .withLanguage('English')
-            .withGenres(['Drama'])
-            .withNetwork('Another Network')
-            .withSummary('Test summary')
-            .withAirtime('20:00')
-            .withEpisode(1, 1)
-            .build()
-        ]
+        'Test Network': [testShow],
+        'Another Network': [anotherShow]
       };
       
       const result = formatter.formatNetworkGroups(networkGroups);
@@ -211,20 +155,10 @@ describe('ConsoleFormatterImpl', () => {
     });
     
     it('should apply custom sorting when timeSort is true', () => {
+      const testShow = ShowFixtures.createTestShow();
+      
       const networkGroups = {
-        'Test Network': [
-          new ShowBuilder()
-            .withId(1)
-            .withName('Test Show')
-            .withType('Scripted')
-            .withLanguage('English')
-            .withGenres(['Drama'])
-            .withNetwork('Test Network')
-            .withSummary('Test summary')
-            .withAirtime('20:00')
-            .withEpisode(1, 1)
-            .build()
-        ]
+        'Test Network': [testShow]
       };
       
       // Create a spy to observe the internal sorting logic
@@ -252,31 +186,15 @@ describe('ConsoleFormatterImpl', () => {
     });
 
     it('should sort shows by airtime when timeSort is true', () => {
+      // Create shows with specific airtimes using ShowBuilder
+      const shows = ShowBuilder.withSpecificAirtimes(['22:00', '08:00']);
+      shows[0].name = 'Late Show';
+      shows[1].name = 'Early Show';
+      shows[0].network = 'Test Network';
+      shows[1].network = 'Test Network';
+      
       const networkGroups = {
-        'Test Network': [
-          new ShowBuilder()
-            .withId(1)
-            .withName('Late Show')
-            .withType('Scripted')
-            .withLanguage('English')
-            .withGenres(['Drama'])
-            .withNetwork('Test Network')
-            .withSummary('Test summary')
-            .withAirtime('22:00')
-            .withEpisode(1, 1)
-            .build(),
-          new ShowBuilder()
-            .withId(2)
-            .withName('Early Show')
-            .withType('Scripted')
-            .withLanguage('English')
-            .withGenres(['Drama'])
-            .withNetwork('Test Network')
-            .withSummary('Test summary')
-            .withAirtime('08:00')
-            .withEpisode(1, 1)
-            .build()
-        ]
+        'Test Network': shows
       };
       
       // Create a spy to observe the internal sorting logic
@@ -296,31 +214,19 @@ describe('ConsoleFormatterImpl', () => {
     });
 
     it('should handle shows with missing airtime when sorting', () => {
+      // Create a show with airtime and one without
+      const showWithoutAirtime = ShowFixtures.createTestShow({ 
+        name: 'Show Without Airtime',
+        airtime: null 
+      });
+      
+      const showWithAirtime = ShowFixtures.createTestShow({ 
+        name: 'Show With Airtime',
+        airtime: '20:00' 
+      });
+      
       const networkGroups = {
-        'Test Network': [
-          new ShowBuilder()
-            .withId(1)
-            .withName('Show Without Airtime')
-            .withType('Scripted')
-            .withLanguage('English')
-            .withGenres(['Drama'])
-            .withNetwork('Test Network')
-            .withSummary('Test summary')
-            .withAirtime(null)
-            .withEpisode(1, 1)
-            .build(),
-          new ShowBuilder()
-            .withId(2)
-            .withName('Show With Airtime')
-            .withType('Scripted')
-            .withLanguage('English')
-            .withGenres(['Drama'])
-            .withNetwork('Test Network')
-            .withSummary('Test summary')
-            .withAirtime('20:00')
-            .withEpisode(1, 1)
-            .build()
-        ]
+        'Test Network': [showWithoutAirtime, showWithAirtime]
       };
       
       // Create a spy to observe the internal sorting logic
@@ -340,37 +246,23 @@ describe('ConsoleFormatterImpl', () => {
     });
 
     it('should handle multiple episodes of the same show with different airtimes', () => {
+      // Create multiple episodes of the same show with different airtimes
+      const episodes = ShowBuilder.createEpisodeSequence(1, [1, 2]).map((episode, index) => {
+        return ShowFixtures.createTestShow({
+          season: episode.season,
+          number: episode.number,
+          airtime: index === 0 ? '20:00' : '21:00'
+        });
+      });
+      
       const networkGroups = {
-        'Test Network': [
-          new ShowBuilder()
-            .withId(1)
-            .withName('Same Show')
-            .withType('Scripted')
-            .withLanguage('English')
-            .withGenres(['Drama'])
-            .withNetwork('Test Network')
-            .withSummary('Test summary')
-            .withAirtime('20:00')
-            .withEpisode(1, 1)
-            .build(),
-          new ShowBuilder()
-            .withId(1)
-            .withName('Same Show')
-            .withType('Scripted')
-            .withLanguage('English')
-            .withGenres(['Drama'])
-            .withNetwork('Test Network')
-            .withSummary('Test summary')
-            .withAirtime('21:00')
-            .withEpisode(1, 2)
-            .build()
-        ]
+        'Test Network': episodes
       };
       
       const result = formatter.formatNetworkGroups(networkGroups);
       
       // Should format each episode separately
-      expect(result.filter(line => line.includes('Same Show')).length).toBe(2);
+      expect(result.filter(line => line.includes('Test Show')).length).toBe(2);
     });
   });
 });

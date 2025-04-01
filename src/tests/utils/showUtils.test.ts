@@ -14,7 +14,6 @@ import {
   filterByLanguage
 } from '../../utils/showUtils.js';
 import { getTodayDate } from '../../utils/dateUtils.js';
-import type { Show } from '../../schemas/domain.js';
 import { ShowBuilder, ShowFixtures } from '../fixtures/helpers/showFixtureBuilder.js';
 
 describe('ShowUtils', () => {
@@ -43,6 +42,8 @@ describe('ShowUtils', () => {
     it('groups shows by network name', () => {
       // Create test data using ShowFixtures
       const shows = ShowFixtures.withDifferentNetworks(['NBC', 'NBC', 'ABC', 'CBS']);
+      
+      // Update show names for better test clarity
       shows[0].name = 'Show 1';
       shows[1].name = 'Show 2';
       shows[2].name = 'Show 3';
@@ -66,7 +67,7 @@ describe('ShowUtils', () => {
     
     it('handles shows with null or empty network names', () => {
       // Create test data using ShowBuilder
-      const shows: Show[] = [
+      const shows = [
         new ShowBuilder().withName('Show 1').withNetwork('NBC').build(),
         new ShowBuilder().withName('Show 2').withNetwork(null as unknown as string).build(),
         new ShowBuilder().withName('Show 3').withNetwork('').build()
@@ -91,14 +92,11 @@ describe('ShowUtils', () => {
   
   describe('sortShowsByTime', () => {
     it('sorts shows by airtime', () => {
-      // Create test data using ShowBuilder.withDifferentAirtimes
-      const shows = ShowBuilder.withDifferentAirtimes(3);
-      shows[0].name = 'Show 1';
-      shows[0].airtime = '21:00';
-      shows[1].name = 'Show 2';
-      shows[1].airtime = '20:00';
-      shows[2].name = 'Show 3';
-      shows[2].airtime = '22:00';
+      // Create test data using ShowBuilder.withSpecificAirtimes
+      const shows = ShowBuilder.withSpecificAirtimes(['21:00', '20:00', '22:00']);
+      shows[0].name = 'Show 1'; // 21:00
+      shows[1].name = 'Show 2'; // 20:00
+      shows[2].name = 'Show 3'; // 22:00
       
       // Call the function
       const result = sortShowsByTime(shows);
@@ -110,12 +108,11 @@ describe('ShowUtils', () => {
     });
     
     it('handles shows with null or empty airtimes', () => {
-      // Create test data using ShowBuilder
-      const shows: Show[] = [
-        new ShowBuilder().withName('Show 1').withAirtime('21:00').build(),
-        new ShowBuilder().withName('Show 2').withAirtime(null).build(),
-        new ShowBuilder().withName('Show 3').withAirtime('20:00').build()
-      ];
+      // Create test data using ShowBuilder.withSpecificAirtimes
+      const shows = ShowBuilder.withSpecificAirtimes(['21:00', null, '20:00']);
+      shows[0].name = 'Show 1'; // 21:00
+      shows[1].name = 'Show 2'; // null
+      shows[2].name = 'Show 3'; // 20:00
       
       // Call the function
       const result = sortShowsByTime(shows);
@@ -128,11 +125,12 @@ describe('ShowUtils', () => {
     
     it('sorts shows with the same airtime by name', () => {
       // Create test data using ShowBuilder
-      const shows: Show[] = [
-        new ShowBuilder().withName('C Show').withAirtime('20:00').build(),
-        new ShowBuilder().withName('A Show').withAirtime('20:00').build(),
-        new ShowBuilder().withName('B Show').withAirtime('20:00').build()
-      ];
+      const shows = ShowBuilder.withDifferentNames(['C Show', 'A Show', 'B Show']);
+      
+      // Set the same airtime for all shows
+      shows.forEach(show => {
+        show.airtime = '20:00';
+      });
       
       // Call the function
       const result = sortShowsByTime(shows);
@@ -243,13 +241,10 @@ describe('ShowUtils', () => {
   
   describe('filterByLanguage', () => {
     it('should filter shows by language', () => {
-      // Create test data with different languages
-      const shows: Show[] = [
-        new ShowBuilder().withLanguage('English').build(),
-        new ShowBuilder().withLanguage('Spanish').build(),
-        new ShowBuilder().withLanguage('French').build(),
-        new ShowBuilder().withLanguage('English').build()
-      ];
+      // Create test data with different languages using ShowFixtures
+      const shows = ShowFixtures.withDifferentLanguages([
+        'English', 'Spanish', 'French', 'English'
+      ]);
       
       // Test filtering by a single language
       const englishShows = filterByLanguage(shows, ['English']);
@@ -265,11 +260,8 @@ describe('ShowUtils', () => {
     });
     
     it('should handle null language values', () => {
-      // Create test data with null language
-      const shows: Show[] = [
-        new ShowBuilder().withLanguage('English').build(),
-        new ShowBuilder().withLanguage(null).build()
-      ];
+      // Create test data with null language using ShowFixtures
+      const shows = ShowFixtures.withDifferentLanguages(['English', null]);
       
       // Filter for English shows
       const englishShows = filterByLanguage(shows, ['English']);
