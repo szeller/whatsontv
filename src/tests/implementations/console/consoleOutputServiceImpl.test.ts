@@ -207,7 +207,8 @@ describe('ConsoleOutputServiceImpl', () => {
     mockConfigService.getCliOptions.mockReturnValue({
       debug: false,
       date: '2023-01-01',
-      help: false
+      help: false,
+      groupByNetwork: true
     } as CliOptions);
     
     // Create the service with our test subclass
@@ -580,6 +581,155 @@ describe('ConsoleOutputServiceImpl', () => {
       expect(parsedArgs.date).toBe(getTodayDate());
       expect(parsedArgs.country).toBe('US');
       expect(parsedArgs.debug).toBe(false);
+    });
+  });
+  
+  describe('parseArgs', () => {
+    it('should parse command line arguments with explicit args', () => {
+      // Arrange
+      const args = ['--date', '2023-05-15', '--country', 'UK', '--debug'];
+      
+      // Act
+      const parsedArgs = service.parseArgs(args);
+      
+      // Assert
+      expect(parsedArgs.date).toBe('2023-05-15');
+      expect(parsedArgs.country).toBe('UK');
+      expect(parsedArgs.debug).toBe(true);
+    });
+    
+    it('should parse command line arguments with process.argv when args not provided', () => {
+      // Save the original process.argv
+      const originalProcessArgv = process.argv;
+      
+      try {
+        // Mock process.argv
+        process.argv = ['node', 'script.js', '--date', '2023-06-01', '--country', 'CA'];
+        
+        // Act
+        const parsedArgs = service.parseArgs();
+        
+        // Assert
+        expect(parsedArgs.date).toBe('2023-06-01');
+        expect(parsedArgs.country).toBe('CA');
+      } finally {
+        // Restore process.argv
+        process.argv = originalProcessArgv;
+      }
+    });
+    
+    it('should handle comma-separated values for array options', () => {
+      // Arrange
+      const args = [
+        '--types', 'Scripted,Reality',
+        '--networks', 'ABC,NBC',
+        '--genres', 'Drama,Comedy',
+        '--languages', 'English,Spanish'
+      ];
+      
+      // Act
+      const parsedArgs = service.parseArgs(args);
+      
+      // Assert
+      expect(parsedArgs.types).toEqual(['Scripted', 'Reality']);
+      expect(parsedArgs.networks).toEqual(['ABC', 'NBC']);
+      expect(parsedArgs.genres).toEqual(['Drama', 'Comedy']);
+      expect(parsedArgs.languages).toEqual(['English', 'Spanish']);
+    });
+  });
+  
+  describe('isInitialized', () => {
+    it('should return true when all dependencies are initialized', () => {
+      // Act
+      const result = service.isInitialized();
+      
+      // Assert
+      expect(result).toBe(true);
+    });
+    
+    it('should return false when formatter is not initialized', () => {
+      // Arrange - create a service with null formatter
+      const testService = new TestConsoleOutputService(
+        null as unknown as ShowFormatter,
+        mockConsoleOutput,
+        mockConfigService,
+        true // Skip initialization
+      );
+      
+      // Set other dependencies manually
+      testService['output'] = mockConsoleOutput;
+      testService['configService'] = mockConfigService;
+      
+      // Act
+      const result = testService.isInitialized();
+      
+      // Assert
+      expect(result).toBe(false);
+    });
+    
+    it('should return false when output is not initialized', () => {
+      // Arrange - create a service with null output
+      const testService = new TestConsoleOutputService(
+        mockShowFormatter,
+        null as unknown as ConsoleOutput,
+        mockConfigService,
+        true // Skip initialization
+      );
+      
+      // Set other dependencies manually
+      testService['formatter'] = mockShowFormatter;
+      testService['configService'] = mockConfigService;
+      
+      // Act
+      const result = testService.isInitialized();
+      
+      // Assert
+      expect(result).toBe(false);
+    });
+    
+    it('should return false when configService is not initialized', () => {
+      // Arrange - create a service with null configService
+      const testService = new TestConsoleOutputService(
+        mockShowFormatter,
+        mockConsoleOutput,
+        null as unknown as ConfigService,
+        true // Skip initialization
+      );
+      
+      // Set other dependencies manually
+      testService['formatter'] = mockShowFormatter;
+      testService['output'] = mockConsoleOutput;
+      
+      // Act
+      const result = testService.isInitialized();
+      
+      // Assert
+      expect(result).toBe(false);
+    });
+  });
+  
+  describe('displayHelp', () => {
+    it('should display help text with header and footer', () => {
+      // Arrange
+      const helpText = 'This is the help text';
+      
+      // Act
+      service.displayHelp(helpText);
+      
+      // Assert
+      // Should call displayHeader
+      expect(mockConsoleOutput.log).toHaveBeenCalledWith('');
+      expect(mockConsoleOutput.log).toHaveBeenCalledWith('WhatsOnTV v1.0.0');
+      expect(mockConsoleOutput.log).toHaveBeenCalledWith('==============================');
+      
+      // Should display the help text
+      expect(mockConsoleOutput.log).toHaveBeenCalledWith(helpText);
+      
+      // Should call displayFooter
+      expect(mockConsoleOutput.log).toHaveBeenCalledWith('');
+      expect(mockConsoleOutput.log).toHaveBeenCalledWith('==============================');
+      const apiMessage = 'Data provided by TVMaze API (https://api.tvmaze.com)';
+      expect(mockConsoleOutput.log).toHaveBeenCalledWith(apiMessage);
     });
   });
 });
