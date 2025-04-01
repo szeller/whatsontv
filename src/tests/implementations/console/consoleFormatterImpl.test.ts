@@ -1,14 +1,14 @@
 /**
- * Tests for the console formatter implementation
+ * Tests for the Console Formatter Implementation
  */
-import 'reflect-metadata';
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import { container } from 'tsyringe';
-import type { Show } from '../../../schemas/domain.js';
 import { ConsoleFormatterImpl } from '../../../implementations/console/consoleFormatterImpl.js';
-import { ChalkStyleServiceImpl } from '../../../implementations/console/chalkStyleServiceImpl.js';
 import type { StyleService } from '../../../interfaces/styleService.js';
+import type { Show } from '../../../schemas/domain.js';
 import type { TvShowService } from '../../../interfaces/tvShowService.js';
+import { ChalkStyleServiceImpl } from '../../../implementations/console/chalkStyleServiceImpl.js';
+import { ShowBuilder, ShowFixtures } from '../../fixtures/helpers/showFixtureBuilder.js';
 import { createMockTvShowService } from '../../testutils/testHelpers.js';
 
 describe('ConsoleFormatterImpl', () => {
@@ -25,31 +25,17 @@ describe('ConsoleFormatterImpl', () => {
     mockTvShowService = createMockTvShowService();
     container.registerInstance('TvShowService', mockTvShowService);
     
-    // Register a style service
+    // Register the style service
     container.registerInstance<StyleService>('StyleService', new ChalkStyleServiceImpl());
-    
+
     // Create the formatter instance
     formatter = container.resolve(ConsoleFormatterImpl);
     
-    // Create mock show data
-    mockShow = {
-      id: 1,
-      name: 'Test Show',
-      type: 'Scripted',
-      language: 'English',
-      genres: ['Drama'],
-      network: 'Test Network',
-      summary: 'Test summary',
-      airtime: '20:00',
-      season: 1,
-      number: 1
-    };
+    // Create mock show data using ShowBuilder
+    mockShow = ShowFixtures.createTestShow();
     
     // Create a mock show with no airtime
-    mockShowNoAirtime = {
-      ...mockShow,
-      airtime: null
-    };
+    mockShowNoAirtime = ShowFixtures.createTestShow({ airtime: null });
   });
 
   describe('formatShow', () => {
@@ -78,23 +64,19 @@ describe('ConsoleFormatterImpl', () => {
     });
 
     it('should handle shows with missing information', () => {
-      const incompleteShow: Show = {
+      // Create a minimal show with only required fields
+      const incompleteShow = ShowBuilder.createMinimalShow({
         id: 0,
         name: 'Unknown Show',
-        type: '',
-        language: null,
-        genres: [],
-        network: '',
-        summary: null,
         airtime: '21:00',
         season: 2,
         number: 3
-      };
-      
+      });
+        
       const result = formatter.formatTimedShow(incompleteShow);
       expect(result).toContain('21:00');
-      expect(result).toContain('N/A');
-      expect(result).toContain('Unknown');
+      expect(result).toContain('N/A');  // Empty network is replaced with 'N/A' in formatTimedShow
+      expect(result).toContain('Unknown Show');
       expect(result).toContain('S2E3');
     });
   });
@@ -112,18 +94,13 @@ describe('ConsoleFormatterImpl', () => {
 
   describe('formatMultipleEpisodes', () => {
     it('should format multiple episodes of the same show correctly', () => {
-      const episodes = [
-        {
-          ...mockShow,
-          season: 1,
-          number: 1
-        },
-        {
-          ...mockShow,
-          season: 1,
-          number: 2
-        }
-      ];
+      // Create multiple episodes of the same show using ShowBuilder
+      const episodes = ShowBuilder.createEpisodeSequence(1, [1, 2]).map(episode => {
+        return ShowFixtures.createTestShow({
+          season: episode.season,
+          number: episode.number
+        });
+      });
       
       const result = formatter.formatMultipleEpisodes(episodes);
       
@@ -148,19 +125,17 @@ describe('ConsoleFormatterImpl', () => {
 
   describe('formatNetworkGroups', () => {
     it('should format network groups correctly', () => {
+      // Create network groups using ShowFixtures
+      const testShow = ShowFixtures.createTestShow();
+      const anotherShow = ShowFixtures.createTestShow({
+        id: 2,
+        name: 'Another Show',
+        network: 'Another Network'
+      });
+      
       const networkGroups = {
-        'Test Network': [
-          {
-            ...mockShow,
-            network: 'Test Network'
-          }
-        ],
-        'Another Network': [
-          {
-            ...mockShow,
-            network: 'Another Network'
-          }
-        ]
+        'Test Network': [testShow],
+        'Another Network': [anotherShow]
       };
       
       const result = formatter.formatNetworkGroups(networkGroups);
@@ -172,7 +147,7 @@ describe('ConsoleFormatterImpl', () => {
       // This test case checks the contents of the result array
       expect(result[0]).toContain('Another Network');
       expect(result[1]).toContain('---------------'); // Separator line
-      expect(result[2]).toContain('Test Show');
+      expect(result[2]).toContain('Another Show');
       expect(result[3]).toBe(''); // Empty line between networks
       expect(result[4]).toContain('Test Network');
       expect(result[5]).toContain('------------'); // Separator line
@@ -180,8 +155,10 @@ describe('ConsoleFormatterImpl', () => {
     });
     
     it('should apply custom sorting when timeSort is true', () => {
+      const testShow = ShowFixtures.createTestShow();
+      
       const networkGroups = {
-        'Test Network': [mockShow]
+        'Test Network': [testShow]
       };
       
       // Create a spy to observe the internal sorting logic
@@ -209,21 +186,15 @@ describe('ConsoleFormatterImpl', () => {
     });
 
     it('should sort shows by airtime when timeSort is true', () => {
+      // Create shows with specific airtimes using ShowBuilder
+      const shows = ShowBuilder.withSpecificAirtimes(['22:00', '08:00']);
+      shows[0].name = 'Late Show';
+      shows[1].name = 'Early Show';
+      shows[0].network = 'Test Network';
+      shows[1].network = 'Test Network';
+      
       const networkGroups = {
-        'Test Network': [
-          {
-            ...mockShow,
-            id: 1,
-            name: 'Late Show',
-            airtime: '22:00'
-          },
-          {
-            ...mockShow,
-            id: 2,
-            name: 'Early Show',
-            airtime: '08:00'
-          }
-        ]
+        'Test Network': shows
       };
       
       // Create a spy to observe the internal sorting logic
@@ -243,21 +214,19 @@ describe('ConsoleFormatterImpl', () => {
     });
 
     it('should handle shows with missing airtime when sorting', () => {
+      // Create a show with airtime and one without
+      const showWithoutAirtime = ShowFixtures.createTestShow({ 
+        name: 'Show Without Airtime',
+        airtime: null 
+      });
+      
+      const showWithAirtime = ShowFixtures.createTestShow({ 
+        name: 'Show With Airtime',
+        airtime: '20:00' 
+      });
+      
       const networkGroups = {
-        'Test Network': [
-          {
-            ...mockShow,
-            id: 1,
-            name: 'Show Without Airtime',
-            airtime: null
-          },
-          {
-            ...mockShow,
-            id: 2,
-            name: 'Show With Airtime',
-            airtime: '20:00'
-          }
-        ]
+        'Test Network': [showWithoutAirtime, showWithAirtime]
       };
       
       // Create a spy to observe the internal sorting logic
@@ -277,31 +246,23 @@ describe('ConsoleFormatterImpl', () => {
     });
 
     it('should handle multiple episodes of the same show with different airtimes', () => {
+      // Create multiple episodes of the same show with different airtimes
+      const episodes = ShowBuilder.createEpisodeSequence(1, [1, 2]).map((episode, index) => {
+        return ShowFixtures.createTestShow({
+          season: episode.season,
+          number: episode.number,
+          airtime: index === 0 ? '20:00' : '21:00'
+        });
+      });
+      
       const networkGroups = {
-        'Test Network': [
-          {
-            ...mockShow,
-            id: 1,
-            name: 'Same Show',
-            airtime: '20:00',
-            season: 1,
-            number: 1
-          },
-          {
-            ...mockShow,
-            id: 1,
-            name: 'Same Show',
-            airtime: '21:00',
-            season: 1,
-            number: 2
-          }
-        ]
+        'Test Network': episodes
       };
       
       const result = formatter.formatNetworkGroups(networkGroups);
       
       // Should format each episode separately
-      expect(result.filter(line => line.includes('Same Show')).length).toBe(2);
+      expect(result.filter(line => line.includes('Test Show')).length).toBe(2);
     });
   });
 });

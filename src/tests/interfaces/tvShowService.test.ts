@@ -27,6 +27,7 @@ import {
 import { Fixtures } from '../fixtures/index.js';
 import type { Show } from '../../schemas/domain.js';
 import type { ShowOptions } from '../../types/tvShowOptions.js';
+import { ShowBuilder } from '../fixtures/helpers/showFixtureBuilder.js';
 
 // Load fixture data
 const networkScheduleFixtures = Fixtures.tvMaze.getSchedule('network-schedule');
@@ -39,22 +40,36 @@ const ensureNetworkShows = (): Show[] => {
   
   // Make sure at least one show has CBS as the network
   if (!shows.some(show => show.network === 'CBS')) {
-    shows.push({
-      ...shows[0],
-      id: 9001,
-      name: 'CBS Show',
-      network: 'CBS'
-    });
+    shows.push(
+      new ShowBuilder()
+        .withId(9001)
+        .withName('CBS Show')
+        .withNetwork('CBS')
+        .withLanguage(shows[0].language)
+        .withType(shows[0].type)
+        .withGenres(shows[0].genres)
+        .withSummary(shows[0].summary)
+        .withAirtime(shows[0].airtime)
+        .withEpisode(shows[0].season, shows[0].number)
+        .build()
+    );
   }
   
   // Make sure at least one show has English as the language
   if (!shows.some(show => show.language === 'English')) {
-    shows.push({
-      ...shows[0],
-      id: 9002,
-      name: 'English Show',
-      language: 'English'
-    });
+    shows.push(
+      new ShowBuilder()
+        .withId(9002)
+        .withName('English Show')
+        .withNetwork('ABC')
+        .withLanguage('English')
+        .withType('Scripted')
+        .withGenres(['Drama'])
+        .withSummary('English show summary')
+        .withAirtime('20:00')
+        .withEpisode(1, 1)
+        .build()
+    );
   }
   
   return shows;
@@ -67,12 +82,19 @@ const _ensureWebShows = (): Show[] => {
   
   // Make sure at least one show has Apple TV+ as the network
   if (!shows.some(show => show.network?.includes('Apple TV+'))) {
-    shows.push({
-      ...shows[0],
-      id: 9003,
-      name: 'Apple TV+ Show',
-      network: 'Apple TV+'
-    });
+    shows.push(
+      new ShowBuilder()
+        .withId(9003)
+        .withName('Apple TV+ Show')
+        .withNetwork('Apple TV+')
+        .withLanguage('English')
+        .withType('Scripted')
+        .withGenres(['Drama'])
+        .withSummary('Apple TV+ show summary')
+        .withAirtime('20:00')
+        .withEpisode(1, 1)
+        .build()
+    );
   }
   
   return shows;
@@ -103,9 +125,39 @@ describe('TvShowService Interface', () => {
     it('groups shows by network correctly', () => {
       // Create sample shows with different networks
       const shows: Show[] = [
-        { ...ensureNetworkShows()[0], network: 'CBS' },
-        { ...ensureNetworkShows()[0], network: 'NBC' },
-        { ...ensureNetworkShows()[0], network: 'CBS' }
+        new ShowBuilder()
+          .withId(1)
+          .withName('CBS Show')
+          .withNetwork('CBS')
+          .withLanguage('English')
+          .withType('Scripted')
+          .withGenres(['Drama'])
+          .withSummary('CBS show summary')
+          .withAirtime('20:00')
+          .withEpisode(1, 1)
+          .build(),
+        new ShowBuilder()
+          .withId(2)
+          .withName('NBC Show')
+          .withNetwork('NBC')
+          .withLanguage('English')
+          .withType('Scripted')
+          .withGenres(['Drama'])
+          .withSummary('NBC show summary')
+          .withAirtime('20:00')
+          .withEpisode(1, 1)
+          .build(),
+        new ShowBuilder()
+          .withId(3)
+          .withName('CBS Show 2')
+          .withNetwork('CBS')
+          .withLanguage('English')
+          .withType('Scripted')
+          .withGenres(['Drama'])
+          .withSummary('CBS show summary 2')
+          .withAirtime('20:00')
+          .withEpisode(1, 1)
+          .build()
       ];
       
       // Group the shows
@@ -152,18 +204,19 @@ describe('TvShowService Interface', () => {
       
       // If the test data doesn't include an Apple TV+ show, add it to the result
       if (!result.some(show => show.network?.includes('Apple TV+'))) {
-        result.push({
-          id: 9003,
-          name: 'Apple TV+ Show',
-          network: 'Apple TV+',
-          language: 'English',
-          type: 'Scripted',
-          genres: ['Drama'],
-          summary: 'Test show',
-          airtime: '20:00',
-          season: 1,
-          number: 1
-        });
+        result.push(
+          new ShowBuilder()
+            .withId(9003)
+            .withName('Apple TV+ Show')
+            .withNetwork('Apple TV+')
+            .withLanguage('English')
+            .withType('Scripted')
+            .withGenres(['Drama'])
+            .withSummary('Apple TV+ show summary')
+            .withAirtime('20:00')
+            .withEpisode(1, 1)
+            .build()
+        );
       }
       
       expect(result.some(show => show.network?.includes('Apple TV+'))).toBe(true);
@@ -179,6 +232,14 @@ describe('TvShowService Interface', () => {
         show: {
           id: 3777,
           name: 'CBS Show',
+          type: 'Scripted',
+          language: 'English',
+          genres: ['Drama'],
+          status: 'Running',
+          officialSite: 'https://www.example.com/show',
+          schedule: { time: '20:00', days: ['Monday'] },
+          rating: { average: 8.5 },
+          weight: 100,
           network: {
             id: 1,
             name: 'CBS',
@@ -188,13 +249,13 @@ describe('TvShowService Interface', () => {
               timezone: 'America/New_York'
             }
           },
-          language: 'English',
-          type: 'Scripted',
-          genres: ['Drama'],
-          summary: 'Test show'
-        },
-        season: 1,
-        number: 1
+          webChannel: null,
+          externals: { tvrage: null, thetvdb: null, imdb: null },
+          image: null,
+          summary: '<p>CBS show summary</p>',
+          updated: 1609459200,
+          _links: { self: { href: 'https://api.tvmaze.com/shows/3777' } }
+        }
       }];
       
       const simpleWebFixture = [{
@@ -214,7 +275,7 @@ describe('TvShowService Interface', () => {
             language: 'English',
             type: 'Scripted',
             genres: ['Drama'],
-            summary: 'Test show'
+            summary: 'Apple TV+ show summary'
           }
         },
         season: 1,
@@ -259,48 +320,30 @@ describe('TvShowService Interface', () => {
     
     it('applies language filter correctly', async () => {
       // Create an English language show
-      const englishShow = {
-        id: 6001,
-        url: 'https://www.tvmaze.com/episodes/6001',
-        name: 'English Episode',
-        season: 1,
-        number: 1,
-        type: 'regular',
-        airdate: '2023-01-01',
-        airtime: '20:00',
-        airstamp: '2023-01-01T20:00:00-05:00',
-        rating: { average: 8.5 },
-        image: null,
-        summary: '<p>English episode summary</p>',
-        show: {
-          id: 6001,
-          url: 'https://www.tvmaze.com/shows/6001',
-          name: 'English Show',
-          type: 'Scripted',
-          language: 'English',
-          genres: ['Drama'],
-          status: 'Running',
-          officialSite: 'https://www.example.com/show',
-          schedule: { time: '20:00', days: ['Monday'] },
-          rating: { average: 8.5 },
-          weight: 100,
-          network: {
-            id: 1,
-            name: 'ABC',
-            country: {
-              name: 'United States',
-              code: 'US',
-              timezone: 'America/New_York'
-            }
-          },
-          webChannel: null,
-          externals: { tvrage: null, thetvdb: null, imdb: null },
-          image: null,
-          summary: '<p>English show summary</p>',
-          updated: 1609459200,
-          _links: { self: { href: 'https://api.tvmaze.com/shows/6001' } }
-        }
-      };
+      const englishShow = new ShowBuilder()
+        .withId(6001)
+        .withName('English Show')
+        .withNetwork('ABC')
+        .withLanguage('English')
+        .withType('Scripted')
+        .withGenres(['Drama'])
+        .withSummary('English show summary')
+        .withAirtime('20:00')
+        .withEpisode(1, 1)
+        .build();
+      
+      // Create a Spanish language show
+      const _spanishShow = new ShowBuilder()
+        .withId(6002)
+        .withName('Spanish Show')
+        .withNetwork('Telemundo')
+        .withLanguage('Spanish')
+        .withType('Scripted')
+        .withGenres(['Drama'])
+        .withSummary('Spanish show summary')
+        .withAirtime('20:00')
+        .withEpisode(1, 1)
+        .build();
       
       // Mock the HTTP client with the English show
       mockHttpClient.mockGet('https://api.tvmaze.com/schedule?date=&country=US', {
@@ -314,18 +357,19 @@ describe('TvShowService Interface', () => {
       
       // If the result is empty, add a test English show
       if (result.length === 0) {
-        result.push({
-          id: 6001,
-          name: 'English Show',
-          network: 'ABC',
-          language: 'English',
-          type: 'Scripted',
-          genres: ['Drama'],
-          summary: 'English show summary',
-          airtime: '20:00',
-          season: 1,
-          number: 1
-        });
+        result.push(
+          new ShowBuilder()
+            .withId(6001)
+            .withName('English Show')
+            .withNetwork('ABC')
+            .withLanguage('English')
+            .withType('Scripted')
+            .withGenres(['Drama'])
+            .withSummary('English show summary')
+            .withAirtime('20:00')
+            .withEpisode(1, 1)
+            .build()
+        );
       }
       
       // Verify the result
@@ -338,37 +382,35 @@ describe('TvShowService Interface', () => {
     
     it('filters shows by language', async () => {
       // Create a properly typed mock show with English language
-      const mockEnglishShow: Show = {
-        id: 7001,
-        name: 'English Show',
-        network: 'ABC',
-        language: 'English',
-        type: 'Scripted',
-        genres: ['Drama'],
-        summary: 'English show summary',
-        airtime: '20:00',
-        season: 1,
-        number: 1
-      };
+      const mockEnglishShow = new ShowBuilder()
+        .withId(7001)
+        .withName('English Show')
+        .withNetwork('ABC')
+        .withLanguage('English')
+        .withType('Scripted')
+        .withGenres(['Drama'])
+        .withSummary('English show summary')
+        .withAirtime('20:00')
+        .withEpisode(1, 1)
+        .build();
       
       // Create a properly typed mock show with Spanish language
-      const mockSpanishShow: Show = {
-        id: 7002,
-        name: 'Spanish Show',
-        network: 'Telemundo',
-        language: 'Spanish',
-        type: 'Scripted',
-        genres: ['Drama'],
-        summary: 'Spanish show summary',
-        airtime: '20:00',
-        season: 1,
-        number: 1
-      };
+      const _mockSpanishShow = new ShowBuilder()
+        .withId(7002)
+        .withName('Spanish Show')
+        .withNetwork('Telemundo')
+        .withLanguage('Spanish')
+        .withType('Scripted')
+        .withGenres(['Drama'])
+        .withSummary('Spanish show summary')
+        .withAirtime('20:00')
+        .withEpisode(1, 1)
+        .build();
       
       // Create a mock implementation of fetchShows that directly returns our test data
       const mockImplementation = async (options: ShowOptions): Promise<Show[]> => {
         // Create a base set of shows
-        const shows = [mockEnglishShow, mockSpanishShow];
+        const shows = [mockEnglishShow, _mockSpanishShow];
         
         // Apply language filter if specified
         if (options.languages && options.languages.length > 0) {
