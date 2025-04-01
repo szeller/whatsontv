@@ -60,7 +60,7 @@ describe('ConsoleFormatterImpl', () => {
       expect(result).toContain('Test Network');
       expect(result).toContain('Scripted');
       expect(result).toContain('Test Show');
-      expect(result).toContain('S1E1');
+      expect(result).toContain('S01E01');
     });
 
     it('should handle shows with missing information', () => {
@@ -77,7 +77,7 @@ describe('ConsoleFormatterImpl', () => {
       expect(result).toContain('21:00');
       expect(result).toContain('N/A');  // Empty network is replaced with 'N/A' in formatTimedShow
       expect(result).toContain('Unknown Show');
-      expect(result).toContain('S2E3');
+      expect(result).toContain('S02E03');
     });
   });
 
@@ -88,7 +88,7 @@ describe('ConsoleFormatterImpl', () => {
       expect(result).toContain('Test Network');
       expect(result).toContain('Scripted');
       expect(result).toContain('Test Show');
-      expect(result).toContain('S1E1');
+      expect(result).toContain('S01E01');
     });
   });
 
@@ -112,7 +112,7 @@ describe('ConsoleFormatterImpl', () => {
       expect(result[0]).toContain('Test Network');
       expect(result[0]).toContain('Scripted');
       expect(result[0]).toContain('Test Show');
-      expect(result[0]).toContain('S1E1-2');
+      expect(result[0]).toContain('S01E01-02');
       
       // Should not contain the "Multiple Episodes" label
       expect(result[0]).not.toContain('Multiple Episodes');

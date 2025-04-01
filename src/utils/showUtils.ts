@@ -3,11 +3,21 @@
  */
 import type { Show } from '../schemas/domain.js';
 import { convertTimeToMinutes } from './dateUtils.js';
+import { formatEpisodeInfo } from './consoleFormatUtils.js';
 
 /**
  * Type for grouping shows by network
  */
 export type NetworkGroups = Record<string, Show[]>;
+
+/**
+ * Get the network name from a show with fallback to "Unknown Network"
+ * @param show - Show to get network name from
+ * @returns Network name or fallback value
+ */
+export function getNetworkName(show: Show): string {
+  return show.network ?? 'Unknown Network';
+}
 
 /**
  * Group shows by their network
@@ -18,8 +28,8 @@ export function groupShowsByNetwork(shows: Show[]): NetworkGroups {
   const groups: NetworkGroups = {};
   
   for (const show of shows) {
-    // Get the network name from our simplified model
-    const networkName = show.network ?? 'Unknown Network';
+    // Get the network name using the utility function
+    const networkName = getNetworkName(show);
     
     if (!Object.prototype.hasOwnProperty.call(groups, networkName)) {
       groups[networkName] = [];
@@ -119,9 +129,14 @@ export function formatTime(time: string | null): string {
 /**
  * Format episodes into a compact representation with ranges
  * @param episodes - Array of episodes to format
- * @returns Formatted episode string with ranges (e.g., "S1E1-3, S1E5, S2E1-2")
+ * @param padEpisodeNumbers - Whether to pad season and episode numbers with leading zeros
+ *                          (default: true)
+ * @returns Formatted episode string with ranges (e.g., "S01E01-03, S01E05, S02E01-02")
  */
-export function formatEpisodeRanges(episodes: Show[]): string {
+export function formatEpisodeRanges(
+  episodes: Show[], 
+  padEpisodeNumbers: boolean = true
+): string {
   if (episodes.length === 0) {
     return '';
   }
@@ -159,7 +174,7 @@ export function formatEpisodeRanges(episodes: Show[]): string {
         rangeEnd = current;
       } else {
         // End of a range, add it to the result
-        ranges.push(formatRange(season, rangeStart, rangeEnd));
+        ranges.push(formatRange(season, rangeStart, rangeEnd, padEpisodeNumbers));
         // Start a new range
         rangeStart = current;
         rangeEnd = current;
@@ -167,7 +182,7 @@ export function formatEpisodeRanges(episodes: Show[]): string {
     }
     
     // Add the last range
-    ranges.push(formatRange(season, rangeStart, rangeEnd));
+    ranges.push(formatRange(season, rangeStart, rangeEnd, padEpisodeNumbers));
     
     // Join all ranges for this season
     formattedSeasons.push(ranges.join(', '));
@@ -182,15 +197,30 @@ export function formatEpisodeRanges(episodes: Show[]): string {
  * @param season - Season number
  * @param start - Starting episode number
  * @param end - Ending episode number
+ * @param padEpisodeNumbers - Whether to pad season and episode numbers with leading zeros
  * @returns Formatted range string
  */
-function formatRange(season: number, start: number, end: number): string {
+function formatRange(
+  season: number, 
+  start: number, 
+  end: number, 
+  padEpisodeNumbers: boolean
+): string {
   if (start === end) {
-    // Single episode
-    return `S${season}E${start}`;
+    // Single episode - use the shared utility function
+    return formatEpisodeInfo(season, start, padEpisodeNumbers);
   } else {
-    // Episode range
-    return `S${season}E${start}-${end}`;
+    // Episode range with consistent formatting (S01E01-02)
+    const seasonStr = padEpisodeNumbers 
+      ? season.toString().padStart(2, '0') 
+      : season.toString();
+    const startStr = padEpisodeNumbers 
+      ? start.toString().padStart(2, '0') 
+      : start.toString();
+    const endStr = padEpisodeNumbers 
+      ? end.toString().padStart(2, '0') 
+      : end.toString();
+    return `S${seasonStr}E${startStr}-${endStr}`;
   }
 }
 

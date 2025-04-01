@@ -7,6 +7,8 @@ import type { Show, NetworkGroups } from '../../../schemas/domain.js';
 import type { ConfigService } from '../../../interfaces/configService.js';
 import { ShowBuilder } from '../../fixtures/helpers/showFixtureBuilder.js';
 import { AppConfig, CliOptions } from '../../../types/configTypes.js';
+import { sortShowsByTime } from '../../../utils/showUtils.js';
+import { getTodayDate } from '../../../utils/dateUtils.js';
 
 // Extend the service to expose protected methods for testing
 class TestConsoleOutputService extends ConsoleOutputServiceImpl {
@@ -99,8 +101,7 @@ class TestConsoleOutputService extends ConsoleOutputServiceImpl {
   sortShowsByTimeTest(
     shows: Show[]
   ): Show[] {
-    type SortMethod = (shows: Show[]) => Show[];
-    return (this as unknown as { sortShowsByTime: SortMethod }).sortShowsByTime(shows);
+    return sortShowsByTime(shows);
   }
 }
 
@@ -530,7 +531,7 @@ describe('ConsoleOutputServiceImpl', () => {
   });
   
   describe('displayHeader and displayFooter', () => {
-    it('should display application header', () => {
+    it('should display application header correctly', () => {
       // Act
       service.displayHeader();
       
@@ -541,22 +542,44 @@ describe('ConsoleOutputServiceImpl', () => {
       expect(mockConsoleOutput.log).toHaveBeenCalledWith('==============================');
     });
     
-    it('should display application footer', () => {
-      // Arrange
-      mockConsoleOutput.log.mockClear();
-      
+    it('should display application footer correctly', () => {
       // Act
       service.displayFooter();
       
       // Assert
       expect(mockConsoleOutput.log).toHaveBeenCalledTimes(3);
-      expect(mockConsoleOutput.log).toHaveBeenCalledWith('==============================');
       expect(mockConsoleOutput.log).toHaveBeenCalledWith('');
-      // Check for the TVMaze API attribution line
-      expect(mockConsoleOutput.log).toHaveBeenNthCalledWith(
-        3, 
-        'Data provided by TVMaze API (https://api.tvmaze.com)'
-      );
+      expect(mockConsoleOutput.log).toHaveBeenCalledWith('==============================');
+      const apiMessage = 'Data provided by TVMaze API (https://api.tvmaze.com)';
+      expect(mockConsoleOutput.log).toHaveBeenCalledWith(apiMessage);
+    });
+  });
+
+  describe('parseArguments', () => {
+    it('should parse command line arguments correctly', () => {
+      // Arrange
+      const args = ['--date', '2023-05-15', '--country', 'UK', '--debug'];
+      
+      // Act
+      const parsedArgs = service.parseArguments(args);
+      
+      // Assert
+      expect(parsedArgs.date).toBe('2023-05-15');
+      expect(parsedArgs.country).toBe('UK');
+      expect(parsedArgs.debug).toBe(true);
+    });
+    
+    it('should use default values when arguments are not provided', () => {
+      // Arrange
+      const args: string[] = [];
+      
+      // Act
+      const parsedArgs = service.parseArguments(args);
+      
+      // Assert
+      expect(parsedArgs.date).toBe(getTodayDate());
+      expect(parsedArgs.country).toBe('US');
+      expect(parsedArgs.debug).toBe(false);
     });
   });
 });

@@ -2,7 +2,6 @@
 
 [![CI Status](https://github.com/szeller/whatsontv/actions/workflows/ci.yml/badge.svg)](https://github.com/szeller/whatsontv/actions)
 [![Dependabot Status](https://img.shields.io/badge/Dependabot-enabled-brightgreen.svg)](https://github.com/szeller/whatsontv/blob/main/.github/dependabot.yml)
-[![Coverage Status](https://img.shields.io/badge/Coverage-92%25-brightgreen.svg)](https://github.com/szeller/whatsontv/actions)
 
 
 ## Overview

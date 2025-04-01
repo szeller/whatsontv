@@ -9,8 +9,9 @@ import type { Show } from '../../schemas/domain.js';
 import type { OutputService } from '../../interfaces/outputService.js';
 import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
 import type { NetworkGroups } from '../../utils/showUtils.js';
-import { groupShowsByNetwork } from '../../utils/showUtils.js';
+import { groupShowsByNetwork, sortShowsByTime } from '../../utils/showUtils.js';
 import { getTodayDate } from '../../utils/dateUtils.js';
+import { padString } from '../../utils/stringUtils.js';
 
 /**
  * CLI arguments interface for console output
@@ -85,8 +86,8 @@ export class ConsoleOutputServiceImpl implements OutputService {
       return;
     }
 
-    // Always sort shows by time first
-    const sortedShows = this.sortShowsByTime(shows);
+    // Always sort shows by time first using the shared utility
+    const sortedShows = sortShowsByTime(shows);
     
     // Group shows by network if requested
     const networkGroups = groupByNetwork 
@@ -109,62 +110,6 @@ export class ConsoleOutputServiceImpl implements OutputService {
   }
 
   /**
-   * Sort shows by airtime
-   * @param shows Array of TV shows to sort
-   * @returns Sorted array of shows
-   * @private
-   */
-  private sortShowsByTime(shows: Show[]): Show[] {
-    return [...shows].sort((a, b) => {
-      // Handle shows without airtime
-      if (a.airtime === undefined || a.airtime === null || a.airtime === '') {
-        return 1;
-      }
-      if (b.airtime === undefined || b.airtime === null || b.airtime === '') {
-        return -1;
-      }
-      
-      // Convert airtime strings to minutes since midnight for proper comparison
-      const getTimeInMinutes = (timeStr: string): number => {
-        // Normalize the time format
-        let hours = 0;
-        let minutes = 0;
-        
-        // Handle various time formats
-        if (timeStr.includes(':')) {
-          // Format: "HH:MM" or "H:MM" with optional AM/PM
-          const timeParts = timeStr.split(':');
-          hours = parseInt(timeParts[0], 10);
-          
-          // Extract minutes, removing any AM/PM suffix
-          const minutesPart = timeParts[1].replace(/\s*[APap][Mm].*$/, '');
-          minutes = parseInt(minutesPart, 10);
-          
-          // Handle AM/PM if present
-          const isPM = /\s*[Pp][Mm]/.test(timeStr);
-          const isAM = /\s*[Aa][Mm]/.test(timeStr);
-          
-          if (isPM && hours < 12) {
-            hours += 12;
-          } else if (isAM && hours === 12) {
-            hours = 0;
-          }
-        } else {
-          // Format without colon, assume it's just hours
-          hours = parseInt(timeStr, 10);
-        }
-        
-        return hours * 60 + minutes;
-      };
-      
-      const aMinutes = getTimeInMinutes(a.airtime);
-      const bMinutes = getTimeInMinutes(b.airtime);
-      
-      return aMinutes - bMinutes;
-    });
-  }
-
-  /**
    * Group shows by network
    * @param shows Array of TV shows to group
    * @returns Shows grouped by network
@@ -177,18 +122,21 @@ export class ConsoleOutputServiceImpl implements OutputService {
   /**
    * Display shows grouped by network
    * @param networkGroups Shows grouped by network
-   * @param timeSort Whether to sort shows by time within each network
+   * @param timeSort Whether to sort shows by time within each network 
+   *                (optional, for backward compatibility)
+   * @returns Promise that resolves when shows are displayed
    */
   public async displayNetworkGroups(
     networkGroups: NetworkGroups,
     timeSort: boolean = false
   ): Promise<void> {
     try {
+      // Format shows grouped by network
       const formattedOutput = this.formatter.formatNetworkGroups(
         networkGroups,
         timeSort
       );
-
+      
       // Display each line of output
       for (const line of formattedOutput) {
         await Promise.resolve(this.output.log(line));
@@ -197,6 +145,67 @@ export class ConsoleOutputServiceImpl implements OutputService {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.output.error(`Error displaying output: ${errorMessage}`);
     }
+  }
+
+  /**
+   * Parse command line arguments for the CLI
+   * @param args Command line arguments
+   * @returns Parsed arguments object
+   */
+  public parseArguments(args: string[]): ConsoleCliArgs {
+    const parsedArgs = yargs(args)
+      .options({
+        date: {
+          alias: 'd',
+          describe: 'Date to show schedule for (YYYY-MM-DD)',
+          default: getTodayDate(),
+          type: 'string'
+        },
+        country: {
+          alias: 'c',
+          describe: 'Country code (e.g., US)',
+          default: 'US',
+          type: 'string'
+        },
+        types: {
+          alias: 't',
+          describe: 'Show types to include',
+          type: 'array',
+          default: []
+        },
+        networks: {
+          alias: 'n',
+          describe: 'Networks to include',
+          type: 'array',
+          default: []
+        },
+        genres: {
+          alias: 'g',
+          describe: 'Genres to include',
+          type: 'array',
+          default: []
+        },
+        languages: {
+          alias: 'l',
+          describe: 'Languages to include',
+          type: 'array',
+          default: []
+        },
+        debug: {
+          describe: 'Show debug information',
+          type: 'boolean',
+          default: false
+        },
+        fetch: {
+          describe: 'Fetch data source (network, web, all)',
+          choices: ['network', 'web', 'all'],
+          default: 'all'
+        }
+      })
+      .help()
+      .argv as ConsoleCliArgs;
+    
+    return parsedArgs;
   }
 
   /**
@@ -290,9 +299,9 @@ export class ConsoleOutputServiceImpl implements OutputService {
     // Use package version (hardcoded for now, could be imported from package.json)
     const version = '1.0.0';
     
-    // Create a header with app name and version
+    // Create a header with app name and version using string utilities
     const appHeader = `WhatsOnTV v${version}`;
-    const separator = '==============================';
+    const separator = this.createSeparator();
     
     // Display header
     this.output.log('');
@@ -304,11 +313,20 @@ export class ConsoleOutputServiceImpl implements OutputService {
    * Display application footer
    */
   public displayFooter(): void {
-    const separator = '==============================';
+    const separator = this.createSeparator();
     
     // Display footer
     this.output.log('');
     this.output.log(separator);
     this.output.log('Data provided by TVMaze API (https://api.tvmaze.com)');
+  }
+
+  /**
+   * Create a separator line with consistent length
+   * @returns Formatted separator string
+   * @private
+   */
+  private createSeparator(length: number = 30, char: string = '='): string {
+    return padString('', length, char);
   }
 }

@@ -12,6 +12,13 @@ import type { ShowOptions } from '../../types/tvShowOptions.js';
 import type { CliOptions, AppConfig } from '../../types/configTypes.js';
 import type { CliArgs } from '../../types/cliArgs.js';
 import { getTodayDate } from '../../utils/dateUtils.js';
+import { getStringValue } from '../../utils/stringUtils.js';
+import { 
+  toStringArray, 
+  mergeArraysWithPriority, 
+  resolveRelativePath,
+  coerceFetchSource
+} from '../../utils/configUtils.js';
 
 @injectable()
 export class ConsoleConfigServiceImpl implements ConfigService {
@@ -44,28 +51,32 @@ export class ConsoleConfigServiceImpl implements ConfigService {
     
     // Extract show options
     this.showOptions = {
-      date: this.cliArgs.date ?? getTodayDate(),
-      country: this.cliArgs.country ?? this.appConfig.country,
-      // Use arrays from config file, ensuring they're always arrays
-      types: Array.isArray(this.cliArgs.types) && this.cliArgs.types.length > 0 
-        ? this.cliArgs.types 
-        : [...(Array.isArray(this.appConfig.types) ? this.appConfig.types : [])],
-      networks: Array.isArray(this.cliArgs.networks) && this.cliArgs.networks.length > 0 
-        ? this.cliArgs.networks 
-        : [...(Array.isArray(this.appConfig.networks) ? this.appConfig.networks : [])],
-      genres: Array.isArray(this.cliArgs.genres) && this.cliArgs.genres.length > 0 
-        ? this.cliArgs.genres 
-        : [...(Array.isArray(this.appConfig.genres) ? this.appConfig.genres : [])],
-      languages: Array.isArray(this.cliArgs.languages) && this.cliArgs.languages.length > 0 
-        ? this.cliArgs.languages 
-        : [...(Array.isArray(this.appConfig.languages) ? this.appConfig.languages : [])],
-      fetchSource: this.cliArgs.fetch ?? 'all'
+      date: getStringValue(this.cliArgs.date, getTodayDate()),
+      country: getStringValue(this.cliArgs.country, this.appConfig.country),
+      // Use utility functions for array handling
+      types: mergeArraysWithPriority(
+        toStringArray(this.cliArgs.types), 
+        toStringArray(this.appConfig.types)
+      ),
+      networks: mergeArraysWithPriority(
+        toStringArray(this.cliArgs.networks), 
+        toStringArray(this.appConfig.networks)
+      ),
+      genres: mergeArraysWithPriority(
+        toStringArray(this.cliArgs.genres), 
+        toStringArray(this.appConfig.genres)
+      ),
+      languages: mergeArraysWithPriority(
+        toStringArray(this.cliArgs.languages), 
+        toStringArray(this.appConfig.languages)
+      ),
+      fetchSource: coerceFetchSource(this.cliArgs.fetch)
     };
     
     // Extract CLI options
     this.cliOptions = {
-      debug: this.cliArgs.debug ?? false,
-      help: this.cliArgs.help ?? false
+      debug: Boolean(this.cliArgs.debug),
+      help: Boolean(this.cliArgs.help)
     };
   }
   
@@ -84,32 +95,27 @@ export class ConsoleConfigServiceImpl implements ConfigService {
     const mergedOptions: ShowOptions = {
       ...configOptions,
       // Override with command line arguments if provided
-      date: args.date || configOptions.date,
-      country: args.country || configOptions.country,
-      fetchSource: args.fetch || configOptions.fetchSource,
-      // Use the filter arrays from the config file
-      types: [...(configOptions.types || [])],
-      genres: [...(configOptions.genres || [])],
-      networks: [...(configOptions.networks || [])],
-      languages: [...(configOptions.languages || [])]
+      date: getStringValue(String(args.date || ''), configOptions.date),
+      country: getStringValue(String(args.country || ''), configOptions.country),
+      fetchSource: args.fetch ? coerceFetchSource(args.fetch) : configOptions.fetchSource,
+      // Use utility functions for array handling
+      types: mergeArraysWithPriority(
+        toStringArray(args.types), 
+        configOptions.types
+      ),
+      genres: mergeArraysWithPriority(
+        toStringArray(args.genres), 
+        configOptions.genres
+      ),
+      networks: mergeArraysWithPriority(
+        toStringArray(args.networks), 
+        configOptions.networks
+      ),
+      languages: mergeArraysWithPriority(
+        toStringArray(args.languages), 
+        configOptions.languages
+      )
     };
-    
-    // Override with command line arguments if provided
-    if (Array.isArray(args.types) && args.types.length > 0) {
-      mergedOptions.types = args.types;
-    }
-    
-    if (Array.isArray(args.genres) && args.genres.length > 0) {
-      mergedOptions.genres = args.genres;
-    }
-    
-    if (Array.isArray(args.networks) && args.networks.length > 0) {
-      mergedOptions.networks = args.networks;
-    }
-    
-    if (Array.isArray(args.languages) && args.languages.length > 0) {
-      mergedOptions.languages = args.languages;
-    }
     
     return mergedOptions;
   }
@@ -151,23 +157,15 @@ export class ConsoleConfigServiceImpl implements ConfigService {
     
     // Convert to CliArgs type with proper handling of optional arrays
     return {
-      date: typeof parsedArgs.date === 'string' ? parsedArgs.date : getTodayDate(),
-      country: typeof parsedArgs.country === 'string' ? parsedArgs.country : 'US',
-      types: Array.isArray(parsedArgs.types) 
-        ? parsedArgs.types.map((item) => String(item)) 
-        : [],
-      networks: Array.isArray(parsedArgs.networks) 
-        ? parsedArgs.networks.map((item) => String(item)) 
-        : [],
-      genres: Array.isArray(parsedArgs.genres) 
-        ? parsedArgs.genres.map((item) => String(item)) 
-        : [],
-      languages: Array.isArray(parsedArgs.languages) 
-        ? parsedArgs.languages.map((item) => String(item)) 
-        : [],
+      date: getStringValue(String(parsedArgs.date), getTodayDate()),
+      country: getStringValue(String(parsedArgs.country), 'US'),
+      types: toStringArray(parsedArgs.types as string | string[] | undefined),
+      networks: toStringArray(parsedArgs.networks as string | string[] | undefined),
+      genres: toStringArray(parsedArgs.genres as string | string[] | undefined),
+      languages: toStringArray(parsedArgs.languages as string | string[] | undefined),
       help: Boolean(parsedArgs.help),
       debug: Boolean(parsedArgs.debug),
-      fetch: this.validateFetchSource(parsedArgs.fetch)
+      fetch: coerceFetchSource(parsedArgs.fetch)
     };
   }
   
@@ -178,16 +176,7 @@ export class ConsoleConfigServiceImpl implements ConfigService {
    * @private
    */
   private validateFetchSource(value: unknown): 'web' | 'network' | 'all' {
-    if (typeof value !== 'string') {
-      return 'all';
-    }
-    
-    const normalized = value.toLowerCase();
-    if (normalized === 'web' || normalized === 'network') {
-      return normalized;
-    }
-    
-    return 'all';
+    return coerceFetchSource(value);
   }
   
   /**
@@ -329,9 +318,8 @@ export class ConsoleConfigServiceImpl implements ConfigService {
    * @protected
    */
   protected getConfigFilePath(): string {
-    const __filename = this.getFilePath();
-    const __dirname = this.getDirname(__filename);
-    return this.resolvePath(__dirname, '../../../config.json');
+    const dirname = this.getDirname(this.getFilePath());
+    return resolveRelativePath(dirname, '../../../config.json');
   }
   
   /**
@@ -361,7 +349,7 @@ export class ConsoleConfigServiceImpl implements ConfigService {
    * @protected
    */
   protected resolvePath(basePath: string, relativePath: string): string {
-    return path.resolve(basePath, relativePath);
+    return resolveRelativePath(basePath, relativePath);
   }
   
   /**
