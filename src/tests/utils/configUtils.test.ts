@@ -8,8 +8,12 @@ import {
   mergeArraysWithPriority, 
   getDirPathFromImportMeta,
   resolveRelativePath,
-  coerceFetchSource 
+  coerceFetchSource,
+  mergeShowOptions
 } from '../../utils/configUtils.js';
+import { CliArgs } from '../../types/cliArgs.js';
+import { AppConfig } from '../../types/configTypes.js';
+import { getTodayDate } from '../../utils/dateUtils.js';
 
 describe('configUtils', () => {
   describe('toStringArray', () => {
@@ -110,6 +114,163 @@ describe('configUtils', () => {
       const absolutePath = '/absolute/path/file.txt';
       
       expect(resolveRelativePath(baseDir, absolutePath)).toBe(absolutePath);
+    });
+  });
+
+  describe('mergeShowOptions', () => {
+    it('should correctly merge show options from different sources', () => {
+      // Arrange
+      const cliArgs: CliArgs = {
+        date: '2025-04-01',
+        country: 'CA',
+        types: ['Drama'],
+        networks: [],
+        genres: [],
+        languages: [],
+        debug: true,
+        fetch: 'network',
+        groupByNetwork: false
+      };
+      
+      const appConfig: AppConfig = {
+        country: 'US',
+        types: ['Reality'],
+        networks: ['ABC'],
+        genres: ['Comedy'],
+        languages: ['English'],
+        notificationTime: '09:00',
+        slack: {
+          enabled: false
+        }
+      };
+      
+      // Act
+      const showOptions = mergeShowOptions(cliArgs, appConfig);
+      
+      // Assert - CLI values should override config values when provided
+      expect(showOptions.date).toBe('2025-04-01'); // From CLI
+      expect(showOptions.country).toBe('CA'); // From CLI
+      expect(showOptions.types).toEqual(['Drama']); // From CLI
+      
+      // These should be from config since CLI provided empty arrays
+      expect(showOptions.networks).toEqual(['ABC']); // From config
+      expect(showOptions.genres).toEqual(['Comedy']); // From config
+      expect(showOptions.languages).toEqual(['English']); // From config
+      
+      // Fetch source should be from CLI
+      expect(showOptions.fetchSource).toBe('network'); // From CLI
+    });
+
+    it('should handle merging arrays with different priorities correctly', () => {
+      // Arrange
+      const cliArgs: CliArgs = {
+        date: '2025-04-01',
+        country: 'US',
+        types: [], // Empty array should fall back to config
+        networks: ['HBO', 'Showtime'], // Should override config
+        genres: [], // Empty array should fall back to config
+        languages: ['French'], // Should override config
+        debug: false,
+        fetch: 'all',
+        groupByNetwork: true
+      };
+      
+      const appConfig: AppConfig = {
+        country: 'US',
+        types: ['Reality', 'Game Show'],
+        networks: ['ABC', 'NBC', 'CBS'],
+        genres: ['Comedy', 'Drama'],
+        languages: ['English', 'Spanish'],
+        notificationTime: '09:00',
+        slack: {
+          enabled: false
+        }
+      };
+      
+      // Act
+      const showOptions = mergeShowOptions(cliArgs, appConfig);
+      
+      // Assert - arrays should be merged with CLI taking priority when non-empty
+      expect(showOptions.types).toEqual(['Reality', 'Game Show']); // From config (CLI was empty)
+      expect(showOptions.networks).toEqual(['HBO', 'Showtime']); // From CLI (overrides config)
+      expect(showOptions.genres).toEqual(['Comedy', 'Drama']); // From config (CLI was empty)
+      expect(showOptions.languages).toEqual(['French']); // From CLI (overrides config)
+      expect(showOptions.fetchSource).toBe('all'); // From CLI
+    });
+
+    it('should use default values when both CLI and config are empty', () => {
+      // Arrange
+      const cliArgs: CliArgs = {
+        date: '',
+        country: '',
+        types: [],
+        networks: [],
+        genres: [],
+        languages: [],
+        debug: false,
+        fetch: 'all', // Changed from empty string to valid enum value
+        groupByNetwork: false
+      };
+      
+      const appConfig: AppConfig = {
+        country: '',
+        types: [],
+        networks: [],
+        genres: [],
+        languages: [],
+        notificationTime: '',
+        slack: {
+          enabled: false
+        }
+      };
+      
+      // Act
+      const showOptions = mergeShowOptions(cliArgs, appConfig);
+      
+      // Assert - should use defaults
+      expect(showOptions.date).toBe(getTodayDate());
+      expect(showOptions.country).toBe('');
+      expect(showOptions.types).toEqual([]);
+      expect(showOptions.networks).toEqual([]);
+      expect(showOptions.genres).toEqual([]);
+      expect(showOptions.languages).toEqual([]);
+      expect(showOptions.fetchSource).toBe('all');
+    });
+
+    it('should handle undefined and null values gracefully', () => {
+      // Arrange
+      const cliArgs: Partial<CliArgs> = {
+        date: undefined,
+        country: null as unknown as string,
+        types: undefined,
+        networks: null as unknown as string[],
+        debug: false,
+        fetch: undefined,
+        groupByNetwork: false
+      };
+      
+      const appConfig: Partial<AppConfig> = {
+        country: 'US',
+        types: ['Reality'],
+        genres: undefined,
+        languages: null as unknown as string[],
+        notificationTime: '09:00',
+        slack: {
+          enabled: false
+        }
+      };
+      
+      // Act
+      const showOptions = mergeShowOptions(cliArgs as CliArgs, appConfig as AppConfig);
+      
+      // Assert
+      expect(showOptions.date).toBe(getTodayDate()); // Default
+      expect(showOptions.country).toBe('US'); // From config
+      expect(showOptions.types).toEqual(['Reality']); // From config
+      expect(showOptions.networks).toEqual([]); // Default
+      expect(showOptions.genres).toEqual([]); // Default
+      expect(showOptions.languages).toEqual([]); // Default
+      expect(showOptions.fetchSource).toBe('all'); // Default
     });
   });
 

@@ -15,9 +15,9 @@ import { getTodayDate } from '../../utils/dateUtils.js';
 import { getStringValue } from '../../utils/stringUtils.js';
 import { 
   toStringArray, 
-  mergeArraysWithPriority, 
   resolveRelativePath,
-  coerceFetchSource
+  coerceFetchSource,
+  mergeShowOptions
 } from '../../utils/configUtils.js';
 
 @injectable()
@@ -46,78 +46,25 @@ export class ConsoleConfigServiceImpl implements ConfigService {
     // Parse command line arguments
     this.cliArgs = this.parseArgs();
     
-    // Load and merge configurations
+    // Load configuration
     this.appConfig = this.loadConfig();
     
-    // Extract show options
-    this.showOptions = {
-      date: getStringValue(this.cliArgs.date, getTodayDate()),
-      country: getStringValue(this.cliArgs.country, this.appConfig.country),
-      // Use utility functions for array handling
-      types: mergeArraysWithPriority(
-        toStringArray(this.cliArgs.types), 
-        toStringArray(this.appConfig.types)
-      ),
-      networks: mergeArraysWithPriority(
-        toStringArray(this.cliArgs.networks), 
-        toStringArray(this.appConfig.networks)
-      ),
-      genres: mergeArraysWithPriority(
-        toStringArray(this.cliArgs.genres), 
-        toStringArray(this.appConfig.genres)
-      ),
-      languages: mergeArraysWithPriority(
-        toStringArray(this.cliArgs.languages), 
-        toStringArray(this.appConfig.languages)
-      ),
-      fetchSource: coerceFetchSource(this.cliArgs.fetch)
-    };
-    
-    // Extract CLI options
+    // Set CLI options
     this.cliOptions = {
       debug: Boolean(this.cliArgs.debug),
-      help: Boolean(this.cliArgs.help)
+      groupByNetwork: Boolean(this.cliArgs.groupByNetwork)
     };
+    
+    // Set initial show options from config
+    this.showOptions = mergeShowOptions(this.cliArgs, this.appConfig);
   }
-  
+
   /**
    * Get the show options from the configuration
    * @returns ShowOptions object with all show filters and options
    */
   getShowOptions(): ShowOptions {
-    // Get the base show options from the config
-    const configOptions = { ...this.showOptions };
-    
-    // Get command line arguments
-    const args = this.parseArgs();
-    
-    // Create a merged options object
-    const mergedOptions: ShowOptions = {
-      ...configOptions,
-      // Override with command line arguments if provided
-      date: getStringValue(String(args.date || ''), configOptions.date),
-      country: getStringValue(String(args.country || ''), configOptions.country),
-      fetchSource: args.fetch ? coerceFetchSource(args.fetch) : configOptions.fetchSource,
-      // Use utility functions for array handling
-      types: mergeArraysWithPriority(
-        toStringArray(args.types), 
-        configOptions.types
-      ),
-      genres: mergeArraysWithPriority(
-        toStringArray(args.genres), 
-        configOptions.genres
-      ),
-      networks: mergeArraysWithPriority(
-        toStringArray(args.networks), 
-        configOptions.networks
-      ),
-      languages: mergeArraysWithPriority(
-        toStringArray(args.languages), 
-        configOptions.languages
-      )
-    };
-    
-    return mergedOptions;
+    return this.showOptions;
   }
   
   /**
@@ -147,13 +94,27 @@ export class ConsoleConfigServiceImpl implements ConfigService {
   
   /**
    * Parse command line arguments
-   * @param args Command line arguments (optional)
-   * @returns Parsed command line arguments
+   * @param args Optional array of command line arguments
+   * @returns Parsed CLI arguments
    * @protected
    */
   protected parseArgs(args?: string[]): CliArgs {
     const yargsInstance = this.createYargsInstance(args || process.argv.slice(2));
-    const parsedArgs = yargsInstance.parseSync();
+    
+    // In tests, we need to disable strict mode and exit behavior
+    const parsedArgs = yargsInstance
+      .parserConfiguration({
+        'boolean-negation': false,
+        'camel-case-expansion': false,
+        'dot-notation': false,
+        'duplicate-arguments-array': false,
+        'halt-at-non-option': false,
+        'strip-aliased': true,
+        'strip-dashed': true,
+        'unknown-options-as-args': true
+      })
+      .fail(false)
+      .parseSync();
     
     // Convert to CliArgs type with proper handling of optional arrays
     return {
@@ -163,20 +124,13 @@ export class ConsoleConfigServiceImpl implements ConfigService {
       networks: toStringArray(parsedArgs.networks as string | string[] | undefined),
       genres: toStringArray(parsedArgs.genres as string | string[] | undefined),
       languages: toStringArray(parsedArgs.languages as string | string[] | undefined),
-      help: Boolean(parsedArgs.help),
       debug: Boolean(parsedArgs.debug),
-      fetch: coerceFetchSource(parsedArgs.fetch)
+      fetch: parsedArgs.fetch !== undefined ? 
+        coerceFetchSource(parsedArgs.fetch as string) : 'network',
+      groupByNetwork: parsedArgs['group-by-network'] !== undefined 
+        ? Boolean(parsedArgs['group-by-network']) 
+        : true // Default to true if not specified
     };
-  }
-  
-  /**
-   * Validate and normalize the fetch source parameter
-   * @param value The fetch source value from command line
-   * @returns A valid fetch source value ('web', 'network', or 'all')
-   * @private
-   */
-  private validateFetchSource(value: unknown): 'web' | 'network' | 'all' {
-    return coerceFetchSource(value);
   }
   
   /**
@@ -220,24 +174,6 @@ export class ConsoleConfigServiceImpl implements ConfigService {
           type: 'string',
           coerce: (arg: string) => arg.split(',')
         },
-        query: {
-          alias: 'q',
-          describe: 'Search query for shows',
-          type: 'string',
-          default: ''
-        },
-        slack: {
-          alias: 's',
-          describe: 'Output to Slack',
-          type: 'boolean',
-          default: false
-        },
-        limit: {
-          alias: 'l',
-          describe: 'Maximum number of shows to display',
-          type: 'number',
-          default: 0
-        },
         debug: {
           alias: 'D',
           describe: 'Enable debug mode',
@@ -252,9 +188,7 @@ export class ConsoleConfigServiceImpl implements ConfigService {
         }
       })
       .help()
-      .alias('help', 'h')
-      .version()
-      .alias('version', 'v');
+      .alias('help', 'h');
   }
   
   /**

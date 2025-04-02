@@ -3,6 +3,11 @@
  */
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { CliArgs } from '../types/cliArgs.js';
+import { AppConfig } from '../types/configTypes.js';
+import { ShowOptions } from '../types/tvShowOptions.js';
+import { getTodayDate } from './dateUtils.js';
+import { getStringValue } from './stringUtils.js';
 
 /**
  * Safely convert a string, comma-separated value, or array to a string array
@@ -88,4 +93,67 @@ export function coerceFetchSource(value: unknown): 'web' | 'network' | 'all' {
   }
   
   return 'all';
+}
+
+
+/**
+ * Merge CLI arguments with app configuration to create show options
+ * @param cliArgs CLI arguments
+ * @param appConfig Application configuration
+ * @returns Merged ShowOptions object
+ * @protected
+ */
+export function mergeShowOptions(
+  cliArgs: CliArgs, 
+  appConfig: AppConfig
+): ShowOptions {
+  // Start with base options or empty object
+  const base : ShowOptions = {};
+  
+  // Safely handle potentially null/undefined values
+  const cliDate = typeof cliArgs.date !== 'undefined' && cliArgs.date !== null ? 
+    String(cliArgs.date) : '';
+  const cliCountry = typeof cliArgs.country !== 'undefined' && cliArgs.country !== null ? 
+    String(cliArgs.country) : '';
+  
+  // Safely handle base options
+  const baseDate = typeof base.date !== 'undefined' && base.date !== null ? 
+    base.date : getTodayDate();
+  const baseCountry = typeof base.country !== 'undefined' && base.country !== null ? 
+    base.country : appConfig.country;
+  const baseFetchSource = typeof base.fetchSource !== 'undefined' && base.fetchSource !== null ? 
+    base.fetchSource : 'all';
+  
+  return {
+    // Use base options as fallback if provided
+    date: getStringValue(
+      cliDate, 
+      baseDate
+    ),
+    country: getStringValue(
+      cliCountry, 
+      baseCountry
+    ),
+    // Use utility functions for array handling
+    types: mergeArraysWithPriority(
+      toStringArray(cliArgs.types), 
+      base.types || toStringArray(appConfig.types)
+    ),
+    networks: mergeArraysWithPriority(
+      toStringArray(cliArgs.networks), 
+      base.networks || toStringArray(appConfig.networks)
+    ),
+    genres: mergeArraysWithPriority(
+      toStringArray(cliArgs.genres), 
+      base.genres || toStringArray(appConfig.genres)
+    ),
+    languages: mergeArraysWithPriority(
+      toStringArray(cliArgs.languages), 
+      base.languages || toStringArray(appConfig.languages)
+    ),
+    // Handle fetch source with conditional coercion
+    fetchSource: typeof cliArgs.fetch !== 'undefined' && cliArgs.fetch !== null ? 
+      coerceFetchSource(cliArgs.fetch) : 
+      baseFetchSource
+  };
 }

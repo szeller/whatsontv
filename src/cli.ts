@@ -46,73 +46,39 @@ export async function runCli(services: CliServices): Promise<void> {
     const showOptions = configService.getShowOptions();
     const cliOptions = configService.getCliOptions();
     
-    // Show help if requested
-    if (cliOptions.help) {
-      if (typeof configService.getHelpText === 'function') {
-        const helpText = configService.getHelpText();
-        if (typeof outputService.displayHelp === 'function') {
-          outputService.displayHelp(helpText);
-        } else {
-          output.log(String(helpText)); // Ensure helpText is properly typed
-        }
-      } else {
-        output.log('Help requested, but no help text available.');
-      }
-      return;
-    }
-    
     // Check if OutputService is initialized
     if (!outputService.isInitialized()) {
-      const error = new Error('OutputService is not initialized');
-      output.error(`Error: ${error.message}`);
-      return; 
+      output.error('Error: Output service not properly initialized');
+      return;
     }
     
     // Display header
     outputService.displayHeader();
     
-    // Fetch shows based on the show options
-    const shows = await tvShowService.fetchShows(showOptions);
-
-    // Debug: Print all unique networks and web channels
-    if (cliOptions.debug === true) {
-      const uniqueNetworks = new Set<string>();
+    try {
+      // Fetch TV shows
+      const shows = await tvShowService.fetchShows(showOptions);
       
-      for (const show of shows) {
-        // Check for valid network name
-        if (show.network !== null && show.network !== undefined && show.network !== '') {
-          uniqueNetworks.add(show.network);
-        }
-      }
-      
-      // Only output debug info if not running in test mode
-      const isTestMode = process.env.NODE_ENV === 'test';
-      if (!isTestMode) {
+      // Display debug info if enabled
+      if (cliOptions.debug) {
+        const networks = [...new Set(shows.map(show => show.network))].sort();
         output.log('\nAvailable Networks:');
-        output.log([...uniqueNetworks].sort().join(', '));
-        
+        output.log(networks.join(', '));
         output.log(`\nTotal Shows: ${shows.length}`);
       }
+      
+      // Display shows
+      await outputService.displayShows(shows, cliOptions.groupByNetwork);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      output.error(`Error fetching TV shows: ${errorMessage}`);
     }
-
-    // Display the shows - always sort by time, but allow toggling network grouping
-    // For now, we'll always group by network (true)
-    await outputService.displayShows(shows, true);
     
     // Display footer
     outputService.displayFooter();
-  } catch (error) {
-    // Handle any errors that occur during execution
-    if (error instanceof Error) {
-      output.error(`Error: ${error.message}`);
-      // Only log stack trace if it exists and is not empty
-      if (error.stack !== undefined && error.stack !== null && error.stack.length > 0) {
-        output.error(error.stack);
-      }
-    } else {
-      output.error(`Error: ${String(error)}`);
-    }
-    return; 
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    output.error(`Unexpected error: ${errorMessage}`);
   }
 }
 

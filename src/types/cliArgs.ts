@@ -24,11 +24,6 @@ export interface CliArgs {
   networks: string[];
   
   /**
-   * Whether to show help information
-   */
-  help: boolean;
-  
-  /**
    * Whether to enable debug mode
    */
   debug: boolean;
@@ -47,4 +42,9 @@ export interface CliArgs {
    * Languages to filter shows by
    */
   languages: string[];
+
+  /**
+   * Whether to group shows by network
+   */
+  groupByNetwork: boolean;
 }

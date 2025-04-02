@@ -102,8 +102,7 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
       fetchSource: args.fetch ?? 'network'
     },
     {
-      debug: args.debug ?? false,
-      help: args.help ?? false
+      debug: args.debug ?? false
     }
   );
   

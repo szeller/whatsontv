@@ -38,14 +38,13 @@ const defaultArgs: CliArgs & Record<string, unknown> = {
   query: '',
   slack: false,
   help: false,
-  version: false,
   debug: false,
   fetch: 'all',
   limit: 10,
   time: false,
-  // Include these as extra properties for the tests
+  groupByNetwork: true,
   _: [],
-  $0: 'test'
+  $0: 'whatsontv'
 };
 
 /**

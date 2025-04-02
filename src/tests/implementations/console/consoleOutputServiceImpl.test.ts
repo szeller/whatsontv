@@ -8,7 +8,6 @@ import type { ConfigService } from '../../../interfaces/configService.js';
 import { ShowBuilder } from '../../fixtures/helpers/showFixtureBuilder.js';
 import { AppConfig, CliOptions } from '../../../types/configTypes.js';
 import { sortShowsByTime } from '../../../utils/showUtils.js';
-import { getTodayDate } from '../../../utils/dateUtils.js';
 
 // Extend the service to expose protected methods for testing
 class TestConsoleOutputService extends ConsoleOutputServiceImpl {
@@ -73,13 +72,6 @@ class TestConsoleOutputService extends ConsoleOutputServiceImpl {
       (show.summary !== undefined && show.summary !== null && 
        show.summary.toLowerCase().includes(term))
     );
-  }
-  
-  // Expose protected methods for testing
-  testGroupShowsByNetwork(
-    shows: Show[]
-  ): NetworkGroups {
-    return super.groupShowsByNetwork(shows);
   }
   
   testDisplayNetworkGroups(
@@ -185,8 +177,7 @@ describe('ConsoleOutputServiceImpl', () => {
       getConfig: jest.fn(),
       getCliOptions: jest.fn(),
       getShowOptions: jest.fn(),
-      getShowOption: jest.fn(),
-      getHelpText: jest.fn()
+      getShowOption: jest.fn()
     } as jest.Mocked<ConfigService>;
     
     // Set up mock returns
@@ -207,7 +198,8 @@ describe('ConsoleOutputServiceImpl', () => {
     mockConfigService.getCliOptions.mockReturnValue({
       debug: false,
       date: '2023-01-01',
-      help: false
+      help: false,
+      groupByNetwork: true
     } as CliOptions);
     
     // Create the service with our test subclass
@@ -490,27 +482,6 @@ describe('ConsoleOutputServiceImpl', () => {
     });
   });
   
-  describe('groupShowsByNetwork', () => {
-    it('should group shows by network', () => {
-      // Act
-      const networkGroups = service.testGroupShowsByNetwork(shows);
-      
-      // Assert
-      expect(Object.keys(networkGroups).length).toBe(3);
-      expect(networkGroups['ABC'].length).toBe(2);
-      expect(networkGroups['NBC'].length).toBe(1);
-      expect(networkGroups['FOX'].length).toBe(1);
-    });
-    
-    it('should handle empty shows array', () => {
-      // Act
-      const networkGroups = service.testGroupShowsByNetwork([]);
-      
-      // Assert
-      expect(Object.keys(networkGroups).length).toBe(0);
-    });
-  });
-  
   describe('sortShowsByTime', () => {
     it('should sort shows by airtime', () => {
       // Create test data with specific airtimes
@@ -555,31 +526,73 @@ describe('ConsoleOutputServiceImpl', () => {
     });
   });
 
-  describe('parseArguments', () => {
-    it('should parse command line arguments correctly', () => {
-      // Arrange
-      const args = ['--date', '2023-05-15', '--country', 'UK', '--debug'];
-      
+  describe('isInitialized', () => {
+    it('should return true when all dependencies are initialized', () => {
       // Act
-      const parsedArgs = service.parseArguments(args);
+      const result = service.isInitialized();
       
       // Assert
-      expect(parsedArgs.date).toBe('2023-05-15');
-      expect(parsedArgs.country).toBe('UK');
-      expect(parsedArgs.debug).toBe(true);
+      expect(result).toBe(true);
     });
     
-    it('should use default values when arguments are not provided', () => {
-      // Arrange
-      const args: string[] = [];
+    it('should return false when formatter is not initialized', () => {
+      // Arrange - create a service with null formatter
+      const testService = new TestConsoleOutputService(
+        null as unknown as ShowFormatter,
+        mockConsoleOutput,
+        mockConfigService,
+        true // Skip initialization
+      );
+      
+      // Set other dependencies manually
+      testService['output'] = mockConsoleOutput;
+      testService['configService'] = mockConfigService;
       
       // Act
-      const parsedArgs = service.parseArguments(args);
+      const result = testService.isInitialized();
       
       // Assert
-      expect(parsedArgs.date).toBe(getTodayDate());
-      expect(parsedArgs.country).toBe('US');
-      expect(parsedArgs.debug).toBe(false);
+      expect(result).toBe(false);
+    });
+    
+    it('should return false when output is not initialized', () => {
+      // Arrange - create a service with null output
+      const testService = new TestConsoleOutputService(
+        mockShowFormatter,
+        null as unknown as ConsoleOutput,
+        mockConfigService,
+        true // Skip initialization
+      );
+      
+      // Set other dependencies manually
+      testService['formatter'] = mockShowFormatter;
+      testService['configService'] = mockConfigService;
+      
+      // Act
+      const result = testService.isInitialized();
+      
+      // Assert
+      expect(result).toBe(false);
+    });
+    
+    it('should return false when configService is not initialized', () => {
+      // Arrange - create a service with null configService
+      const testService = new TestConsoleOutputService(
+        mockShowFormatter,
+        mockConsoleOutput,
+        null as unknown as ConfigService,
+        true // Skip initialization
+      );
+      
+      // Set other dependencies manually
+      testService['formatter'] = mockShowFormatter;
+      testService['output'] = mockConsoleOutput;
+      
+      // Act
+      const result = testService.isInitialized();
+      
+      // Assert
+      expect(result).toBe(false);
     });
   });
 });
