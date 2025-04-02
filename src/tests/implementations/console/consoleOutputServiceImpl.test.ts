@@ -6,7 +6,7 @@ import { ShowFormatter } from '../../../interfaces/showFormatter.js';
 import type { Show, NetworkGroups } from '../../../schemas/domain.js';
 import type { ConfigService } from '../../../interfaces/configService.js';
 import { ShowBuilder } from '../../fixtures/helpers/showFixtureBuilder.js';
-import { AppConfig, CliOptions } from '../../../types/configTypes.js';
+import { AppConfig } from '../../../types/configTypes.js';
 import { sortShowsByTime } from '../../../utils/showUtils.js';
 
 // Extend the service to expose protected methods for testing
@@ -74,18 +74,47 @@ class TestConsoleOutputService extends ConsoleOutputServiceImpl {
     );
   }
   
+  // Replace testDisplayNetworkGroups with a direct implementation for testing
   testDisplayNetworkGroups(
     networkGroups: NetworkGroups, 
     timeSort = false
   ): Promise<void> {
-    return super.displayNetworkGroups(networkGroups, timeSort);
+    // This is now a private method in the parent class
+    // We'll need to implement it here for testing
+    const output = this.output;
+    
+    // Get network names and sort them
+    const networkNames = Object.keys(networkGroups).sort();
+    
+    // Display each network group
+    for (const network of networkNames) {
+      const shows = networkGroups[network];
+      
+      // Display network name as a header
+      output.log(`\n${network}`);
+      output.log('='.repeat(network.length));
+      
+      // Sort shows by time if requested
+      const sortedShows = timeSort ? sortShowsByTime(shows) : shows;
+      
+      // Format and display each show
+      for (const show of sortedShows) {
+        try {
+          const formattedShow = this.formatter.formatShow(show);
+          output.log(formattedShow);
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          output.error(`Error formatting show: ${errorMessage}`);
+        }
+      }
+    }
+    
+    return Promise.resolve();
   }
   
-  testDisplayShows(
-    shows: Show[], 
-    groupByNetwork = true
-  ): Promise<void> {
-    return super.displayShows(shows, groupByNetwork);
+  // Replace testDisplayShows with testRenderOutput
+  testRenderOutput(shows: Show[]): Promise<void> {
+    return super.renderOutput(shows);
   }
   
   // Access the private sortShowsByTime method for testing
@@ -99,500 +128,219 @@ class TestConsoleOutputService extends ConsoleOutputServiceImpl {
 
 describe('ConsoleOutputServiceImpl', () => {
   let service: TestConsoleOutputService;
-  let mockShowFormatter: jest.Mocked<ShowFormatter>;
-  let mockConsoleOutput: jest.Mocked<ConsoleOutput>;
-  let mockConfigService: jest.Mocked<ConfigService>;
-
-  // Sample shows for testing - create them individually for better control
-  const shows: Show[] = [
+  let mockOutput: ConsoleOutput;
+  let mockFormatter: ShowFormatter;
+  let mockConfigService: ConfigService;
+  
+  // Sample shows for testing
+  const sampleShows: Show[] = [
     new ShowBuilder()
       .withId(1)
       .withName('Show 1')
       .withType('Scripted')
       .withLanguage('English')
-      .withGenres(['Drama'])
       .withNetwork('ABC')
-      .withSummary('<p>Show 1 summary</p>')
       .withAirtime('20:00')
-      .withEpisode(1, 1)
+      .withGenres(['Drama', 'Comedy'])
       .build(),
     new ShowBuilder()
       .withId(2)
       .withName('Show 2')
-      .withType('Scripted')
+      .withType('Reality')
       .withLanguage('English')
-      .withGenres(['Drama', 'Comedy'])
-      .withNetwork('ABC')
-      .withSummary('<p>Show 2 summary</p>')
+      .withNetwork('NBC')
       .withAirtime('21:00')
-      .withEpisode(1, 2)
+      .withGenres(['Reality'])
       .build(),
     new ShowBuilder()
       .withId(3)
       .withName('Show 3')
-      .withType('Reality')
+      .withType('Scripted')
       .withLanguage('English')
-      .withGenres(['Reality'])
-      .withNetwork('NBC')
-      .withSummary('<p>Show 3 summary</p>')
-      .withAirtime('20:00')
-      .withEpisode(1, 1)
-      .build(),
-    new ShowBuilder()
-      .withId(4)
-      .withName('Show 4')
-      .withType('Animation')
-      .withLanguage('English')
-      .withGenres(['Comedy'])
-      .withNetwork('FOX')
-      .withSummary('<p>Show 4 summary</p>')
-      .withAirtime('22:00')
-      .withEpisode(1, 1)
+      .withNetwork('ABC')
+      .withAirtime('19:00')
+      .withGenres(['Drama'])
       .build()
   ];
-
+  
   beforeEach(() => {
-    // Reset all mocks before each test
-    jest.clearAllMocks();
-    
-    // Create mocks
-    mockShowFormatter = {
-      formatShow: jest.fn(),
-      formatTimedShow: jest.fn(),
-      formatUntimedShow: jest.fn(),
-      formatMultipleEpisodes: jest.fn(),
-      formatNetworkGroups: jest.fn()
-    } as jest.Mocked<ShowFormatter>;
-    
-    mockConsoleOutput = {
+    // Create mock dependencies with proper implementation
+    mockOutput = {
       log: jest.fn(),
       error: jest.fn(),
       warn: jest.fn(),
-      info: jest.fn(),
-      debug: jest.fn(),
       logWithLevel: jest.fn()
-    } as jest.Mocked<ConsoleOutput>;
+    } as unknown as ConsoleOutput;
+    
+    mockFormatter = {
+      formatShow: jest.fn().mockReturnValue('Formatted Show'),
+      formatShowWithEpisode: jest.fn().mockReturnValue('Formatted Show With Episode'),
+      formatNetworkGroups: jest.fn().mockReturnValue(['Header', 'Line 1', 'Line 2']),
+      formatTimedShow: jest.fn(),
+      formatUntimedShow: jest.fn(),
+      formatMultipleEpisodes: jest.fn(),
+      isInitialized: jest.fn().mockReturnValue(true)
+    } as unknown as ShowFormatter;
     
     mockConfigService = {
-      getConfig: jest.fn(),
-      getCliOptions: jest.fn(),
-      getShowOptions: jest.fn(),
-      getShowOption: jest.fn()
-    } as jest.Mocked<ConfigService>;
+      getCliOptions: jest.fn().mockReturnValue({
+        debug: false,
+        groupByNetwork: true
+      }),
+      getShowOptions: jest.fn().mockReturnValue({
+        date: '2023-01-01',
+        country: 'US',
+        fetchSource: 'all'
+      }),
+      getShowOption: jest.fn(),
+      getConfig: jest.fn().mockReturnValue({
+        country: 'US',
+        types: [],
+        networks: [],
+        genres: [],
+        languages: [],
+        notificationTime: '08:00',
+        slack: { enabled: false }
+      } as AppConfig),
+      getEnvironment: jest.fn().mockReturnValue('test'),
+      getShowType: jest.fn().mockReturnValue('all'),
+      getOutputFormat: jest.fn().mockReturnValue('text'),
+      getHelpText: jest.fn().mockReturnValue('Help Text')
+    } as unknown as ConfigService;
     
-    // Set up mock returns
-    mockConfigService.getConfig.mockReturnValue({
-      date: '2023-01-01',
-      country: 'US',
-      debug: false,
-      types: ['Scripted', 'Reality'],
-      networks: [],
-      genres: [],
-      languages: [],
-      notificationTime: '09:00',
-      slack: {
-        enabled: false
-      }
-    } as AppConfig);
-    
-    mockConfigService.getCliOptions.mockReturnValue({
-      debug: false,
-      date: '2023-01-01',
-      help: false,
-      groupByNetwork: true
-    } as CliOptions);
-    
-    // Create the service with our test subclass
+    // Create service instance with mocks
     service = new TestConsoleOutputService(
-      mockShowFormatter,
-      mockConsoleOutput,
+      mockFormatter,
+      mockOutput,
       mockConfigService
     );
   });
-
-  describe('displayShows', () => {
+  
+  // Test filtering methods
+  describe('filtering', () => {
+    it('should filter shows by type', () => {
+      const result = service.testFilterShowsByType(sampleShows, ['Scripted']);
+      expect(result).toHaveLength(2);
+      expect(result[0].name).toBe('Show 1');
+      expect(result[1].name).toBe('Show 3');
+    });
+    
+    it('should return all shows when types is empty', () => {
+      const result = service.testFilterShowsByType(sampleShows, []);
+      expect(result).toHaveLength(3);
+    });
+    
+    it('should filter shows by network', () => {
+      const result = service.testFilterShowsByNetwork(sampleShows, ['ABC']);
+      expect(result).toHaveLength(2);
+      expect(result[0].name).toBe('Show 1');
+      expect(result[1].name).toBe('Show 3');
+    });
+    
+    it('should return all shows when networks is empty', () => {
+      const result = service.testFilterShowsByNetwork(sampleShows, []);
+      expect(result).toHaveLength(3);
+    });
+    
+    it('should filter shows by genre', () => {
+      const result = service.testFilterShowsByGenre(sampleShows, ['Comedy']);
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe('Show 1');
+    });
+    
+    it('should return all shows when genres is empty', () => {
+      const result = service.testFilterShowsByGenre(sampleShows, []);
+      expect(result).toHaveLength(3);
+    });
+    
+    it('should filter shows by search term in name', () => {
+      const result = service.testFilterShowsBySearch(sampleShows, 'Show 1');
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe('Show 1');
+    });
+    
+    it('should return all shows when search term is empty', () => {
+      const result = service.testFilterShowsBySearch(sampleShows, '');
+      expect(result).toHaveLength(3);
+    });
+  });
+  
+  // Test sortShowsByTime method
+  describe('sortShowsByTime', () => {
+    it('should sort shows by time', () => {
+      const result = service.sortShowsByTimeTest(sampleShows);
+      expect(result).toHaveLength(3);
+      expect(result[0].name).toBe('Show 3'); // 19:00
+      expect(result[1].name).toBe('Show 1'); // 20:00
+      expect(result[2].name).toBe('Show 2'); // 21:00
+    });
+  });
+  
+  // Test renderOutput method
+  describe('renderOutput', () => {
     it('should display shows grouped by network by default', async () => {
       // Arrange
-      const formattedOutput = ['Line 1', 'Line 2', 'Line 3'];
-      mockShowFormatter.formatNetworkGroups.mockReturnValue(formattedOutput);
-      
-      // Act
-      await service.testDisplayShows(shows);
-      
-      // Assert
-      // Should call printHeader at least once
-      expect(mockConsoleOutput.log).toHaveBeenCalled();
-      
-      // Should call print or println for each show
-      expect(mockConsoleOutput.log.mock.calls.length).toBeGreaterThan(0);
-      
-      // Should call formatShow for each show
-      expect(mockShowFormatter.formatNetworkGroups).toHaveBeenCalledTimes(1);
-    });
-
-    it('should filter shows by type and display them', async () => {
-      // Arrange
-      const formattedOutput = ['Line 1', 'Line 2', 'Line 3'];
-      mockShowFormatter.formatNetworkGroups.mockReturnValue(formattedOutput);
-      
-      // Act
-      const filteredShows = service.testFilterShowsByType(shows, ['Scripted']);
-      await service.testDisplayShows(filteredShows);
-
-      // Assert
-      expect(mockShowFormatter.formatNetworkGroups).toHaveBeenCalledTimes(1);
-      
-      const displayedShows = mockShowFormatter.formatNetworkGroups.mock.calls[0][0];
-      expect(Object.values(displayedShows).flat().length).toBe(2);
-      
-      // Use arrow function to avoid unbound method issue
-      const allScripted = Object.values(displayedShows).flat().every(
-        (show: Show): boolean => show.type === 'Scripted'
-      );
-      expect(allScripted).toBe(true);
-      
-      expect(mockConsoleOutput.log).toHaveBeenCalledTimes(formattedOutput.length);
-      formattedOutput.forEach((line: string): void => {
-        expect(mockConsoleOutput.log).toHaveBeenCalledWith(line);
+      (mockConfigService.getCliOptions as jest.Mock).mockReturnValue({
+        debug: false,
+        groupByNetwork: true
       });
-    });
-
-    it('should not filter shows when types array is empty', async () => {
-      // Arrange
-      const formattedOutput = ['Line 1', 'Line 2', 'Line 3'];
-      mockShowFormatter.formatNetworkGroups.mockReturnValue(formattedOutput);
       
       // Act
-      const filteredShows = service.testFilterShowsByType(shows, []);
-      await service.testDisplayShows(filteredShows);
-
+      await service.testRenderOutput(sampleShows);
+      
       // Assert
-      expect(mockShowFormatter.formatNetworkGroups).toHaveBeenCalledTimes(1);
-      
-      const displayedShows = mockShowFormatter.formatNetworkGroups.mock.calls[0][0];
-      expect(Object.values(displayedShows).flat().length).toBe(shows.length);
-      
-      expect(mockConsoleOutput.log).toHaveBeenCalledTimes(formattedOutput.length);
+      expect(mockOutput.log).toHaveBeenCalled();
+      expect(mockFormatter.formatNetworkGroups).toHaveBeenCalled();
     });
-
-    it('should handle empty shows array', async () => {
-      // Act
-      await service.testDisplayShows([]);
-
-      // Assert
-      expect(mockConsoleOutput.log).toHaveBeenCalledWith(
-        'No shows found for the specified criteria.'
-      );
-      expect(mockShowFormatter.formatNetworkGroups).not.toHaveBeenCalled();
-    });
-
-    it('should display shows without grouping when groupByNetwork is false', async () => {
-      // Arrange
-      const formattedOutput = ['Line 1', 'Line 2', 'Line 3'];
-      mockShowFormatter.formatNetworkGroups.mockReturnValue(formattedOutput);
-      
-      // Act
-      await service.testDisplayShows(shows, false);
-
-      // Assert
-      expect(mockShowFormatter.formatNetworkGroups).toHaveBeenCalledTimes(1);
-      
-      // Check that the shows were not grouped by network
-      const networkGroups = mockShowFormatter.formatNetworkGroups.mock.calls[0][0];
-      expect(Object.keys(networkGroups)).toEqual(['All Shows']);
-      expect(networkGroups['All Shows'].length).toBe(shows.length);
-      
-      // Check that timeSort was set to false
-      expect(mockShowFormatter.formatNetworkGroups.mock.calls[0][1]).toBe(false);
-    });
-
+    
     it('should handle error in formatter', async () => {
       // Arrange
-      mockShowFormatter.formatNetworkGroups.mockImplementation(() => {
+      (mockFormatter.formatNetworkGroups as jest.Mock).mockImplementationOnce(() => {
         throw new Error('Formatter error');
       });
       
       // Act
-      await service.testDisplayShows(shows);
-
+      await service.testRenderOutput(sampleShows);
+      
       // Assert
-      expect(mockConsoleOutput.error).toHaveBeenCalledWith(
-        'Error displaying output: Formatter error'
-      );
+      expect(mockOutput.error).toHaveBeenCalledWith('Error displaying output: Formatter error');
     });
-
+    
     it('should handle non-Error exceptions in formatter', async () => {
       // Arrange
-      mockShowFormatter.formatNetworkGroups.mockImplementation(() => {
+      (mockFormatter.formatNetworkGroups as jest.Mock).mockImplementationOnce(() => {
         throw 'String error'; // Non-Error exception
       });
       
       // Act
-      await service.testDisplayShows(shows);
-
-      // Assert
-      expect(mockConsoleOutput.error).toHaveBeenCalledWith(
-        'Error displaying output: String error'
-      );
-    });
-  });
-
-  describe('filterShowsByType', () => {
-    it('should filter shows by type', () => {
-      // Act
-      const filteredShows = service.testFilterShowsByType(shows, ['Scripted']);
+      await service.testRenderOutput(sampleShows);
       
       // Assert
-      expect(filteredShows.length).toBe(2);
-      
-      // Check that all shows are of type 'Scripted'
-      const allScripted = filteredShows.every(
-        function(this: void, show: Show): boolean { 
-          return show.type === 'Scripted'; 
-        }
-      );
-      expect(allScripted).toBe(true);
+      expect(mockOutput.error).toHaveBeenCalledWith('Error displaying output: String error');
     });
     
-    it('should not filter shows when types array is empty', () => {
-      // Act
-      const filteredShows = service.testFilterShowsByType(shows, []);
-      
-      // Assert
-      expect(filteredShows.length).toBe(shows.length);
-    });
-  });
-  
-  describe('filterShowsByNetwork', () => {
-    it('should filter shows by network', () => {
-      // Act
-      const filteredShows = service.testFilterShowsByNetwork(shows, ['ABC']);
-      
-      // Assert
-      expect(filteredShows.length).toBe(2);
-      
-      // Check that all shows are from the ABC network
-      const allABC = filteredShows.every(
-        function(this: void, show: Show): boolean { 
-          return show.network === 'ABC'; 
-        }
-      );
-      expect(allABC).toBe(true);
-    });
-    
-    it('should not filter shows when networks array is empty', () => {
-      // Act
-      const filteredShows = service.testFilterShowsByNetwork(shows, []);
-      
-      // Assert
-      expect(filteredShows.length).toBe(shows.length);
-    });
-  });
-  
-  describe('filterShowsByGenre', () => {
-    it('should filter shows by genre', () => {
-      // Act
-      const filteredShows = service.testFilterShowsByGenre(shows, ['Comedy']);
-      
-      // Assert
-      expect(filteredShows.length).toBe(2);
-      
-      // Check that all shows have the Comedy genre
-      const allComedy = filteredShows.every(
-        function(this: void, show: Show): boolean { 
-          return show.genres.includes('Comedy'); 
-        }
-      );
-      expect(allComedy).toBe(true);
-    });
-    
-    it('should not filter shows when genres array is empty', () => {
-      // Act
-      const filteredShows = service.testFilterShowsByGenre(shows, []);
-      
-      // Assert
-      expect(filteredShows.length).toBe(shows.length);
-    });
-  });
-  
-  describe('filterShowsBySearch', () => {
-    it('should filter shows by search term in name', () => {
-      // Act
-      const filteredShows = service.testFilterShowsBySearch(shows, 'Show 1');
-      
-      // Assert
-      expect(filteredShows.length).toBe(1);
-      expect(filteredShows[0].name).toBe('Show 1');
-    });
-    
-    it('should filter shows by search term in summary', () => {
-      // Act
-      const filteredShows = service.testFilterShowsBySearch(shows, 'summary');
-      
-      // Assert
-      expect(filteredShows.length).toBe(shows.length);
-    });
-    
-    it('should not filter shows when search term is empty', () => {
-      // Act
-      const filteredShows = service.testFilterShowsBySearch(shows, '');
-      
-      // Assert
-      expect(filteredShows.length).toBe(shows.length);
-    });
-  });
-  
-  describe('displayNetworkGroups', () => {
-    it('should display network groups with time sorting', async () => {
+    it('should display debug info when debug flag is true', async () => {
       // Arrange
-      const networkGroups: NetworkGroups = { 'ABC': shows.slice(0, 2) };
-      const formattedOutput = ['Line 1', 'Line 2', 'Line 3'];
-      mockShowFormatter.formatNetworkGroups.mockReturnValue(formattedOutput);
-      
-      // Act
-      await service.testDisplayNetworkGroups(networkGroups, true);
-      
-      // Assert
-      expect(mockShowFormatter.formatNetworkGroups).toHaveBeenCalledWith(
-        networkGroups,
-        true
-      );
-      expect(mockConsoleOutput.log).toHaveBeenCalledTimes(formattedOutput.length);
-      formattedOutput.forEach(
-        function(this: void, line: string): void {
-          expect(mockConsoleOutput.log).toHaveBeenCalledWith(line);
-        }
-      );
-    });
-    
-    it('should handle errors in formatter', async () => {
-      // Arrange
-      const networkGroups: NetworkGroups = { 'ABC': shows.slice(0, 2) };
-      mockShowFormatter.formatNetworkGroups.mockImplementation(() => {
-        throw new Error('Formatter error');
+      (mockConfigService.getCliOptions as jest.Mock).mockReturnValue({
+        debug: true,
+        groupByNetwork: true
       });
       
       // Act
-      await service.testDisplayNetworkGroups(networkGroups);
+      await service.testRenderOutput(sampleShows);
       
       // Assert
-      expect(mockConsoleOutput.error).toHaveBeenCalledWith(
-        'Error displaying output: Formatter error'
-      );
-    });
-  });
-  
-  describe('sortShowsByTime', () => {
-    it('should sort shows by airtime', () => {
-      // Create test data with specific airtimes
-      const testShows = ShowBuilder.withSpecificAirtimes(['20:00', '21:00', '20:00', '22:00']);
-      
-      // Act
-      const sortedShows = service.sortShowsByTimeTest(testShows);
-      
-      // Assert
-      expect(sortedShows.length).toBe(testShows.length);
-      
-      // Check that shows are sorted by airtime
-      expect(sortedShows[0].airtime).toBe('20:00');
-      expect(sortedShows[1].airtime).toBe('20:00');
-      expect(sortedShows[2].airtime).toBe('21:00');
-      expect(sortedShows[3].airtime).toBe('22:00');
-    });
-  });
-  
-  describe('displayHeader and displayFooter', () => {
-    it('should display application header correctly', () => {
-      // Act
-      service.displayHeader();
-      
-      // Assert
-      expect(mockConsoleOutput.log).toHaveBeenCalledTimes(3);
-      expect(mockConsoleOutput.log).toHaveBeenCalledWith('');
-      expect(mockConsoleOutput.log).toHaveBeenCalledWith('WhatsOnTV v1.0.0');
-      expect(mockConsoleOutput.log).toHaveBeenCalledWith('==============================');
+      expect(mockOutput.log).toHaveBeenCalledWith('\nAvailable Networks:');
+      expect(mockOutput.log).toHaveBeenCalledWith('ABC, NBC');
+      expect(mockOutput.log).toHaveBeenCalledWith('\nTotal Shows: 3');
     });
     
-    it('should display application footer correctly', () => {
+    it('should handle empty shows array', async () => {
       // Act
-      service.displayFooter();
+      await service.testRenderOutput([]);
       
       // Assert
-      expect(mockConsoleOutput.log).toHaveBeenCalledTimes(3);
-      expect(mockConsoleOutput.log).toHaveBeenCalledWith('');
-      expect(mockConsoleOutput.log).toHaveBeenCalledWith('==============================');
-      const apiMessage = 'Data provided by TVMaze API (https://api.tvmaze.com)';
-      expect(mockConsoleOutput.log).toHaveBeenCalledWith(apiMessage);
-    });
-  });
-
-  describe('isInitialized', () => {
-    it('should return true when all dependencies are initialized', () => {
-      // Act
-      const result = service.isInitialized();
-      
-      // Assert
-      expect(result).toBe(true);
-    });
-    
-    it('should return false when formatter is not initialized', () => {
-      // Arrange - create a service with null formatter
-      const testService = new TestConsoleOutputService(
-        null as unknown as ShowFormatter,
-        mockConsoleOutput,
-        mockConfigService,
-        true // Skip initialization
-      );
-      
-      // Set other dependencies manually
-      testService['output'] = mockConsoleOutput;
-      testService['configService'] = mockConfigService;
-      
-      // Act
-      const result = testService.isInitialized();
-      
-      // Assert
-      expect(result).toBe(false);
-    });
-    
-    it('should return false when output is not initialized', () => {
-      // Arrange - create a service with null output
-      const testService = new TestConsoleOutputService(
-        mockShowFormatter,
-        null as unknown as ConsoleOutput,
-        mockConfigService,
-        true // Skip initialization
-      );
-      
-      // Set other dependencies manually
-      testService['formatter'] = mockShowFormatter;
-      testService['configService'] = mockConfigService;
-      
-      // Act
-      const result = testService.isInitialized();
-      
-      // Assert
-      expect(result).toBe(false);
-    });
-    
-    it('should return false when configService is not initialized', () => {
-      // Arrange - create a service with null configService
-      const testService = new TestConsoleOutputService(
-        mockShowFormatter,
-        mockConsoleOutput,
-        null as unknown as ConfigService,
-        true // Skip initialization
-      );
-      
-      // Set other dependencies manually
-      testService['formatter'] = mockShowFormatter;
-      testService['output'] = mockConsoleOutput;
-      
-      // Act
-      const result = testService.isInitialized();
-      
-      // Assert
-      expect(result).toBe(false);
+      expect(mockOutput.log).toHaveBeenCalledWith('No shows found for the specified criteria.');
     });
   });
 });

@@ -2,28 +2,18 @@ import type { Show } from '../schemas/domain.js';
 
 /**
  * Interface for output services that display TV show information
+ * 
+ * This interface provides a single method for rendering TV show data.
+ * Implementations are responsible for handling all aspects of output
+ * including headers, footers, and formatting based on their injected
+ * configuration service.
  */
 export interface OutputService {
   /**
-   * Display TV shows to the user
+   * Execute the complete output workflow: display header, shows data, and footer
+   * Configuration options should be obtained from the injected ConfigService
+   * 
    * @param shows List of shows to display
-   * @param groupByNetwork Whether to group shows by network (default: true)
    */
-  displayShows(shows: Show[], groupByNetwork?: boolean): Promise<void>;
-  
-  /**
-   * Check if the service is properly initialized
-   * @returns True if initialized, false otherwise
-   */
-  isInitialized(): boolean;
-  
-  /**
-   * Display application header
-   */
-  displayHeader(): void;
-  
-  /**
-   * Display application footer
-   */
-  displayFooter(): void;
+  renderOutput(shows: Show[]): Promise<void>;
 }

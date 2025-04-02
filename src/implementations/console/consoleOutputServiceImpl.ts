@@ -57,12 +57,39 @@ export class ConsoleOutputServiceImpl implements OutputService {
   }
 
   /**
+   * Execute the complete output workflow: display header, shows data, and footer
+   * @param shows Array of TV shows to display
+   * @returns Promise that resolves when output is complete
+   */
+  public async renderOutput(shows: Show[]): Promise<void> {
+    // Get config options directly from the injected ConfigService
+    const cliOptions = this.configService.getCliOptions();
+    const groupByNetwork = cliOptions.groupByNetwork ?? true;
+    const debug = cliOptions.debug ?? false;
+    
+    // Display header
+    this.displayHeader();
+    
+    // Show debug info if needed
+    if (debug) {
+      this.displayDebugInfo(shows);
+    }
+    
+    // Display shows data
+    await this.displayShowsData(shows, groupByNetwork);
+    
+    // Display footer
+    this.displayFooter();
+  }
+
+  /**
    * Display TV shows based on the groupByNetwork option
    * @param shows Array of TV shows to display
-   * @param groupByNetwork Whether to group shows by network (default: true)
+   * @param groupByNetwork Whether to group shows by network
    * @returns Promise that resolves when shows are displayed
+   * @private
    */
-  public async displayShows(shows: Show[], groupByNetwork: boolean = true): Promise<void> {
+  private async displayShowsData(shows: Show[], groupByNetwork: boolean): Promise<void> {
     if (shows.length === 0) {
       this.output.log('No shows found for the specified criteria.');
       return;
@@ -92,13 +119,13 @@ export class ConsoleOutputServiceImpl implements OutputService {
   }
 
   /**
-   * Display shows grouped by network
+   * Display network groups of shows
    * @param networkGroups Shows grouped by network
-   * @param timeSort Whether to sort shows by time within each network 
-   *                (optional, for backward compatibility)
+   * @param timeSort Whether to sort shows by time within each network
    * @returns Promise that resolves when shows are displayed
+   * @private
    */
-  public async displayNetworkGroups(
+  private async displayNetworkGroups(
     networkGroups: NetworkGroups,
     timeSort: boolean = false
   ): Promise<void> {
@@ -120,24 +147,10 @@ export class ConsoleOutputServiceImpl implements OutputService {
   }
 
   /**
-   * Check if the service is properly initialized
-   * @returns True if the service is ready to use
-   */
-  public isInitialized(): boolean {
-    return (
-      this.output !== null &&
-      this.output !== undefined &&
-      this.formatter !== null &&
-      this.formatter !== undefined &&
-      this.configService !== null &&
-      this.configService !== undefined
-    );
-  }
-
-  /**
    * Display application header
+   * @private
    */
-  public displayHeader(): void {
+  private displayHeader(): void {
     // Use package version (hardcoded for now, could be imported from package.json)
     const version = '1.0.0';
     
@@ -153,14 +166,34 @@ export class ConsoleOutputServiceImpl implements OutputService {
   
   /**
    * Display application footer
+   * @private
    */
-  public displayFooter(): void {
+  private displayFooter(): void {
     const separator = this.createSeparator();
     
     // Display footer
     this.output.log('');
     this.output.log(separator);
     this.output.log('Data provided by TVMaze API (https://api.tvmaze.com)');
+  }
+
+  /**
+   * Display debug information about shows
+   * @param shows Array of TV shows
+   * @private
+   */
+  private displayDebugInfo(shows: Show[]): void {
+    const uniqueNetworks = new Set<string>();
+    
+    for (const show of shows) {
+      if (show.network && typeof show.network === 'string') {
+        uniqueNetworks.add(show.network);
+      }
+    }
+    
+    this.output.log('\nAvailable Networks:');
+    this.output.log([...uniqueNetworks].sort().join(', '));
+    this.output.log(`\nTotal Shows: ${shows.length}`);
   }
 
   /**
