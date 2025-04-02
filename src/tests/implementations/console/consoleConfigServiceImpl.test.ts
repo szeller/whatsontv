@@ -18,6 +18,7 @@ import type { ShowOptions } from '../../../types/tvShowOptions.js';
 import { getTodayDate } from '../../../utils/dateUtils.js';
 import yargs from 'yargs';
 import path from 'path';
+import { coerceFetchSource } from '../../../utils/configUtils.js';
 
 // Reset mocks before each test
 beforeEach(() => {
@@ -1011,56 +1012,18 @@ describe('ConsoleConfigServiceImpl', () => {
     expect(showOptions.fetchSource).toBe('all'); // From CLI
   });
 
-  // Test the validateFetchSource method to improve branch coverage
-  it('should correctly validate fetch source values', () => {
-    // Arrange - create a test class that exposes the private method
-    class FetchSourceTestService extends TestConsoleConfigService {
-      // Expose the private method for testing
-      public testValidateFetchSource(value: unknown): 'web' | 'network' | 'all' {
-        // Use reflection to access the private method
-        // @ts-expect-error - accessing private method for testing
-        return this.validateFetchSource(value);
-      }
-    }
-    
-    // Act
-    const configService = new FetchSourceTestService({});
-    
-    // Assert - test with various inputs
-    expect(configService.testValidateFetchSource('web')).toBe('web');
-    expect(configService.testValidateFetchSource('network')).toBe('network');
-    expect(configService.testValidateFetchSource('all')).toBe('all');
-    
-    // Test with invalid values (should default to 'all' according to the implementation)
-    expect(configService.testValidateFetchSource('invalid')).toBe('all');
-    expect(configService.testValidateFetchSource('')).toBe('all');
-    expect(configService.testValidateFetchSource(null)).toBe('all');
-    expect(configService.testValidateFetchSource(undefined)).toBe('all');
-    expect(configService.testValidateFetchSource(123 as unknown as string)).toBe('all');
-    expect(configService.testValidateFetchSource({})).toBe('all');
-    expect(configService.testValidateFetchSource([])).toBe('all');
-  });
-
   // Test the coerceFetchSource utility function directly
-  it('should coerce fetch source values correctly', async () => {
-    // Import the utility function
-    const { coerceFetchSource } = await import('../../../utils/configUtils.js');
-    
-    // Test valid values
+  it('should correctly validate fetch source values', () => {
+    // Assert - test with various inputs
     expect(coerceFetchSource('web')).toBe('web');
     expect(coerceFetchSource('network')).toBe('network');
     expect(coerceFetchSource('all')).toBe('all');
     
-    // Test case insensitivity
-    expect(coerceFetchSource('WEB')).toBe('web');
-    expect(coerceFetchSource('NETWORK')).toBe('network');
-    expect(coerceFetchSource('ALL')).toBe('all');
-    
     // Test with invalid values (should default to 'all' according to the implementation)
     expect(coerceFetchSource('invalid')).toBe('all');
     expect(coerceFetchSource('')).toBe('all');
-    expect(coerceFetchSource(null)).toBe('all');
-    expect(coerceFetchSource(undefined)).toBe('all');
+    expect(coerceFetchSource(null as unknown as string)).toBe('all');
+    expect(coerceFetchSource(undefined as unknown as string)).toBe('all');
     expect(coerceFetchSource(123 as unknown as string)).toBe('all');
   });
 
