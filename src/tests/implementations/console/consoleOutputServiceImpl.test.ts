@@ -8,7 +8,6 @@ import type { ConfigService } from '../../../interfaces/configService.js';
 import { ShowBuilder } from '../../fixtures/helpers/showFixtureBuilder.js';
 import { AppConfig, CliOptions } from '../../../types/configTypes.js';
 import { sortShowsByTime } from '../../../utils/showUtils.js';
-import { getTodayDate } from '../../../utils/dateUtils.js';
 
 // Extend the service to expose protected methods for testing
 class TestConsoleOutputService extends ConsoleOutputServiceImpl {
@@ -73,13 +72,6 @@ class TestConsoleOutputService extends ConsoleOutputServiceImpl {
       (show.summary !== undefined && show.summary !== null && 
        show.summary.toLowerCase().includes(term))
     );
-  }
-  
-  // Expose protected methods for testing
-  testGroupShowsByNetwork(
-    shows: Show[]
-  ): NetworkGroups {
-    return super.groupShowsByNetwork(shows);
   }
   
   testDisplayNetworkGroups(
@@ -490,27 +482,6 @@ describe('ConsoleOutputServiceImpl', () => {
     });
   });
   
-  describe('groupShowsByNetwork', () => {
-    it('should group shows by network', () => {
-      // Act
-      const networkGroups = service.testGroupShowsByNetwork(shows);
-      
-      // Assert
-      expect(Object.keys(networkGroups).length).toBe(3);
-      expect(networkGroups['ABC'].length).toBe(2);
-      expect(networkGroups['NBC'].length).toBe(1);
-      expect(networkGroups['FOX'].length).toBe(1);
-    });
-    
-    it('should handle empty shows array', () => {
-      // Act
-      const networkGroups = service.testGroupShowsByNetwork([]);
-      
-      // Assert
-      expect(Object.keys(networkGroups).length).toBe(0);
-    });
-  });
-  
   describe('sortShowsByTime', () => {
     it('should sort shows by airtime', () => {
       // Create test data with specific airtimes
@@ -555,88 +526,6 @@ describe('ConsoleOutputServiceImpl', () => {
     });
   });
 
-  describe('parseArguments', () => {
-    it('should parse command line arguments correctly', () => {
-      // Arrange
-      const args = ['--date', '2023-05-15', '--country', 'UK', '--debug'];
-      
-      // Act
-      const parsedArgs = service.parseArguments(args);
-      
-      // Assert
-      expect(parsedArgs.date).toBe('2023-05-15');
-      expect(parsedArgs.country).toBe('UK');
-      expect(parsedArgs.debug).toBe(true);
-    });
-    
-    it('should use default values when arguments are not provided', () => {
-      // Arrange
-      const args: string[] = [];
-      
-      // Act
-      const parsedArgs = service.parseArguments(args);
-      
-      // Assert
-      expect(parsedArgs.date).toBe(getTodayDate());
-      expect(parsedArgs.country).toBe('US');
-      expect(parsedArgs.debug).toBe(false);
-    });
-  });
-  
-  describe('parseArgs', () => {
-    it('should parse command line arguments with explicit args', () => {
-      // Arrange
-      const args = ['--date', '2023-05-15', '--country', 'UK', '--debug'];
-      
-      // Act
-      const parsedArgs = service.parseArgs(args);
-      
-      // Assert
-      expect(parsedArgs.date).toBe('2023-05-15');
-      expect(parsedArgs.country).toBe('UK');
-      expect(parsedArgs.debug).toBe(true);
-    });
-    
-    it('should parse command line arguments with process.argv when args not provided', () => {
-      // Save the original process.argv
-      const originalProcessArgv = process.argv;
-      
-      try {
-        // Mock process.argv
-        process.argv = ['node', 'script.js', '--date', '2023-06-01', '--country', 'CA'];
-        
-        // Act
-        const parsedArgs = service.parseArgs();
-        
-        // Assert
-        expect(parsedArgs.date).toBe('2023-06-01');
-        expect(parsedArgs.country).toBe('CA');
-      } finally {
-        // Restore process.argv
-        process.argv = originalProcessArgv;
-      }
-    });
-    
-    it('should handle comma-separated values for array options', () => {
-      // Arrange
-      const args = [
-        '--types', 'Scripted,Reality',
-        '--networks', 'ABC,NBC',
-        '--genres', 'Drama,Comedy',
-        '--languages', 'English,Spanish'
-      ];
-      
-      // Act
-      const parsedArgs = service.parseArgs(args);
-      
-      // Assert
-      expect(parsedArgs.types).toEqual(['Scripted', 'Reality']);
-      expect(parsedArgs.networks).toEqual(['ABC', 'NBC']);
-      expect(parsedArgs.genres).toEqual(['Drama', 'Comedy']);
-      expect(parsedArgs.languages).toEqual(['English', 'Spanish']);
-    });
-  });
-  
   describe('isInitialized', () => {
     it('should return true when all dependencies are initialized', () => {
       // Act

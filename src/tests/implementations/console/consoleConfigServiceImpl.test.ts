@@ -33,7 +33,6 @@ class TestConsoleConfigService extends ConsoleConfigServiceImpl {
   private mockConfigPath = '/mock/path/config.json';
   private mockCliArgs: Partial<CliArgs> = {
     date: getTodayDate(),
-    help: false,
     debug: false,
     fetch: 'network',
     types: [],
@@ -338,7 +337,6 @@ describe('ConsoleConfigServiceImpl', () => {
     const cliOptions = configService.getCliOptions();
     expect(cliOptions).toEqual({
       debug: true,
-      help: false,
       groupByNetwork: false
     });
   });
@@ -412,7 +410,6 @@ describe('ConsoleConfigServiceImpl', () => {
     expect(parsedArgs.genres).toEqual(['thriller', 'action']);
     expect(parsedArgs.languages).toEqual(['English', 'French']);
     expect(parsedArgs.debug).toBe(true);
-    expect(parsedArgs.help).toBe(false);
     expect(parsedArgs.fetch).toBe('all');
   });
 
@@ -492,7 +489,6 @@ describe('ConsoleConfigServiceImpl', () => {
     }));
     expect(configService.getCliOptions()).toEqual({
       debug: false,
-      help: false,
       groupByNetwork: false
     });
   });
@@ -726,7 +722,6 @@ describe('ConsoleConfigServiceImpl', () => {
           networks: [],
           genres: [],
           languages: [],
-          help: false,
           debug: true,
           fetch: 'network',
           groupByNetwork: false
@@ -784,7 +779,6 @@ describe('ConsoleConfigServiceImpl', () => {
           networks: ['HBO', 'Showtime'], // Should override config
           genres: [], // Empty array should fall back to config
           languages: ['French'], // Should override config
-          help: false,
           debug: false,
           fetch: 'all',
           groupByNetwork: true

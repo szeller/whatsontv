@@ -24,11 +24,6 @@ export interface CliArgs {
   networks: string[];
   
   /**
-   * Whether to show help information
-   */
-  help: boolean;
-  
-  /**
    * Whether to enable debug mode
    */
   debug: boolean;

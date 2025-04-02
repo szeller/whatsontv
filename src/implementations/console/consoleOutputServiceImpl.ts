@@ -1,6 +1,5 @@
 import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
-import yargs from 'yargs';
 
 import type { ConfigService } from '../../interfaces/configService.js';
 import type { ShowFormatter } from '../../interfaces/showFormatter.js';
@@ -9,22 +8,7 @@ import type { OutputService } from '../../interfaces/outputService.js';
 import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
 import type { NetworkGroups } from '../../utils/showUtils.js';
 import { groupShowsByNetwork, sortShowsByTime } from '../../utils/showUtils.js';
-import { getTodayDate } from '../../utils/dateUtils.js';
 import { padString } from '../../utils/stringUtils.js';
-
-/**
- * CLI arguments for the console output service
- */
-export interface ConsoleCliArgs {
-  date: string;
-  country: string;
-  types: string[];
-  networks: string[];
-  genres: string[];
-  languages: string[];
-  debug: boolean;
-  fetch: 'network' | 'web' | 'all';
-}
 
 /**
  * Console output service for displaying TV show information
@@ -89,7 +73,7 @@ export class ConsoleOutputServiceImpl implements OutputService {
     
     // Group shows by network if requested
     const networkGroups = groupByNetwork 
-      ? this.groupShowsByNetwork(sortedShows) 
+      ? groupShowsByNetwork(sortedShows) 
       : { 'All Shows': sortedShows };
     
     try {
@@ -105,16 +89,6 @@ export class ConsoleOutputServiceImpl implements OutputService {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.output.error(`Error displaying output: ${errorMessage}`);
     }
-  }
-
-  /**
-   * Group shows by network
-   * @param shows Array of TV shows to group
-   * @returns Shows grouped by network
-   * @protected
-   */
-  protected groupShowsByNetwork(shows: Show[]): NetworkGroups {
-    return groupShowsByNetwork(shows);
   }
 
   /**
@@ -146,66 +120,6 @@ export class ConsoleOutputServiceImpl implements OutputService {
   }
 
   /**
-   * Parse command line arguments for the CLI
-   * @param args Command line arguments
-   * @returns Parsed arguments object
-   */
-  public parseArguments(args: string[]): ConsoleCliArgs {
-    const parsedArgs = yargs(args)
-      .options({
-        date: {
-          alias: 'd',
-          describe: 'Date to show schedule for (YYYY-MM-DD)',
-          default: getTodayDate(),
-          type: 'string'
-        },
-        country: {
-          alias: 'c',
-          describe: 'Country code (e.g., US)',
-          default: 'US',
-          type: 'string'
-        },
-        types: {
-          alias: 't',
-          describe: 'Show types to include',
-          type: 'array',
-          default: []
-        },
-        networks: {
-          alias: 'n',
-          describe: 'Networks to include',
-          type: 'array',
-          default: []
-        },
-        genres: {
-          alias: 'g',
-          describe: 'Genres to include',
-          type: 'array',
-          default: []
-        },
-        languages: {
-          alias: 'l',
-          describe: 'Languages to include',
-          type: 'array',
-          default: []
-        },
-        debug: {
-          describe: 'Show debug information',
-          type: 'boolean',
-          default: false
-        },
-        fetch: {
-          describe: 'Fetch data source (network, web, all)',
-          choices: ['network', 'web', 'all'],
-          default: 'all'
-        }
-      })
-      .argv as ConsoleCliArgs;
-    
-    return parsedArgs;
-  }
-
-  /**
    * Check if the service is properly initialized
    * @returns True if the service is ready to use
    */
@@ -218,67 +132,6 @@ export class ConsoleOutputServiceImpl implements OutputService {
       this.configService !== null &&
       this.configService !== undefined
     );
-  }
-
-  /**
-   * Parse command line arguments
-   * @param args Command line arguments (optional)
-   * @returns Parsed command line arguments
-   */
-  public parseArgs(args?: string[]): ConsoleCliArgs {
-    return yargs(args || process.argv.slice(2))
-      .options({
-        date: {
-          alias: 'd',
-          describe: 'Date to show TV schedule for (YYYY-MM-DD)',
-          type: 'string',
-          default: getTodayDate()
-        },
-        country: {
-          alias: 'c',
-          describe: 'Country code (e.g., US, GB)',
-          type: 'string',
-          default: 'US'
-        },
-        types: {
-          describe: 'Show types to include (e.g., Scripted,Reality)',
-          type: 'string',
-          coerce: (arg: string) => arg.split(',')
-        },
-        networks: {
-          describe: 'Networks to include (e.g., HBO,Netflix)',
-          type: 'string',
-          coerce: (arg: string) => arg.split(',')
-        },
-        genres: {
-          alias: 'g',
-          describe: 'Filter by genres (comma-separated)',
-          type: 'string',
-          default: '',
-          coerce: (arg: string) => arg.split(',')
-        },
-        languages: {
-          alias: 'L',
-          describe: 'Filter by languages (comma-separated)',
-          type: 'string',
-          default: '',
-          coerce: (arg: string) => arg.split(',')
-        },
-        debug: {
-          alias: 'D',
-          describe: 'Enable debug mode',
-          type: 'boolean',
-          default: false
-        },
-        fetch: {
-          alias: 'f',
-          describe: 'Fetch type (network, web, all)',
-          type: 'string',
-          choices: ['network', 'web', 'all'],
-          default: 'all'
-        }
-      })
-      .parseSync() as ConsoleCliArgs;
   }
 
   /**

@@ -41,7 +41,6 @@ describe('TestConfigServiceImpl', () => {
     // Arrange
     const cliOptions = {
       debug: true,
-      help: false,
       groupByNetwork: false
     };
     

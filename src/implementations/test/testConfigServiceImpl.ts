@@ -36,7 +36,6 @@ export class TestConfigServiceImpl implements ConfigService {
     // Initialize CLI options with defaults
     this.cliOptions = {
       debug: cliOptions.debug ?? false,
-      help: cliOptions.help ?? false,
       groupByNetwork: cliOptions.groupByNetwork ?? false
     };
     

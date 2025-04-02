@@ -46,12 +46,6 @@ export async function runCli(services: CliServices): Promise<void> {
     const showOptions = configService.getShowOptions();
     const cliOptions = configService.getCliOptions();
     
-    // Skip further processing if help was requested
-    // (yargs will have already displayed the help text)
-    if (cliOptions.help) {
-      return;
-    }
-    
     // Check if OutputService is initialized
     if (!outputService.isInitialized()) {
       output.error('Error: Output service not properly initialized');

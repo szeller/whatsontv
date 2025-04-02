@@ -52,7 +52,6 @@ export class ConsoleConfigServiceImpl implements ConfigService {
     // Set CLI options
     this.cliOptions = {
       debug: Boolean(this.cliArgs.debug),
-      help: Boolean(this.cliArgs.help),
       groupByNetwork: Boolean(this.cliArgs.groupByNetwork)
     };
     
@@ -205,7 +204,6 @@ export class ConsoleConfigServiceImpl implements ConfigService {
       networks: toStringArray(parsedArgs.networks as string | string[] | undefined),
       genres: toStringArray(parsedArgs.genres as string | string[] | undefined),
       languages: toStringArray(parsedArgs.languages as string | string[] | undefined),
-      help: Boolean(parsedArgs.help),
       debug: Boolean(parsedArgs.debug),
       fetch: parsedArgs.fetch !== undefined ? 
         coerceFetchSource(parsedArgs.fetch as string) : 'network',
