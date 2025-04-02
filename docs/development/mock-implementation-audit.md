@@ -96,12 +96,12 @@ This allows for:
 
 ## Implementation Plan
 
-### Phase 1: Create Basic Structure and Foundation
+### Phase 1: Create Basic Structure and Foundation 
 
 1. Establish the directory structure:
-   - Create `src/tests/mocks/implementations/` directory
-   - Create `src/tests/mocks/factories/` directory with index.ts barrel file
-   - Create `src/tests/utils/` directory if not already present
+   - Create `src/tests/mocks/implementations/` directory 
+   - Create `src/tests/mocks/factories/` directory with index.ts barrel file 
+   - Create `src/tests/utils/` directory if not already present 
    - Move MockConsoleOutputImpl to `src/tests/mocks/implementations/mockConsoleOutput.ts`
 
 2. Develop core factory interfaces with TypeScript types:
@@ -128,24 +128,31 @@ This allows for:
 
 ### Phase 2: Implement Core Mock Factories
 
-1. Implement `HttpClientFactory` (highest priority):
+1. Implement `HttpClientFactory` (highest priority): 
    ```typescript
    // src/tests/mocks/factories/httpClientFactory.ts
    import type { HttpClient } from '../../../interfaces/httpClient.js';
    import { MockOptions } from './types.js';
    
-   export function createMockHttpClient(options?: MockOptions<HttpClient>): HttpClient & {
-     mockGet: jest.Mock;
-     // Additional test methods
-   } {
-     // Implementation
+   export interface HttpClientOptions extends MockOptions<HttpClient> {
+     defaultResponse?: HttpResponse<unknown>;
+     defaultError?: Error;
+     getResponses?: Record<string, HttpResponse<unknown>>;
+     getErrors?: Record<string, Error>;
+     postResponses?: Record<string, HttpResponse<unknown>>;
+     postErrors?: Record<string, Error>;
+     fixtures?: Record<string, { path: string; status?: number }>;
+   }
+   
+   export function createMockHttpClient(options: HttpClientOptions = {}): MockHttpClient {
+     // Implementation that configures responses, errors, and fixtures
    }
    ```
 
-2. Implement `ConfigServiceFactory` (second priority)
-3. Implement `ConsoleOutputFactory` (third priority)
-4. Implement `FormatterFactory` (fourth priority)
-5. Implement `TvShowServiceFactory` (fifth priority)
+2. Implement `ConfigServiceFactory` (second priority) 
+3. Implement `ConsoleOutputFactory` (third priority) 
+4. Implement `FormatterFactory` (fourth priority) 
+5. Implement `TvShowServiceFactory` (fifth priority) 
 
 ### Phase 3: Standardize Existing Tests (Migration Strategy)
 
@@ -534,6 +541,23 @@ To measure the success of our refactoring effort, we'll track the following metr
    - Subjective assessment of test file clarity
    - Target: Improved readability scores from team reviews
    - Method: Team survey before/after refactoring
+
+2. **Maintainability**:
+   - Assessment of effort required to update tests when interfaces change
+   - Target: Reduced time spent updating tests for interface changes
+   - Method: Compare time needed for test updates before/after
+
+3. **Developer Experience**:
+   - Ease of creating new tests using the factory pattern
+   - Target: Reduced time to create new tests with proper mocks
+   - Method: Measure time to create new tests before/after
+
+## Success Metrics
+
+1. **Test Coverage**:
+   - Maintain or improve current test coverage
+   - Target: 95%+ coverage for core modules
+   - Method: Jest coverage reports
 
 2. **Maintainability**:
    - Assessment of effort required to update tests when interfaces change
