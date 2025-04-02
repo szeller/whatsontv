@@ -174,43 +174,6 @@ export class ConsoleConfigServiceImpl implements ConfigService {
   }
   
   /**
-   * Get help text for the application
-   * @returns The help text to display to users
-   */
-  getHelpText(): string {
-    // Create a string with the application header
-    const header = 'WhatsOnTV - TV Show Schedule Viewer\n\nUsage: whatsontv [options]\n';
-    
-    // Create the options section using the same options as in createYargsInstance
-    const options = `
-Options:
-  --date, -d         Date to show TV schedule for (YYYY-MM-DD)
-  --country, -c      Country code (e.g., US, GB)
-  --types            Show types to include (e.g., Scripted,Reality)
-  --networks         Networks to include (e.g., HBO,Netflix)
-  --genres           Genres to include (e.g., Drama,Comedy)
-  --languages        Languages to include (e.g., English,Spanish)
-  --fetch, -f        Fetch source (web, network, all)
-  --debug, -D        Enable debug mode
-  --help, -h         Show this help message
-  --group-by-network Group shows by network (default: true)
-`;
-    
-    // Create the examples section
-    const examples = `
-Examples:
-  whatsontv                         Show today's TV schedule
-  whatsontv --date 2023-04-01       Show schedule for April 1, 2023
-  whatsontv --networks HBO,Netflix  Show only HBO and Netflix shows
-  whatsontv --types Scripted        Show only scripted shows
-  whatsontv --fetch web             Show only web/streaming shows
-`;
-    
-    // Combine all sections
-    return header + options + examples;
-  }
-  
-  /**
    * Parse command line arguments
    * @param args Optional array of command line arguments
    * @returns Parsed CLI arguments

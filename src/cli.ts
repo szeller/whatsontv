@@ -46,9 +46,9 @@ export async function runCli(services: CliServices): Promise<void> {
     const showOptions = configService.getShowOptions();
     const cliOptions = configService.getCliOptions();
     
-    // Show help if requested
+    // Skip further processing if help was requested
+    // (yargs will have already displayed the help text)
     if (cliOptions.help) {
-      outputService.displayHelp(configService.getHelpText());
       return;
     }
     

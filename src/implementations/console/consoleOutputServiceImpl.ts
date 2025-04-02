@@ -329,14 +329,4 @@ export class ConsoleOutputServiceImpl implements OutputService {
   private createSeparator(length: number = 30, char: string = '='): string {
     return padString('', length, char);
   }
-
-  /**
-   * Display help information to the user
-   * @param helpText The help text to display
-   */
-  public displayHelp(helpText: string): void {
-    this.displayHeader();
-    this.output.log(helpText);
-    this.displayFooter();
-  }
 }

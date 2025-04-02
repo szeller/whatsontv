@@ -77,20 +77,13 @@ export class TestConfigServiceImpl implements ConfigService {
   getCliOptions(): CliOptions {
     return this.cliOptions;
   }
-
-  /**
-   * Get help text for the CLI
-   */
-  getHelpText(): string {
-    return 'Test help text';
-  }
   
   /**
    * Get the complete application configuration
    * @returns The full application configuration
    */
   getConfig(): AppConfig {
-    return { ...this.appConfig };
+    return this.appConfig;
   }
   
   /**

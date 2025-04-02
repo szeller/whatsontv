@@ -41,8 +41,7 @@ describe('CLI', () => {
     displayShows: jest.fn<(shows: Show[], groupByNetwork?: boolean) => Promise<void>>()
       .mockResolvedValue(undefined),
     displayFooter: jest.fn<() => void>(),
-    isInitialized: jest.fn<() => boolean>().mockReturnValue(true),
-    displayHelp: jest.fn<(helpText: string) => void>()
+    isInitialized: jest.fn<() => boolean>().mockReturnValue(true)
   };
 
   const mockConfigService = {
@@ -52,7 +51,6 @@ describe('CLI', () => {
       groupByNetwork: true
     }),
     setCliOptions: jest.fn<(options: CliOptions) => void>(),
-    getHelpText: jest.fn<() => string>().mockReturnValue('Help Text'),
     getOutputFormat: jest.fn<() => string>().mockReturnValue('text'),
     getShowType: jest.fn<() => string>().mockReturnValue('all'),
     isDebug: jest.fn<() => boolean>().mockReturnValue(false),
@@ -96,21 +94,6 @@ describe('CLI', () => {
   afterEach(() => {
     // Restore all mocks
     jest.restoreAllMocks();
-  });
-
-  it('should show help when --help flag is provided', async () => {
-    mockConfigService.getCliOptions.mockReturnValue({
-      debug: false,
-      help: true,
-      groupByNetwork: true
-    });
-
-    await runCli(mockServices);
-
-    expect(mockConfigService.getHelpText).toHaveBeenCalled();
-    expect(mockOutputService.displayHelp).toHaveBeenCalledWith('Help Text');
-    expect(mockTvShowService.fetchShows).not.toHaveBeenCalled();
-    expect(mockOutputService.displayShows).not.toHaveBeenCalled();
   });
 
   it('should show all shows when no specific type is requested', async () => {

@@ -707,29 +707,4 @@ describe('ConsoleOutputServiceImpl', () => {
       expect(result).toBe(false);
     });
   });
-  
-  describe('displayHelp', () => {
-    it('should display help text with header and footer', () => {
-      // Arrange
-      const helpText = 'This is the help text';
-      
-      // Act
-      service.displayHelp(helpText);
-      
-      // Assert
-      // Should call displayHeader
-      expect(mockConsoleOutput.log).toHaveBeenCalledWith('');
-      expect(mockConsoleOutput.log).toHaveBeenCalledWith('WhatsOnTV v1.0.0');
-      expect(mockConsoleOutput.log).toHaveBeenCalledWith('==============================');
-      
-      // Should display the help text
-      expect(mockConsoleOutput.log).toHaveBeenCalledWith(helpText);
-      
-      // Should call displayFooter
-      expect(mockConsoleOutput.log).toHaveBeenCalledWith('');
-      expect(mockConsoleOutput.log).toHaveBeenCalledWith('==============================');
-      const apiMessage = 'Data provided by TVMaze API (https://api.tvmaze.com)';
-      expect(mockConsoleOutput.log).toHaveBeenCalledWith(apiMessage);
-    });
-  });
 });
