@@ -961,7 +961,7 @@ describe('ConsoleConfigServiceImpl', () => {
   });
 
   it('should handle merging arrays with different priorities correctly', () => {
-    // Arrange - create a test class with different array configurations
+    // Arrange - create a test class that exposes the protected method
     class ArrayMergeTestService extends TestConsoleConfigService {
       // Expose the protected method for testing
       public testGetShowOptionsFromConfig(): ShowOptions {
