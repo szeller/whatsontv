@@ -14,7 +14,6 @@ import {
 } from '../../../implementations/console/consoleConfigServiceImpl.js';
 import type { CliArgs } from '../../../types/cliArgs.js';
 import type { AppConfig } from '../../../types/configTypes.js';
-import type { ShowOptions } from '../../../types/tvShowOptions.js';
 import { getTodayDate } from '../../../utils/dateUtils.js';
 import yargs from 'yargs';
 import path from 'path';
@@ -687,115 +686,6 @@ describe('ConsoleConfigServiceImpl', () => {
     
     // Cleanup
     consoleSpy.mockRestore();
-  });
-
-  // Now let's test the getShowOptionsFromConfig method more thoroughly
-  it('should correctly merge show options from different sources', () => {
-    // Arrange - create a test class that exposes the protected method
-    class ShowOptionsTestService extends TestConsoleConfigService {
-      // Expose the protected method for testing
-      public testGetShowOptionsFromConfig(): ShowOptions {
-        return this.getShowOptionsFromConfig();
-      }
-      
-      // Override to return a specific config
-      protected override getDefaultConfig(): AppConfig {
-        return {
-          country: 'US',
-          types: ['Reality'],
-          networks: ['ABC'],
-          genres: ['Comedy'],
-          languages: ['English'],
-          notificationTime: '09:00',
-          slack: {
-            enabled: false
-          }
-        };
-      }
-      
-      // Override to return specific CLI args
-      protected override parseArgs(): CliArgs {
-        return {
-          date: '2025-04-01',
-          country: 'CA',
-          types: ['Drama'],
-          networks: [],
-          genres: [],
-          languages: [],
-          debug: true,
-          fetch: 'network',
-          groupByNetwork: false
-        };
-      }
-    }
-    
-    // Act
-    const configService = new ShowOptionsTestService({});
-    const showOptions = configService.testGetShowOptionsFromConfig();
-    
-    // Assert - CLI values should override config values when provided
-    expect(showOptions.date).toBe('2025-04-01'); // From CLI
-    expect(showOptions.country).toBe('CA'); // From CLI
-    expect(showOptions.types).toEqual(['Drama']); // From CLI
-    
-    // These should be from config since CLI provided empty arrays
-    expect(showOptions.networks).toEqual(['ABC']); // From config
-    expect(showOptions.genres).toEqual(['Comedy']); // From config
-    expect(showOptions.languages).toEqual(['English']); // From config
-    
-    // Fetch source should be from CLI
-    expect(showOptions.fetchSource).toBe('network'); // From CLI
-  });
-
-  it('should handle merging arrays with different priorities correctly', () => {
-    // Arrange - create a test class that exposes the protected method
-    class ArrayMergeTestService extends TestConsoleConfigService {
-      // Expose the protected method for testing
-      public testGetShowOptionsFromConfig(): ShowOptions {
-        return this.getShowOptionsFromConfig();
-      }
-      
-      // Override to return a specific config with arrays
-      protected override getDefaultConfig(): AppConfig {
-        return {
-          country: 'US',
-          types: ['Reality', 'Game Show'],
-          networks: ['ABC', 'NBC', 'CBS'],
-          genres: ['Comedy', 'Drama'],
-          languages: ['English', 'Spanish'],
-          notificationTime: '09:00',
-          slack: {
-            enabled: false
-          }
-        };
-      }
-      
-      // Override to return specific CLI args with some arrays populated and others empty
-      protected override parseArgs(): CliArgs {
-        return {
-          date: '2025-04-01',
-          country: 'US',
-          types: [], // Empty array should fall back to config
-          networks: ['HBO', 'Showtime'], // Should override config
-          genres: [], // Empty array should fall back to config
-          languages: ['French'], // Should override config
-          debug: false,
-          fetch: 'all',
-          groupByNetwork: true
-        };
-      }
-    }
-    
-    // Act
-    const configService = new ArrayMergeTestService({});
-    const showOptions = configService.testGetShowOptionsFromConfig();
-    
-    // Assert - arrays should be merged with CLI taking priority when non-empty
-    expect(showOptions.types).toEqual(['Reality', 'Game Show']); // From config (CLI was empty)
-    expect(showOptions.networks).toEqual(['HBO', 'Showtime']); // From CLI (overrides config)
-    expect(showOptions.genres).toEqual(['Comedy', 'Drama']); // From config (CLI was empty)
-    expect(showOptions.languages).toEqual(['French']); // From CLI (overrides config)
-    expect(showOptions.fetchSource).toBe('all'); // From CLI
   });
 
   // Test the coerceFetchSource utility function directly

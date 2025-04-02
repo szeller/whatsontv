@@ -15,9 +15,9 @@ import { getTodayDate } from '../../utils/dateUtils.js';
 import { getStringValue } from '../../utils/stringUtils.js';
 import { 
   toStringArray, 
-  mergeArraysWithPriority, 
   resolveRelativePath,
-  coerceFetchSource
+  coerceFetchSource,
+  mergeShowOptions
 } from '../../utils/configUtils.js';
 
 @injectable()
@@ -56,93 +56,15 @@ export class ConsoleConfigServiceImpl implements ConfigService {
     };
     
     // Set initial show options from config
-    this.showOptions = this.mergeShowOptions(this.cliArgs, this.appConfig);
+    this.showOptions = mergeShowOptions(this.cliArgs, this.appConfig);
   }
 
-  /**
-   * Merge CLI arguments with app configuration to create show options
-   * @param cliArgs CLI arguments
-   * @param appConfig Application configuration
-   * @param baseOptions Optional base options to merge with
-   * @returns Merged ShowOptions object
-   * @protected
-   */
-  protected mergeShowOptions(
-    cliArgs: CliArgs, 
-    appConfig: AppConfig, 
-    baseOptions?: Partial<ShowOptions>
-  ): ShowOptions {
-    // Start with base options or empty object
-    const base = baseOptions || {};
-    
-    // Safely handle potentially null/undefined values
-    const cliDate = typeof cliArgs.date !== 'undefined' && cliArgs.date !== null ? 
-      String(cliArgs.date) : '';
-    const cliCountry = typeof cliArgs.country !== 'undefined' && cliArgs.country !== null ? 
-      String(cliArgs.country) : '';
-    
-    // Safely handle base options
-    const baseDate = typeof base.date !== 'undefined' && base.date !== null ? 
-      base.date : getTodayDate();
-    const baseCountry = typeof base.country !== 'undefined' && base.country !== null ? 
-      base.country : appConfig.country;
-    const baseFetchSource = typeof base.fetchSource !== 'undefined' && base.fetchSource !== null ? 
-      base.fetchSource : 'all';
-    
-    return {
-      // Use base options as fallback if provided
-      date: getStringValue(
-        cliDate, 
-        baseDate
-      ),
-      country: getStringValue(
-        cliCountry, 
-        baseCountry
-      ),
-      // Use utility functions for array handling
-      types: mergeArraysWithPriority(
-        toStringArray(cliArgs.types), 
-        base.types || toStringArray(appConfig.types)
-      ),
-      networks: mergeArraysWithPriority(
-        toStringArray(cliArgs.networks), 
-        base.networks || toStringArray(appConfig.networks)
-      ),
-      genres: mergeArraysWithPriority(
-        toStringArray(cliArgs.genres), 
-        base.genres || toStringArray(appConfig.genres)
-      ),
-      languages: mergeArraysWithPriority(
-        toStringArray(cliArgs.languages), 
-        base.languages || toStringArray(appConfig.languages)
-      ),
-      // Handle fetch source with conditional coercion
-      fetchSource: typeof cliArgs.fetch !== 'undefined' && cliArgs.fetch !== null ? 
-        coerceFetchSource(cliArgs.fetch) : 
-        baseFetchSource
-    };
-  }
-  
-  /**
-   * Get show options from the configuration and CLI arguments
-   * Used during initialization to set the initial show options
-   * @returns ShowOptions object with merged values
-   * @protected
-   */
-  protected getShowOptionsFromConfig(): ShowOptions {
-    return this.mergeShowOptions(this.cliArgs, this.appConfig);
-  }
-  
   /**
    * Get the show options from the configuration
    * @returns ShowOptions object with all show filters and options
    */
   getShowOptions(): ShowOptions {
-    // Get fresh command line arguments
-    const args = this.parseArgs();
-    
-    // Merge with current show options
-    return this.mergeShowOptions(args, this.appConfig, this.showOptions);
+    return this.showOptions;
   }
   
   /**
@@ -151,9 +73,7 @@ export class ConsoleConfigServiceImpl implements ConfigService {
    * @returns Value for the specified key
    */
   getShowOption<K extends keyof ShowOptions>(key: K): ShowOptions[K] {
-    // Get the merged options to ensure consistency with getShowOptions()
-    const mergedOptions = this.getShowOptions();
-    return mergedOptions[key];
+    return this.showOptions[key];
   }
   
   /**
