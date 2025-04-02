@@ -11,7 +11,8 @@ export * from './types.js';
 export * from './consoleOutputFactory.js';
 export * from './httpClientFactory.js';
 export * from './configServiceFactory.js';
+export * from './formatterFactory.js';
 
 // As we implement each factory, we'll add exports here
-// export * from './formatterFactory.js';
+// export * from './tvShowServiceFactory.js';
 // etc.
