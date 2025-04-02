@@ -168,10 +168,10 @@ Usage: whatsontv [options]
 Options:
   --date, -d         Date to show TV schedule for (YYYY-MM-DD)
   --country, -c      Country code (e.g., US, GB)
-  --type             Show types to include (e.g., Scripted,Reality)
-  --network          Networks to include (e.g., HBO,Netflix)
-  --genre            Genres to include (e.g., Drama,Comedy)
-  --language         Languages to include (e.g., English,Spanish)
+  --types            Show types to include (e.g., Scripted,Reality)
+  --networks         Networks to include (e.g., HBO,Netflix)
+  --genres           Genres to include (e.g., Drama,Comedy)
+  --languages        Languages to include (e.g., English,Spanish)
   --fetch, -f        Fetch source (web, network, all)
   --debug, -D        Enable debug mode
   --help, -h         Show this help message
@@ -180,8 +180,8 @@ Options:
 Examples:
   whatsontv                         Show today's TV schedule
   whatsontv --date 2023-04-01       Show schedule for April 1, 2023
-  whatsontv --network HBO,Netflix   Show only HBO and Netflix shows
-  whatsontv --type Scripted         Show only scripted shows
+  whatsontv --networks HBO,Netflix  Show only HBO and Netflix shows
+  whatsontv --types Scripted        Show only scripted shows
   whatsontv --fetch web             Show only web/streaming shows
 `;
   }
@@ -210,24 +210,14 @@ Examples:
       .fail(false)
       .parseSync();
     
-    // Handle both singular and plural forms of arguments
-    const typeValue = parsedArgs.type !== undefined ? 
-      parsedArgs.type : parsedArgs.types;
-    const networkValue = parsedArgs.network !== undefined ? 
-      parsedArgs.network : parsedArgs.networks;
-    const genreValue = parsedArgs.genre !== undefined ? 
-      parsedArgs.genre : parsedArgs.genres;
-    const languageValue = parsedArgs.language !== undefined ? 
-      parsedArgs.language : parsedArgs.languages;
-    
     // Convert to CliArgs type with proper handling of optional arrays
     return {
       date: getStringValue(String(parsedArgs.date), getTodayDate()),
       country: getStringValue(String(parsedArgs.country), 'US'),
-      types: toStringArray(typeValue as string | string[] | undefined),
-      networks: toStringArray(networkValue as string | string[] | undefined),
-      genres: toStringArray(genreValue as string | string[] | undefined),
-      languages: toStringArray(languageValue as string | string[] | undefined),
+      types: toStringArray(parsedArgs.types as string | string[] | undefined),
+      networks: toStringArray(parsedArgs.networks as string | string[] | undefined),
+      genres: toStringArray(parsedArgs.genres as string | string[] | undefined),
+      languages: toStringArray(parsedArgs.languages as string | string[] | undefined),
       help: Boolean(parsedArgs.help),
       debug: Boolean(parsedArgs.debug),
       fetch: parsedArgs.fetch !== undefined ? 
@@ -288,24 +278,6 @@ Examples:
           describe: 'Languages to include (e.g., English,Spanish)',
           type: 'string',
           coerce: (arg: string) => arg.split(',')
-        },
-        query: {
-          alias: 'q',
-          describe: 'Search query for shows',
-          type: 'string',
-          default: ''
-        },
-        slack: {
-          alias: 's',
-          describe: 'Output to Slack',
-          type: 'boolean',
-          default: false
-        },
-        limit: {
-          alias: 'l',
-          describe: 'Maximum number of shows to display',
-          type: 'number',
-          default: 0
         },
         debug: {
           alias: 'D',
