@@ -136,7 +136,9 @@ export class ConsoleConfigServiceImpl implements ConfigService {
    * @returns Value for the specified key
    */
   getShowOption<K extends keyof ShowOptions>(key: K): ShowOptions[K] {
-    return this.showOptions[key];
+    // Get the merged options to ensure consistency with getShowOptions()
+    const mergedOptions = this.getShowOptions();
+    return mergedOptions[key];
   }
   
   /**
