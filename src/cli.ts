@@ -42,40 +42,19 @@ export async function runCli(services: CliServices): Promise<void> {
   const { outputService, tvShowService, configService, consoleOutput: output } = services;
   
   try {
-    // Get configuration options
+    // Get configuration options for fetching shows
     const showOptions = configService.getShowOptions();
-    const cliOptions = configService.getCliOptions();
-    
-    // Check if OutputService is initialized
-    if (!outputService.isInitialized()) {
-      output.error('Error: Output service not properly initialized');
-      return;
-    }
-    
-    // Display header
-    outputService.displayHeader();
     
     try {
       // Fetch TV shows
       const shows = await tvShowService.fetchShows(showOptions);
       
-      // Display debug info if enabled
-      if (cliOptions.debug) {
-        const networks = [...new Set(shows.map(show => show.network))].sort();
-        output.log('\nAvailable Networks:');
-        output.log(networks.join(', '));
-        output.log(`\nTotal Shows: ${shows.length}`);
-      }
-      
-      // Display shows
-      await outputService.displayShows(shows, cliOptions.groupByNetwork);
+      // Let the OutputService handle all rendering aspects
+      await outputService.renderOutput(shows);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
       output.error(`Error fetching TV shows: ${errorMessage}`);
     }
-    
-    // Display footer
-    outputService.displayFooter();
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
     output.error(`Unexpected error: ${errorMessage}`);

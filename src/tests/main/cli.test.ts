@@ -33,185 +33,136 @@ describe('CLI', () => {
   };
 
   const mockOutputService = {
-    formatShows: jest.fn<(shows: Show[], format: string) => string>()
-      .mockReturnValue('Formatted shows'),
-    formatShowsByType: jest.fn<(shows: Show[], type: string, format: string) => string>()
-      .mockReturnValue('Formatted shows by type'),
-    displayHeader: jest.fn<() => void>(),
-    displayShows: jest.fn<(shows: Show[], groupByNetwork?: boolean) => Promise<void>>()
-      .mockResolvedValue(undefined),
-    displayFooter: jest.fn<() => void>(),
-    isInitialized: jest.fn<() => boolean>().mockReturnValue(true)
+    renderOutput: jest.fn<(shows: Show[]) => Promise<void>>().mockResolvedValue(undefined)
   };
 
   const mockConfigService = {
     getCliOptions: jest.fn<() => CliOptions>().mockReturnValue({
       debug: false,
-      help: false,
       groupByNetwork: true
     }),
-    setCliOptions: jest.fn<(options: CliOptions) => void>(),
-    getOutputFormat: jest.fn<() => string>().mockReturnValue('text'),
     getShowType: jest.fn<() => string>().mockReturnValue('all'),
-    isDebug: jest.fn<() => boolean>().mockReturnValue(false),
+    getOutputFormat: jest.fn<() => string>().mockReturnValue('text'),
     getEnvironment: jest.fn<() => string>().mockReturnValue('test'),
     getShowOptions: jest.fn<() => ShowOptions>().mockReturnValue({
-      fetchSource: 'all',
-      country: 'US'
+      date: '2023-01-01',
+      country: 'US',
+      fetchSource: 'network'
     }),
-    getShowOption: jest.fn<(key: keyof ShowOptions) => ShowOptions[keyof ShowOptions]>(),
+    getShowOption: jest.fn<(key: string) => unknown>().mockImplementation((key) => {
+      const options = {
+        date: '2023-01-01',
+        country: 'US',
+        fetchSource: 'network'
+      };
+      return options[key as keyof typeof options];
+    }),
     getConfig: jest.fn<() => AppConfig>().mockReturnValue({
       country: 'US',
-      types: [],
+      types: ['Scripted', 'Reality'],
       networks: [],
       genres: [],
-      languages: [],
-      notificationTime: '08:00',
+      languages: ['English'],
+      notificationTime: '09:00',
       slack: { enabled: false }
-    } as AppConfig)
+    }),
+    getHelpText: jest.fn<() => string>().mockReturnValue('Help Text')
   };
 
   const mockConsoleOutput = {
-    log: jest.fn<(message?: string, ...args: unknown[]) => void>(),
-    error: jest.fn<(message?: string, ...args: unknown[]) => void>(),
-    warn: jest.fn<(message?: string, ...args: unknown[]) => void>(),
-    logWithLevel: jest.fn<(level: string, message: string) => void>()
+    log: jest.fn<(message: string) => void>(),
+    error: jest.fn<(message: string) => void>()
   };
 
-  // Create the services object to pass to runCli
-  const mockServices: CliServices = {
-    outputService: mockOutputService as unknown as OutputService,
-    tvShowService: mockTvShowService as unknown as TvShowService,
-    configService: mockConfigService as unknown as ConfigService,
-    consoleOutput: mockConsoleOutput as unknown as ConsoleOutput
-  };
+  // Create services object for dependency injection
+  let mockServices: CliServices;
 
   beforeEach(() => {
-    // Reset all mocks
+    // Reset all mocks before each test
     jest.clearAllMocks();
+    
+    // Create services object
+    mockServices = {
+      outputService: mockOutputService as unknown as OutputService,
+      tvShowService: mockTvShowService as unknown as TvShowService,
+      configService: mockConfigService as unknown as ConfigService,
+      consoleOutput: mockConsoleOutput as unknown as ConsoleOutput
+    };
   });
 
   afterEach(() => {
-    // Restore all mocks
     jest.restoreAllMocks();
   });
 
-  it('should show all shows when no specific type is requested', async () => {
-    const mockShows = Fixtures.domain.getNetworkShows().concat(
-      Fixtures.domain.getStreamingShows()
-    );
-    
-    mockConfigService.getCliOptions.mockReturnValue({
-      debug: false,
-      help: false,
-      groupByNetwork: true
-    });
-    mockConfigService.getShowType.mockReturnValue('all');
+  it('should display shows when no special flags are provided', async () => {
+    // Arrange
+    const mockShows = Fixtures.domain.getNetworkShows();
     mockTvShowService.fetchShows.mockResolvedValue(mockShows);
 
+    // Act
     await runCli(mockServices);
 
     expect(mockTvShowService.fetchShows).toHaveBeenCalled();
-    expect(mockOutputService.displayShows).toHaveBeenCalledWith(mockShows, true);
+    expect(mockOutputService.renderOutput).toHaveBeenCalledWith(mockShows);
   });
 
   it('should show network shows when network type is requested', async () => {
+    // Arrange
     const mockNetworkShows = Fixtures.domain.getNetworkShows();
-    
-    mockConfigService.getCliOptions.mockReturnValue({
-      debug: false,
-      help: false,
-      groupByNetwork: true
+    mockConfigService.getShowOptions.mockReturnValue({
+      date: '2023-01-01',
+      country: 'US',
+      fetchSource: 'network'
     });
-    mockConfigService.getShowType.mockReturnValue('network');
     mockTvShowService.fetchShows.mockResolvedValue(mockNetworkShows);
 
+    // Act
     await runCli(mockServices);
 
     expect(mockTvShowService.fetchShows).toHaveBeenCalled();
-    expect(mockOutputService.displayShows).toHaveBeenCalledWith(mockNetworkShows, true);
+    expect(mockOutputService.renderOutput).toHaveBeenCalledWith(mockNetworkShows);
   });
 
   it('should show streaming shows when streaming type is requested', async () => {
+    // Arrange
     const mockStreamingShows = Fixtures.domain.getStreamingShows();
-    
-    mockConfigService.getCliOptions.mockReturnValue({
-      debug: false,
-      help: false,
-      groupByNetwork: true
+    mockConfigService.getShowOptions.mockReturnValue({
+      date: '2023-01-01',
+      country: 'US',
+      fetchSource: 'web'
     });
-    mockConfigService.getShowType.mockReturnValue('streaming');
     mockTvShowService.fetchShows.mockResolvedValue(mockStreamingShows);
 
+    // Act
     await runCli(mockServices);
 
     expect(mockTvShowService.fetchShows).toHaveBeenCalled();
-    expect(mockOutputService.displayShows).toHaveBeenCalledWith(mockStreamingShows, true);
+    expect(mockOutputService.renderOutput).toHaveBeenCalledWith(mockStreamingShows);
   });
 
   it('should handle errors when fetching shows', async () => {
-    const mockError = new Error('Failed to fetch shows');
-    
-    mockConfigService.getCliOptions.mockReturnValue({
-      debug: false,
-      help: false,
-      groupByNetwork: true
-    });
-    mockTvShowService.fetchShows.mockRejectedValue(mockError);
+    // Arrange
+    const testError = new Error('Test error');
+    mockTvShowService.fetchShows.mockRejectedValue(testError);
 
+    // Act
     await runCli(mockServices);
 
-    expect(mockTvShowService.fetchShows).toHaveBeenCalled();
-    expect(mockConsoleOutput.error).toHaveBeenCalledWith(
-      'Error fetching TV shows: Failed to fetch shows'
-    );
+    // Assert
+    expect(mockConsoleOutput.error).toHaveBeenCalledWith('Error fetching TV shows: Test error');
   });
 
-  it('should display debug info when debug flag is true', async () => {
-    const mockShows = [
-      { ...Fixtures.domain.getNetworkShows()[0], network: 'ABC' },
-      { ...Fixtures.domain.getNetworkShows()[1], network: 'NBC' },
-      { ...Fixtures.domain.getStreamingShows()[0], network: 'Netflix' }
-    ];
-    
-    mockConfigService.getCliOptions.mockReturnValue({
-      debug: true,
-      help: false,
-      groupByNetwork: true
+  it('should handle unexpected errors', async () => {
+    // Arrange
+    const testError = new Error('Unexpected test error');
+    mockConfigService.getShowOptions.mockImplementation(() => {
+      throw testError;
     });
-    mockConfigService.isDebug.mockReturnValue(true);
-    mockTvShowService.fetchShows.mockResolvedValue(mockShows);
-    
-    // Save the original NODE_ENV
-    const originalNodeEnv = process.env.NODE_ENV;
-    // Set NODE_ENV to something other than 'test' to allow debug output
-    process.env.NODE_ENV = 'development';
 
+    // Act
     await runCli(mockServices);
 
-    expect(mockTvShowService.fetchShows).toHaveBeenCalled();
-    expect(mockConsoleOutput.log).toHaveBeenCalledWith('\nAvailable Networks:');
-    expect(mockConsoleOutput.log).toHaveBeenCalledWith('ABC, NBC, Netflix');
-    expect(mockConsoleOutput.log).toHaveBeenCalledWith('\nTotal Shows: 3');
-    
-    // Restore NODE_ENV
-    process.env.NODE_ENV = originalNodeEnv;
-  });
-
-  it('should handle uncaught exceptions', async () => {
-    // Instead of testing the actual uncaught exception handler,
-    // let's test that our error handling in the runCli function works correctly
-    const mockError = new Error('Test error');
-    
-    // Mock the fetchShows method to throw an error
-    mockTvShowService.fetchShows.mockRejectedValue(mockError);
-    
-    // Call the runCli function
-    await runCli(mockServices);
-    
-    // Verify that the error was handled correctly
-    expect(mockConsoleOutput.error).toHaveBeenCalledWith(
-      'Error fetching TV shows: Test error'
-    );
+    // Assert
+    expect(mockConsoleOutput.error).toHaveBeenCalledWith('Unexpected error: Unexpected test error');
   });
 });
