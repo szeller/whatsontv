@@ -56,38 +56,82 @@ export class ConsoleConfigServiceImpl implements ConfigService {
       groupByNetwork: Boolean(this.cliArgs.groupByNetwork)
     };
     
-    // Set show options
-    this.showOptions = this.getShowOptionsFromConfig();
+    // Set initial show options from config
+    this.showOptions = this.mergeShowOptions(this.cliArgs, this.appConfig);
   }
 
   /**
+   * Merge CLI arguments with app configuration to create show options
+   * @param cliArgs CLI arguments
+   * @param appConfig Application configuration
+   * @param baseOptions Optional base options to merge with
+   * @returns Merged ShowOptions object
+   * @protected
+   */
+  protected mergeShowOptions(
+    cliArgs: CliArgs, 
+    appConfig: AppConfig, 
+    baseOptions?: Partial<ShowOptions>
+  ): ShowOptions {
+    // Start with base options or empty object
+    const base = baseOptions || {};
+    
+    // Safely handle potentially null/undefined values
+    const cliDate = typeof cliArgs.date !== 'undefined' && cliArgs.date !== null ? 
+      String(cliArgs.date) : '';
+    const cliCountry = typeof cliArgs.country !== 'undefined' && cliArgs.country !== null ? 
+      String(cliArgs.country) : '';
+    
+    // Safely handle base options
+    const baseDate = typeof base.date !== 'undefined' && base.date !== null ? 
+      base.date : getTodayDate();
+    const baseCountry = typeof base.country !== 'undefined' && base.country !== null ? 
+      base.country : appConfig.country;
+    const baseFetchSource = typeof base.fetchSource !== 'undefined' && base.fetchSource !== null ? 
+      base.fetchSource : 'all';
+    
+    return {
+      // Use base options as fallback if provided
+      date: getStringValue(
+        cliDate, 
+        baseDate
+      ),
+      country: getStringValue(
+        cliCountry, 
+        baseCountry
+      ),
+      // Use utility functions for array handling
+      types: mergeArraysWithPriority(
+        toStringArray(cliArgs.types), 
+        base.types || toStringArray(appConfig.types)
+      ),
+      networks: mergeArraysWithPriority(
+        toStringArray(cliArgs.networks), 
+        base.networks || toStringArray(appConfig.networks)
+      ),
+      genres: mergeArraysWithPriority(
+        toStringArray(cliArgs.genres), 
+        base.genres || toStringArray(appConfig.genres)
+      ),
+      languages: mergeArraysWithPriority(
+        toStringArray(cliArgs.languages), 
+        base.languages || toStringArray(appConfig.languages)
+      ),
+      // Handle fetch source with conditional coercion
+      fetchSource: typeof cliArgs.fetch !== 'undefined' && cliArgs.fetch !== null ? 
+        coerceFetchSource(cliArgs.fetch) : 
+        baseFetchSource
+    };
+  }
+  
+  /**
    * Get show options from the configuration and CLI arguments
+   * Used during initialization to set the initial show options
    * @returns ShowOptions object with merged values
    * @protected
    */
   protected getShowOptionsFromConfig(): ShowOptions {
-    return {
-      date: getStringValue(this.cliArgs.date, getTodayDate()),
-      country: getStringValue(this.cliArgs.country, this.appConfig.country),
-      // Use utility functions for array handling
-      types: mergeArraysWithPriority(
-        toStringArray(this.cliArgs.types), 
-        toStringArray(this.appConfig.types)
-      ),
-      networks: mergeArraysWithPriority(
-        toStringArray(this.cliArgs.networks), 
-        toStringArray(this.appConfig.networks)
-      ),
-      genres: mergeArraysWithPriority(
-        toStringArray(this.cliArgs.genres), 
-        toStringArray(this.appConfig.genres)
-      ),
-      languages: mergeArraysWithPriority(
-        toStringArray(this.cliArgs.languages), 
-        toStringArray(this.appConfig.languages)
-      ),
-      fetchSource: coerceFetchSource(this.cliArgs.fetch)
-    };
+    return this.mergeShowOptions(this.cliArgs, this.appConfig);
   }
   
   /**
@@ -95,39 +139,11 @@ export class ConsoleConfigServiceImpl implements ConfigService {
    * @returns ShowOptions object with all show filters and options
    */
   getShowOptions(): ShowOptions {
-    // Get the base show options from the config
-    const configOptions = { ...this.showOptions };
-    
-    // Get command line arguments
+    // Get fresh command line arguments
     const args = this.parseArgs();
     
-    // Create a merged options object
-    const mergedOptions: ShowOptions = {
-      ...configOptions,
-      // Override with command line arguments if provided
-      date: getStringValue(String(args.date || ''), configOptions.date),
-      country: getStringValue(String(args.country || ''), configOptions.country),
-      fetchSource: args.fetch ? coerceFetchSource(args.fetch) : configOptions.fetchSource,
-      // Use utility functions for array handling
-      types: mergeArraysWithPriority(
-        toStringArray(args.types), 
-        configOptions.types
-      ),
-      genres: mergeArraysWithPriority(
-        toStringArray(args.genres), 
-        configOptions.genres
-      ),
-      networks: mergeArraysWithPriority(
-        toStringArray(args.networks), 
-        configOptions.networks
-      ),
-      languages: mergeArraysWithPriority(
-        toStringArray(args.languages), 
-        configOptions.languages
-      )
-    };
-    
-    return mergedOptions;
+    // Merge with current show options
+    return this.mergeShowOptions(args, this.appConfig, this.showOptions);
   }
   
   /**
