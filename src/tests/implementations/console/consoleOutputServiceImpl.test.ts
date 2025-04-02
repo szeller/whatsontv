@@ -185,8 +185,7 @@ describe('ConsoleOutputServiceImpl', () => {
       getConfig: jest.fn(),
       getCliOptions: jest.fn(),
       getShowOptions: jest.fn(),
-      getShowOption: jest.fn(),
-      getHelpText: jest.fn()
+      getShowOption: jest.fn()
     } as jest.Mocked<ConfigService>;
     
     // Set up mock returns

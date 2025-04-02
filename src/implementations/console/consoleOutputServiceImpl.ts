@@ -1,7 +1,6 @@
 import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
 import yargs from 'yargs';
-import type { Arguments } from 'yargs';
 
 import type { ConfigService } from '../../interfaces/configService.js';
 import type { ShowFormatter } from '../../interfaces/showFormatter.js';
@@ -14,9 +13,9 @@ import { getTodayDate } from '../../utils/dateUtils.js';
 import { padString } from '../../utils/stringUtils.js';
 
 /**
- * CLI arguments interface for console output
+ * CLI arguments for the console output service
  */
-export interface ConsoleCliArgs extends Arguments {
+export interface ConsoleCliArgs {
   date: string;
   country: string;
   types: string[];
@@ -25,7 +24,6 @@ export interface ConsoleCliArgs extends Arguments {
   languages: string[];
   debug: boolean;
   fetch: 'network' | 'web' | 'all';
-  help: boolean;
 }
 
 /**
@@ -202,7 +200,6 @@ export class ConsoleOutputServiceImpl implements OutputService {
           default: 'all'
         }
       })
-      .help()
       .argv as ConsoleCliArgs;
     
     return parsedArgs;
@@ -279,16 +276,8 @@ export class ConsoleOutputServiceImpl implements OutputService {
           type: 'string',
           choices: ['network', 'web', 'all'],
           default: 'all'
-        },
-        help: {
-          alias: 'h',
-          describe: 'Show help',
-          type: 'boolean',
-          default: false
         }
       })
-      .help()
-      .alias('help', 'h')
       .parseSync() as ConsoleCliArgs;
   }
 
