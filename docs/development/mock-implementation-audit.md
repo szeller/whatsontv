@@ -131,7 +131,7 @@ This allows for:
 1. Implement `HttpClientFactory` (highest priority): 
    ```typescript
    // src/tests/mocks/factories/httpClientFactory.ts
-   import type { HttpClient } from '../../../interfaces/httpClient.js';
+   import type { HttpClient, HttpResponse } from '../../../interfaces/httpClient.js';
    import { MockOptions } from './types.js';
    
    export interface HttpClientOptions extends MockOptions<HttpClient> {
@@ -149,7 +149,26 @@ This allows for:
    }
    ```
 
-2. Implement `ConfigServiceFactory` (second priority) 
+2. Implement `ConfigServiceFactory` (second priority): 
+   ```typescript
+   // src/tests/mocks/factories/configServiceFactory.ts
+   import type { ConfigService } from '../../../interfaces/configService.js';
+   import type { ShowOptions } from '../../../types/tvShowOptions.js';
+   import type { CliOptions, AppConfig, SlackConfig } from '../../../types/configTypes.js';
+   import { MockOptions } from './types.js';
+   
+   export interface ConfigServiceOptions extends MockOptions<ConfigService> {
+     showOptions?: Partial<ShowOptions>;
+     cliOptions?: Partial<CliOptions>;
+     appConfig?: Partial<AppConfig>;
+     slackConfig?: Partial<SlackConfig>;
+   }
+   
+   export function createMockConfigService(options: ConfigServiceOptions = {}): TestConfigServiceImpl {
+     // Implementation that configures show options, CLI options, and app config
+   }
+   ```
+
 3. Implement `ConsoleOutputFactory` (third priority) 
 4. Implement `FormatterFactory` (fourth priority) 
 5. Implement `TvShowServiceFactory` (fifth priority) 
@@ -191,23 +210,21 @@ All mocks and factories will enforce strict type safety:
 // Example of type-safe factory function in src/tests/mocks/factories/configServiceFactory.ts
 import type { ConfigService } from '../../../interfaces/configService.js';
 import type { ShowOptions } from '../../../types/tvShowOptions.js';
-import type { AppConfig } from '../../../types/configTypes.js';
+import type { CliOptions, AppConfig, SlackConfig } from '../../../types/configTypes.js';
 import { MockOptions } from './types.js';
 
 // Specific options extending the generic interface
-export interface MockConfigOptions extends MockOptions<ConfigService> {
+export interface ConfigServiceOptions extends MockOptions<ConfigService> {
   showOptions?: Partial<ShowOptions>;
+  cliOptions?: Partial<CliOptions>;
   appConfig?: Partial<AppConfig>;
+  slackConfig?: Partial<SlackConfig>;
 }
 
 // Type-safe factory function
 export function createMockConfigService(
-  options: MockConfigOptions = {}
-): ConfigService & {
-  // Additional testing methods with proper return types
-  __getMockCalls: (method: keyof ConfigService) => jest.Mock['mock']['calls'];
-  __reset: () => void;
-} {
+  options: ConfigServiceOptions = {}
+): TestConfigServiceImpl {
   // Implementation...
 }
 ```
