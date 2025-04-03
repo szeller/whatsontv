@@ -12,7 +12,7 @@ export * from './consoleOutputFactory.js';
 export * from './httpClientFactory.js';
 export * from './configServiceFactory.js';
 export * from './formatterFactory.js';
+export * from './tvShowServiceFactory.js';
 
 // As we implement each factory, we'll add exports here
-// export * from './tvShowServiceFactory.js';
 // etc.

@@ -169,9 +169,44 @@ This allows for:
    }
    ```
 
-3. Implement `ConsoleOutputFactory` (third priority) 
-4. Implement `FormatterFactory` (fourth priority) 
-5. Implement `TvShowServiceFactory` (fifth priority) 
+3. Implement `FormatterFactory` (third priority): 
+   ```typescript
+   // src/tests/mocks/factories/formatterFactory.ts
+   import type { ShowFormatter } from '../../../interfaces/showFormatter.js';
+   import type { NetworkGroups, Show } from '../../../schemas/domain.js';
+   import { MockOptions } from './types.js';
+   
+   export interface FormatterOptions extends MockOptions<ShowFormatter> {
+     defaultFormattedShow?: string;
+     defaultFormattedTimedShow?: string;
+     defaultFormattedUntimedShow?: string;
+     defaultFormattedMultipleEpisodes?: string[];
+     defaultFormattedNetworkGroups?: string[];
+     showFormatters?: Record<number, string>;
+   }
+   
+   export function createMockFormatter(options: FormatterOptions = {}): jest.Mocked<ShowFormatter> {
+     // Implementation that configures formatted outputs for shows and networks
+   }
+   ```
+
+4. Implement `TvShowServiceFactory` (fourth priority): 
+   ```typescript
+   // src/tests/mocks/factories/tvShowServiceFactory.ts
+   import type { TvShowService } from '../../../interfaces/tvShowService.js';
+   import type { Show } from '../../../schemas/domain.js';
+   import { MockOptions } from './types.js';
+   
+   export interface TvShowServiceOptions extends MockOptions<TvShowService> {
+     defaultShows?: Show[];
+     defaultShow?: Show;
+     defaultError?: Error;
+   }
+   
+   export function createMockTvShowService(options: TvShowServiceOptions = {}): MockTvShowService {
+     // Implementation that configures shows, errors, and fixtures
+   }
+   ```
 
 ### Phase 3: Standardize Existing Tests (Migration Strategy)
 
