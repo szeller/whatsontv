@@ -175,24 +175,24 @@ export class MockHttpClient implements HttpClient {
     // Track this request
     this.trackRequest(url);
     
+    // Check if we have a mock error for this URL - this should take precedence
+    if (this.mockErrors.has(url)) {
+      throw this.mockErrors.get(url);
+    }
+    
     // Check if we have a mock response for this URL
     if (this.mockResponses.has(url)) {
       return this.mockResponses.get(url) as HttpResponse<T>;
     }
     
-    // Check if we have a mock response for any URL
-    if (this.mockResponses.has('*')) {
-      return this.mockResponses.get('*') as HttpResponse<T>;
-    }
-    
-    // Check if we have a mock error for this URL
-    if (this.mockErrors.has(url)) {
-      throw this.mockErrors.get(url);
-    }
-    
     // Check if we have a mock error for any URL
     if (this.mockErrors.has('*')) {
       throw this.mockErrors.get('*');
+    }
+    
+    // Check if we have a mock response for any URL
+    if (this.mockResponses.has('*')) {
+      return this.mockResponses.get('*') as HttpResponse<T>;
     }
     
     // If the mock function has been set up with mockGet/mockGetError, use it
@@ -219,24 +219,24 @@ export class MockHttpClient implements HttpClient {
     // Track this request
     this.trackRequest(url);
     
+    // Check if we have a mock error for this URL - this should take precedence
+    if (this.mockErrors.has(url)) {
+      throw this.mockErrors.get(url);
+    }
+    
     // Check if we have a mock response for this URL
     if (this.mockResponses.has(url)) {
       return this.mockResponses.get(url) as HttpResponse<T>;
     }
     
-    // Check if we have a mock response for any URL
-    if (this.mockResponses.has('*')) {
-      return this.mockResponses.get('*') as HttpResponse<T>;
-    }
-    
-    // Check if we have a mock error for this URL
-    if (this.mockErrors.has(url)) {
-      throw this.mockErrors.get(url);
-    }
-    
     // Check if we have a mock error for any URL
     if (this.mockErrors.has('*')) {
       throw this.mockErrors.get('*');
+    }
+    
+    // Check if we have a mock response for any URL
+    if (this.mockResponses.has('*')) {
+      return this.mockResponses.get('*') as HttpResponse<T>;
     }
     
     // If the mock function has been set up with mockPost/mockPostError, use it

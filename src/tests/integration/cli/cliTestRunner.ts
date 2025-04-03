@@ -10,7 +10,7 @@ import { container } from '../../../container.js';
 import type { ConsoleOutput } from '../../../interfaces/consoleOutput.js';
 import type { ConfigService } from '../../../interfaces/configService.js';
 import { TestConfigServiceImpl } from '../../../implementations/test/testConfigServiceImpl.js';
-import { MockConsoleOutputImpl } from '../../../implementations/test/mockConsoleOutputImpl.js';
+import { createMockConsoleOutput } from '../../mocks/factories/consoleOutputFactory.js';
 import { getTodayDate } from '../../../utils/dateUtils.js';
 
 /**
@@ -31,8 +31,8 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
   const stderr: string[] = [];
   let exitCode = 0;
 
-  // Create a MockConsoleOutputImpl instance
-  const mockConsoleOutput = new MockConsoleOutputImpl();
+  // Create a mock console output instance using the factory
+  const mockConsoleOutput = createMockConsoleOutput();
 
   // Store original methods to avoid unbound method issues
   const originalLogFn = mockConsoleOutput.log.bind(mockConsoleOutput);

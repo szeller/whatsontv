@@ -3,8 +3,9 @@
  * 
  * Provides helper functions for testing with the TVMaze API
  */
-import type { HttpResponse } from '../../interfaces/httpClient.js';
+import type { HttpClient } from '../../interfaces/httpClient.js';
 import { Fixtures } from '../fixtures/index.js';
+import { jest } from '@jest/globals';
 
 /**
  * Interface for network schedule item
@@ -87,10 +88,7 @@ export function getSearchUrl(query: string): string {
  * @param country Country code to use (default: 'US')
  */
 export function setupTvMazeMocks(
-  mockHttpClient: { 
-    mockFixture: (url: string, fixturePath: string) => void;
-    mockGet: <T>(url: string, response: HttpResponse<T>) => void;
-  },
+  mockHttpClient: HttpClient,
   date: string,
   country = 'US'
 ): void {
@@ -99,68 +97,81 @@ export function setupTvMazeMocks(
   const webEndpoint = getWebScheduleUrl(date);
   
   try {
-    // Set up network schedule mock
-    mockHttpClient.mockFixture(networkEndpoint, 'network-schedule.json');
-    
-    // Set up web schedule mock
-    mockHttpClient.mockFixture(webEndpoint, 'web-schedule.json');
-    
-    // Set up individual show mocks for any show IDs that might be requested
+    // Load fixture data
     const networkData = Fixtures.tvMaze.getSchedule('network-schedule') as NetworkScheduleItem[];
     const webData = Fixtures.tvMaze.getSchedule('web-schedule') as WebScheduleItem[];
     
-    // Set up mocks for individual shows if needed
-    if (Array.isArray(networkData)) {
-      networkData.forEach((item: NetworkScheduleItem) => {
-        // Check if show exists and has a valid ID
-        const show = item.show;
-        if (!show) return;
-        
-        const showId = show.id;
-        if (typeof showId !== 'number' || showId <= 0) return;
-        
-        const showUrl = getShowUrl(showId);
-        mockHttpClient.mockGet(showUrl, {
+    // Set up mock implementation for the get method
+    jest.spyOn(mockHttpClient, 'get').mockImplementation((_url: string) => {
+      // Network schedule endpoint
+      if (_url === networkEndpoint) {
+        return Promise.resolve({
           status: 200,
           headers: {},
-          data: show
+          data: networkData
         });
-      });
-    }
-    
-    if (Array.isArray(webData)) {
-      webData.forEach((item: WebScheduleItem) => {
-        // Check if _embedded and _embedded.show exist and have a valid ID
-        const embedded = item._embedded;
-        if (!embedded) return;
-        
-        const show = embedded.show;
-        if (!show) return;
-        
-        const showId = show.id;
-        if (typeof showId !== 'number' || showId <= 0) return;
-        
-        const showUrl = getShowUrl(showId);
-        mockHttpClient.mockGet(showUrl, {
+      }
+      
+      // Web schedule endpoint
+      if (_url === webEndpoint) {
+        return Promise.resolve({
           status: 200,
           headers: {},
-          data: show
+          data: webData
         });
+      }
+      
+      // Individual show endpoints
+      if (_url.startsWith(`${TVMAZE_API.BASE_URL}${TVMAZE_API.SHOW_ENDPOINT}/`)) {
+        const showIdMatch = _url.match(/\/shows\/(\d+)$/);
+        if (showIdMatch) {
+          const showId = parseInt(showIdMatch[1], 10);
+          
+          // Look for the show in network data
+          if (Array.isArray(networkData)) {
+            for (const item of networkData) {
+              if (item.show?.id === showId) {
+                return Promise.resolve({
+                  status: 200,
+                  headers: {},
+                  data: item.show
+                });
+              }
+            }
+          }
+          
+          // Look for the show in web data
+          if (Array.isArray(webData)) {
+            for (const item of webData) {
+              if (item._embedded?.show?.id === showId) {
+                return Promise.resolve({
+                  status: 200,
+                  headers: {},
+                  data: item._embedded.show
+                });
+              }
+            }
+          }
+        }
+      }
+      
+      // Default fallback for any other URLs
+      return Promise.resolve({
+        status: 404,
+        headers: {},
+        data: null
       });
-    }
+    });
   } catch (error) {
     console.error('Error setting up TVMaze mocks:', error);
-    // Provide fallback empty responses if fixtures can't be loaded
-    mockHttpClient.mockGet(networkEndpoint, {
-      status: 200,
-      headers: {},
-      data: []
-    });
     
-    mockHttpClient.mockGet(webEndpoint, {
-      status: 200,
-      headers: {},
-      data: []
+    // Provide fallback empty responses if fixtures can't be loaded
+    jest.spyOn(mockHttpClient, 'get').mockImplementation((_url: string) => {
+      return Promise.resolve({
+        status: 200,
+        headers: {},
+        data: []
+      });
     });
   }
 }
