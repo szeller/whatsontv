@@ -34,13 +34,25 @@ export interface HttpClientOptions extends MockOptions<HttpClient> {
  * @returns A mock HTTP client instance
  */
 export function createMockHttpClient(options: HttpClientOptions = {}): MockHttpClient {
+  // We're using the MockHttpClient class directly as it has specific implementation
+  // that's needed for tracking requests and handling fixtures
   const mockHttpClient = new MockHttpClient();
   
-  // Set default response/error if provided
-  if (options.defaultResponse) {
-    mockHttpClient.setMockResponse(options.defaultResponse);
+  // Set up GET errors first (they should take precedence)
+  if (options.getErrors) {
+    Object.entries(options.getErrors).forEach(([url, error]) => {
+      mockHttpClient.mockGetError(url, error);
+    });
   }
   
+  // Set up POST errors first (they should take precedence)
+  if (options.postErrors) {
+    Object.entries(options.postErrors).forEach(([url, error]) => {
+      mockHttpClient.mockPostError(url, error);
+    });
+  }
+  
+  // Set default error if provided
   if (options.defaultError) {
     mockHttpClient.setMockError(options.defaultError);
   }
@@ -52,13 +64,6 @@ export function createMockHttpClient(options: HttpClientOptions = {}): MockHttpC
     });
   }
   
-  // Set up GET errors
-  if (options.getErrors) {
-    Object.entries(options.getErrors).forEach(([url, error]) => {
-      mockHttpClient.mockGetError(url, error);
-    });
-  }
-  
   // Set up POST responses
   if (options.postResponses) {
     Object.entries(options.postResponses).forEach(([url, response]) => {
@@ -66,10 +71,15 @@ export function createMockHttpClient(options: HttpClientOptions = {}): MockHttpC
     });
   }
   
-  // Set up POST errors
-  if (options.postErrors) {
-    Object.entries(options.postErrors).forEach(([url, error]) => {
-      mockHttpClient.mockPostError(url, error);
+  // Set default response if provided
+  if (options.defaultResponse) {
+    mockHttpClient.setMockResponse(options.defaultResponse);
+  } else {
+    // Set a default response if none is provided to prevent errors
+    mockHttpClient.setMockResponse({
+      data: { data: 'default data' },
+      status: 200,
+      headers: {}
     });
   }
   
@@ -77,6 +87,15 @@ export function createMockHttpClient(options: HttpClientOptions = {}): MockHttpC
   if (options.fixtures) {
     Object.entries(options.fixtures).forEach(([url, fixture]) => {
       mockHttpClient.mockFixture(url, fixture.path, fixture.status);
+    });
+  }
+  
+  // Apply any custom implementations
+  if (options.implementation) {
+    Object.entries(options.implementation).forEach(([key, value]) => {
+      // We need to cast here because we're dynamically setting properties
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (mockHttpClient as any)[key] = value;
     });
   }
   

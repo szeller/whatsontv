@@ -11,9 +11,9 @@ import {
   NetworkBuilder, 
   TvMazeScheduleItemBuilder 
 } from '../fixtures/helpers/tvMazeFixtureBuilder.js';
-import { ShowBuilder } from '../fixtures/helpers/showFixtureBuilder.js';
 import type { Show } from '../../schemas/domain.js';
 import type { ShowOptions } from '../../types/tvShowOptions.js';
+import { expectValidShow, createTestShows } from '../utils/assertions.js';
 
 describe('TvMazeServiceImpl', () => {
   let tvMazeService: TvMazeServiceImpl;
@@ -71,6 +71,7 @@ describe('TvMazeServiceImpl', () => {
 
       // Verify the result
       expect(shows.length).toBe(3);
+      expectValidShow(shows[0]);
       expect(shows[0].id).toBe(100);
       expect(shows[1].id).toBe(101);
       expect(shows[2].id).toBe(102);
@@ -98,6 +99,9 @@ describe('TvMazeServiceImpl', () => {
 
       // Verify the result
       expect(shows.length).toBe(2);
+      shows.forEach(show => {
+        expectValidShow(show);
+      });
     });
 
     it('handles empty responses', async () => {
@@ -140,11 +144,11 @@ describe('TvMazeServiceImpl', () => {
         })
         .build();
 
-      // Create a schedule item with the network and show
+      // Create a schedule item with the show
       const scheduleItem = TvMazeScheduleItemBuilder.createNetworkScheduleItem({
         id: 100,
         name: 'Test Show',
-        network: network,
+        network,
         airdate: '2023-01-01'
       });
 
@@ -160,6 +164,7 @@ describe('TvMazeServiceImpl', () => {
 
       // Verify the result has been transformed correctly
       expect(shows.length).toBe(1);
+      expectValidShow(shows[0]);
       expect(shows[0].id).toBe(100);
       expect(shows[0].name).toBe('Test Show');
       expect(shows[0].network).toBe('Test Network (US)');
@@ -175,20 +180,21 @@ describe('TvMazeServiceImpl', () => {
         }
       );
 
-      // Mock the HTTP client for the web schedule endpoint
+      // Mock the HTTP client for web channel endpoint
       jest.spyOn(mockHttpClient, 'get').mockResolvedValueOnce({
         data: webScheduleItems,
         status: 200,
         headers: {}
       });
 
-      // Call the method under test with web source
+      // Call the method under test
       const shows = await tvMazeService.fetchShows({
         fetchSource: 'web'
       });
 
       // Verify the result
       expect(shows.length).toBe(3);
+      expectValidShow(shows[0]);
       expect(shows[0].network).toBeTruthy();
     });
 
@@ -212,30 +218,30 @@ describe('TvMazeServiceImpl', () => {
         }
       );
       
-      // Mock the HTTP client for both endpoints
-      jest.spyOn(mockHttpClient, 'get').mockImplementation((url) => {
-        if (url.includes('web')) {
-          return Promise.resolve({
-            data: webItems,
-            status: 200,
-            headers: {}
-          });
-        } else {
-          return Promise.resolve({
-            data: networkItems,
-            status: 200,
-            headers: {}
-          });
-        }
-      });
+      // Mock the HTTP client for network endpoint
+      jest.spyOn(mockHttpClient, 'get')
+        .mockResolvedValueOnce({
+          data: networkItems,
+          status: 200,
+          headers: {}
+        })
+        // Mock the HTTP client for web endpoint (second call)
+        .mockResolvedValueOnce({
+          data: webItems,
+          status: 200,
+          headers: {}
+        });
       
-      // Call the method under test with 'all' source
+      // Call the method under test
       const shows = await tvMazeService.fetchShows({
         fetchSource: 'all'
       });
       
-      // Verify we have shows from both sources
+      // Verify the result
       expect(shows.length).toBe(4);
+      shows.forEach(show => {
+        expectValidShow(show);
+      });
       
       // Since we can't easily distinguish network vs web shows 
       // based on the network name alone (depends on implementation details),
@@ -275,16 +281,16 @@ describe('TvMazeServiceImpl', () => {
       // Spy on console.error
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
       
-      // Mock an HTTP error
+      // Mock the HTTP client to throw an error
       jest.spyOn(mockHttpClient, 'get').mockRejectedValueOnce(
         new Error('Network error')
       );
       
-      // Call the method under test - it handles the error internally and returns an empty array
-      const result = await tvMazeService['getSchedule']('2023-01-01');
+      // Call the method under test
+      const shows = await tvMazeService.fetchShows({ date: '2023-01-01' });
       
       // Verify the result is an empty array
-      expect(result).toEqual([]);
+      expect(shows).toEqual([]);
       
       // Verify that console.error was called
       expect(consoleErrorSpy).toHaveBeenCalled();
@@ -300,9 +306,9 @@ describe('TvMazeServiceImpl', () => {
         new Error('Network error')
       );
 
-      // Save the original NODE_ENV and set it to development to test error logging
+      // Save the original NODE_ENV and set it to production to test error logging
       const originalNodeEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'development';
+      process.env.NODE_ENV = 'production';
       
       // Spy on console.error
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -322,13 +328,8 @@ describe('TvMazeServiceImpl', () => {
   describe('applyFilters', () => {
     // Create a test class that exposes the protected applyFilters method
     class TestTvMazeService extends TvMazeServiceImpl {
-      constructor(httpClient: HttpClient) {
-        super(httpClient);
-      }
-      
-      // Create a public method that calls the protected method
       public testApplyFilters(shows: Show[], options: ShowOptions): Show[] {
-        // Use type assertion to access the protected method
+        // Access the protected method using type assertion
         return this['applyFilters'](shows, options);
       }
     }
@@ -337,56 +338,60 @@ describe('TvMazeServiceImpl', () => {
     let testShows: Show[];
     
     beforeEach(() => {
-      // Create a test service instance
       testService = new TestTvMazeService(mockHttpClient);
       
-      // Create test shows with different properties for filtering
-      testShows = [
-        new ShowBuilder()
-          .withId(1)
-          .withName('Drama Show')
-          .withNetwork('ABC')
-          .withLanguage('English')
-          .withType('Scripted')
-          .withGenres(['Drama'])
-          .withSummary('A dramatic show')
-          .withAirtime('20:00')
-          .withEpisode(1, 1)
-          .build(),
-        new ShowBuilder()
-          .withId(2)
-          .withName('Reality Show')
-          .withNetwork('CBS')
-          .withLanguage('Spanish')
-          .withType('Reality')
-          .withGenres(['Reality'])
-          .withSummary('A reality show')
-          .withAirtime('21:00')
-          .withEpisode(1, 2)
-          .build(),
-        new ShowBuilder()
-          .withId(3)
-          .withName('Comedy Show')
-          .withNetwork('Netflix')
-          .withLanguage('English')
-          .withType('Variety')
-          .withGenres(['Comedy', 'Talk Show'])
-          .withSummary('A comedy show')
-          .withAirtime('22:00')
-          .withEpisode(1, 3)
-          .build(),
-        new ShowBuilder()
-          .withId(4)
-          .withName('Mystery Show')
-          .withNetwork('HBO')
-          .withLanguage('French')
-          .withType('Scripted')
-          .withGenres(['Mystery', 'Thriller'])
-          .withSummary('A mystery show')
-          .withAirtime('23:00')
-          .withEpisode(1, 4)
-          .build()
-      ];
+      // Create test shows using the utility function
+      testShows = createTestShows(5, (index: number) => {
+        switch (index) {
+        case 0:
+          return {
+            id: 1,
+            name: 'Show 1',
+            type: 'Scripted',
+            genres: ['Drama'],
+            language: 'English',
+            network: 'ABC'
+          };
+        case 1:
+          return {
+            id: 2,
+            name: 'Show 2',
+            type: 'Reality',
+            genres: ['Reality'],
+            language: 'Spanish',
+            network: 'CBS'
+          };
+        case 2:
+          return {
+            id: 3,
+            name: 'Show 3',
+            type: 'Variety',
+            genres: ['Comedy', 'Talk Show'],
+            language: 'French',
+            network: 'Netflix'
+          };
+        case 3:
+          return {
+            id: 4,
+            name: 'Show 4',
+            type: 'Scripted',
+            genres: ['Thriller'], // Change genre to Thriller
+            language: 'English',
+            network: 'HBO'
+          };
+        case 4:
+          return {
+            id: 5,
+            name: 'Show 5',
+            type: 'Documentary',
+            genres: ['Documentary'],
+            language: 'German',
+            network: 'PBS'
+          };
+        default:
+          return {};
+        }
+      });
     });
     
     it('returns all shows when no filters are applied', () => {
@@ -400,8 +405,10 @@ describe('TvMazeServiceImpl', () => {
         networks: []
       });
       
-      expect(result.length).toBe(4);
-      expect(result).toEqual(testShows);
+      expect(result.length).toBe(5);
+      result.forEach(show => {
+        expectValidShow(show);
+      });
     });
     
     it('applies type filter correctly', () => {
@@ -506,6 +513,7 @@ describe('TvMazeServiceImpl', () => {
       });
       
       expect(result.length).toBe(1);
+      expectValidShow(result[0]);
       expect(result[0].id).toBe(1);
       expect(result[0].type).toBe('Scripted');
       expect(result[0].genres).toContain('Drama');

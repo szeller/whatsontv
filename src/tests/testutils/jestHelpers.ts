@@ -1,12 +1,15 @@
 /**
  * Utilities for working with Jest in a type-safe way
  */
+import { jest } from '@jest/globals';
+import type { SpyInstance } from 'jest-mock';
 
 /**
  * Creates a typed Jest mock function
  */
-export function createTypedMock<T>(): jest.Mocked<T> {
-  return jest.fn() as unknown as jest.Mocked<T>;
+export function createTypedMock<T extends (...args: unknown[]) => unknown>(): 
+  jest.MockedFunction<T> {
+  return jest.fn() as unknown as jest.MockedFunction<T>;
 }
 
 /**
@@ -16,8 +19,7 @@ export function createTypedMock<T>(): jest.Mocked<T> {
 export function createTypedSpy<T extends object, K extends keyof T>(
   obj: T,
   method: K
-): jest.SpyInstance {
-  // Using any here to bypass the complex type issues with Jest's spyOn
+): SpyInstance {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return jest.spyOn(obj as any, method as any);
 }
@@ -25,7 +27,7 @@ export function createTypedSpy<T extends object, K extends keyof T>(
 /**
  * Creates a mock implementation with the specified behavior
  */
-export function createMockImplementation<T>(
+export function createMockImplementation<T extends object>(
   implementation: Partial<Record<keyof T, unknown>> = {}
 ): jest.Mocked<T> {
   const mockedMethods = Object.entries(implementation).reduce(

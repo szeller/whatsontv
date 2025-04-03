@@ -3,6 +3,7 @@ import type { ConfigService } from '../../../interfaces/configService.js';
 import type { ShowOptions } from '../../../types/tvShowOptions.js';
 import type { CliOptions, AppConfig, SlackConfig } from '../../../types/configTypes.js';
 import { MockOptions } from './types.js';
+import { createTypedMock } from '../../testutils/jestHelpers.js';
 
 /**
  * Options for creating a mock config service
@@ -46,6 +47,21 @@ export function createMockConfigService(options: ConfigServiceOptions = {}): Tes
     options.cliOptions || {},
     appConfig
   );
+  
+  // Get the original values before mocking
+  const originalShowOptions = configService.getShowOptions();
+  const originalCliOptions = configService.getCliOptions();
+  const originalConfig = configService.getConfig();
+  
+  // Enhance methods with typed mocks for better type safety
+  configService.getShowOptions = createTypedMock<TestConfigServiceImpl['getShowOptions']>();
+  (configService.getShowOptions as jest.Mock).mockImplementation(() => originalShowOptions);
+  
+  configService.getCliOptions = createTypedMock<TestConfigServiceImpl['getCliOptions']>();
+  (configService.getCliOptions as jest.Mock).mockImplementation(() => originalCliOptions);
+  
+  configService.getConfig = createTypedMock<TestConfigServiceImpl['getConfig']>();
+  (configService.getConfig as jest.Mock).mockImplementation(() => originalConfig);
   
   // Apply any custom implementations
   if (options.implementation) {
