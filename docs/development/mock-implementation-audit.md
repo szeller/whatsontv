@@ -60,71 +60,51 @@ src/
     │   │   ├── mockFormatter.ts
     │   │   ├── mockTvShowService.ts
     │   │   └── ...
-    │   └── factories/     # Factory functions for creating test instances
-    │       ├── index.ts                # Barrel file re-exporting all factories
-    │       ├── configServiceFactory.ts
+    │   └── factories/     # Factory functions for creating mocks
     │       ├── consoleOutputFactory.ts
     │       ├── formatterFactory.ts
     │       ├── httpClientFactory.ts
-    │       ├── styleServiceFactory.ts ✅ COMPLETED
-    │       ├── outputServiceFactory.ts ✅ COMPLETED
-    │       └── tvShowServiceFactory.ts
-    ├── utils/             # General test utilities
-    │   ├── assertions.ts  # Custom test assertions
+    │       └── ...
+    ├── testutils/         # Test utilities that aren't implementation mocks
+    │   ├── mockHttpClient.ts # HTTP client mock implementation
     │   ├── jestHelpers.ts # Jest-specific utilities
     │   └── testRunner.ts  # Test runner utilities
     └── ...
 ```
 
 This structure maintains a clear distinction between:
+
 - Implementation files that are part of the source but meant for testing (`src/implementations/test/`) - these are real alternative implementations that could be used in production
-- Test-only mocks that don't belong in production code (`src/tests/mocks/implementations/`)
-- Factory functions that create test instances (`src/tests/mocks/factories/`)
-- General test utilities (`src/tests/utils/`)
-
-The factory functions will be organized as individual files with a barrel index for easy importing:
-
-```typescript
-// src/tests/mocks/factories/index.ts
-export * from './httpClientFactory.js';
-export * from './configServiceFactory.js';
-export * from './styleServiceFactory.js'; ✅ COMPLETED
-export * from './outputServiceFactory.js'; ✅ COMPLETED
-// etc.
-```
-
-This allows for:
-1. Modular development in separate files
-2. Simple imports via the barrel file (import { createMockHttpClient } from '../mocks/factories')
-3. Ability to import only what's needed when desired
+- Mock implementations for testing (`src/tests/mocks/implementations/`) - these are simplified fake versions not meant for production use
+- Factory functions for creating mocks (`src/tests/mocks/factories/`) - these provide a consistent interface for creating configured mocks
+- Test utilities that aren't implementation mocks (`src/tests/testutils/`) - these are helper functions for tests
+- Actual test files (`src/tests/implementations/`, etc.) - these test the real implementations
 
 ## Implementation Plan
 
-### Phase 1: Create Basic Structure and Foundation 
+### Phase 1: Refactor Directory Structure ✅ COMPLETED
 
-1. Establish the directory structure:
-   - Create `src/tests/mocks/implementations/` directory 
+1. Create standardized directory structure: ✅ COMPLETED
    - Create `src/tests/mocks/factories/` directory with index.ts barrel file 
    - Create `src/tests/utils/` directory if not already present 
    - Move MockConsoleOutputImpl to `src/tests/mocks/implementations/mockConsoleOutput.ts`
 
-2. Develop core factory interfaces with TypeScript types:
+2. Develop core factory interfaces with TypeScript types: ✅ COMPLETED
    ```typescript
    // src/tests/mocks/factories/types.ts
    export interface MockOptions<T> {
      defaultReturn?: T;
      implementation?: Partial<Record<keyof T, jest.Mock>>;
-     throwError?: boolean | Error;
+   }
+   
+   export interface MockFactoryResult<T> {
+     mock: jest.Mocked<T>;
+     calls: Record<keyof T, unknown[][]>;
+     reset: () => void;
    }
    ```
 
-3. Create base test assertion utilities:
-   ```typescript
-   // src/tests/utils/assertions.ts
-   export function expectValidShow(show: any): void { /* ... */ }
-   ```
-
-4. Create Jest integration helpers:
+4. Create Jest integration helpers: ✅ COMPLETED
    ```typescript
    // src/tests/utils/jestHelpers.ts
    export function createTypedMock<T>(): jest.Mocked<T> { /* ... */ }
@@ -132,7 +112,7 @@ This allows for:
 
 ### Phase 2: Implement Core Mock Factories
 
-1. Implement `HttpClientFactory` (highest priority): 
+1. Implement `HttpClientFactory` (highest priority): ✅ COMPLETED
    ```typescript
    // src/tests/mocks/factories/httpClientFactory.ts
    import type { HttpClient, HttpResponse } from '../../../interfaces/httpClient.js';
@@ -153,7 +133,7 @@ This allows for:
    }
    ```
 
-2. Implement `ConfigServiceFactory` (second priority): 
+2. Implement `ConfigServiceFactory` (second priority): ✅ COMPLETED
    ```typescript
    // src/tests/mocks/factories/configServiceFactory.ts
    import type { ConfigService } from '../../../interfaces/configService.js';
@@ -173,19 +153,18 @@ This allows for:
    }
    ```
 
-3. Implement `FormatterFactory` (third priority): 
+3. Implement `FormatterFactory` (third priority): ✅ COMPLETED
    ```typescript
    // src/tests/mocks/factories/formatterFactory.ts
    import type { ShowFormatter } from '../../../interfaces/showFormatter.js';
-   import type { NetworkGroups, Show } from '../../../schemas/domain.js';
+   import type { Show } from '../../../schemas/domain.js';
    import { MockOptions } from './types.js';
    
    export interface FormatterOptions extends MockOptions<ShowFormatter> {
-     defaultFormattedShow?: string;
-     defaultFormattedTimedShow?: string;
-     defaultFormattedUntimedShow?: string;
-     defaultFormattedMultipleEpisodes?: string[];
-     defaultFormattedNetworkGroups?: string[];
+     networkFormatter?: (network: string) => string;
+     showFormatter?: (show: Show) => string;
+     episodeFormatter?: (episode: string) => string;
+     showRangeFormatter?: (range: string) => string;
      showFormatters?: Record<number, string>;
    }
    
@@ -194,15 +173,16 @@ This allows for:
    }
    ```
 
-4. Implement `TvShowServiceFactory` (fourth priority): 
+4. Implement `TvShowServiceFactory` (fourth priority): ✅ COMPLETED
    ```typescript
    // src/tests/mocks/factories/tvShowServiceFactory.ts
    import type { TvShowService } from '../../../interfaces/tvShowService.js';
    import type { Show } from '../../../schemas/domain.js';
+   import type { ShowOptions } from '../../../types/tvShowOptions.js';
    import { MockOptions } from './types.js';
    
    export interface TvShowServiceOptions extends MockOptions<TvShowService> {
-     defaultShows?: Show[];
+     shows?: Show[];
      defaultShow?: Show;
      defaultError?: Error;
    }
@@ -217,16 +197,15 @@ This allows for:
    // src/tests/mocks/factories/styleServiceFactory.ts
    import type { StyleService } from '../../../interfaces/styleService.js';
    import { MockOptions } from './types.js';
-
+   
    export interface StyleServiceOptions extends MockOptions<StyleService> {
-     /** Whether to return styled text (true) or plain text (false) */
-     styled?: boolean;
-     
-     /** Custom style transformations for specific methods */
-     customStyles?: {
-       bold?: (text: string) => string;
-       // Other style methods...
-     };
+     error?: (text: string) => string;
+     warning?: (text: string) => string;
+     info?: (text: string) => string;
+     success?: (text: string) => string;
+     title?: (text: string) => string;
+     bold?: (text: string) => string;
+     // Other style methods...
    }
    
    export function createMockStyleService(
@@ -240,15 +219,13 @@ This allows for:
    ```typescript
    // src/tests/mocks/factories/outputServiceFactory.ts
    import type { OutputService } from '../../../interfaces/outputService.js';
+   import type { RenderOptions } from '../../../types/showOutputOptions.js';
    import type { Show } from '../../../schemas/domain.js';
    import { MockOptions } from './types.js';
-
+   
    export interface OutputServiceOptions extends MockOptions<OutputService> {
-     /** Error to throw when renderOutput is called */
-     renderError?: Error;
-     
-     /** Custom callback to execute when renderOutput is called */
-     onRenderOutput?: (shows: Show[]) => void;
+     renderResult?: string;
+     renderShowsImplementation?: (shows: Show[], options?: RenderOptions) => Promise<string>;
    }
    
    export function createMockOutputService(
@@ -258,313 +235,63 @@ This allows for:
    }
    ```
 
-### Phase 3: Standardize Existing Tests (Migration Strategy)
+### Phase 3: Migration of Existing Tests
 
 1. **Incremental Migration**: We'll migrate tests in stages, prioritizing:
-   - First: HTTP client-related tests (most widespread usage)
-   - Second: Core utility and service tests
-   - Third: CLI and integration tests
-   - Fourth: Remaining unit tests
+   - First: HTTP client-related tests (most widespread usage) - ✅ PARTIALLY COMPLETED
+   - Second: Core utility and service tests - ⏳ IN PROGRESS
+   - Third: CLI and integration tests - 🔲 NOT STARTED
+   - Fourth: Remaining unit tests - 🔲 NOT STARTED
 
-2. **Migration Guide**: For each test file, follow these steps:
-   - Identify inline mocks and direct dependencies
-   - Add factory imports from barrel file: `import { createMockHttpClient } from '../../mocks/factories/index.js';`
-   - Replace inline implementations with factory calls
-   - Update test assertions to use utilities from `src/tests/utils/assertions.js`
-   - Verify test coverage remains consistent
-
-3. **Container Integration**: Update cliTestRunner.ts to:
-   - Use factory functions instead of direct implementation classes
-   - Provide container registration helpers for test scenarios
-   - Add TypeScript generics for better type safety
-
-### Phase 4: Documentation and Best Practices
-
-1. Document factory functions and mock implementations
-2. Create usage examples for common test scenarios
-3. Update test templates and examples
-4. Document validation metrics and success criteria
-
-## Technical Implementation Details
-
-### TypeScript Type Safety
-
-All mocks and factories will enforce strict type safety:
-
-```typescript
-// Example of type-safe factory function in src/tests/mocks/factories/configServiceFactory.ts
-import type { ConfigService } from '../../../interfaces/configService.js';
-import type { ShowOptions } from '../../../types/tvShowOptions.js';
-import type { CliOptions, AppConfig, SlackConfig } from '../../../types/configTypes.js';
-import { MockOptions } from './types.js';
-
-// Specific options extending the generic interface
-export interface ConfigServiceOptions extends MockOptions<ConfigService> {
-  showOptions?: Partial<ShowOptions>;
-  cliOptions?: Partial<CliOptions>;
-  appConfig?: Partial<AppConfig>;
-  slackConfig?: Partial<SlackConfig>;
-}
-
-// Type-safe factory function
-export function createMockConfigService(
-  options: ConfigServiceOptions = {}
-): TestConfigServiceImpl {
-  // Implementation...
-}
-```
-
-### Container Integration
-
-For better integration with the tsyringe DI container:
-
-```typescript
-// Container test utilities
-export function registerMockInContainer<T>(
-  token: string,
-  mockFactory: () => T,
-  options: { singleton?: boolean } = {}
-): T {
-  const instance = mockFactory();
-  
-  if (options.singleton) {
-    container.registerInstance(token, instance);
-  } else {
-    container.register(token, { useValue: instance });
-  }
-  
-  return instance;
-}
-
-// Example usage for cliTestRunner
-const mockConsoleOutput = registerMockInContainer(
-  'ConsoleOutput',
-  () => createMockConsoleOutput({ captureOutput: true }),
-  { singleton: true }
-);
-```
-
-### Test Coverage Impact
-
-This refactoring is expected to:
-
-1. **Maintain or improve coverage**: By standardizing mocks, we'll reduce the risk of missed test cases
-2. **Improve coverage quality**: Better mocks lead to more thorough testing of edge cases
-3. **Impact measurement**: We'll track coverage before and after each migration:
-   - Statement coverage (target: maintain 80%+)
-   - Branch coverage (target: maintain 80%+)
-   - Function coverage (target: maintain 80%+)
-   - Line coverage (target: maintain 80%+)
-
-Coverage will be measured using Jest's coverage reports, and we'll ensure no regression during the migration.
-
-### Jest Integration
-
-We'll create utilities to simplify working with Jest mocks while maintaining type safety:
-
-```typescript
-// src/tests/utils/jestHelpers.ts
-export function createTypedMock<T>(): jest.Mocked<T> {
-  return jest.fn() as unknown as jest.Mocked<T>;
-}
-
-export function createTypedSpy<T extends object>(
-  obj: T,
-  method: keyof T
-): jest.SpyInstance {
-  return jest.spyOn(obj, method);
-}
-
-export function createMockImplementation<T>(
-  implementation: Partial<Record<keyof T, any>> = {}
-): jest.Mocked<T> {
-  const mockedMethods = Object.entries(implementation).reduce(
-    (acc, [key, value]) => {
-      acc[key as keyof T] = typeof value === 'function' 
-        ? jest.fn(value) 
-        : jest.fn(() => value);
-      return acc;
-    },
-    {} as Record<keyof T, jest.Mock>
-  );
-  
-  return mockedMethods as unknown as jest.Mocked<T>;
-}
-```
-
-To provide type safety with the container, we'll create a `registerMockInContainer` utility:
-
-```typescript
-// src/tests/utils/containerHelpers.ts
-import { container } from '../../container.js';
-import type { DependencyContainer } from 'tsyringe';
-
-export function registerMockInContainer<T>(
-  token: string | symbol,
-  mockInstance: T,
-  customContainer: DependencyContainer = container
-): void {
-  customContainer.registerInstance(token, mockInstance);
-}
-```
-
-### ShowFormatter Mock Implementation
-
-```typescript
-// src/tests/mocks/implementations/mockFormatter.ts
-import type { ShowFormatter } from '../../../interfaces/showFormatter.js';
-import type { Show, Network } from '../../../types/tvMazeTypes.js';
-
-export class MockFormatter implements ShowFormatter {
-  formatShow(show: Show): string {
-    return `Mock Formatted Show: ${show.name}`;
-  }
-  
-  formatNetworkGroups(networkGroups: Record<Network['name'], Show[]>): string {
-    return `Mock Formatted Network Groups: ${Object.keys(networkGroups).length} networks`;
-  }
-  
-  // Test helper methods
-  mockFormatShow(show: Show, customFormat: string): void {
-    this.formatShow = jest.fn().mockReturnValue(customFormat);
-  }
-  
-  mockFormatNetworkGroups(networkGroups: Record<Network['name'], Show[]>, customFormat: string): void {
-    this.formatNetworkGroups = jest.fn().mockReturnValue(customFormat);
-  }
-}
-
-// src/tests/mocks/factories/formatterFactory.ts
-import { MockFormatter } from '../implementations/mockFormatter.js';
-import type { ShowFormatter } from '../../../interfaces/showFormatter.js';
-import { MockOptions } from './types.js';
-
-export interface FormatterOptions extends MockOptions<ShowFormatter> {
-  showFormat?: string;
-  networkGroupsFormat?: string;
-}
-
-export function createMockFormatter(options: FormatterOptions = {}): MockFormatter {
-  const formatter = new MockFormatter();
-  
-  if (options.showFormat) {
-    formatter.mockFormatShow = jest.fn().mockReturnValue(options.showFormat);
-  }
-  
-  if (options.networkGroupsFormat) {
-    formatter.mockFormatNetworkGroups = jest.fn().mockReturnValue(options.networkGroupsFormat);
-  }
-  
-  return formatter;
-}
-```
-
-### Test Assertion Utilities
-
-```typescript
-// src/tests/utils/assertions.ts
-import type { Show, Network } from '../../types/tvMazeTypes.js';
-
-export function expectValidShow(show: any): void {
-  expect(show).toBeDefined();
-  expect(show.id).toBeDefined();
-  expect(typeof show.name).toBe('string');
-  
-  // Add more validation as needed
-}
-
-export function expectValidNetworkGroups(networkGroups: Record<Network['name'], Show[]>): void {
-  expect(networkGroups).toBeDefined();
-  
-  // Validate structure
-  Object.entries(networkGroups).forEach(([network, shows]) => {
-    expect(typeof network).toBe('string');
-    expect(Array.isArray(shows)).toBe(true);
-    
-    if (shows.length > 0) {
-      expectValidShow(shows[0]);
-    }
-  });
-}
-```
-
-## Usage Examples
-
-#### Basic Mock Creation
-
-```typescript
-// Using the HttpClient factory
-import { createMockHttpClient } from '../mocks/factories/index.js';
-
-const httpClient = createMockHttpClient();
-httpClient.mockGet('/api/shows', { data: [], status: 200 });
-
-// Using the more complex ConfigService factory
-import { createMockConfigService } from '../mocks/factories/index.js';
-
-const configService = createMockConfigService({
-  showOptions: { date: '2023-04-01', country: 'US' }
-});
-```
-
-#### Container Integration
-
-```typescript
-// Using factories with the container
-import { container } from '../../container.js';
-import { createMockHttpClient } from '../mocks/factories/index.js';
-import { registerMockInContainer } from '../utils/jestHelpers.js';
-
-const httpClient = createMockHttpClient();
-registerMockInContainer('HttpClient', httpClient);
-
-// Now container.resolve('HttpClient') will return our mock
-```
-
-#### Before and After Examples
-
-**Before:**
-```typescript
-// Before refactoring
-const mockHttpClient = {
-  get: jest.fn().mockResolvedValue({
-    data: sampleShowResponse,
-    status: 200
-  })
-};
-
-const tvMazeService = new TvMazeServiceImpl(mockHttpClient);
-const shows = await tvMazeService.fetchShows();
-expect(shows[0].name).toBe('Test Show');
-```
-
-**After:**
-```typescript
-// After refactoring
-import { createMockHttpClient } from '../../mocks/factories/index.js';
-import { expectValidShow } from '../../utils/assertions.js';
-
-describe('TvMazeServiceImpl', () => {
-  let tvMazeService: TvMazeServiceImpl;
-  let httpClient: ReturnType<typeof createMockHttpClient>;
-  
-  beforeEach(() => {
-    httpClient = createMockHttpClient();
-    httpClient.mockGet('/api/shows/1', {
-      data: sampleShowResponse,
-      status: 200
-    });
-    
-    tvMazeService = new TvMazeServiceImpl(httpClient);
-  });
-  
-  it('should fetch shows correctly', async () => {
-    const shows = await tvMazeService.fetchShows();
-    expectValidShow(shows[0]);
-    expect(shows[0].name).toBe('Test Show');
-  });
-});
-```
+2. **Example of Migrated Test**: ✅ COMPLETED
+   
+   **Before:**
+   ```typescript
+   describe('TvMazeServiceImpl', () => {
+     it('should fetch shows', async () => {
+       // Set up HTTP client manually
+       const httpClient = {
+         get: jest.fn().mockResolvedValue({
+           data: [{ show: { id: 1, name: 'Test Show' }}],
+           status: 200
+         })
+       };
+       
+       const tvMazeService = new TvMazeServiceImpl(httpClient);
+       const shows = await tvMazeService.fetchShows();
+       expect(shows[0].name).toBe('Test Show');
+     });
+   });
+   ```
+   
+   **After:**
+   ```typescript
+   import { createMockHttpClient } from '../mocks/factories/httpClientFactory.js';
+   
+   describe('TvMazeServiceImpl', () => {
+     let httpClient: MockHttpClient;
+     let tvMazeService: TvMazeServiceImpl;
+     
+     beforeEach(() => {
+       // Create mock HTTP client using factory
+       httpClient = createMockHttpClient();
+       
+       // Mock the response
+       jest.spyOn(httpClient, 'get').mockResolvedValue({
+         data: sampleShowResponse,
+         status: 200
+       });
+       
+       tvMazeService = new TvMazeServiceImpl(httpClient);
+     });
+     
+     it('should fetch shows correctly', async () => {
+       const shows = await tvMazeService.fetchShows();
+       expectValidShow(shows[0]);
+       expect(shows[0].name).toBe('Test Show');
+     });
+   });
+   ```
 
 ### Container Integration Examples
 
@@ -610,6 +337,112 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
   };
 }
 ```
+
+## Progress Tracker (Updated April 2025)
+
+### Factory Implementation Status
+
+| Factory | Status | Notes |
+|---------|--------|-------|
+| HttpClientFactory | ✅ COMPLETED | Fixed error handling precedence |
+| ConfigServiceFactory | ✅ COMPLETED | Integrated with TestConfigServiceImpl |
+| FormatterFactory | ✅ COMPLETED | |
+| TvShowServiceFactory | ✅ COMPLETED | |
+| StyleServiceFactory | ✅ COMPLETED | |
+| OutputServiceFactory | ✅ COMPLETED | |
+
+### Test Migration Status
+
+| Test Category | Progress | Files Migrated | Files Remaining |
+|---------------|----------|----------------|-----------------|
+| HTTP Client Tests | 50% | • httpClientFactory.test.ts<br>• tvMazeServiceImpl.test.ts | • fetchHttpClientImpl.test.ts<br>• httpClient.test.ts |
+| Core Service Tests | 20% | • tvMazeServiceImpl.test.ts | • consoleOutputServiceImpl.test.ts<br>• consoleFormatterImpl.test.ts<br>• chalkStyleServiceImpl.test.ts |
+| CLI Tests | 0% | | • cli.test.ts<br>• realApiTest.test.ts |
+| Integration Tests | 0% | | • cli.test.ts<br>• Various integration tests |
+| Utility Tests | 0% | | • Various utility tests |
+
+### Jest Helper Status
+
+| Helper | Status | Notes |
+|--------|--------|-------|
+| createTypedMock | ✅ COMPLETED | Fixed to properly handle type constraints |
+| registerMockInContainer | 🔲 NOT STARTED | Utility for registering mocks in DI container |
+
+## Detailed Next Steps
+
+### 1. Complete HTTP Client Test Migration (High Priority)
+
+- [ ] 1.1. Update `fetchHttpClientImpl.test.ts` to use HttpClientFactory
+  - Replace inline mock responses with factory method
+  - Ensure test coverage is maintained
+
+- [ ] 1.2. Update `httpClient.test.ts` to use HttpClientFactory
+  - Replace custom mock setup with standardized approach
+  - Ensure edge cases are still tested properly
+
+### 2. Implement Container Registration Helper (High Priority)
+
+- [ ] 2.1. Create `registerMockInContainer` helper in `jestHelpers.ts`
+  ```typescript
+  // src/tests/testutils/jestHelpers.ts
+  export function registerMockInContainer<T>(
+    token: string | symbol,
+    mock: T
+  ): void {
+    container.clearInstances(token);
+    container.registerInstance(token, mock);
+  }
+  ```
+
+### 3. Migrate Core Service Tests (Medium Priority)
+
+- [ ] 3.1. Update `consoleOutputServiceImpl.test.ts`
+  - Replace inline ConsoleOutput mock with factory function
+  - Replace inline ShowFormatter mock with factory function
+  - Replace inline ConfigService mock with factory function
+
+- [ ] 3.2. Update `consoleFormatterImpl.test.ts`
+  - Replace any inline mocks with factory functions
+
+- [ ] 3.3. Update `chalkStyleServiceImpl.test.ts`
+  - Ensure any mocking is done through factory functions
+
+### 4. Migrate CLI and Integration Tests (Medium Priority)
+
+- [ ] 4.1. Update `cli.test.ts`
+  - Replace custom mock setup with factory functions
+  - Ensure DI container registration is streamlined
+
+- [ ] 4.2. Update `realApiTest.test.ts`
+  - Identify where mocks can be replaced with factory functions
+  - Maintain the real API integration points
+
+### 5. Create Documentation (Medium Priority)
+
+- [ ] 5.1. Create a mock usage guide in `docs/development/mock-usage-guide.md`
+  - Document patterns for using factory functions
+  - Provide examples for common test scenarios
+  - Include container integration guidance
+
+- [ ] 5.2. Update any existing documentation to reference the new approach
+
+### 6. Standardize Remaining Tests (Lower Priority)
+
+- [ ] 6.1. Systematically update remaining utility tests
+  - Focus on tests with custom mock implementation
+
+- [ ] 6.2. Create a pull request checklist item for new tests
+  - Ensure new tests follow the factory pattern
+
+### 7. Validate Metrics (Lower Priority)
+
+- [ ] 7.1. Measure code duplication reduction
+  - Compare lines of mock code before and after
+
+- [ ] 7.2. Analyze test readability improvements
+  - Solicit feedback from team members
+
+- [ ] 7.3. Document findings in a brief report
 
 ## Validation Metrics
 
