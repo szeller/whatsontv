@@ -2,7 +2,7 @@ import { afterEach, afterAll, beforeEach, describe, expect, it } from '@jest/glo
 import nock from 'nock';
 
 import { FetchHttpClientImpl } from '../../implementations/fetchHttpClientImpl.js';
-import { HttpClientOptions, HttpClient } from '../../interfaces/httpClient.js';
+import type { HttpClientOptions, HttpClient } from '../../interfaces/httpClient.js';
 
 // Base URL for tests
 const BASE_URL = 'https://api.example.com';
