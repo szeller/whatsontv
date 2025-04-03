@@ -1,13 +1,11 @@
 /**
  * Tests for TVMaze service implementation
  */
-import 'reflect-metadata';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { container } from 'tsyringe';
 import { TvMazeServiceImpl } from '../../implementations/tvMazeServiceImpl.js';
 import type { HttpClient } from '../../interfaces/httpClient.js';
-import { MockHttpClient } from '../testutils/mockHttpClient.js';
-import { getNetworkScheduleUrl, getWebScheduleUrl } from '../../utils/tvMazeUtils.js';
+import { createMockHttpClient } from '../mocks/factories/httpClientFactory.js';
 import { getTodayDate } from '../../utils/dateUtils.js';
 import { 
   NetworkBuilder, 
@@ -19,14 +17,14 @@ import type { ShowOptions } from '../../types/tvShowOptions.js';
 
 describe('TvMazeServiceImpl', () => {
   let tvMazeService: TvMazeServiceImpl;
-  let mockHttpClient: MockHttpClient;
+  let mockHttpClient: HttpClient;
 
   beforeEach(() => {
     // Clear any previous registrations
     container.clearInstances();
 
     // Create a new mock HTTP client for each test
-    mockHttpClient = new MockHttpClient();
+    mockHttpClient = createMockHttpClient();
 
     // Register the mock HTTP client with the DI container
     container.registerInstance<HttpClient>('HttpClient', mockHttpClient);
@@ -41,7 +39,7 @@ describe('TvMazeServiceImpl', () => {
       container.clearInstances();
 
       // Create a new mock HTTP client
-      const httpClient = new MockHttpClient();
+      const httpClient = createMockHttpClient();
 
       // Create the service with the mock client
       const service = new TvMazeServiceImpl(httpClient);
@@ -62,14 +60,11 @@ describe('TvMazeServiceImpl', () => {
       );
 
       // Mock the HTTP client for this specific endpoint
-      mockHttpClient.mockGet(
-        getNetworkScheduleUrl('2023-01-01', 'US'),
-        {
-          data: scheduleItems,
-          status: 200,
-          headers: {}
-        }
-      );
+      jest.spyOn(mockHttpClient, 'get').mockResolvedValueOnce({
+        data: scheduleItems,
+        status: 200,
+        headers: {}
+      });
 
       // Call the method under test
       const shows = await tvMazeService.fetchShows({ date: '2023-01-01' });
@@ -92,14 +87,11 @@ describe('TvMazeServiceImpl', () => {
       );
 
       // Mock the HTTP client for this specific endpoint
-      mockHttpClient.mockGet(
-        getNetworkScheduleUrl(todayDate, 'US'),
-        {
-          data: scheduleItems,
-          status: 200,
-          headers: {}
-        }
-      );
+      jest.spyOn(mockHttpClient, 'get').mockResolvedValueOnce({
+        data: scheduleItems,
+        status: 200,
+        headers: {}
+      });
 
       // Call the method under test with no date (defaults to today)
       const shows = await tvMazeService.fetchShows();
@@ -110,14 +102,11 @@ describe('TvMazeServiceImpl', () => {
 
     it('handles empty responses', async () => {
       // Mock empty response
-      mockHttpClient.mockGet(
-        getNetworkScheduleUrl('2099-01-01', 'US'),
-        {
-          data: [],
-          status: 200,
-          headers: {}
-        }
-      );
+      jest.spyOn(mockHttpClient, 'get').mockResolvedValueOnce({
+        data: [],
+        status: 200,
+        headers: {}
+      });
 
       // Call the method under test with a future date that has no shows
       const shows = await tvMazeService.fetchShows({ date: '2099-01-01' });
@@ -128,8 +117,7 @@ describe('TvMazeServiceImpl', () => {
 
     it('handles HTTP errors', async () => {
       // Mock an HTTP error
-      mockHttpClient.mockGetError(
-        getNetworkScheduleUrl('2023-01-01', 'US'),
+      jest.spyOn(mockHttpClient, 'get').mockRejectedValueOnce(
         new Error('Network error')
       );
 
@@ -152,37 +140,28 @@ describe('TvMazeServiceImpl', () => {
         })
         .build();
 
-      // Create a schedule item with specific details
-      const todayDate = getTodayDate();
+      // Create a schedule item with the network and show
       const scheduleItem = TvMazeScheduleItemBuilder.createNetworkScheduleItem({
-        id: 1,
-        name: 'Test Episode',
-        season: 1,
-        number: 1,
-        airdate: todayDate,
-        airtime: '20:00',
-        showId: 100,
-        showName: 'Test Show Title',
-        network
+        id: 100,
+        name: 'Test Show',
+        network: network,
+        airdate: '2023-01-01'
       });
 
-      // Mock the HTTP client with our fixture data
-      mockHttpClient.mockGet(
-        getNetworkScheduleUrl(todayDate, 'US'),
-        {
-          data: [scheduleItem],
-          status: 200,
-          headers: {}
-        }
-      );
+      // Mock the HTTP client response
+      jest.spyOn(mockHttpClient, 'get').mockResolvedValueOnce({
+        data: [scheduleItem],
+        status: 200,
+        headers: {}
+      });
 
       // Call the method under test
-      const shows = await tvMazeService.fetchShows({ date: todayDate });
+      const shows = await tvMazeService.fetchShows({ date: '2023-01-01' });
 
       // Verify the result has been transformed correctly
       expect(shows.length).toBe(1);
       expect(shows[0].id).toBe(100);
-      expect(shows[0].name).toBe('Test Show Title');
+      expect(shows[0].name).toBe('Test Show');
       expect(shows[0].network).toBe('Test Network (US)');
     });
 
@@ -196,17 +175,14 @@ describe('TvMazeServiceImpl', () => {
         }
       );
 
-      // Mock the web schedule endpoint
-      mockHttpClient.mockGet(
-        getWebScheduleUrl(todayDate),
-        {
-          data: webScheduleItems,
-          status: 200,
-          headers: {}
-        }
-      );
+      // Mock the HTTP client for the web schedule endpoint
+      jest.spyOn(mockHttpClient, 'get').mockResolvedValueOnce({
+        data: webScheduleItems,
+        status: 200,
+        headers: {}
+      });
 
-      // Call the method under test with web-only fetch source
+      // Call the method under test with web source
       const shows = await tvMazeService.fetchShows({
         fetchSource: 'web'
       });
@@ -235,35 +211,33 @@ describe('TvMazeServiceImpl', () => {
           airdate: todayDate
         }
       );
-
-      // Mock both endpoints
-      mockHttpClient.mockGet(
-        getNetworkScheduleUrl(todayDate, 'US'),
-        {
-          data: networkItems,
-          status: 200,
-          headers: {}
+      
+      // Mock the HTTP client for both endpoints
+      jest.spyOn(mockHttpClient, 'get').mockImplementation((url) => {
+        if (url.includes('web')) {
+          return Promise.resolve({
+            data: webItems,
+            status: 200,
+            headers: {}
+          });
+        } else {
+          return Promise.resolve({
+            data: networkItems,
+            status: 200,
+            headers: {}
+          });
         }
-      );
-
-      mockHttpClient.mockGet(
-        getWebScheduleUrl(todayDate),
-        {
-          data: webItems,
-          status: 200,
-          headers: {}
-        }
-      );
-
-      // Call the method under test with 'all' fetch source
+      });
+      
+      // Call the method under test with 'all' source
       const shows = await tvMazeService.fetchShows({
         fetchSource: 'all'
       });
-
-      // Verify the result contains shows from both sources
+      
+      // Verify we have shows from both sources
       expect(shows.length).toBe(4);
       
-      // Since we can't reliably determine which shows are from network vs web
+      // Since we can't easily distinguish network vs web shows 
       // based on the network name alone (depends on implementation details),
       // we'll just verify that we have shows from both sources based on ID ranges
       // The TvMazeScheduleItemBuilder typically uses IDs 100+ for network and 200+ for web
@@ -280,14 +254,11 @@ describe('TvMazeServiceImpl', () => {
     
     it('handles non-array response data', async () => {
       // Mock a response with non-array data
-      mockHttpClient.mockGet(
-        getNetworkScheduleUrl('2023-01-01', 'US'),
-        {
-          data: { error: 'Invalid data format' }, // Not an array
-          status: 200,
-          headers: {}
-        }
-      );
+      jest.spyOn(mockHttpClient, 'get').mockResolvedValueOnce({
+        data: { error: 'Invalid data' },
+        status: 200,
+        headers: {}
+      });
 
       // Call the method under test
       const shows = await tvMazeService.fetchShows({ date: '2023-01-01' });
@@ -297,26 +268,23 @@ describe('TvMazeServiceImpl', () => {
     });
     
     it('handles errors in the getSchedule method', async () => {
-      // Mock an HTTP error
-      mockHttpClient.mockGetError(
-        getNetworkScheduleUrl('2023-01-01', 'US'),
-        new Error('Network error')
-      );
-
-      // Save the original NODE_ENV
+      // Save the original NODE_ENV and set it to production to test error logging
       const originalNodeEnv = process.env.NODE_ENV;
-      // Set NODE_ENV to production to test the error logging path
       process.env.NODE_ENV = 'production';
       
       // Spy on console.error
-      const consoleErrorSpy = jest.spyOn(console, 'error');
-      consoleErrorSpy.mockImplementation(() => {});
-
-      // Call the method under test
-      const shows = await tvMazeService.fetchShows({ date: '2023-01-01' });
-
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      
+      // Mock an HTTP error
+      jest.spyOn(mockHttpClient, 'get').mockRejectedValueOnce(
+        new Error('Network error')
+      );
+      
+      // Call the method under test - it handles the error internally and returns an empty array
+      const result = await tvMazeService['getSchedule']('2023-01-01');
+      
       // Verify the result is an empty array
-      expect(shows).toEqual([]);
+      expect(result).toEqual([]);
       
       // Verify that console.error was called
       expect(consoleErrorSpy).toHaveBeenCalled();
@@ -328,23 +296,20 @@ describe('TvMazeServiceImpl', () => {
     
     it('handles errors in the fetchShows method', async () => {
       // Mock the HTTP client to throw an error
-      mockHttpClient.mockGetError(
-        getNetworkScheduleUrl('2023-01-01', 'US'),
+      jest.spyOn(mockHttpClient, 'get').mockRejectedValueOnce(
         new Error('Network error')
       );
 
-      // Save the original NODE_ENV
+      // Save the original NODE_ENV and set it to development to test error logging
       const originalNodeEnv = process.env.NODE_ENV;
-      // Set NODE_ENV to production to test the error logging path
-      process.env.NODE_ENV = 'production';
+      process.env.NODE_ENV = 'development';
       
       // Spy on console.error
-      const consoleErrorSpy = jest.spyOn(console, 'error');
-      consoleErrorSpy.mockImplementation(() => {});
-
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      
       // Call the method under test
       const shows = await tvMazeService.fetchShows({ date: '2023-01-01' });
-
+      
       // Verify the result is an empty array
       expect(shows).toEqual([]);
       
@@ -355,9 +320,15 @@ describe('TvMazeServiceImpl', () => {
   });
   
   describe('applyFilters', () => {
-    // Create a test class that exposes the private applyFilters method
+    // Create a test class that exposes the protected applyFilters method
     class TestTvMazeService extends TvMazeServiceImpl {
+      constructor(httpClient: HttpClient) {
+        super(httpClient);
+      }
+      
+      // Create a public method that calls the protected method
       public testApplyFilters(shows: Show[], options: ShowOptions): Show[] {
+        // Use type assertion to access the protected method
         return this['applyFilters'](shows, options);
       }
     }
@@ -366,47 +337,60 @@ describe('TvMazeServiceImpl', () => {
     let testShows: Show[];
     
     beforeEach(() => {
+      // Create a test service instance
       testService = new TestTvMazeService(mockHttpClient);
       
-      // Create test shows with different properties
+      // Create test shows with different properties for filtering
       testShows = [
         new ShowBuilder()
           .withId(1)
-          .withName('Show 1')
-          .withType('Scripted')
-          .withLanguage('English')
-          .withGenres(['Drama'])
+          .withName('Drama Show')
           .withNetwork('ABC')
+          .withLanguage('English')
+          .withType('Scripted')
+          .withGenres(['Drama'])
+          .withSummary('A dramatic show')
+          .withAirtime('20:00')
+          .withEpisode(1, 1)
           .build(),
         new ShowBuilder()
           .withId(2)
-          .withName('Show 2')
-          .withType('Reality')
+          .withName('Reality Show')
+          .withNetwork('CBS')
           .withLanguage('Spanish')
+          .withType('Reality')
           .withGenres(['Reality'])
-          .withNetwork('NBC')
+          .withSummary('A reality show')
+          .withAirtime('21:00')
+          .withEpisode(1, 2)
           .build(),
         new ShowBuilder()
           .withId(3)
-          .withName('Show 3')
-          .withType('Animation')
-          .withLanguage('English')
-          .withGenres(['Comedy', 'Animation'])
+          .withName('Comedy Show')
           .withNetwork('Netflix')
+          .withLanguage('English')
+          .withType('Variety')
+          .withGenres(['Comedy', 'Talk Show'])
+          .withSummary('A comedy show')
+          .withAirtime('22:00')
+          .withEpisode(1, 3)
           .build(),
         new ShowBuilder()
           .withId(4)
-          .withName('Show 4')
-          .withType('Scripted')
-          .withLanguage('French')
-          .withGenres(['Drama', 'Thriller'])
+          .withName('Mystery Show')
           .withNetwork('HBO')
+          .withLanguage('French')
+          .withType('Scripted')
+          .withGenres(['Mystery', 'Thriller'])
+          .withSummary('A mystery show')
+          .withAirtime('23:00')
+          .withEpisode(1, 4)
           .build()
       ];
     });
     
-    it('handles empty shows array', () => {
-      const result = testService.testApplyFilters([], {
+    it('returns all shows when no filters are applied', () => {
+      const result = testService.testApplyFilters(testShows, {
         date: '',
         country: 'US',
         fetchSource: 'all',
@@ -416,7 +400,8 @@ describe('TvMazeServiceImpl', () => {
         networks: []
       });
       
-      expect(result).toEqual([]);
+      expect(result.length).toBe(4);
+      expect(result).toEqual(testShows);
     });
     
     it('applies type filter correctly', () => {

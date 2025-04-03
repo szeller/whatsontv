@@ -6,7 +6,7 @@
  */
 import { container } from '../../../container.js';
 import { runCli } from './cliTestRunner.js';
-import { MockHttpClient } from '../../testutils/mockHttpClient.js';
+import { createMockHttpClient } from '../../mocks/factories/httpClientFactory.js';
 import type { HttpClient } from '../../../interfaces/httpClient.js';
 import { getTodayDate } from '../../../utils/dateUtils.js';
 import { 
@@ -48,7 +48,7 @@ describe('CLI Integration Tests', () => {
   let originalConsoleWarn: typeof console.warn;
 
   // Mock HTTP client
-  let mockHttpClient: MockHttpClient;
+  let mockHttpClient: HttpClient;
   
   // Original HTTP client and style service
   let originalHttpClient: HttpClient;
@@ -77,7 +77,7 @@ describe('CLI Integration Tests', () => {
     originalStyleService = container.resolve<StyleService>('StyleService');
     
     // Create mock HTTP client and plain style service
-    mockHttpClient = new MockHttpClient();
+    mockHttpClient = createMockHttpClient();
     const plainStyleService = new PlainStyleServiceImpl();
     
     // Register mock services
@@ -98,7 +98,7 @@ describe('CLI Integration Tests', () => {
   
   beforeEach(() => {
     // Reset mock HTTP client
-    mockHttpClient.reset();
+    jest.clearAllMocks();
     
     // Set up TVMaze API mocks with today's date
     setupTvMazeMocks(mockHttpClient, today);
@@ -196,22 +196,29 @@ describe('CLI Integration Tests', () => {
   describe('Error handling', () => {
     test('should handle malformed API responses gracefully', async () => {
       // Reset the mock HTTP client
-      mockHttpClient.reset();
+      jest.clearAllMocks();
       
       // Set up a malformed response for the network schedule endpoint
       const networkUrl = getNetworkScheduleUrl(today);
-      mockHttpClient.mockGet(networkUrl, {
-        status: 200,
-        headers: { 'content-type': 'application/json' },
-        data: '{ "malformed": "json", missing closing bracket and quotes'
-      });
-      
-      // Set up a malformed response for the web schedule endpoint
-      const webUrl = getWebScheduleUrl(today);
-      mockHttpClient.mockGet(webUrl, {
-        status: 200,
-        headers: { 'content-type': 'application/json' },
-        data: '{ "also": "malformed", ]'
+      jest.spyOn(mockHttpClient, 'get').mockImplementation((url) => {
+        if (url === networkUrl) {
+          return Promise.resolve({
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+            data: '{ "malformed": "json", missing closing bracket and quotes'
+          });
+        } else if (url === getWebScheduleUrl(today)) {
+          return Promise.resolve({
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+            data: '{ "also": "malformed", ]'
+          });
+        }
+        return Promise.resolve({
+          status: 404,
+          headers: {},
+          data: null
+        });
       });
       
       // Run CLI with all fetch option to try both endpoints
