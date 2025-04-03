@@ -15,10 +15,23 @@ export interface OutputServiceOptions extends MockOptions<OutputService> {
   
   /** Custom callback to execute when renderOutput is called */
   onRenderOutput?: (shows: Show[]) => void;
+  
+  /** Whether to log show information to console in the default implementation */
+  logToConsole?: boolean;
+  
+  /** Whether this is a verbose output, showing more details */
+  verbose?: boolean;
 }
 
 /**
  * Creates a mock output service for testing
+ * 
+ * The default implementation will:
+ * - Log a message with the number of shows (if logToConsole=true)
+ * - Include additional details about shows if verbose=true
+ * - Throw an error if renderError is provided
+ * - Call onRenderOutput if provided
+ * 
  * @param options Options for configuring the mock
  * @returns A mock output service instance
  */
@@ -35,9 +48,24 @@ export function createMockOutputService(
       // If a custom callback is provided, execute it
       if (options.onRenderOutput) {
         options.onRenderOutput(shows);
+      } else if (options.logToConsole === true) {
+        // Provide a more realistic default behavior that logs to console
+        console.log(`[MockOutput] Displaying ${shows.length} shows`);
+        
+        // If verbose, log some details about the shows
+        if (options.verbose === true && shows.length > 0) {
+          shows.forEach(show => {
+            const hasAirtime = show.airtime !== null &&
+              show.airtime !== undefined &&
+              show.airtime !== '';
+            
+            const airtime = hasAirtime ? show.airtime : 'No airtime';
+            console.log(`  - ${show.name} [${show.network}] ${airtime}`);
+          });
+        }
       }
       
-      // Default implementation does nothing
+      // Default implementation resolves
       return Promise.resolve();
     })
   };
