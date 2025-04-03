@@ -4,19 +4,30 @@
 import { jest } from '@jest/globals';
 import { container, DependencyContainer } from 'tsyringe';
 
-// Local imports
-import { PlainStyleServiceImpl } from '../../implementations/test/plainStyleServiceImpl.js';
+// Import factory functions
+import { createMockHttpClient } from '../mocks/factories/httpClientFactory.js';
+import { createMockConfigService } from '../mocks/factories/configServiceFactory.js';
+import { 
+  createMockFormatter as factoryCreateMockFormatter 
+} from '../mocks/factories/formatterFactory.js';
+import { 
+  createMockTvShowService as factoryCreateMockTvShowService 
+} from '../mocks/factories/tvShowServiceFactory.js';
+import { createMockStyleService } from '../mocks/factories/styleServiceFactory.js';
+import { createMockOutputService } from '../mocks/factories/outputServiceFactory.js';
 
 // Type imports
 import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
 import type { ShowFormatter } from '../../interfaces/showFormatter.js';
 import type { StyleService } from '../../interfaces/styleService.js';
 import type { TvShowService } from '../../interfaces/tvShowService.js';
-import type { Show } from '../../schemas/domain.js';
-import type { NetworkGroups } from '../../utils/showUtils.js';
+import type { HttpClient } from '../../interfaces/httpClient.js';
+import type { ConfigService } from '../../interfaces/configService.js';
+import type { OutputService } from '../../interfaces/outputService.js';
 
 /**
  * Create a mock console output object for testing
+ * @deprecated Use createMockConsoleOutput from consoleOutputFactory instead
  * @returns Mock console output
  */
 export function createMockConsoleOutput(): jest.Mocked<ConsoleOutput> {
@@ -30,35 +41,22 @@ export function createMockConsoleOutput(): jest.Mocked<ConsoleOutput> {
 
 /**
  * Create a mock formatter for testing
+ * @deprecated Consider using formatterFactory directly for new tests
  * @returns Mock formatter
  */
 export function createMockFormatter(): jest.Mocked<ShowFormatter> {
-  return {
-    formatShow: jest.fn(),
-    formatTimedShow: jest.fn(),
-    formatUntimedShow: jest.fn(),
-    formatMultipleEpisodes: jest.fn(),
-    formatNetworkGroups: jest.fn<(groups: NetworkGroups, timeSort?: boolean) => string[]>()
-  };
+  // Use the factory function to ensure consistency
+  return factoryCreateMockFormatter();
 }
 
 /**
  * Create a mock TV show service for testing
+ * @deprecated Consider using tvShowServiceFactory directly for new tests
  * @returns Mock TV show service with jest mock functions
  */
 export function createMockTvShowService(): TvShowService {
-  return {
-    fetchShows: jest.fn<(options: {
-      date?: string;
-      country?: string;
-      types?: string[];
-      networks?: string[];
-      genres?: string[];
-      languages?: string[];
-      webOnly?: boolean;
-      showAll?: boolean;
-    }) => Promise<Show[]>>().mockResolvedValue([])
-  };
+  // Use the factory function to ensure consistency
+  return factoryCreateMockTvShowService();
 }
 
 /**
@@ -69,20 +67,33 @@ export function createTestContainer(): DependencyContainer {
   // Create a child container to avoid polluting the global container
   const testContainer = container.createChildContainer();
   
-  // Register mock dependencies
+  // Register mock dependencies using factory functions
+  testContainer.register<HttpClient>('HttpClient', { 
+    useValue: createMockHttpClient() 
+  });
+  
+  testContainer.register<ConfigService>('ConfigService', { 
+    useValue: createMockConfigService() 
+  });
+  
   testContainer.register<ConsoleOutput>('ConsoleOutput', { 
     useValue: createMockConsoleOutput() 
   });
+  
   testContainer.register<ShowFormatter>('ShowFormatter', { 
     useValue: createMockFormatter() 
   });
+  
   testContainer.register<TvShowService>('TvShowService', { 
     useValue: createMockTvShowService() 
   });
   
-  // Use real style service with plain styling
   testContainer.register<StyleService>('StyleService', { 
-    useClass: PlainStyleServiceImpl 
+    useValue: createMockStyleService() 
+  });
+  
+  testContainer.register<OutputService>('OutputService', { 
+    useValue: createMockOutputService() 
   });
   
   return testContainer;
@@ -95,17 +106,32 @@ export function createTestContainer(): DependencyContainer {
 export function resetContainer(): void {
   container.clearInstances();
   
-  // Register the mock services in the global container
+  // Register the mock services in the global container using factory functions
+  container.register<HttpClient>('HttpClient', { 
+    useValue: createMockHttpClient() 
+  });
+  
+  container.register<ConfigService>('ConfigService', { 
+    useValue: createMockConfigService() 
+  });
+  
   container.register<ConsoleOutput>('ConsoleOutput', { 
     useValue: createMockConsoleOutput() 
   });
+  
   container.register<ShowFormatter>('ShowFormatter', { 
     useValue: createMockFormatter() 
   });
+  
   container.register<TvShowService>('TvShowService', { 
     useValue: createMockTvShowService() 
   });
+  
   container.register<StyleService>('StyleService', { 
-    useClass: PlainStyleServiceImpl 
+    useValue: createMockStyleService() 
+  });
+  
+  container.register<OutputService>('OutputService', { 
+    useValue: createMockOutputService() 
   });
 }
