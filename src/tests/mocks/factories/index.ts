@@ -13,6 +13,8 @@ export * from './httpClientFactory.js';
 export * from './configServiceFactory.js';
 export * from './formatterFactory.js';
 export * from './tvShowServiceFactory.js';
+export * from './styleServiceFactory.js';
+export * from './outputServiceFactory.js';
 
 // As we implement each factory, we'll add exports here
 // etc.

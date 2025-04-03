@@ -66,6 +66,8 @@ src/
     │       ├── consoleOutputFactory.ts
     │       ├── formatterFactory.ts
     │       ├── httpClientFactory.ts
+    │       ├── styleServiceFactory.ts ✅ COMPLETED
+    │       ├── outputServiceFactory.ts ✅ COMPLETED
     │       └── tvShowServiceFactory.ts
     ├── utils/             # General test utilities
     │   ├── assertions.ts  # Custom test assertions
@@ -86,6 +88,8 @@ The factory functions will be organized as individual files with a barrel index 
 // src/tests/mocks/factories/index.ts
 export * from './httpClientFactory.js';
 export * from './configServiceFactory.js';
+export * from './styleServiceFactory.js'; ✅ COMPLETED
+export * from './outputServiceFactory.js'; ✅ COMPLETED
 // etc.
 ```
 
@@ -205,6 +209,52 @@ This allows for:
    
    export function createMockTvShowService(options: TvShowServiceOptions = {}): MockTvShowService {
      // Implementation that configures shows, errors, and fixtures
+   }
+   ```
+
+5. Implement `StyleServiceFactory` (fifth priority): ✅ COMPLETED
+   ```typescript
+   // src/tests/mocks/factories/styleServiceFactory.ts
+   import type { StyleService } from '../../../interfaces/styleService.js';
+   import { MockOptions } from './types.js';
+
+   export interface StyleServiceOptions extends MockOptions<StyleService> {
+     /** Whether to return styled text (true) or plain text (false) */
+     styled?: boolean;
+     
+     /** Custom style transformations for specific methods */
+     customStyles?: {
+       bold?: (text: string) => string;
+       // Other style methods...
+     };
+   }
+   
+   export function createMockStyleService(
+     options: StyleServiceOptions = {}
+   ): jest.Mocked<StyleService> {
+     // Implementation that configures styling behavior
+   }
+   ```
+
+6. Implement `OutputServiceFactory` (sixth priority): ✅ COMPLETED
+   ```typescript
+   // src/tests/mocks/factories/outputServiceFactory.ts
+   import type { OutputService } from '../../../interfaces/outputService.js';
+   import type { Show } from '../../../schemas/domain.js';
+   import { MockOptions } from './types.js';
+
+   export interface OutputServiceOptions extends MockOptions<OutputService> {
+     /** Error to throw when renderOutput is called */
+     renderError?: Error;
+     
+     /** Custom callback to execute when renderOutput is called */
+     onRenderOutput?: (shows: Show[]) => void;
+   }
+   
+   export function createMockOutputService(
+     options: OutputServiceOptions = {}
+   ): jest.Mocked<OutputService> {
+     // Implementation that configures output behavior
    }
    ```
 
