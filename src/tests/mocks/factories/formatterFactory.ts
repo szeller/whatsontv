@@ -1,4 +1,4 @@
-import type { ShowFormatter } from '../../../interfaces/showFormatter.js';
+import type { TextShowFormatter } from '../../../interfaces/showFormatter.js';
 import type { NetworkGroups, Show } from '../../../schemas/domain.js';
 import { MockOptions } from './types.js';
 import { jest } from '@jest/globals';
@@ -6,7 +6,7 @@ import { jest } from '@jest/globals';
 /**
  * Options for creating a mock formatter
  */
-export interface FormatterOptions extends MockOptions<ShowFormatter> {
+export interface FormatterOptions extends MockOptions<TextShowFormatter> {
   /** Default formatted show string */
   defaultFormattedShow?: string;
   
@@ -27,22 +27,14 @@ export interface FormatterOptions extends MockOptions<ShowFormatter> {
 }
 
 /**
- * Creates a mock show formatter for testing
+ * Creates a mock text show formatter for testing
  * @param options Options for configuring the mock
- * @returns A mock show formatter instance
+ * @returns A mock text show formatter instance
  */
-export function createMockFormatter(options: FormatterOptions = {}): jest.Mocked<ShowFormatter> {
-  const mockFormatter: jest.Mocked<ShowFormatter> = {
-    formatShow: jest.fn((show: Show) => {
-      // If we have a custom formatter for this show ID, use it
-      if (options.showFormatters && options.showFormatters[show.id]) {
-        return options.showFormatters[show.id];
-      }
-      
-      // Otherwise use the default or a generic string
-      return options.defaultFormattedShow ?? `Show: ${show.name}`;
-    }),
-    
+export function createMockFormatter(
+  options: FormatterOptions = {}
+): jest.Mocked<TextShowFormatter> {
+  const mockFormatter: jest.Mocked<TextShowFormatter> = {
     formatTimedShow: jest.fn((show: Show) => {
       // If we have a custom formatter for this show ID, use it
       if (options.showFormatters && options.showFormatters[show.id]) {
@@ -75,15 +67,30 @@ export function createMockFormatter(options: FormatterOptions = {}): jest.Mocked
       return shows.map(show => `Multiple Episodes: ${show.name}`);
     }),
     
-    formatNetworkGroups: jest.fn((networkGroups: NetworkGroups, _timeSort?: boolean) => {
+    formatNetwork: jest.fn((network: string, shows: Show[]) => {
+      // Generate a default array for a network and its shows
+      return [
+        `Network: ${network}`,
+        ...shows.map(show => `  Show: ${show.name}`)
+      ];
+    }),
+    
+    formatNetworkGroups: jest.fn((networkGroups: NetworkGroups) => {
       if (options.defaultFormattedNetworkGroups) {
         return [...options.defaultFormattedNetworkGroups];
       }
       
       // Generate a default array of formatted network groups
-      return Object.entries(networkGroups).map(
-        ([network, shows]) => `Network: ${network} (${shows.length} shows)`
-      );
+      const result: string[] = [];
+      
+      for (const [network, shows] of Object.entries(networkGroups)) {
+        result.push(`Network: ${network} (${shows.length} shows)`);
+        shows.forEach(show => {
+          result.push(`  Show: ${show.name}`);
+        });
+      }
+      
+      return result;
     })
   };
   

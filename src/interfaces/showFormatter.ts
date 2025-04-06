@@ -1,42 +1,54 @@
-import type { NetworkGroups, Show } from '../schemas/domain.js';
+/**
+ * Interface for formatting TV show information
+ */
+import type { Show, NetworkGroups } from '../schemas/domain.js';
 
 /**
- * Interface for formatters that format TV show information
+ * Generic interface for formatting TV show information
+ * Uses generics to allow for different output formats (text, Slack blocks, etc.)
+ * TOutput: The output type for a single show or episode
+ * TGroupOutput: The output type for a group of shows (defaults to TOutput[])
  */
-export interface ShowFormatter {
-  /**
-   * Format a single show for display
-   * @param show Show to format
-   * @returns Formatted show string
-   */
-  formatShow(show: Show): string;
-  
+export interface ShowFormatter<TOutput, TGroupOutput = TOutput[]> {
   /**
    * Format a show with a specific airtime
    * @param show Show with a specific airtime
-   * @returns Formatted show string
+   * @returns Formatted show representation
    */
-  formatTimedShow(show: Show): string;
+  formatTimedShow(show: Show): TOutput;
   
   /**
    * Format a show with no specific airtime (TBA)
    * @param show Show with no specific airtime
-   * @returns Formatted show string
+   * @returns Formatted show representation
    */
-  formatUntimedShow(show: Show): string;
+  formatUntimedShow(show: Show): TOutput;
   
   /**
    * Format multiple episodes of the same show with no specific airtime
    * @param shows Multiple episodes of the same show
-   * @returns Formatted show string
+   * @returns Formatted show representations
    */
-  formatMultipleEpisodes(shows: Show[]): string[];
+  formatMultipleEpisodes(shows: Show[]): TOutput[];
+  
+  /**
+   * Format a single network and its shows
+   * @param network Network name
+   * @param shows Shows in the network
+   * @returns Formatted output for the network and its shows
+   */
+  formatNetwork(network: string, shows: Show[]): TOutput[];
   
   /**
    * Format a group of shows by network
    * @param networkGroups Shows grouped by network
-   * @param timeSort Whether to sort shows by time
-   * @returns Formatted output as an array of strings
+   * @returns Formatted output for the network groups
    */
-  formatNetworkGroups(networkGroups: NetworkGroups, timeSort?: boolean): string[];
+  formatNetworkGroups(networkGroups: NetworkGroups): TGroupOutput;
 }
+
+/**
+ * Text-specific implementation of ShowFormatter
+ * Used for console and other text-based outputs
+ */
+export type TextShowFormatter = ShowFormatter<string, string[]>;

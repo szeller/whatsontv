@@ -2,11 +2,10 @@ import 'reflect-metadata';
 import { inject, injectable } from 'tsyringe';
 
 import type { ConfigService } from '../../interfaces/configService.js';
-import type { ShowFormatter } from '../../interfaces/showFormatter.js';
+import type { TextShowFormatter } from '../../interfaces/showFormatter.js';
 import type { Show } from '../../schemas/domain.js';
 import type { OutputService } from '../../interfaces/outputService.js';
 import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
-import type { NetworkGroups } from '../../utils/showUtils.js';
 import { groupShowsByNetwork, sortShowsByTime } from '../../utils/showUtils.js';
 import { padString } from '../../utils/stringUtils.js';
 
@@ -16,7 +15,7 @@ import { padString } from '../../utils/stringUtils.js';
  */
 @injectable()
 export class ConsoleOutputServiceImpl implements OutputService {
-  protected formatter!: ShowFormatter;
+  protected formatter!: TextShowFormatter;
   protected output!: ConsoleOutput;
   protected configService!: ConfigService;
 
@@ -28,7 +27,7 @@ export class ConsoleOutputServiceImpl implements OutputService {
    * @param skipInitialization Optional flag to skip initialization (for testing)
    */
   constructor(
-    @inject('ShowFormatter') formatter: ShowFormatter,
+    @inject('TextShowFormatter') formatter: TextShowFormatter,
     @inject('ConsoleOutput') output: ConsoleOutput,
     @inject('ConfigService') configService: ConfigService,
       skipInitialization = false
@@ -47,7 +46,7 @@ export class ConsoleOutputServiceImpl implements OutputService {
    * @protected
    */
   protected initialize(
-    formatter: ShowFormatter,
+    formatter: TextShowFormatter,
     output: ConsoleOutput,
     configService: ConfigService
   ): void {
@@ -104,37 +103,8 @@ export class ConsoleOutputServiceImpl implements OutputService {
       : { 'All Shows': sortedShows };
     
     try {
-      // Format the shows - pass the groupByNetwork value as timeSort
-      // This maintains compatibility with existing tests
-      const formattedOutput = this.formatter.formatNetworkGroups(networkGroups, groupByNetwork);
-      
-      // Display each line of output
-      for (const line of formattedOutput) {
-        await Promise.resolve(this.output.log(line));
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      this.output.error(`Error displaying output: ${errorMessage}`);
-    }
-  }
-
-  /**
-   * Display network groups of shows
-   * @param networkGroups Shows grouped by network
-   * @param timeSort Whether to sort shows by time within each network
-   * @returns Promise that resolves when shows are displayed
-   * @private
-   */
-  private async displayNetworkGroups(
-    networkGroups: NetworkGroups,
-    timeSort: boolean = false
-  ): Promise<void> {
-    try {
-      // Format shows grouped by network
-      const formattedOutput = this.formatter.formatNetworkGroups(
-        networkGroups,
-        timeSort
-      );
+      // Format the shows using the new interface
+      const formattedOutput = this.formatter.formatNetworkGroups(networkGroups);
       
       // Display each line of output
       for (const line of formattedOutput) {

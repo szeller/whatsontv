@@ -38,6 +38,24 @@ The implementation will use the same interface hierarchy as the console implemen
 - `ShowFormatter` → `SlackFormatterImpl` (formats shows for Slack)
 - Additional supporting services for Slack-specific operations
 
+### Interface Extensions
+
+To improve the efficiency of the Slack output generation, we'll extend the `ShowFormatter` interface with an optional method that enables direct generation of output structures:
+
+```typescript
+export interface ShowFormatter<TOutput, TGroupOutput = TOutput[]> {
+  formatTimedShow(show: Show): TOutput;
+  formatUntimedShow(show: Show): TOutput;
+  formatMultipleEpisodes(shows: Show[]): TOutput[];
+  formatNetworkGroups(networkGroups: NetworkGroups): TGroupOutput;
+}
+```
+
+This approach:
+1. Maintains backward compatibility with existing implementations
+2. Avoids string parsing/generation when direct structure creation is possible
+3. Allows for optimization in specific output formats like Slack
+
 ## New Components
 
 ### 1. Entry Point
@@ -130,12 +148,12 @@ import { groupShowsByNetwork } from '../../utils/showUtils.js';
  */
 @injectable()
 export class SlackOutputServiceImpl implements OutputService {
-  protected formatter: ShowFormatter;
+  protected formatter: ShowFormatter<SlackBlock, SlackBlock[]>;
   protected slackClient: SlackClient;
   protected configService: ConfigService;
 
   constructor(
-    @inject('SlackFormatter') formatter: ShowFormatter,
+    @inject('SlackFormatter') formatter: ShowFormatter<SlackBlock, SlackBlock[]>,
     @inject('SlackClient') slackClient: SlackClient,
     @inject('ConfigService') configService: ConfigService
   ) {
@@ -161,10 +179,7 @@ export class SlackOutputServiceImpl implements OutputService {
       const networkGroups = groupShowsByNetwork(shows);
       
       // Format shows by network using the formatter
-      const formattedShows = this.formatter.formatNetworkGroups(
-        networkGroups,
-        true // Sort by time
-      );
+      const formattedShows = this.formatter.formatNetworkGroups(networkGroups);
       
       // Create footer
       const footer = this.createFooter();
@@ -174,14 +189,13 @@ export class SlackOutputServiceImpl implements OutputService {
         ...header,
         ...formattedShows,
         ...footer
-      ].join('\n');
+      ];
       
       // Send to Slack
       await this.slackClient.sendMessage({
         channel: channelId,
-        text: message,
-        // Convert to Slack blocks format
-        blocks: this.convertToSlackBlocks(message)
+        text: `TV Shows for ${formatDate(new Date())}`,
+        blocks: message
       });
     } catch (error) {
       console.error('Error rendering Slack output:', error);
@@ -211,7 +225,7 @@ export class SlackOutputServiceImpl implements OutputService {
    * @returns Array of header lines
    * @private
    */
-  private createHeader(showCount: number): string[] {
+  private createHeader(showCount: number): SlackBlock[] {
     const date = new Date();
     const options = {
       weekday: 'long', 
@@ -223,9 +237,24 @@ export class SlackOutputServiceImpl implements OutputService {
     const formattedDate = date.toLocaleDateString('en-US', options);
     
     return [
-      `*📺 TV Shows for ${formattedDate}*`,
-      `Found *${showCount}* shows airing today`,
-      '---'
+      {
+        type: 'header',
+        text: {
+          type: 'plain_text',
+          text: `TV Shows for ${formattedDate}`,
+          emoji: true
+        }
+      },
+      {
+        type: 'context',
+        elements: [{
+          type: 'mrkdwn',
+          text: `Found *${showCount}* shows airing today`
+        }]
+      },
+      {
+        type: 'divider'
+      }
     ];
   }
   
@@ -234,83 +263,19 @@ export class SlackOutputServiceImpl implements OutputService {
    * @returns Array of footer lines
    * @private
    */
-  private createFooter(): string[] {
+  private createFooter(): SlackBlock[] {
     return [
-      '---',
-      '_Data provided by TVMaze API (https://api.tvmaze.com)_'
-    ];
-  }
-  
-  /**
-   * Convert text message to Slack blocks format
-   * This is a utility method to transform formatted text into Slack's Block Kit format
-   * @param message The formatted message text
-   * @returns Slack blocks array
-   * @private
-   */
-  private convertToSlackBlocks(message: string): unknown[] {
-    // This is a simplified example - in the actual implementation,
-    // we would parse the text and convert to appropriate Slack blocks
-    const lines = message.split('\n');
-    const blocks = [];
-    
-    // Convert lines to blocks (simplified example)
-    for (const line of lines) {
-      if (line.startsWith('*📺')) {
-        // Main header
-        blocks.push({
-          type: 'header',
-          text: {
-            type: 'plain_text',
-            text: line.replace(/\*/g, ''),
-            emoji: true
-          }
-        });
-      } else if (line.startsWith('Found *')) {
-        // Show count context
-        blocks.push({
-          type: 'context',
-          elements: [{
-            type: 'mrkdwn',
-            text: line
-          }]
-        });
-      } else if (line === '---') {
-        // Divider
-        blocks.push({
-          type: 'divider'
-        });
-      } else if (line.startsWith('_Data provided by')) {
-        // Footer
-        blocks.push({
-          type: 'context',
-          elements: [{
-            type: 'mrkdwn',
-            text: line
-          }]
-        });
-      } else if (line.endsWith(':')) {
-        // Network header
-        blocks.push({
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: `*${line.replace(':', '')}*`
-          }
-        });
-      } else if (line.trim() !== '') {
-        // Show content
-        blocks.push({
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: line
-          }
-        });
+      {
+        type: 'divider'
+      },
+      {
+        type: 'context',
+        elements: [{
+          type: 'mrkdwn',
+          text: '_Data provided by TVMaze API (https://api.tvmaze.com)_'
+        }]
       }
-    }
-    
-    return blocks;
+    ];
   }
 }
 ```
@@ -330,10 +295,10 @@ import { sortShowsByTime, formatEpisodeRanges } from '../../utils/showUtils.js';
 
 /**
  * Slack implementation of the ShowFormatter interface
- * Formats TV show information for display in Slack
+ * Formats TV show information for display in Slack using the compact format with emoji indicators
  */
 @injectable()
-export class SlackFormatterImpl implements ShowFormatter {
+export class SlackFormatterImpl implements ShowFormatter<SlackBlock, SlackBlock[]> {
   // Constants for formatting
   private readonly UNKNOWN_SHOW = 'Unknown Show';
   private readonly UNKNOWN_TYPE = 'Unknown';
@@ -350,25 +315,14 @@ export class SlackFormatterImpl implements ShowFormatter {
    * @param show Show to format
    * @returns Formatted show string
    */
-  public formatShow(show: Show): string {
-    return show.airtime
-      ? this.formatTimedShow(show)
-      : this.formatUntimedShow(show);
-  }
-  
-  /**
-   * Format a show with a specific airtime
-   * @param show Show with a specific airtime
-   * @returns Formatted show string
-   */
-  public formatTimedShow(show: Show): string {
-    const airtime = show.airtime || this.NO_AIRTIME;
-    const network = show.network || 'Unknown';
-    const showType = show.type || this.UNKNOWN_TYPE;
-    const showName = show.name || this.UNKNOWN_SHOW;
-    const episodeInfo = this.formatEpisodeInfo(show);
-    
-    return `• *${showName}* ${episodeInfo}\n  ${airtime} | ${showType}`;
+  public formatTimedShow(show: Show): SlackBlock {
+    return {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: this.formatShowText(show)
+      }
+    };
   }
   
   /**
@@ -376,13 +330,14 @@ export class SlackFormatterImpl implements ShowFormatter {
    * @param show Show with no specific airtime
    * @returns Formatted show string
    */
-  public formatUntimedShow(show: Show): string {
-    const network = show.network || 'Unknown';
-    const showType = show.type || this.UNKNOWN_TYPE;
-    const showName = show.name || this.UNKNOWN_SHOW;
-    const episodeInfo = this.formatEpisodeInfo(show);
-    
-    return `• *${showName}* ${episodeInfo}\n  ${this.NO_AIRTIME} | ${showType}`;
+  public formatUntimedShow(show: Show): SlackBlock {
+    return {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: this.formatShowText(show)
+      }
+    };
   }
   
   /**
@@ -390,51 +345,84 @@ export class SlackFormatterImpl implements ShowFormatter {
    * @param shows Multiple episodes of the same show
    * @returns Formatted show strings
    */
-  public formatMultipleEpisodes(shows: Show[]): string[] {
+  public formatMultipleEpisodes(shows: Show[]): SlackBlock[] {
     if (!shows.length) return [];
     
     const episodeRanges = formatEpisodeRanges(shows);
     const firstShow = shows[0];
     const showName = firstShow.name || this.UNKNOWN_SHOW;
-    const network = firstShow.network || 'Unknown';
     const showType = firstShow.type || this.UNKNOWN_TYPE;
+    const typeEmoji = this.getTypeEmoji(showType);
     
     return episodeRanges.map(range => 
-      `• *${showName}* ${range}\n  ${this.NO_AIRTIME} | ${showType}`
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `${typeEmoji} *${showName}* ${range} (${this.NO_AIRTIME})`
+        }
+      }
     );
   }
   
   /**
    * Format a group of shows by network
    * @param networkGroups Shows grouped by network
-   * @param timeSort Whether to sort shows by time
    * @returns Formatted output as an array of strings
    */
-  public formatNetworkGroups(networkGroups: NetworkGroups, timeSort: boolean = true): string[] {
-    const result: string[] = [];
+  public formatNetworkGroups(networkGroups: NetworkGroups): SlackBlock[] {
+    const result: SlackBlock[] = [];
     
     Object.entries(networkGroups).forEach(([network, shows]) => {
       // Skip empty networks
       if (!shows.length) return;
       
       // Add network heading
-      result.push(`${network}:`);
+      result.push({
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `*${network}*`
+        }
+      });
       
       // Sort shows if required
-      const sortedShows = timeSort ? sortShowsByTime(shows) : shows;
+      const sortedShows = sortShowsByTime(shows);
       
       // Add each formatted show
       sortedShows.forEach(show => {
-        result.push(this.formatShow(show));
+        result.push(this.formatTimedShow(show));
       });
       
       // Add a blank line after each network
-      result.push('');
+      result.push({
+        type: 'divider'
+      });
     });
     
     return result;
   }
   
+  /**
+   * Format episode information for a show
+   * @param show The show to format episode info for
+   * @returns Formatted episode info string
+   * @private
+   */
+  private formatShowText(show: Show): string {
+    if (!show.season && !show.number) {
+      return '';
+    }
+    
+    const airtime = show.airtime || this.NO_AIRTIME;
+    const showType = show.type || this.UNKNOWN_TYPE;
+    const showName = show.name || this.UNKNOWN_SHOW;
+    const episodeInfo = this.formatEpisodeInfo(show);
+    const typeEmoji = this.getTypeEmoji(showType);
+    
+    return `${typeEmoji} *${showName}* ${episodeInfo} (${airtime})`;
+  }
+
   /**
    * Format episode information for a show
    * @param show The show to format episode info for
@@ -450,6 +438,36 @@ export class SlackFormatterImpl implements ShowFormatter {
     const episode = show.number ? `E${String(show.number).padStart(2, '0')}` : '';
     
     return season + episode;
+  }
+
+  /**
+   * Get emoji for show type
+   * @param type The show type
+   * @returns Emoji representing the show type
+   * @private
+   */
+  private getTypeEmoji(type: string): string {
+    switch (type?.toLowerCase()) {
+      case 'scripted':
+        return '📝';
+      case 'reality':
+        return '👁️';
+      case 'talk':
+      case 'talk show':
+        return '🎙️';
+      case 'documentary':
+        return '🎬';
+      case 'variety':
+        return '🎭';
+      case 'game':
+        return '🎮';
+      case 'news':
+        return '📰';
+      case 'sports':
+        return '⚽';
+      default:
+        return '📺';
+    }
   }
 }
 ```
@@ -496,7 +514,7 @@ export class SlackClientImpl implements SlackClient {
     this._options = this._configService.getSlackOptions();
     this._client = new WebClient(this._options.token);
   }
-  
+
   public async sendMessage(payload: SlackMessagePayload): Promise<void> {
     try {
       // Ensure channel is set
@@ -613,6 +631,44 @@ container.register('SlackOutputService', {
 export { container };
 ```
 
+## Message Format Design
+
+We've prototyped several message format options and decided to implement the **Compact Format with Emoji Indicators**. This format provides a good balance of readability, information density, and visual appeal.
+
+### Compact Format with Emoji Indicators
+
+This format uses:
+- Emoji indicators to visually identify show types (📝 for scripted, 👁️ for reality, etc.)
+- Network-based grouping to organize shows
+- Compact display of show information
+
+Example:
+```
+*Netflix*:
+📝 *Stranger Things* S04E08 (20:00)
+📝 *Ozark* S04E14 (20:00)
+
+*HBO*:
+📝 *The Last of Us* S01E09 (21:00)
+📝 *Succession* S04E03 (21:00)
+
+*ABC*:
+👁️ *American Idol* S21E12 (20:00)
+```
+
+### Emoji Type Indicators
+
+The following emojis will be used to indicate show types:
+- 📝 Scripted
+- 👁️ Reality
+- 🎙️ Talk
+- 🎬 Documentary
+- 🎭 Variety
+- 🎮 Game
+- 📰 News
+- ⚽ Sports
+- 📺 Other/Unknown
+
 ## Testing Strategy
 
 ### 1. Unit Tests
@@ -707,15 +763,93 @@ For scheduled execution, we'll use one of the following approaches:
 4. **Error Handling**: Implement robust error handling with fallback notification mechanisms
 5. **Logging**: Add comprehensive logging for troubleshooting
 
+## Simplified Implementation Approach
+
+Rather than introducing complex architectural patterns, the implementation will:
+
+1. **Extend Existing Interfaces**: Add optional methods where needed without forcing changes to all implementations
+2. **Direct Structure Generation**: Have the `SlackFormatterImpl` generate Slack blocks directly via the new `formatToOutputStructure` method
+3. **Fallback Mechanism**: Maintain backward compatibility by keeping string-based formatting as a fallback
+4. **Central Configuration**: Use the existing configuration system to manage Slack-specific settings
+5. **Code Reuse**: Reuse existing utility functions like `groupShowsByNetwork` and date/time formatting
+
+### SlackOutputServiceImpl Implementation
+
+The `SlackOutputServiceImpl` will:
+1. Group shows by network using the existing utility function
+2. Use the SlackShowFormatter to format shows
+3. Send formatted blocks to Slack
+4. Handle error scenarios gracefully
+
+```typescript
+@injectable()
+export class SlackOutputServiceImpl implements OutputService {
+  constructor(
+    @inject('SlackShowFormatter') private formatter: ShowFormatter<SlackBlock, SlackBlock[]>,
+    @inject('SlackClient') private slackClient: SlackClient,
+    @inject('ConfigService') private configService: ConfigService
+  ) {}
+  
+  // Implementation methods
+}
+```
+
+### SlackClient
+
+The Slack client abstracts API interaction:
+
+```typescript
+export interface SlackClient {
+  sendMessage(options: {
+    channel: string;
+    text: string;
+    blocks?: SlackBlock[];
+  }): Promise<void>;
+}
+```
+
+## Error Handling
+
+The integration includes robust error handling:
+
+1. Connection failures
+2. API rate limiting
+3. Authentication errors
+4. Message formatting errors
+
+All errors will be properly logged and, where possible, gracefully handled to maintain application stability.
+
+## Testing Strategy
+
+The testing approach includes:
+
+1. **Unit Tests**:
+   - SlackShowFormatterImpl
+   - SlackOutputServiceImpl
+   - SlackClientImpl
+
+2. **Integration Tests**:
+   - End-to-end flow with mocked Slack API
+
+3. **Test Fixtures**:
+   - Sample show data
+   - Expected Slack Block Kit output
+
+## Security Considerations
+
+1. **API Token Security**:
+   - Tokens stored securely as environment variables
+   - No hardcoded tokens in source code
+
+2. **Data Privacy**:
+   - Careful handling of show information
+   - No sensitive data in messages
+
 ## Future Enhancements
 
+Potential future improvements:
+
 1. Interactive buttons for filtering shows
-2. User preference storage
-3. On-demand show information through Slack commands
-4. Personalized recommendations
-
-## Dependencies
-
-New dependencies to add:
-- `@slack/web-api`: Official Slack API client
-- `node-cron`: Optional, for scheduled execution
+2. User preferences for notification timing
+3. Show detail expansion
+4. Image previews for shows

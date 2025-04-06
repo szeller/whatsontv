@@ -47,16 +47,17 @@ export function formatShowType(type: string | null | undefined): string {
 
 /**
  * Format episode information in S01E01 format (with leading zeros by default)
- * @param season - Season number
- * @param episode - Episode number
+ * @param show - Show object containing season and episode information
  * @param padWithZeros - Whether to pad with leading zeros (default: true)
  * @returns Formatted episode information
  */
 export function formatEpisodeInfo(
-  season: number | null | undefined, 
-  episode: number | null | undefined,
+  show: Show | { season?: number | null, number?: number | null },
   padWithZeros = true
 ): string {
+  const season = show.season;
+  const episode = show.number;
+  
   if (season === null || season === undefined || episode === null || episode === undefined) {
     return '';
   }
@@ -115,7 +116,7 @@ export function formatShowForConsole(show: Show, options: FormatOptions = {}): s
   
   // Add episode information if requested
   if (includeEpisode && show.season !== undefined && show.number !== undefined) {
-    const episodeInfo = formatEpisodeInfo(show.season, show.number, padEpisodeNumbers);
+    const episodeInfo = formatEpisodeInfo(show, padEpisodeNumbers);
     parts.push(episodeInfo);
   }
   

@@ -52,23 +52,39 @@ describe('Console Format Utilities', () => {
 
   describe('formatEpisodeInfo', () => {
     test('should format valid episode information', () => {
-      expect(formatEpisodeInfo(1, 5)).toBe('S01E05');
+      expect(formatEpisodeInfo({ season: 1, number: 5 })).toBe('S01E05');
     });
 
     test('should format double-digit episode information', () => {
-      expect(formatEpisodeInfo(10, 15)).toBe('S10E15');
+      expect(formatEpisodeInfo({ season: 10, number: 15 })).toBe('S10E15');
     });
 
     test('should handle null season', () => {
-      expect(formatEpisodeInfo(null, 5)).toBe('');
+      expect(formatEpisodeInfo({ season: null, number: 5 })).toBe('');
     });
 
     test('should handle undefined episode', () => {
-      expect(formatEpisodeInfo(1, undefined)).toBe('');
+      expect(formatEpisodeInfo({ season: 1, number: undefined })).toBe('');
     });
 
     test('should handle both null values', () => {
-      expect(formatEpisodeInfo(null, null)).toBe('');
+      expect(formatEpisodeInfo({ season: null, number: null })).toBe('');
+    });
+    
+    test('should handle Show object', () => {
+      const show: Show = {
+        id: 1,
+        name: 'Test Show',
+        airtime: '20:00',
+        network: 'Test Network',
+        type: 'Scripted',
+        season: 2,
+        number: 3,
+        genres: ['Drama'],
+        language: 'English',
+        summary: 'A test show summary'
+      };
+      expect(formatEpisodeInfo(show)).toBe('S02E03');
     });
   });
 

@@ -23,7 +23,8 @@ const config = {
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/tests/**/*.ts',
-    '!src/**/test/*.ts'
+    '!src/**/test/*.ts',
+    '!src/prototypes/**/*.ts'
   ],
   
   // Generate various coverage report formats

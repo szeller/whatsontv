@@ -17,6 +17,7 @@
     "ci": "npm run lint:ci && tsc --noEmit && npm test",
     "precommit": "npm run lint:ci && tsc --noEmit && npm run test:no-coverage",
     "shows": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' node --import ./src/register.mjs src/cli.ts",
+    "slack": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' node --import ./src/register.mjs src/slack.ts",
     "prepare": "husky",
     "build": "tsc --emitDeclarationOnly",
     "prepublishOnly": "npm run build",
