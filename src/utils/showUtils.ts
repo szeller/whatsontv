@@ -127,6 +127,43 @@ export function formatTime(time: string | null): string {
 }
 
 /**
+ * Format a single episode range
+ * @param season - Season number
+ * @param start - Starting episode number
+ * @param end - Ending episode number
+ * @param padEpisodeNumbers - Whether to pad season and episode numbers with leading zeros
+ * @returns Formatted range string
+ */
+function formatRange(
+  season: number, 
+  start: number, 
+  end: number, 
+  padEpisodeNumbers: boolean
+): string {
+  // Handle undefined or null season/episode numbers
+  const seasonNum = season || 1;
+  const startNum = start || 1;
+  const endNum = end || startNum;
+  
+  if (startNum === endNum) {
+    // Single episode - create a mock show object to use with formatEpisodeInfo
+    return formatEpisodeInfo({ season: seasonNum, number: startNum }, padEpisodeNumbers);
+  } else {
+    // Episode range with consistent formatting (S01E01-02)
+    const seasonStr = padEpisodeNumbers 
+      ? seasonNum.toString().padStart(2, '0') 
+      : seasonNum.toString();
+    const startStr = padEpisodeNumbers 
+      ? startNum.toString().padStart(2, '0') 
+      : startNum.toString();
+    const endStr = padEpisodeNumbers 
+      ? endNum.toString().padStart(2, '0') 
+      : endNum.toString();
+    return `S${seasonStr}E${startStr}-${endStr}`;
+  }
+}
+
+/**
  * Format episodes into a compact representation with ranges
  * @param episodes - Array of episodes to format
  * @param padEpisodeNumbers - Whether to pad season and episode numbers with leading zeros
@@ -137,7 +174,7 @@ export function formatEpisodeRanges(
   episodes: Show[], 
   padEpisodeNumbers: boolean = true
 ): string {
-  if (episodes.length === 0) {
+  if (!Array.isArray(episodes) || episodes.length === 0) {
     return '';
   }
   
@@ -148,17 +185,26 @@ export function formatEpisodeRanges(
   const seasonGroups: Record<number, number[]> = {};
   
   for (const episode of sortedEpisodes) {
-    if (!Object.prototype.hasOwnProperty.call(seasonGroups, episode.season)) {
-      seasonGroups[episode.season] = [];
+    const season = episode.season || 1;
+    const number = episode.number || 1;
+    
+    if (!Object.prototype.hasOwnProperty.call(seasonGroups, season)) {
+      seasonGroups[season] = [];
     }
-    seasonGroups[episode.season].push(episode.number);
+    seasonGroups[season].push(number);
   }
   
   // Format each season's episodes with ranges
   const formattedSeasons: string[] = [];
   
-  for (const season of Object.keys(seasonGroups).map(Number).sort((a, b) => a - b)) {
+  const seasonKeys = Object.keys(seasonGroups).map(Number).sort((a, b) => a - b);
+  for (const season of seasonKeys) {
     const episodeNumbers = seasonGroups[season];
+    // We know episodeNumbers exists because we created it above
+    if (episodeNumbers.length === 0) {
+      continue;
+    }
+    
     const ranges: string[] = [];
     
     let rangeStart = episodeNumbers[0];
@@ -190,38 +236,6 @@ export function formatEpisodeRanges(
   
   // Join all seasons
   return formattedSeasons.join(', ');
-}
-
-/**
- * Format a single episode range
- * @param season - Season number
- * @param start - Starting episode number
- * @param end - Ending episode number
- * @param padEpisodeNumbers - Whether to pad season and episode numbers with leading zeros
- * @returns Formatted range string
- */
-function formatRange(
-  season: number, 
-  start: number, 
-  end: number, 
-  padEpisodeNumbers: boolean
-): string {
-  if (start === end) {
-    // Single episode - use the shared utility function
-    return formatEpisodeInfo(season, start, padEpisodeNumbers);
-  } else {
-    // Episode range with consistent formatting (S01E01-02)
-    const seasonStr = padEpisodeNumbers 
-      ? season.toString().padStart(2, '0') 
-      : season.toString();
-    const startStr = padEpisodeNumbers 
-      ? start.toString().padStart(2, '0') 
-      : start.toString();
-    const endStr = padEpisodeNumbers 
-      ? end.toString().padStart(2, '0') 
-      : end.toString();
-    return `S${seasonStr}E${startStr}-${endStr}`;
-  }
 }
 
 /**

@@ -7,7 +7,7 @@ import 'reflect-metadata';
 import { jest } from '@jest/globals';
 import { container, DependencyContainer } from 'tsyringe';
 
-import { ConsoleFormatterImpl } from '../../implementations/console/consoleFormatterImpl.js';
+import { TextShowFormatterImpl } from '../../implementations/console/textShowFormatterImpl.js';
 import { ConsoleOutputServiceImpl } from 
   '../../implementations/console/consoleOutputServiceImpl.js';
 import { TvMazeServiceImpl } from '../../implementations/tvMazeServiceImpl.js';
@@ -66,7 +66,7 @@ export function createTestContainer(mockConsole: Console): DependencyContainer {
   
   // Register real services with mocked dependencies
   testContainer.register('StyleService', { useClass: PlainStyleServiceImpl });
-  testContainer.register('ShowFormatter', { useClass: ConsoleFormatterImpl });
+  testContainer.register('ShowFormatter', { useClass: TextShowFormatterImpl });
   testContainer.register('TvShowService', { useClass: TvMazeServiceImpl });
   testContainer.register('OutputService', { useClass: ConsoleOutputServiceImpl });
   

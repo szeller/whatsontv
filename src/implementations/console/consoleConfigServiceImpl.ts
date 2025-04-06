@@ -92,6 +92,7 @@ export class ConsoleConfigServiceImpl implements ConfigService {
     return { ...this.appConfig };
   }
   
+  
   /**
    * Parse command line arguments
    * @param args Optional array of command line arguments

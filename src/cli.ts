@@ -80,8 +80,19 @@ export async function main(): Promise<void> {
 // Run the main function if this file is executed directly
 if (import.meta.url.startsWith('file:') && 
     process.argv[1] === import.meta.url.slice(7)) {
-  main().catch((error) => {
-    consoleOutput.error(`Unhandled error in main: ${String(error)}`);
+  try {
+    main().catch((error) => {
+      console.error(`Unhandled error in main: ${String(error)}`);
+      if (error instanceof Error) {
+        console.error(`Stack: ${error.stack}`);
+      }
+      process.exit(1);
+    });
+  } catch (error) {
+    console.error(`Exception during CLI startup: ${String(error)}`);
+    if (error instanceof Error) {
+      console.error(`Stack: ${error.stack}`);
+    }
     process.exit(1);
-  });
+  }
 }
