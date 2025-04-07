@@ -67,7 +67,12 @@ export class TextShowFormatterImpl implements TextShowFormatter {
     const timeValue = useShowAirtime ? components.time : this.NO_AIRTIME;
     const paddedTime = timeValue.padEnd(8);
     const paddedShowName = components.showName.padEnd(20);
-    const episodeInfo = customEpisodeInfo || components.episodeInfo;
+    
+    // Handle custom episode info with explicit null/empty checks
+    const hasCustomEpisodeInfo = customEpisodeInfo !== undefined && 
+      customEpisodeInfo !== null && 
+      customEpisodeInfo !== '';
+    const episodeInfo = hasCustomEpisodeInfo ? customEpisodeInfo : components.episodeInfo;
     const paddedEpisodeInfo = episodeInfo.padEnd(10);
     
     // Apply styling to padded components
