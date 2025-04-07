@@ -18,6 +18,11 @@ export class MockSlackClient implements SlackClient {
    */
   constructor(options: { logToConsole?: boolean } = {}) {
     this.shouldLogToConsole = options.logToConsole ?? false;
+    
+    // Log initialization for debugging
+    if (this.shouldLogToConsole) {
+      console.log('MockSlackClient initialized with options:', JSON.stringify(options));
+    }
   }
   
   /**
@@ -29,18 +34,21 @@ export class MockSlackClient implements SlackClient {
     // Store the message
     this.messages.push({ ...payload });
     
+    // Simulate network latency
+    await new Promise(resolve => global.setTimeout(resolve, 0));
+    
     // Optionally log to console for debugging
     if (this.shouldLogToConsole) {
-      console.error('--- MockSlackClient: Message Sent ---');
-      console.error(`Channel: ${payload.channel}`);
-      console.error(`Text: ${payload.text}`);
+      console.log('--- MockSlackClient: Message Sent ---');
+      console.log(`Channel: ${payload.channel}`);
+      console.log(`Text: ${payload.text}`);
       
       // Check for blocks with explicit null/undefined and empty array checks
       const hasBlocks = payload.blocks !== undefined && 
                        payload.blocks !== null && 
                        payload.blocks.length > 0;
       if (hasBlocks) {
-        console.error(`Blocks: ${JSON.stringify(payload.blocks, null, 2)}`);
+        console.log(`Blocks: ${JSON.stringify(payload.blocks, null, 2)}`);
       }
       
       // Check for username with explicit null/undefined and empty string checks
@@ -48,10 +56,10 @@ export class MockSlackClient implements SlackClient {
                          payload.username !== null && 
                          payload.username.length > 0;
       if (hasUsername) {
-        console.error(`Username: ${payload.username}`);
+        console.log(`Username: ${payload.username}`);
       }
       
-      console.error('--- End of MockSlackClient Message ---');
+      console.log('--- End of MockSlackClient Message ---');
     }
     
     // Simulate async behavior
@@ -139,18 +147,18 @@ export class MockSlackClient implements SlackClient {
    * @param prefix Optional prefix to add to each line
    */
   debugMessages(prefix = 'MockSlackClient'): void {
-    console.error(`--- ${prefix} stored messages (${this.messages.length}) ---`);
+    console.log(`--- ${prefix} stored messages (${this.messages.length}) ---`);
     this.messages.forEach((msg, index) => {
-      console.error(`[${index}] Channel: ${msg.channel}, Text: ${msg.text}`);
+      console.log(`[${index}] Channel: ${msg.channel}, Text: ${msg.text}`);
       
       // Check for blocks with explicit null/undefined and empty array checks
       const hasBlocks = msg.blocks !== undefined && 
                        msg.blocks !== null && 
                        msg.blocks.length > 0;
       if (hasBlocks) {
-        console.error(`    Blocks: ${JSON.stringify(msg.blocks, null, 2)}`);
+        console.log(`    Blocks: ${JSON.stringify(msg.blocks, null, 2)}`);
       }
     });
-    console.error(`--- End of ${prefix} stored messages ---`);
+    console.log(`--- End of ${prefix} stored messages ---`);
   }
 }

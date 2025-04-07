@@ -23,11 +23,17 @@ export class SlackClientImpl implements SlackClient {
   private _client: WebClient;
   private _options: SlackOptions;
 
+  /**
+   * Creates a new SlackClientImpl instance
+   * @param configService The configuration service
+   * @param webClient Optional WebClient instance for testing
+   */
   constructor(
-    @inject('ConfigService') private readonly configService: ConfigService
+    @inject('ConfigService') private readonly configService: ConfigService,
+    webClient?: WebClient
   ) {
     this._options = this.configService.getSlackOptions();
-    this._client = new WebClient(this._options.token);
+    this._client = webClient || new WebClient(this._options.token);
   }
 
   /**

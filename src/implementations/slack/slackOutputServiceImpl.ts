@@ -13,7 +13,7 @@ import { groupShowsByNetwork } from '../../utils/showUtils.js';
 @injectable()
 export class SlackOutputServiceImpl implements OutputService {
   constructor(
-    @inject('SlackFormatter') private formatter: SlackShowFormatter,
+    @inject('SlackShowFormatter') private formatter: SlackShowFormatter,
     @inject('SlackClient') private slackClient: SlackClient,
     @inject('ConfigService') private configService: ConfigService
   ) {}

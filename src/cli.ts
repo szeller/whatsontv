@@ -6,93 +6,63 @@ import type { ConsoleOutput } from './interfaces/consoleOutput.js';
 import type { OutputService } from './interfaces/outputService.js';
 import type { TvShowService } from './interfaces/tvShowService.js';
 import type { ConfigService } from './interfaces/configService.js';
+import type { Show } from './schemas/domain.js';
+import { BaseCliApplication, runMain } from './utils/cliBase.js';
+import { registerGlobalErrorHandler } from './utils/errorHandling.js';
 
 // Get ConsoleOutput service for global error handling
 const consoleOutput = container.resolve<ConsoleOutput>('ConsoleOutput');
 
-// Add global error handler for uncaught exceptions
-process.on('uncaughtException', (error) => {
-  consoleOutput.error('Uncaught Exception:');
-  if (error !== null && typeof error === 'object') {
-    consoleOutput.error(`${error.name}: ${error.message}`);
-    if (error.stack !== undefined && error.stack !== null && error.stack.length > 0) {
-      consoleOutput.error(error.stack);
-    }
-  } else {
-    consoleOutput.error(String(error));
+// Register global error handler
+registerGlobalErrorHandler(consoleOutput);
+
+/**
+ * CLI application implementation
+ */
+export class CliApplication extends BaseCliApplication {
+  /**
+   * Create a new CliApplication
+   * @param tvShowService Service for fetching TV shows
+   * @param configService Service for configuration
+   * @param consoleOutput Service for console output
+   * @param outputService Service for rendering output
+   */
+  constructor(
+    tvShowService: TvShowService,
+    configService: ConfigService,
+    consoleOutput: ConsoleOutput,
+    private readonly outputService: OutputService
+  ) {
+    super(tvShowService, configService, consoleOutput);
   }
-  process.exit(1);
-});
-
-/**
- * Interface for services that can be injected into the runCli function
- */
-export interface CliServices {
-  outputService: OutputService;
-  tvShowService: TvShowService;
-  configService: ConfigService;
-  consoleOutput: ConsoleOutput;
-}
-
-/**
- * Core CLI application logic, separated from container resolution for testability
- * @param services Services required by the CLI application
- */
-export async function runCli(services: CliServices): Promise<void> {
-  const { outputService, tvShowService, configService, consoleOutput: output } = services;
   
-  try {
-    // Get configuration options for fetching shows
-    const showOptions = configService.getShowOptions();
-    
-    try {
-      // Fetch TV shows
-      const shows = await tvShowService.fetchShows(showOptions);
-      
-      // Let the OutputService handle all rendering aspects
-      await outputService.renderOutput(shows);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      output.error(`Error fetching TV shows: ${errorMessage}`);
-    }
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
-    output.error(`Unexpected error: ${errorMessage}`);
+  /**
+   * Process the fetched shows
+   * @param shows The shows to process
+   */
+  protected async processShows(shows: Show[]): Promise<void> {
+    // Let the OutputService handle all rendering aspects
+    await this.outputService.renderOutput(shows);
   }
 }
 
 /**
  * Main function that resolves services from the container and runs the CLI
  */
-export async function main(): Promise<void> {
+export function createCliApp(): CliApplication {
   // Resolve all required services from the container
-  const services: CliServices = {
-    outputService: container.resolve<OutputService>('OutputService'),
-    tvShowService: container.resolve<TvShowService>('TvShowService'),
-    configService: container.resolve<ConfigService>('ConfigService'),
-    consoleOutput
-  };
+  const tvShowService = container.resolve<TvShowService>('TvShowService');
+  const configService = container.resolve<ConfigService>('ConfigService');
+  const outputService = container.resolve<OutputService>('OutputService');
   
-  // Run the CLI with the resolved services
-  return runCli(services);
+  // Create the CLI application
+  return new CliApplication(
+    tvShowService,
+    configService,
+    consoleOutput,
+    outputService
+  );
 }
 
-// Run the main function if this file is executed directly
-if (import.meta.url.startsWith('file:') && 
-    process.argv[1] === import.meta.url.slice(7)) {
-  try {
-    main().catch((error) => {
-      console.error(`Unhandled error in main: ${String(error)}`);
-      if (error instanceof Error) {
-        console.error(`Stack: ${error.stack}`);
-      }
-      process.exit(1);
-    });
-  } catch (error) {
-    console.error(`Exception during CLI startup: ${String(error)}`);
-    if (error instanceof Error) {
-      console.error(`Stack: ${error.stack}`);
-    }
-    process.exit(1);
-  }
-}
+// Create the CLI app and run it if this file is executed directly
+runMain(createCliApp(), consoleOutput);

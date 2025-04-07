@@ -20,16 +20,16 @@ describe('slackClientFactory', () => {
       const client = createMockSlackClient(options);
       
       // Assert - We can't directly test private properties, so we'll test behavior
-      // Temporarily redirect console.error
-      const originalConsoleError = console.error;
+      // Temporarily redirect console.log
+      const originalConsoleLog = console.log;
       let logCalled = false;
-      console.error = () => { logCalled = true; };
+      console.log = () => { logCalled = true; };
       
       // This should log to console if logToConsole is true
       await client.sendMessage({ channel: 'test', text: 'test' });
       
-      // Restore console.error
-      console.error = originalConsoleError;
+      // Restore console.log
+      console.log = originalConsoleLog;
       
       expect(logCalled).toBe(true);
     });
@@ -67,16 +67,16 @@ describe('slackClientFactory', () => {
       const client = factory() as MockSlackClient;
       
       // Assert - We can't directly test private properties, so we'll test behavior
-      // Temporarily redirect console.error
-      const originalConsoleError = console.error;
+      // Temporarily redirect console.log
+      const originalConsoleLog = console.log;
       let logCalled = false;
-      console.error = () => { logCalled = true; };
+      console.log = () => { logCalled = true; };
       
       // This should log to console if logToConsole is true
       await client.sendMessage({ channel: 'test', text: 'test' });
       
-      // Restore console.error
-      console.error = originalConsoleError;
+      // Restore console.log
+      console.log = originalConsoleLog;
       
       expect(logCalled).toBe(true);
     });
