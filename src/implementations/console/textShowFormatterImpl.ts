@@ -48,11 +48,13 @@ export class TextShowFormatterImpl implements TextShowFormatter {
    * Private helper method to format a show with consistent styling
    * @param show Show to format
    * @param useShowAirtime Whether to use the show's airtime or a placeholder
+   * @param customEpisodeInfo Optional custom episode info to override the default
    * @returns Formatted show representation
    */
   private formatShow(
     show: Show, 
-    useShowAirtime: boolean
+    useShowAirtime: boolean,
+    customEpisodeInfo?: string
   ): string {
     const components = prepareShowRowComponents(show, {
       noAirtime: this.NO_AIRTIME,
@@ -65,7 +67,8 @@ export class TextShowFormatterImpl implements TextShowFormatter {
     const timeValue = useShowAirtime ? components.time : this.NO_AIRTIME;
     const paddedTime = timeValue.padEnd(8);
     const paddedShowName = components.showName.padEnd(20);
-    const paddedEpisodeInfo = components.episodeInfo.padEnd(10);
+    const episodeInfo = customEpisodeInfo || components.episodeInfo;
+    const paddedEpisodeInfo = episodeInfo.padEnd(10);
     
     // Apply styling to padded components
     const styledTime = this.styleService.bold(paddedTime);
@@ -75,13 +78,14 @@ export class TextShowFormatterImpl implements TextShowFormatter {
     const styledEpisodeInfo = this.styleService.yellow(paddedEpisodeInfo);
     
     // Create formatted string
-    return `${styledTime} ${styledShowName} ${styledEpisodeInfo} (${styledNetwork}, ${styledType})`;
+    return `${styledTime} ${styledShowName} ${styledEpisodeInfo} ` +
+      `(${styledNetwork}, ${styledType})`;
   }
   
   /**
-   * Format multiple episodes of the same show with no specific airtime
+   * Format multiple episodes of the same show
    * @param shows Multiple episodes of the same show
-   * @returns Formatted show representations
+   * @returns Formatted output for multiple episodes
    */
   formatMultipleEpisodes(shows: Show[]): string[] {
     if (!Array.isArray(shows) || shows.length === 0) {
@@ -95,28 +99,13 @@ export class TextShowFormatterImpl implements TextShowFormatter {
     const firstShow = sortedEpisodes[0];
     
     // Format episode ranges
-    const episodeList = formatEpisodeRanges(sortedEpisodes);
+    const episodeRange = formatEpisodeRanges(sortedEpisodes);
     
-    // Get formatted components
-    const components = prepareShowRowComponents(firstShow);
-    
-    // Apply styling to each component
-    const styledNetwork = this.styleService.boldCyan(components.network);
-    const styledType = this.styleService.magenta(components.type);
-    const styledShowName = this.styleService.green(components.showName);
-    const styledEpisodeInfo = this.styleService.yellow(episodeList);
-    
-    // Create formatted string
-    let result = `• ${styledShowName}`;
-    
-    if (episodeList) {
-      result += ` ${styledEpisodeInfo}`;
-    }
-    
-    result += ` (${styledNetwork}, ${styledType})`;
+    // Use the existing formatShow method with custom episode range
+    const formattedShow = this.formatShow(firstShow, true, episodeRange);
     
     // Return as array with a single string
-    return [result];
+    return [formattedShow];
   }
   
   /**

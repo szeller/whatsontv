@@ -40,7 +40,11 @@ describe('TextShowFormatter Integration', () => {
     
     // The exact expected output with ANSI color codes
     // Note: We're using the actual ANSI codes that Chalk produces
-    const expectedOutput = '\u001b[1m21:00   \u001b[22m \u001b[32mGame of Thrones     \u001b[39m \u001b[33mS08E06    \u001b[39m (\u001b[1m\u001b[36mHBO\u001b[39m\u001b[22m, \u001b[35mScripted\u001b[39m)';
+    const expectedOutput = 
+      '\u001b[1m21:00   \u001b[22m ' + 
+      '\u001b[32mGame of Thrones     \u001b[39m ' + 
+      '\u001b[33mS08E06    \u001b[39m ' + 
+      '(\u001b[1m\u001b[36mHBO\u001b[39m\u001b[22m, \u001b[35mScripted\u001b[39m)';
     
     // Verify exact match
     expect(result).toBe(expectedOutput);
@@ -64,7 +68,11 @@ describe('TextShowFormatter Integration', () => {
     const result = formatter.formatUntimedShow(show);
     
     // The exact expected output with ANSI color codes
-    const expectedOutput = '\u001b[1mN/A     \u001b[22m \u001b[32mStranger Things     \u001b[39m \u001b[33mS04E09    \u001b[39m (\u001b[1m\u001b[36mNetflix\u001b[39m\u001b[22m, \u001b[35mScripted\u001b[39m)';
+    const expectedOutput = 
+      '\u001b[1mN/A     \u001b[22m ' + 
+      '\u001b[32mStranger Things     \u001b[39m ' + 
+      '\u001b[33mS04E09    \u001b[39m ' + 
+      '(\u001b[1m\u001b[36mNetflix\u001b[39m\u001b[22m, \u001b[35mScripted\u001b[39m)';
     
     // Verify exact match
     expect(result).toBe(expectedOutput);
@@ -100,7 +108,12 @@ describe('TextShowFormatter Integration', () => {
     const result = formatter.formatMultipleEpisodes(shows);
     
     // The exact expected output with ANSI color codes
-    const expectedOutput = [`• \u001b[32mBreaking Bad\u001b[39m \u001b[33mS05E07-08\u001b[39m (\u001b[1m\u001b[36mAMC\u001b[39m\u001b[22m, \u001b[35mScripted\u001b[39m)`];
+    const expectedOutput = [
+      '\u001b[1m20:00   \u001b[22m ' + 
+      '\u001b[32mBreaking Bad        \u001b[39m ' + 
+      '\u001b[33mS05E07-08 \u001b[39m ' + 
+      '(\u001b[1m\u001b[36mAMC\u001b[39m\u001b[22m, \u001b[35mScripted\u001b[39m)'
+    ];
     
     // Verify exact match
     expect(result).toEqual(expectedOutput);
