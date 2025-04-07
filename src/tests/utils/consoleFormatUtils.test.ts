@@ -7,11 +7,13 @@ import {
   formatNetworkName,
   formatShowType,
   formatEpisodeInfo,
-  formatShowForConsole,
-  formatTableRow,
-  createTableHeader,
-  createBulletList
+  formatNetworkHeader,
+  groupShowsByShowId,
+  prepareShowRowComponents,
+  hasAirtime,
+  allShowsHaveNoAirtime
 } from '../../utils/consoleFormatUtils.js';
+import { ShowBuilder } from '../fixtures/helpers/showFixtureBuilder.js';
 
 describe('Console Format Utilities', () => {
   describe('formatNetworkName', () => {
@@ -63,8 +65,8 @@ describe('Console Format Utilities', () => {
       expect(formatEpisodeInfo({ season: null, number: 5 })).toBe('');
     });
 
-    test('should handle undefined episode', () => {
-      expect(formatEpisodeInfo({ season: 1, number: undefined })).toBe('');
+    test('should handle null episode', () => {
+      expect(formatEpisodeInfo({ season: 1, number: null })).toBe('');
     });
 
     test('should handle both null values', () => {
@@ -72,194 +74,172 @@ describe('Console Format Utilities', () => {
     });
     
     test('should handle Show object', () => {
-      const show: Show = {
-        id: 1,
-        name: 'Test Show',
-        airtime: '20:00',
-        network: 'Test Network',
-        type: 'Scripted',
+      const show = ShowBuilder.createTestShow({
         season: 2,
-        number: 3,
-        genres: ['Drama'],
-        language: 'English',
-        summary: 'A test show summary'
-      };
+        number: 3
+      });
+      
       expect(formatEpisodeInfo(show)).toBe('S02E03');
     });
   });
 
-  describe('formatShowForConsole', () => {
-    // Create a mock show that matches the required interface
-    const mockShow: Show = {
-      id: 1,
-      name: 'Test Show',
-      airtime: '20:00',
-      network: 'Test Network',
-      type: 'Scripted',
-      season: 1,
-      number: 5,
-      genres: ['Drama'],
-      language: 'English',
-      summary: 'A test show summary'
-    };
-
-    test('should format show with default options', () => {
-      const result = formatShowForConsole(mockShow);
-      expect(result).toContain('Test Show');
-      expect(result).toContain('8:00 PM');
-      expect(result).toContain('Test Network');
-      expect(result).toContain('Scripted');
-      expect(result).toContain('S01E05');
+  describe('formatNetworkHeader', () => {
+    test('should format network header with default unknown label', () => {
+      const [header, separator] = formatNetworkHeader('HBO');
+      expect(header).toBe('HBO:');
+      expect(separator).toBe('----');
     });
 
-    test('should respect nameWidth option', () => {
-      const result = formatShowForConsole(mockShow, { nameWidth: 10 });
-      // Name should be padded to exactly 10 characters
-      expect(result.substring(0, 10)).toBe('Test Show ');
+    test('should format network header with custom unknown label', () => {
+      const [header, separator] = formatNetworkHeader('HBO', 'No Network');
+      expect(header).toBe('HBO:');
+      expect(separator).toBe('----');
     });
 
-    test('should truncate long show name', () => {
-      const longNameShow: Show = { 
-        ...mockShow, 
-        name: 'This is a very long show name that should be truncated' 
-      };
-      const result = formatShowForConsole(longNameShow, { nameWidth: 20 });
-      // Check that the result starts with the truncated name
-      expect(result.substring(0, 20)).toBe('This is a very lo...');
+    test('should handle null network', () => {
+      const [header, separator] = formatNetworkHeader(null);
+      expect(header).toBe('Unknown Network:');
+      expect(separator).toBe('----------------');
     });
 
-    test('should exclude time when includeTime is false', () => {
-      const result = formatShowForConsole(mockShow, { includeTime: false });
-      expect(result).not.toContain('8:00 PM');
+    test('should handle undefined network', () => {
+      const [header, separator] = formatNetworkHeader(undefined);
+      expect(header).toBe('Unknown Network:');
+      expect(separator).toBe('----------------');
     });
 
-    test('should exclude network when includeNetwork is false', () => {
-      const result = formatShowForConsole(mockShow, { includeNetwork: false });
-      expect(result).not.toContain('Test Network');
-    });
-
-    test('should exclude episode when includeEpisode is false', () => {
-      const result = formatShowForConsole(mockShow, { includeEpisode: false });
-      expect(result).not.toContain('S01E05');
-    });
-
-    test('should handle missing airtime', () => {
-      const noAirtimeShow: Show = { ...mockShow, airtime: null };
-      const result = formatShowForConsole(noAirtimeShow);
-      expect(result).toContain('TBA');
-    });
-
-    test('should handle missing network', () => {
-      // Create a new object with the required structure but with network set to a default value
-      // since the interface requires network to be a string
-      const noNetworkShow: Show = { 
-        ...mockShow, 
-        // TypeScript will enforce that network is a string, so we use a placeholder
-        // that our formatNetworkName function will handle appropriately
-        network: '' 
-      };
-      const result = formatShowForConsole(noNetworkShow);
-      expect(result).toContain('Unknown Network');
-    });
-
-    test('should handle missing type', () => {
-      // Create a new object with the required structure but with type set to a default value
-      // since the interface requires type to be a string
-      const noTypeShow: Show = { 
-        ...mockShow, 
-        // TypeScript will enforce that type is a string, so we use a placeholder
-        // that our formatShowType function will handle appropriately
-        type: '' 
-      };
-      const result = formatShowForConsole(noTypeShow);
-      expect(result).toContain('Unknown');
+    test('should handle empty network', () => {
+      const [header, separator] = formatNetworkHeader('');
+      expect(header).toBe('Unknown Network:');
+      expect(separator).toBe('----------------');
     });
   });
 
-  describe('formatTableRow', () => {
-    test('should format table row with proper spacing', () => {
-      const columns = ['Column1', 'Column2', 'Column3'];
-      const widths = [10, 15, 20];
-      const result = formatTableRow(columns, widths);
-      
-      expect(result).toBe('Column1    Column2         Column3             ');
+  describe('groupShowsByShowId', () => {
+    test('should group shows by show ID', () => {
+      const shows: Show[] = [
+        ShowBuilder.createTestShow({
+          id: 1,
+          name: 'Show 1',
+          airtime: '20:00',
+          network: 'Network A'
+        }),
+        ShowBuilder.createTestShow({
+          id: 2,
+          name: 'Show 2',
+          airtime: '21:00',
+          network: 'Network B'
+        }),
+        ShowBuilder.createTestShow({
+          id: 1,
+          name: 'Show 1',
+          airtime: '22:00',
+          season: 1,
+          number: 2
+        })
+      ];
+
+      const result = groupShowsByShowId(shows);
+      expect(Object.keys(result)).toHaveLength(2);
+      expect(result['1']).toHaveLength(2);
+      expect(result['2']).toHaveLength(1);
     });
 
-    test('should handle null and undefined values', () => {
-      const columns = ['Column1', null, undefined];
-      const widths = [10, 15, 20];
-      const result = formatTableRow(columns, widths);
-      
-      expect(result).toBe('Column1                                        ');
-    });
-
-    test('should truncate columns that exceed width', () => {
-      const columns = ['VeryLongColumn', 'Column2', 'Column3'];
-      const widths = [5, 15, 20];
-      const result = formatTableRow(columns, widths);
-      
-      // First column should be truncated to 5 characters
-      expect(result.substring(0, 5)).toBe('VeryL');
-    });
-  });
-
-  describe('createTableHeader', () => {
-    test('should create table header with separator', () => {
-      const headers = ['Name', 'Time', 'Network'];
-      const widths = [20, 10, 15];
-      const result = createTableHeader(headers, widths);
-      
-      expect(result).toHaveLength(2);
-      expect(result[0]).toBe('Name                 Time       Network        ');
-      expect(result[1]).toBe('-------------------- ---------- ---------------');
-    });
-
-    test('should create table header without separator', () => {
-      const headers = ['Name', 'Time', 'Network'];
-      const widths = [20, 10, 15];
-      const result = createTableHeader(headers, widths, false);
-      
-      expect(result).toHaveLength(1);
-      expect(result[0]).toBe('Name                 Time       Network        ');
+    test('should handle empty shows array', () => {
+      const shows: Show[] = [];
+      const result = groupShowsByShowId(shows);
+      expect(Object.keys(result)).toHaveLength(0);
     });
   });
 
-  describe('createBulletList', () => {
-    test('should create bullet list with default bullet character', () => {
-      const items = ['Item 1', 'Item 2', 'Item 3'];
-      const result = createBulletList(items);
+  describe('prepareShowRowComponents', () => {
+    test('should prepare show row components with default options', () => {
+      const show = ShowBuilder.createTestShow();
       
-      expect(result).toHaveLength(3);
-      expect(result[0]).toBe('• Item 1');
-      expect(result[1]).toBe('• Item 2');
-      expect(result[2]).toBe('• Item 3');
+      const components = prepareShowRowComponents(show);
+      expect(components.time).toBe('20:00');
+      expect(components.network).toBe('Test Network');
+      expect(components.type).toBe('Scripted');
+      expect(components.showName).toBe('Test Show');
+      expect(components.episodeInfo).toBe('S01E01');
     });
 
-    test('should create bullet list with custom bullet character', () => {
-      const items = ['Item 1', 'Item 2', 'Item 3'];
-      const result = createBulletList(items, '* ');
+    test('should use custom options for missing values', () => {
+      const customOptions = {
+        noAirtime: 'No Time',
+        noNetwork: 'No Network',
+        unknownShow: 'No Show',
+        unknownType: 'No Type'
+      };
       
-      expect(result).toHaveLength(3);
-      expect(result[0]).toBe('* Item 1');
-      expect(result[1]).toBe('* Item 2');
-      expect(result[2]).toBe('* Item 3');
+      const show = ShowBuilder.createMinimalShow({
+        name: '',
+        airtime: '',
+        network: '',
+        type: ''
+      });
+      
+      const components = prepareShowRowComponents(show, customOptions);
+      expect(components.time).toBe('No Time');
+      expect(components.network).toBe('No Network');
+      expect(components.type).toBe('No Type');
+      expect(components.showName).toBe('No Show');
+      // Minimal show still has season and episode numbers
+      expect(components.episodeInfo).toBe('S01E01');
+    });
+  });
+
+  describe('hasAirtime', () => {
+    test('should return true for show with airtime', () => {
+      const show = ShowBuilder.createTestShow({
+        airtime: '20:00'
+      });
+      expect(hasAirtime(show)).toBe(true);
     });
 
-    test('should handle multi-line items', () => {
-      const items = ['Item 1\nSecond line', 'Item 2'];
-      const result = createBulletList(items);
-      
-      expect(result).toHaveLength(3);
-      expect(result[0]).toBe('• Item 1');
-      expect(result[1]).toBe('  Second line');
-      expect(result[2]).toBe('• Item 2');
+    test('should return false for show with null airtime', () => {
+      const show = ShowBuilder.createTestShow({
+        airtime: null
+      });
+      expect(hasAirtime(show)).toBe(false);
     });
 
-    test('should handle empty items array', () => {
-      const items: string[] = [];
-      const result = createBulletList(items);
-      
-      expect(result).toHaveLength(0);
+    test('should return false for show with empty airtime', () => {
+      const show = ShowBuilder.createTestShow({
+        airtime: ''
+      });
+      expect(hasAirtime(show)).toBe(false);
+    });
+  });
+
+  describe('allShowsHaveNoAirtime', () => {
+    test('should return true if all shows have no airtime', () => {
+      const shows: Show[] = [
+        ShowBuilder.createTestShow({
+          airtime: ''
+        }),
+        ShowBuilder.createTestShow({
+          airtime: null
+        })
+      ];
+      expect(allShowsHaveNoAirtime(shows)).toBe(true);
+    });
+
+    test('should return false if any show has airtime', () => {
+      const shows: Show[] = [
+        ShowBuilder.createTestShow({
+          airtime: ''
+        }),
+        ShowBuilder.createTestShow({
+          airtime: '21:00'
+        })
+      ];
+      expect(allShowsHaveNoAirtime(shows)).toBe(false);
+    });
+
+    test('should return true for empty array', () => {
+      const shows: Show[] = [];
+      expect(allShowsHaveNoAirtime(shows)).toBe(true);
     });
   });
 });
