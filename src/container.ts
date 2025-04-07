@@ -49,15 +49,6 @@ container.register<HttpClient>('HttpClient', {
 });
 
 // Register named implementations for specific platforms
-container.register('ConsoleFormatter', { useClass: TextShowFormatterImpl });
-container.register('ConsoleOutputService', { 
-  useFactory: (dependencyContainer) => {
-    const formatter = dependencyContainer.resolve<TextShowFormatter>('TextShowFormatter');
-    const consoleOutput = dependencyContainer.resolve<ConsoleOutput>('ConsoleOutput');
-    const configService = dependencyContainer.resolve<ConfigService>('ConfigService');
-    return new ConsoleOutputServiceImpl(formatter, consoleOutput, configService, false);
-  }
-});
+container.register('PlatformType', { useValue: 'console' });
 
-// Export the container for use in the application
 export { container };

@@ -5,22 +5,26 @@
 import type { ConfigService } from '../../interfaces/configService.js';
 import type { ShowOptions } from '../../types/tvShowOptions.js';
 import type { CliOptions, AppConfig } from '../../types/configTypes.js';
+import type { SlackOptions } from '../../implementations/slack/slackClientImpl.js';
 
 export class TestConfigServiceImpl implements ConfigService {
   private showOptions: ShowOptions;
   private cliOptions: CliOptions;
   private appConfig: AppConfig;
+  private slackOptions: SlackOptions;
 
   /**
    * Create a new TestConfigServiceImpl
    * @param showOptions Show options configuration
    * @param cliOptions CLI-specific options
    * @param appConfig Application configuration
+   * @param slackOptions Slack configuration options
    */
   constructor(
     showOptions: Partial<ShowOptions> = {}, 
     cliOptions: Partial<CliOptions> = {},
-    appConfig: Partial<AppConfig> = {}
+    appConfig: Partial<AppConfig> = {},
+    slackOptions: Partial<SlackOptions> = {}
   ) {
     // Initialize show options with defaults
     this.showOptions = {
@@ -50,6 +54,15 @@ export class TestConfigServiceImpl implements ConfigService {
       slack: appConfig.slack ?? {
         enabled: false
       }
+    };
+
+    // Initialize Slack options with defaults
+    this.slackOptions = {
+      token: slackOptions.token ?? 'test-token',
+      channelId: slackOptions.channelId ?? 'test-channel',
+      username: slackOptions.username ?? 'WhatsOnTV Bot',
+      icon_emoji: slackOptions.icon_emoji ?? ':tv:',
+      dateFormat: slackOptions.dateFormat ?? 'en-US'
     };
   }
   
@@ -83,6 +96,14 @@ export class TestConfigServiceImpl implements ConfigService {
    */
   getConfig(): AppConfig {
     return this.appConfig;
+  }
+
+  /**
+   * Get Slack configuration options
+   * @returns Slack configuration options
+   */
+  getSlackOptions(): SlackOptions {
+    return { ...this.slackOptions };
   }
   
   /**
@@ -119,6 +140,17 @@ export class TestConfigServiceImpl implements ConfigService {
         ...this.appConfig.slack,
         ...(config.slack || {})
       }
+    };
+  }
+
+  /**
+   * Update Slack options for testing
+   * @param options New Slack options
+   */
+  setSlackOptions(options: Partial<SlackOptions>): void {
+    this.slackOptions = {
+      ...this.slackOptions,
+      ...options
     };
   }
 }

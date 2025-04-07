@@ -2,6 +2,7 @@ import { TestConfigServiceImpl } from '../../../implementations/test/testConfigS
 import type { ConfigService } from '../../../interfaces/configService.js';
 import type { ShowOptions } from '../../../types/tvShowOptions.js';
 import type { CliOptions, AppConfig, SlackConfig } from '../../../types/configTypes.js';
+import type { SlackOptions } from '../../../implementations/slack/slackClientImpl.js';
 import { MockOptions } from './types.js';
 import { createTypedMock } from '../../testutils/jestHelpers.js';
 
@@ -20,6 +21,12 @@ export interface ConfigServiceOptions extends MockOptions<ConfigService> {
   
   /** Slack configuration (will be merged with appConfig.slack) */
   slackConfig?: Partial<SlackConfig>;
+  
+  /** Slack options configuration */
+  slackOptions?: Partial<SlackOptions>;
+  
+  /** Whether to enhance with Jest mocks (default: true) */
+  enhanceWithJestMocks?: boolean;
 }
 
 /**
@@ -45,31 +52,41 @@ export function createMockConfigService(options: ConfigServiceOptions = {}): Tes
   const configService = new TestConfigServiceImpl(
     options.showOptions || {},
     options.cliOptions || {},
-    appConfig
+    appConfig,
+    options.slackOptions || {}
   );
   
-  // Get the original values before mocking
-  const originalShowOptions = configService.getShowOptions();
-  const originalCliOptions = configService.getCliOptions();
-  const originalConfig = configService.getConfig();
+  // By default, enhance with Jest mocks unless explicitly disabled
+  const shouldEnhanceWithJestMocks = options.enhanceWithJestMocks !== false;
   
-  // Enhance methods with typed mocks for better type safety
-  configService.getShowOptions = createTypedMock<TestConfigServiceImpl['getShowOptions']>();
-  (configService.getShowOptions as jest.Mock).mockImplementation(() => originalShowOptions);
-  
-  configService.getCliOptions = createTypedMock<TestConfigServiceImpl['getCliOptions']>();
-  (configService.getCliOptions as jest.Mock).mockImplementation(() => originalCliOptions);
-  
-  configService.getConfig = createTypedMock<TestConfigServiceImpl['getConfig']>();
-  (configService.getConfig as jest.Mock).mockImplementation(() => originalConfig);
-  
-  // Apply any custom implementations
-  if (options.implementation) {
-    Object.entries(options.implementation).forEach(([key, value]) => {
-      // We need to cast here because we're dynamically setting properties
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (configService as any)[key] = value;
-    });
+  if (shouldEnhanceWithJestMocks) {
+    // Get the original values before mocking
+    const originalShowOptions = configService.getShowOptions();
+    const originalCliOptions = configService.getCliOptions();
+    const originalConfig = configService.getConfig();
+    const originalSlackOptions = configService.getSlackOptions();
+    
+    // Enhance methods with typed mocks for better type safety
+    configService.getShowOptions = createTypedMock<TestConfigServiceImpl['getShowOptions']>();
+    (configService.getShowOptions as jest.Mock).mockImplementation(() => originalShowOptions);
+    
+    configService.getCliOptions = createTypedMock<TestConfigServiceImpl['getCliOptions']>();
+    (configService.getCliOptions as jest.Mock).mockImplementation(() => originalCliOptions);
+    
+    configService.getConfig = createTypedMock<TestConfigServiceImpl['getConfig']>();
+    (configService.getConfig as jest.Mock).mockImplementation(() => originalConfig);
+    
+    configService.getSlackOptions = createTypedMock<TestConfigServiceImpl['getSlackOptions']>();
+    (configService.getSlackOptions as jest.Mock).mockImplementation(() => originalSlackOptions);
+    
+    // Apply any custom implementations
+    if (options.implementation) {
+      Object.entries(options.implementation).forEach(([key, value]) => {
+        // We need to cast here because we're dynamically setting properties
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (configService as any)[key] = value;
+      });
+    }
   }
   
   return configService;

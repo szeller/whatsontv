@@ -11,14 +11,19 @@ import { TvMazeServiceImpl } from '../../../implementations/tvMazeServiceImpl.js
 import type { HttpClient } from '../../../interfaces/httpClient.js';
 import type { TvShowService } from '../../../interfaces/tvShowService.js';
 import type { TextShowFormatter } from '../../../interfaces/showFormatter.js';
+import type { ConfigService } from '../../../interfaces/configService.js';
 import { getTodayDate } from '../../../utils/dateUtils.js';
 import { groupShowsByNetwork } from '../../../utils/showUtils.js';
+import { 
+  createMockConfigService 
+} from '../../mocks/factories/configServiceFactory.js';
 import { describe, expect, test, beforeEach, afterEach } from '@jest/globals';
 
 describe('Real API Integration Test', () => {
   // Original services
   let originalHttpClient: HttpClient;
   let originalTvShowService: TvShowService;
+  let originalConfigService: ConfigService | null = null;
   
   // Real HTTP client for API calls
   let realHttpClient: FetchHttpClientImpl;
@@ -30,24 +35,50 @@ describe('Real API Integration Test', () => {
     originalHttpClient = container.resolve<HttpClient>('HttpClient');
     originalTvShowService = container.resolve<TvShowService>('TvShowService');
     
+    // Try to get the original ConfigService, but don't fail if it can't be resolved
+    try {
+      originalConfigService = container.resolve<ConfigService>('ConfigService');
+    } catch (_) {
+      // If we can't resolve it, that's fine - we'll register our mock anyway
+      originalConfigService = null;
+    }
+    
     // Create real HTTP client
     realHttpClient = new FetchHttpClientImpl();
     
     // Create real TV show service that uses the real HTTP client
     tvShowService = new TvMazeServiceImpl(realHttpClient);
     
-    // Get formatter
-    formatter = container.resolve<TextShowFormatter>('TextShowFormatter');
+    // Create a mock config service with integration test settings (no Jest mocks)
+    const mockConfigService = createMockConfigService({
+      showOptions: {
+        date: getTodayDate(),
+        country: 'US',
+        types: ['Scripted', 'Reality'],
+        networks: [],
+        languages: ['English']
+      },
+      enhanceWithJestMocks: false
+    });
     
     // Register services in the container
     container.register('HttpClient', { useValue: realHttpClient });
     container.register('TvShowService', { useValue: tvShowService });
+    container.register('ConfigService', { useValue: mockConfigService });
+    
+    // Get formatter
+    formatter = container.resolve<TextShowFormatter>('TextShowFormatter');
   });
   
   afterEach(() => {
     // Restore original services
     container.register('HttpClient', { useValue: originalHttpClient });
     container.register('TvShowService', { useValue: originalTvShowService });
+    
+    // Only restore the original ConfigService if we had one
+    if (originalConfigService !== null) {
+      container.register('ConfigService', { useValue: originalConfigService });
+    }
   });
   
   test('should fetch network schedule from real TVMaze API', async () => {

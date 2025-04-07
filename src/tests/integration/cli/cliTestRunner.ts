@@ -9,8 +9,8 @@ import type { CliArgs } from '../../../types/cliArgs.js';
 import { container } from '../../../container.js';
 import type { ConsoleOutput } from '../../../interfaces/consoleOutput.js';
 import type { ConfigService } from '../../../interfaces/configService.js';
-import { TestConfigServiceImpl } from '../../../implementations/test/testConfigServiceImpl.js';
 import { createMockConsoleOutput } from '../../mocks/factories/consoleOutputFactory.js';
+import { createMockConfigService } from '../../mocks/factories/configServiceFactory.js';
 import { getTodayDate } from '../../../utils/dateUtils.js';
 
 /**
@@ -90,9 +90,9 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
   const originalConsoleOutput = container.resolve<ConsoleOutput>('ConsoleOutput');
   container.register('ConsoleOutput', { useValue: mockConsoleOutput });
 
-  // Create a test config service with the provided args
-  const testConfigService = new TestConfigServiceImpl(
-    {
+  // Create a mock config service with the provided args using our factory
+  const mockConfigService = createMockConfigService({
+    showOptions: {
       date: args.date ?? getTodayDate(),
       country: args.country ?? 'US',
       types: args.types ?? [],
@@ -101,14 +101,24 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
       languages: args.languages ?? [],
       fetchSource: args.fetch ?? 'network'
     },
-    {
-      debug: args.debug ?? false
-    }
-  );
+    cliOptions: {
+      debug: args.debug ?? false,
+      groupByNetwork: true
+    },
+    enhanceWithJestMocks: false
+  });
+  
+  // Try to get the original ConfigService, but don't fail if it can't be resolved
+  let originalConfigService: ConfigService | null = null;
+  try {
+    originalConfigService = container.resolve<ConfigService>('ConfigService');
+  } catch (_) {
+    // If we can't resolve it, that's fine - we'll register our mock anyway
+    originalConfigService = null;
+  }
   
   // Register test config service
-  const originalConfigService = container.resolve<ConfigService>('ConfigService');
-  container.register('ConfigService', { useValue: testConfigService });
+  container.register('ConfigService', { useValue: mockConfigService });
   
   try {
     // Run the CLI
@@ -129,7 +139,11 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
   } finally {
     // Restore original services
     container.register('ConsoleOutput', { useValue: originalConsoleOutput });
-    container.register('ConfigService', { useValue: originalConfigService });
+    
+    // Only restore the original ConfigService if we had one
+    if (originalConfigService !== null) {
+      container.register('ConfigService', { useValue: originalConfigService });
+    }
   }
   
   return {

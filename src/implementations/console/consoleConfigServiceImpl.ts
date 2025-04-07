@@ -11,6 +11,7 @@ import type { ConfigService } from '../../interfaces/configService.js';
 import type { ShowOptions } from '../../types/tvShowOptions.js';
 import type { CliOptions, AppConfig } from '../../types/configTypes.js';
 import type { CliArgs } from '../../types/cliArgs.js';
+import type { SlackOptions } from '../../implementations/slack/slackClientImpl.js';
 import { getTodayDate } from '../../utils/dateUtils.js';
 import { getStringValue } from '../../utils/stringUtils.js';
 import { 
@@ -92,6 +93,36 @@ export class ConsoleConfigServiceImpl implements ConfigService {
     return { ...this.appConfig };
   }
   
+  /**
+   * Get Slack configuration options
+   * @returns The Slack configuration options
+   */
+  getSlackOptions(): SlackOptions {
+    // Return default Slack options if not configured
+    const defaultSlackOptions: SlackOptions = {
+      token: process.env.SLACK_TOKEN !== undefined 
+        && process.env.SLACK_TOKEN !== null 
+        ? process.env.SLACK_TOKEN 
+        : '',
+      channelId: process.env.SLACK_CHANNEL_ID !== undefined 
+        && process.env.SLACK_CHANNEL_ID !== null 
+        ? process.env.SLACK_CHANNEL_ID 
+        : '',
+      username: 'WhatsOnTV',
+      icon_emoji: ':tv:',
+      dateFormat: 'dddd, MMMM D, YYYY'
+    };
+    
+    // If slack is configured in appConfig, merge with defaults
+    if (this.appConfig.slack !== undefined && this.appConfig.slack !== null) {
+      return {
+        ...defaultSlackOptions,
+        ...(this.appConfig.slack as Partial<SlackOptions>)
+      };
+    }
+    
+    return defaultSlackOptions;
+  }
   
   /**
    * Parse command line arguments
