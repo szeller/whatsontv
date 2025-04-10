@@ -20,7 +20,11 @@ describe('ConfigServiceFactory', () => {
       expect(configService.getShowOption('country')).toBe('US');
       expect(configService.getShowOption('languages')).toEqual(['English']);
       expect(configService.getCliOptions().debug).toBe(false);
-      expect(configService.getConfig().slack.enabled).toBe(false);
+      
+      // Check that slack config has required properties
+      expect(configService.getConfig().slack.token).toBe('test-token');
+      expect(configService.getConfig().slack.channelId).toBe('test-channel');
+      expect(configService.getConfig().slack.username).toBe('WhatsOnTV');
     });
     
     it('should set custom show options', () => {
@@ -89,9 +93,9 @@ describe('ConfigServiceFactory', () => {
     it('should set custom slack config', () => {
       // Arrange
       const slackConfig = {
-        enabled: true,
-        botToken: 'xoxb-test-token',
-        channel: '#tv-shows'
+        token: 'xoxb-test-token',
+        channelId: '#tv-shows',
+        username: 'SlackBot'
       };
       
       // Act
@@ -100,9 +104,9 @@ describe('ConfigServiceFactory', () => {
       });
       
       // Assert
-      expect(configService.getConfig().slack.enabled).toBe(true);
-      expect(configService.getConfig().slack.botToken).toBe('xoxb-test-token');
-      expect(configService.getConfig().slack.channel).toBe('#tv-shows');
+      expect(configService.getConfig().slack.token).toBe('xoxb-test-token');
+      expect(configService.getConfig().slack.channelId).toBe('#tv-shows');
+      expect(configService.getConfig().slack.username).toBe('SlackBot');
     });
     
     it('should merge slack config with app config', () => {
@@ -110,13 +114,15 @@ describe('ConfigServiceFactory', () => {
       const appConfig = {
         country: 'UK',
         slack: {
-          enabled: true
+          token: 'default-token',
+          channelId: 'default-channel',
+          username: 'DefaultBot'
         }
       };
       
       const slackConfig = {
-        botToken: 'xoxb-test-token',
-        channel: '#tv-shows'
+        token: 'xoxb-test-token',
+        channelId: '#tv-shows'
       };
       
       // Act
@@ -127,9 +133,9 @@ describe('ConfigServiceFactory', () => {
       
       // Assert
       expect(configService.getConfig().country).toBe('UK');
-      expect(configService.getConfig().slack.enabled).toBe(true);
-      expect(configService.getConfig().slack.botToken).toBe('xoxb-test-token');
-      expect(configService.getConfig().slack.channel).toBe('#tv-shows');
+      expect(configService.getConfig().slack.token).toBe('xoxb-test-token');
+      expect(configService.getConfig().slack.channelId).toBe('#tv-shows');
+      expect(configService.getConfig().slack.username).toBe('DefaultBot');
     });
     
     it('should apply custom implementation methods', () => {

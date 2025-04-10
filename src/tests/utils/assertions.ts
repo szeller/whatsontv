@@ -4,7 +4,7 @@
  * This file extends Jest with domain-specific assertions that make tests
  * more expressive and easier to read.
  */
-import type { Show } from '../../schemas/domain.js';
+import type { Show, NetworkGroups } from '../../schemas/domain.js';
 
 // We need to augment the Jest types to add our custom matchers
 declare global {
@@ -32,6 +32,11 @@ declare global {
        * includes a show matching the expected properties
        */
       toHaveBeenCalledWithShowsIncluding(expectedShow: Partial<Show>): R;
+      
+      /**
+       * Verifies that the received value is a valid NetworkGroups object
+       */
+      toBeValidNetworkGroups(): R;
     }
   }
 }
@@ -114,6 +119,47 @@ expect.extend({
         : `Expected mock to be called with shows including ${JSON.stringify(expectedShow)}`,
       pass
     };
+  },
+  
+  toBeValidNetworkGroups(received: unknown) {
+    // Check if the received value is a valid NetworkGroups object
+    let isValid = 
+      received !== null &&
+      received !== undefined &&
+      typeof received === 'object';
+    
+    // If basic check passes, validate structure
+    if (isValid) {
+      try {
+        const networkGroups = received as NetworkGroups;
+        
+        // Check each network entry
+        Object.entries(networkGroups).forEach(([network, shows]) => {
+          if (typeof network !== 'string' || !Array.isArray(shows)) {
+            isValid = false;
+            return;
+          }
+          
+          // Check shows if any exist
+          if (shows.length > 0) {
+            const firstShow = shows[0];
+            if (typeof firstShow !== 'object' || typeof firstShow.name !== 'string') {
+              isValid = false;
+            }
+          }
+        });
+      } catch (_) {
+        // If any error occurs during validation, the object is not valid
+        isValid = false;
+      }
+    }
+    
+    return {
+      message: () => isValid 
+        ? `Expected ${JSON.stringify(received)} not to be valid network groups` 
+        : `Expected ${JSON.stringify(received)} to be valid network groups`,
+      pass: isValid
+    };
   }
 });
 
@@ -123,6 +169,12 @@ expect.extend({
  */
 export function expectValidShow(show: unknown): void {
   expect(show).toBeValidShow();
+  
+  const typedShow = show as Show;
+  expect(typedShow.id).toBeDefined();
+  expect(typeof typedShow.name).toBe('string');
+  
+  // Add more detailed validations as needed
 }
 
 /**
@@ -131,6 +183,23 @@ export function expectValidShow(show: unknown): void {
  */
 export function expectValidNetwork(network: unknown): void {
   expect(network).toBeValidNetwork();
+}
+
+/**
+ * Asserts that network groups have the expected structure
+ */
+export function expectValidNetworkGroups(networkGroups: NetworkGroups): void {
+  expect(networkGroups).toBeValidNetworkGroups();
+  
+  // Additional validation
+  Object.entries(networkGroups).forEach(([network, shows]) => {
+    expect(typeof network).toBe('string');
+    expect(Array.isArray(shows)).toBe(true);
+    
+    if (shows.length > 0) {
+      expectValidShow(shows[0]);
+    }
+  });
 }
 
 /**

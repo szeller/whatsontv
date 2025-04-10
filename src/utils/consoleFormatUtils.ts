@@ -1,207 +1,170 @@
 /**
- * Utility functions for formatting TV show data for console output
+ * Utility functions for formatting console output
  */
 import type { Show } from '../schemas/domain.js';
-import { 
-  getStringValue, padString, truncateString 
-} from './stringUtils.js';
-import { formatTimeWithPeriod } from './dateUtils.js';
-
-/**
- * Options for formatting show information
- */
-export interface FormatOptions {
-  /** Maximum width for the show name */
-  nameWidth?: number;
-  /** Maximum width for the network name */
-  networkWidth?: number;
-  /** Maximum width for the show type */
-  typeWidth?: number;
-  /** Whether to include episode information */
-  includeEpisode?: boolean;
-  /** Whether to include time information */
-  includeTime?: boolean;
-  /** Whether to include network information */
-  includeNetwork?: boolean;
-  /** Whether to pad season and episode numbers with leading zeros */
-  padEpisodeNumbers?: boolean;
-}
+import { getStringValue } from './stringUtils.js';
 
 /**
  * Format a network name consistently for console display
- * @param network - Network name to format
+ * @param networkName - Network name to format
+ * @param unknownLabel - Label to use for unknown network
  * @returns Formatted network name
  */
-export function formatNetworkName(network: string | null | undefined): string {
-  return getStringValue(network, 'Unknown Network');
+export function formatNetworkName(
+  networkName: string | null | undefined, 
+  unknownLabel = 'Unknown Network'
+): string {
+  return getStringValue(networkName, unknownLabel);
 }
 
 /**
  * Format a show type consistently for console display
  * @param type - Show type to format
+ * @param unknownLabel - Label to use for unknown show type
  * @returns Formatted show type
  */
-export function formatShowType(type: string | null | undefined): string {
-  return getStringValue(type, 'Unknown');
+export function formatShowType(
+  type: string | null | undefined, 
+  unknownLabel = 'Unknown'
+): string {
+  return getStringValue(type, unknownLabel);
 }
 
 /**
- * Format episode information in S01E01 format (with leading zeros by default)
- * @param show - Show object containing season and episode information
- * @param padWithZeros - Whether to pad with leading zeros (default: true)
- * @returns Formatted episode information
+ * Format episode information consistently for console display
+ * @param episodeInfo - Episode information object or Show object
+ * @returns Formatted episode information (e.g., "S01E05") or empty string if not available
  */
 export function formatEpisodeInfo(
-  show: Show | { season?: number | null, number?: number | null },
-  padWithZeros = true
+  episodeInfo: { season: number | null; number: number | null } | null | undefined
 ): string {
-  const season = show.season;
-  const episode = show.number;
-  
-  if (season === null || season === undefined || episode === null || episode === undefined) {
+  if (episodeInfo === null || episodeInfo === undefined) {
     return '';
   }
   
-  if (padWithZeros) {
-    // Format as S01E01 (with leading zeros)
-    const seasonStr = season.toString().padStart(2, '0');
-    const episodeStr = episode.toString().padStart(2, '0');
-    return `S${seasonStr}E${episodeStr}`;
-  } else {
-    // Format as S1E1 (without leading zeros)
-    return `S${season}E${episode}`;
+  const { season, number } = episodeInfo;
+  
+  if (season === null || season === undefined || number === null || number === undefined) {
+    return '';
   }
+  
+  const paddedSeason = season.toString().padStart(2, '0');
+  const paddedEpisode = number.toString().padStart(2, '0');
+  
+  return `S${paddedSeason}E${paddedEpisode}`;
 }
 
 /**
- * Format a show for console display
- * @param show - Show to format
- * @param options - Formatting options
- * @returns Formatted show string
+ * Format a network header and generate a separator line
+ * @param networkName - Network name to format
+ * @param unknownLabel - Label to use for unknown network
+ * @returns Array with header and separator
  */
-export function formatShowForConsole(show: Show, options: FormatOptions = {}): string {
+export function formatNetworkHeader(
+  networkName: string | null | undefined, 
+  unknownLabel = 'Unknown Network'
+): [string, string] {
+  const formattedName = formatNetworkName(networkName, unknownLabel);
+  const header = `${formattedName}:`;
+  const separator = '-'.repeat(header.length);
+  return [header, separator];
+}
+
+/**
+ * Group shows by show ID
+ * @param shows - Shows to group
+ * @returns Record with show IDs as keys and arrays of shows as values
+ */
+export function groupShowsByShowId(shows: Show[]): Record<string, Show[]> {
+  const showGroups: Record<string, Show[]> = {};
+  
+  for (const show of shows) {
+    const showId = show.id.toString();
+    
+    if (!Object.prototype.hasOwnProperty.call(showGroups, showId)) {
+      showGroups[showId] = [];
+    }
+    
+    showGroups[showId].push(show);
+  }
+  
+  return showGroups;
+}
+
+/**
+ * Prepare components for a show row without applying any styling
+ * @param show - Show to format
+ * @param options - Options for formatting
+ * @returns Object with formatted components
+ */
+export function prepareShowRowComponents(
+  show: Show,
+  options: {
+    noAirtime?: string;
+    noNetwork?: string;
+    unknownShow?: string;
+    unknownType?: string;
+  } = {}
+): {
+  time: string;
+  network: string;
+  type: string;
+  showName: string;
+  episodeInfo: string;
+} {
   const {
-    nameWidth = 30,
-    networkWidth = 15,
-    typeWidth = 10,
-    includeEpisode = true,
-    includeTime = true,
-    includeNetwork = true,
-    padEpisodeNumbers = true
+    noAirtime = 'N/A',
+    noNetwork = 'Unknown Network',
+    unknownShow = 'Unknown Show',
+    unknownType = 'Unknown'
   } = options;
   
-  // Format show name (truncate if necessary)
-  const name = truncateString(show.name, nameWidth);
+  // Format time
+  const time = getStringValue(show.airtime, noAirtime);
   
-  // Format parts array to build the output
-  const parts: string[] = [padString(name, nameWidth)];
+  // Format network
+  const network = show.network !== null && show.network !== undefined && show.network !== '' 
+    ? formatNetworkName(show.network) 
+    : noNetwork;
   
-  // Add time if requested
-  if (includeTime) {
-    // Properly handle null/undefined/empty airtime
-    const airtime = getStringValue(show.airtime, '');
-    const time = airtime !== '' ? formatTimeWithPeriod(airtime) : 'TBA';
-    parts.push(padString(time, 10));
-  }
+  // Format type
+  const type = formatShowType(show.type || '', unknownType);
   
-  // Add network if requested
-  if (includeNetwork) {
-    const network = formatNetworkName(show.network);
-    parts.push(padString(truncateString(network, networkWidth), networkWidth));
-  }
+  // Format show name
+  const showName = getStringValue(show.name, unknownShow);
   
-  // Add show type
-  const type = formatShowType(show.type);
-  parts.push(padString(truncateString(type, typeWidth), typeWidth));
+  // Format episode info
+  const episodeInfo = formatEpisodeInfo(show);
   
-  // Add episode information if requested
-  if (includeEpisode && show.season !== undefined && show.number !== undefined) {
-    const episodeInfo = formatEpisodeInfo(show, padEpisodeNumbers);
-    parts.push(episodeInfo);
-  }
-  
-  // Join all parts with spaces
-  return parts.join(' ');
+  return {
+    time,
+    network,
+    type,
+    showName,
+    episodeInfo
+  };
 }
 
 /**
- * Format a table row with proper spacing
- * @param columns - Column values
- * @param widths - Column widths
- * @returns Formatted table row
+ * Check if a show has an airtime
+ * @param show - Show to check
+ * @returns True if the show has an airtime, false otherwise
  */
-export function formatTableRow(columns: (string | null | undefined)[], widths: number[]): string {
-  // Ensure columns and widths arrays have the same length
-  const length = Math.min(columns.length, widths.length);
-  
-  // Format each column with proper padding
-  const formattedColumns = [];
-  for (let i = 0; i < length; i++) {
-    const value = getStringValue(columns[i], '');
-    formattedColumns.push(padString(value, widths[i]));
-  }
-  
-  // Join columns with spaces
-  return formattedColumns.join(' ');
+export function hasAirtime(show: Show): boolean {
+  return show.airtime !== null && 
+         show.airtime !== undefined && 
+         show.airtime.trim() !== '';
 }
 
 /**
- * Create a table header with optional separator line
- * @param headers - Header values
- * @param widths - Column widths
- * @param includeSeparator - Whether to include a separator line
- * @returns Array of header lines
+ * Check if all shows in an array have no airtime
+ * @param shows - Shows to check
+ * @returns True if all shows have no airtime, false otherwise
  */
-export function createTableHeader(
-  headers: string[],
-  widths: number[],
-  includeSeparator: boolean = true
-): string[] {
-  const result: string[] = [];
-  
-  // Add header row
-  result.push(formatTableRow(headers, widths));
-  
-  // Add separator line if requested
-  if (includeSeparator) {
-    const separators = widths.map(width => '-'.repeat(width));
-    result.push(formatTableRow(separators, widths));
+export function allShowsHaveNoAirtime(shows: Show[]): boolean {
+  if (shows === null || shows === undefined || shows.length === 0) {
+    return true;
   }
   
-  return result;
-}
-
-/**
- * Create a bullet list for console display
- * @param items - List items
- * @param bulletChar - Bullet character
- * @param indent - Indentation for wrapped lines
- * @returns Array of formatted lines
- */
-export function createBulletList(
-  items: string[],
-  bulletChar: string = '• ',
-  indent: number = bulletChar.length
-): string[] {
-  if (items.length === 0) {
-    return [];
-  }
-  
-  const result: string[] = [];
-  const indentStr = ' '.repeat(indent);
-  
-  for (const item of items) {
-    // Split item into lines if it contains newlines
-    const lines = item.split('\n');
-    
-    // Add first line with bullet
-    result.push(`${bulletChar}${lines[0]}`);
-    
-    // Add remaining lines with indentation
-    for (let i = 1; i < lines.length; i++) {
-      result.push(`${indentStr}${lines[i]}`);
-    }
-  }
-  
-  return result;
+  return shows.every(show => !hasAirtime(show));
 }

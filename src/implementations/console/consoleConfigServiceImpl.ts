@@ -9,7 +9,7 @@ import yargs from 'yargs';
 
 import type { ConfigService } from '../../interfaces/configService.js';
 import type { ShowOptions } from '../../types/tvShowOptions.js';
-import type { CliOptions, AppConfig } from '../../types/configTypes.js';
+import type { CliOptions, AppConfig, SlackConfig } from '../../types/configTypes.js';
 import type { CliArgs } from '../../types/cliArgs.js';
 import { getTodayDate } from '../../utils/dateUtils.js';
 import { getStringValue } from '../../utils/stringUtils.js';
@@ -92,6 +92,39 @@ export class ConsoleConfigServiceImpl implements ConfigService {
     return { ...this.appConfig };
   }
   
+  /**
+   * Get Slack configuration options
+   * @returns The Slack configuration options
+   */
+  getSlackOptions(): SlackConfig {
+    // Return default Slack options if not configured
+    const defaultSlackOptions: SlackConfig = {
+      token: process.env.SLACK_TOKEN !== undefined 
+        && process.env.SLACK_TOKEN !== null 
+        ? process.env.SLACK_TOKEN 
+        : '',
+      channelId: process.env.SLACK_CHANNEL !== undefined 
+        && process.env.SLACK_CHANNEL !== null 
+        ? process.env.SLACK_CHANNEL 
+        : '',
+      username: process.env.SLACK_USERNAME !== undefined 
+        && process.env.SLACK_USERNAME !== null 
+        ? process.env.SLACK_USERNAME 
+        : 'WhatsOnTV',
+      icon_emoji: ':tv:',
+      dateFormat: 'dddd, MMMM D, YYYY'
+    };
+    
+    // If slack is configured in appConfig, merge with defaults
+    if (this.appConfig.slack !== undefined && this.appConfig.slack !== null) {
+      return {
+        ...defaultSlackOptions,
+        ...(this.appConfig.slack as Partial<SlackConfig>)
+      };
+    }
+    
+    return defaultSlackOptions;
+  }
   
   /**
    * Parse command line arguments
@@ -242,7 +275,9 @@ export class ConsoleConfigServiceImpl implements ConfigService {
       languages: [], // e.g., ['English']
       notificationTime: '09:00', // 24-hour format
       slack: {
-        enabled: false
+        token: '',
+        channelId: '',
+        username: 'WhatsOnTV'
       }
     };
   }

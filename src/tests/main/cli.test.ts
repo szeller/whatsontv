@@ -14,9 +14,8 @@ import type { ConsoleOutput } from '../../interfaces/consoleOutput';
 import type { Show } from '../../schemas/domain.js';
 import type { CliOptions, AppConfig } from '../../types/configTypes';
 import type { ShowOptions } from '../../types/tvShowOptions';
-import type { CliServices } from '../../cli';
 import { Fixtures } from '../helpers/fixtureHelper';
-import { runCli } from '../../cli';
+import { CliApplication } from '../../cli';
 
 // Mock the console implementation to avoid actual console output during tests
 jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -66,6 +65,10 @@ describe('CLI', () => {
       notificationTime: '09:00',
       slack: { enabled: false }
     }),
+    getSlackOptions: jest.fn().mockReturnValue({
+      token: 'test-token',
+      channelId: 'test-channel'
+    }),
     getHelpText: jest.fn<() => string>().mockReturnValue('Help Text')
   };
 
@@ -74,20 +77,20 @@ describe('CLI', () => {
     error: jest.fn<(message: string) => void>()
   };
 
-  // Create services object for dependency injection
-  let mockServices: CliServices;
+  // Create CLI application instance for testing
+  let cliApp: CliApplication;
 
   beforeEach(() => {
     // Reset all mocks before each test
     jest.clearAllMocks();
     
-    // Create services object
-    mockServices = {
-      outputService: mockOutputService as unknown as OutputService,
-      tvShowService: mockTvShowService as unknown as TvShowService,
-      configService: mockConfigService as unknown as ConfigService,
-      consoleOutput: mockConsoleOutput as unknown as ConsoleOutput
-    };
+    // Create CLI application with mock services
+    cliApp = new CliApplication(
+      mockTvShowService as unknown as TvShowService,
+      mockConfigService as unknown as ConfigService,
+      mockConsoleOutput as unknown as ConsoleOutput,
+      mockOutputService as unknown as OutputService
+    );
   });
 
   afterEach(() => {
@@ -100,8 +103,9 @@ describe('CLI', () => {
     mockTvShowService.fetchShows.mockResolvedValue(mockShows);
 
     // Act
-    await runCli(mockServices);
+    await cliApp.run();
 
+    // Assert
     expect(mockTvShowService.fetchShows).toHaveBeenCalled();
     expect(mockOutputService.renderOutput).toHaveBeenCalledWith(mockShows);
   });
@@ -117,8 +121,9 @@ describe('CLI', () => {
     mockTvShowService.fetchShows.mockResolvedValue(mockNetworkShows);
 
     // Act
-    await runCli(mockServices);
+    await cliApp.run();
 
+    // Assert
     expect(mockTvShowService.fetchShows).toHaveBeenCalled();
     expect(mockOutputService.renderOutput).toHaveBeenCalledWith(mockNetworkShows);
   });
@@ -134,8 +139,9 @@ describe('CLI', () => {
     mockTvShowService.fetchShows.mockResolvedValue(mockStreamingShows);
 
     // Act
-    await runCli(mockServices);
+    await cliApp.run();
 
+    // Assert
     expect(mockTvShowService.fetchShows).toHaveBeenCalled();
     expect(mockOutputService.renderOutput).toHaveBeenCalledWith(mockStreamingShows);
   });
@@ -146,7 +152,7 @@ describe('CLI', () => {
     mockTvShowService.fetchShows.mockRejectedValue(testError);
 
     // Act
-    await runCli(mockServices);
+    await cliApp.run();
 
     // Assert
     expect(mockConsoleOutput.error).toHaveBeenCalledWith('Error fetching TV shows: Test error');
@@ -160,7 +166,7 @@ describe('CLI', () => {
     });
 
     // Act
-    await runCli(mockServices);
+    await cliApp.run();
 
     // Assert
     expect(mockConsoleOutput.error).toHaveBeenCalledWith('Unexpected error: Unexpected test error');

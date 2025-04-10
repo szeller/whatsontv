@@ -2,6 +2,7 @@
  * Interface for formatting TV show information
  */
 import type { Show, NetworkGroups } from '../schemas/domain.js';
+import type { SlackBlock } from './slackClient.js';
 
 /**
  * Generic interface for formatting TV show information
@@ -52,3 +53,9 @@ export interface ShowFormatter<TOutput, TGroupOutput = TOutput[]> {
  * Used for console and other text-based outputs
  */
 export type TextShowFormatter = ShowFormatter<string, string[]>;
+
+/**
+ * Slack-specific implementation of ShowFormatter
+ * Used for Slack Block Kit format
+ */
+export type SlackShowFormatter = ShowFormatter<SlackBlock, SlackBlock[]>;

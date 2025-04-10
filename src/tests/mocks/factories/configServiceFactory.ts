@@ -20,6 +20,9 @@ export interface ConfigServiceOptions extends MockOptions<ConfigService> {
   
   /** Slack configuration (will be merged with appConfig.slack) */
   slackConfig?: Partial<SlackConfig>;
+  
+  /** Whether to enhance with Jest mocks (default: true) */
+  enhanceWithJestMocks?: boolean;
 }
 
 /**
@@ -28,16 +31,33 @@ export interface ConfigServiceOptions extends MockOptions<ConfigService> {
  * @returns A mock config service instance
  */
 export function createMockConfigService(options: ConfigServiceOptions = {}): TestConfigServiceImpl {
+  // Default slack config with required properties
+  const defaultSlackConfig: SlackConfig = {
+    token: 'test-token',
+    channelId: 'test-channel',
+    username: 'WhatsOnTV'
+  };
+  
   // Merge slack config with app config if provided
   let appConfig = options.appConfig || {};
+  
+  // Make sure appConfig.slack has the default values
+  appConfig = {
+    ...appConfig,
+    slack: {
+      ...defaultSlackConfig,
+      ...(appConfig.slack || {})
+    } as SlackConfig
+  };
+  
+  // Apply slackConfig if provided
   if (options.slackConfig) {
     appConfig = {
       ...appConfig,
       slack: {
-        enabled: false, // Default value to ensure it's always defined
-        ...(appConfig.slack || {}),
+        ...appConfig.slack,
         ...options.slackConfig
-      }
+      } as SlackConfig
     };
   }
   
@@ -45,31 +65,45 @@ export function createMockConfigService(options: ConfigServiceOptions = {}): Tes
   const configService = new TestConfigServiceImpl(
     options.showOptions || {},
     options.cliOptions || {},
-    appConfig
+    appConfig,
+    // Ensure slackOptions has all required properties
+    {
+      ...defaultSlackConfig,
+      ...(options.slackConfig || {})
+    } as SlackConfig
   );
   
-  // Get the original values before mocking
-  const originalShowOptions = configService.getShowOptions();
-  const originalCliOptions = configService.getCliOptions();
-  const originalConfig = configService.getConfig();
+  // By default, enhance with Jest mocks unless explicitly disabled
+  const shouldEnhanceWithJestMocks = options.enhanceWithJestMocks !== false;
   
-  // Enhance methods with typed mocks for better type safety
-  configService.getShowOptions = createTypedMock<TestConfigServiceImpl['getShowOptions']>();
-  (configService.getShowOptions as jest.Mock).mockImplementation(() => originalShowOptions);
-  
-  configService.getCliOptions = createTypedMock<TestConfigServiceImpl['getCliOptions']>();
-  (configService.getCliOptions as jest.Mock).mockImplementation(() => originalCliOptions);
-  
-  configService.getConfig = createTypedMock<TestConfigServiceImpl['getConfig']>();
-  (configService.getConfig as jest.Mock).mockImplementation(() => originalConfig);
-  
-  // Apply any custom implementations
-  if (options.implementation) {
-    Object.entries(options.implementation).forEach(([key, value]) => {
-      // We need to cast here because we're dynamically setting properties
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (configService as any)[key] = value;
-    });
+  if (shouldEnhanceWithJestMocks === true) {
+    // Get the original values before mocking
+    const originalShowOptions = configService.getShowOptions();
+    const originalCliOptions = configService.getCliOptions();
+    const originalConfig = configService.getConfig();
+    const originalSlackOptions = configService.getSlackOptions();
+    
+    // Enhance methods with typed mocks for better type safety
+    configService.getShowOptions = createTypedMock<TestConfigServiceImpl['getShowOptions']>();
+    (configService.getShowOptions as jest.Mock).mockImplementation(() => originalShowOptions);
+    
+    configService.getCliOptions = createTypedMock<TestConfigServiceImpl['getCliOptions']>();
+    (configService.getCliOptions as jest.Mock).mockImplementation(() => originalCliOptions);
+    
+    configService.getConfig = createTypedMock<TestConfigServiceImpl['getConfig']>();
+    (configService.getConfig as jest.Mock).mockImplementation(() => originalConfig);
+    
+    configService.getSlackOptions = createTypedMock<TestConfigServiceImpl['getSlackOptions']>();
+    (configService.getSlackOptions as jest.Mock).mockImplementation(() => originalSlackOptions);
+    
+    // Apply any custom implementations
+    if (options.implementation) {
+      Object.entries(options.implementation).forEach(([key, value]) => {
+        // We need to cast here because we're dynamically setting properties
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (configService as any)[key] = value;
+      });
+    }
   }
   
   return configService;

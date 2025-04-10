@@ -4,7 +4,10 @@
     "networks": ["Discovery", "CBS", "Netflix", "Paramount+"],
     "notificationTime": "9:00",
     "slack": {
-        "enabled": true,
-        "channel": "#tv-shows"
+        "token": "xoxb-your-token-here",
+        "channelId": "C01234ABCDE",
+        "username": "WhatsOnTV",
+        "icon_emoji": ":tv:",
+        "dateFormat": "dddd, MMMM D, YYYY"
     }
 }

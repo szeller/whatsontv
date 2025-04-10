@@ -3,7 +3,6 @@
  */
 import type { Show } from '../schemas/domain.js';
 import { convertTimeToMinutes } from './dateUtils.js';
-import { formatEpisodeInfo } from './consoleFormatUtils.js';
 
 /**
  * Type for grouping shows by network
@@ -146,18 +145,24 @@ function formatRange(
   const endNum = end || startNum;
   
   if (startNum === endNum) {
-    // Single episode - create a mock show object to use with formatEpisodeInfo
-    return formatEpisodeInfo({ season: seasonNum, number: startNum }, padEpisodeNumbers);
+    // Single episode
+    const seasonStr = padEpisodeNumbers 
+      ? seasonNum.toString().padStart(2, '0') 
+      : seasonNum.toString();
+    const episodeStr = padEpisodeNumbers 
+      ? startNum.toString().padStart(2, '0') 
+      : startNum.toString();
+    return `S${seasonStr}E${episodeStr}`;
   } else {
     // Episode range with consistent formatting (S01E01-02)
     const seasonStr = padEpisodeNumbers 
       ? seasonNum.toString().padStart(2, '0') 
       : seasonNum.toString();
-    const startStr = padEpisodeNumbers 
-      ? startNum.toString().padStart(2, '0') 
+    const startStr = padEpisodeNumbers
+      ? startNum.toString().padStart(2, '0')
       : startNum.toString();
-    const endStr = padEpisodeNumbers 
-      ? endNum.toString().padStart(2, '0') 
+    const endStr = padEpisodeNumbers
+      ? endNum.toString().padStart(2, '0')
       : endNum.toString();
     return `S${seasonStr}E${startStr}-${endStr}`;
   }
