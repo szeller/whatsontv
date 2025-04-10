@@ -3,6 +3,7 @@
  */
 import 'reflect-metadata';
 import { container } from 'tsyringe';
+import { WebClient } from '@slack/web-api';
 
 // Interface imports
 import type { ConfigService } from './interfaces/configService.js';
@@ -12,6 +13,7 @@ import type { OutputService } from './interfaces/outputService.js';
 import type { SlackClient } from './interfaces/slackClient.js';
 import type { SlackShowFormatter } from './interfaces/showFormatter.js';
 import type { TvShowService } from './interfaces/tvShowService.js';
+import type { SlackConfig } from './types/configTypes.js';
 
 // Implementation imports
 import { ConsoleConfigServiceImpl } from './implementations/console/consoleConfigServiceImpl.js';
@@ -41,6 +43,14 @@ export function initializeSlackContainer(): void {
   // Register HttpClient
   container.register<HttpClient>('HttpClient', {
     useFactory: () => new FetchHttpClientImpl()
+  });
+  
+  // Register WebClientFactory for creating Slack WebClient instances
+  container.register('WebClientFactory', {
+    useFactory: () => {
+      // Return a factory function that creates WebClient instances
+      return (config: SlackConfig) => new WebClient(config.token);
+    }
   });
   
   // Register real SlackClient implementation

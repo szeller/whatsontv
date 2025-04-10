@@ -16,19 +16,18 @@ export class SlackClientImpl implements SlackClient {
   /**
    * Creates a new SlackClientImpl instance
    * @param configService The configuration service
-   * @param webClient Optional WebClient instance for testing
+   * @param webClientFactory Optional factory function for creating WebClient instances
    */
   constructor(
     @inject('ConfigService') private readonly configService: ConfigService,
-    // Make the webClient parameter optional but not part of the DI system
-    // This allows us to inject it for testing but not require it for normal use
-    webClient?: WebClient
+    @inject('WebClientFactory') 
+    private readonly webClientFactory?: (config: SlackConfig) => WebClient
   ) {
     this._options = this.configService.getSlackOptions();
     
-    // Allow injecting a client for testing
-    if (webClient) {
-      this._client = webClient;
+    // Use the factory if provided, otherwise create a new WebClient directly
+    if (this.webClientFactory) {
+      this._client = this.webClientFactory(this._options);
     } else {
       this._client = new WebClient(this._options.token);
     }

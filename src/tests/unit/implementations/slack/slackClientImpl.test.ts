@@ -5,6 +5,7 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { WebClient } from '@slack/web-api';
 import { SlackClientImpl } from '../../../../implementations/slack/slackClientImpl.js';
 import type { ConfigService } from '../../../../interfaces/configService.js';
+import type { SlackConfig } from '../../../../types/configTypes.js';
 import { SlackClientFixture } from '../../../fixtures/helpers/slackClientFixture.js';
 
 // Create mock functions with proper typing
@@ -42,6 +43,9 @@ describe('SlackClientImpl', () => {
   let slackClient: SlackClientImpl;
   let mockWebClient: WebClient;
   
+  // Create a mock factory function
+  const mockWebClientFactory = jest.fn<(config: SlackConfig) => WebClient>();
+  
   beforeEach(() => {
     // Clear all mocks before each test
     jest.clearAllMocks();
@@ -49,8 +53,11 @@ describe('SlackClientImpl', () => {
     // Create a new mock WebClient
     mockWebClient = createMockWebClient();
     
-    // Create a new client instance for each test with the mock WebClient
-    slackClient = new SlackClientImpl(mockConfigService, mockWebClient);
+    // Set up the factory to return our mock client
+    mockWebClientFactory.mockReturnValue(mockWebClient);
+    
+    // Create a new client instance for each test with the mock factory
+    slackClient = new SlackClientImpl(mockConfigService, mockWebClientFactory);
   });
   
   describe('constructor', () => {
@@ -58,21 +65,19 @@ describe('SlackClientImpl', () => {
       expect(mockConfigService.getSlackOptions).toHaveBeenCalled();
     });
     
-    it('should use provided WebClient when passed', () => {
-      // The test is implicitly checking this by using the mock WebClient
-      // in all other tests
-      expect(mockPostMessage).not.toHaveBeenCalled();
+    it('should use the WebClientFactory when provided', () => {
+      const slackOptions = mockConfigService.getSlackOptions();
+      expect(mockWebClientFactory).toHaveBeenCalledWith(slackOptions);
     });
     
-    it('should create a new WebClient when not provided', () => {
+    it('should create a new WebClient when factory is not provided', () => {
       // We need to mock the WebClient constructor for this test
       const mockWebClientConstructor = jest.fn();
       jest.mock('@slack/web-api', () => ({
         WebClient: mockWebClientConstructor
       }));
       
-      // This test is more for documentation purposes since we can't easily
-      // test the internal WebClient creation without more complex mocking
+      // Create a client without providing a factory
       const client = new SlackClientImpl(mockConfigService);
       expect(client).toBeDefined();
     });
