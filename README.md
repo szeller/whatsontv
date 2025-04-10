@@ -33,8 +33,9 @@ npm install
 3. Create a `.env` file with the following variables (only needed for Slack notifications):
 
 ```bash
-SLACK_BOT_TOKEN=your_slack_bot_token
-SLACK_CHANNEL=#your_channel
+SLACK_TOKEN=xoxb-your-slack-bot-token
+SLACK_CHANNEL=C01234ABCDE
+SLACK_USERNAME=WhatsOnTV
 ```
 
 4. Copy the example config file and customize it:
@@ -54,8 +55,11 @@ Edit `config.json` to set your preferences:
     "languages": ["English"],
     "notificationTime": "9:00",
     "slack": {
-        "enabled": true,
-        "channel": "#tv-shows"
+        "token": "xoxb-your-token-here",
+        "channelId": "C01234ABCDE",
+        "username": "WhatsOnTV",
+        "icon_emoji": ":tv:",
+        "dateFormat": "dddd, MMMM D, YYYY"
     }
 }
 ```
@@ -73,6 +77,69 @@ npm start -- --date 2023-01-15 --country US
 npm run slack
 ```
 
+## Slack Integration Setup
+
+To use the Slack integration, you'll need to create a Slack App and obtain the necessary credentials:
+
+### 1. Create a Slack App
+
+1. Go to [https://api.slack.com/apps](https://api.slack.com/apps)
+2. Click "Create New App"
+3. Choose "From scratch"
+4. Name your app (e.g., "WhatsOnTV") and select your workspace
+5. Click "Create App"
+
+### 2. Configure Bot Permissions
+
+1. In the left sidebar, click on "OAuth & Permissions"
+2. Scroll down to "Bot Token Scopes" and add the following permissions:
+   - `chat:write` (to send messages)
+   - `chat:write.public` (to send messages to channels the bot isn't in)
+   - `channels:read` (to see channel information)
+
+### 3. Install the App to Your Workspace
+
+1. Scroll up to the top of the "OAuth & Permissions" page
+2. Click "Install to Workspace"
+3. Review the permissions and click "Allow"
+
+### 4. Get Your Bot Token
+
+1. After installation, you'll be redirected to the "OAuth & Permissions" page
+2. Copy the "Bot User OAuth Token" that starts with `xoxb-`
+3. This is your `SLACK_TOKEN` value for the `.env` file
+
+### 5. Get Your Channel ID
+
+1. Open Slack in your browser or desktop app
+2. Right-click on the channel you want to send messages to
+3. Select "Copy link" 
+4. The link will look like `https://yourworkspace.slack.com/archives/C01234ABCDE`
+5. The part after the last `/` is your channel ID (e.g., `C01234ABCDE`)
+6. This is your `SLACK_CHANNEL` value for the `.env` file
+
+### 6. Configure Your Application
+
+Add these credentials to your `.env` file as shown in the Setup section:
+
+```
+SLACK_TOKEN=xoxb-your-token-here
+SLACK_CHANNEL=your-channel-id
+SLACK_USERNAME=WhatsOnTV
+```
+
+### 7. Run the Slack Integration
+
+```bash
+npm run slack
+```
+
+### Security Considerations
+
+- **Never commit your Slack token to version control**
+- Use environment variables or a secure configuration management system
+- Consider using a `.env.example` file to show the required variables without actual values
+- If you accidentally expose your token, regenerate it immediately in the Slack API dashboard
 
 ## Features
 
@@ -109,7 +176,11 @@ The `config.json` file supports the following options:
 | `languages` | string[] | Languages to include |
 | `notificationTime` | string | Time to send daily notifications (HH:MM) |
 | `slack.enabled` | boolean | Whether to enable Slack notifications |
-| `slack.channel` | string | Slack channel for notifications |
+| `slack.token` | string | Slack bot token (starts with xoxb-) |
+| `slack.channelId` | string | Slack channel ID (e.g., "C01234ABCDE") |
+| `slack.username` | string | Name to display for bot messages |
+| `slack.icon_emoji` | string | Emoji to use as bot icon (e.g., ":tv:") |
+| `slack.dateFormat` | string | Format for dates in messages |
 
 
 ## Architecture

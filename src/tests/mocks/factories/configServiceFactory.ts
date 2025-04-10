@@ -2,7 +2,6 @@ import { TestConfigServiceImpl } from '../../../implementations/test/testConfigS
 import type { ConfigService } from '../../../interfaces/configService.js';
 import type { ShowOptions } from '../../../types/tvShowOptions.js';
 import type { CliOptions, AppConfig, SlackConfig } from '../../../types/configTypes.js';
-import type { SlackOptions } from '../../../implementations/slack/slackClientImpl.js';
 import { MockOptions } from './types.js';
 import { createTypedMock } from '../../testutils/jestHelpers.js';
 
@@ -22,9 +21,6 @@ export interface ConfigServiceOptions extends MockOptions<ConfigService> {
   /** Slack configuration (will be merged with appConfig.slack) */
   slackConfig?: Partial<SlackConfig>;
   
-  /** Slack options configuration */
-  slackOptions?: Partial<SlackOptions>;
-  
   /** Whether to enhance with Jest mocks (default: true) */
   enhanceWithJestMocks?: boolean;
 }
@@ -35,16 +31,33 @@ export interface ConfigServiceOptions extends MockOptions<ConfigService> {
  * @returns A mock config service instance
  */
 export function createMockConfigService(options: ConfigServiceOptions = {}): TestConfigServiceImpl {
+  // Default slack config with required properties
+  const defaultSlackConfig: SlackConfig = {
+    token: 'test-token',
+    channelId: 'test-channel',
+    username: 'WhatsOnTV'
+  };
+  
   // Merge slack config with app config if provided
   let appConfig = options.appConfig || {};
+  
+  // Make sure appConfig.slack has the default values
+  appConfig = {
+    ...appConfig,
+    slack: {
+      ...defaultSlackConfig,
+      ...(appConfig.slack || {})
+    } as SlackConfig
+  };
+  
+  // Apply slackConfig if provided
   if (options.slackConfig) {
     appConfig = {
       ...appConfig,
       slack: {
-        enabled: false, // Default value to ensure it's always defined
-        ...(appConfig.slack || {}),
+        ...appConfig.slack,
         ...options.slackConfig
-      }
+      } as SlackConfig
     };
   }
   
@@ -53,13 +66,17 @@ export function createMockConfigService(options: ConfigServiceOptions = {}): Tes
     options.showOptions || {},
     options.cliOptions || {},
     appConfig,
-    options.slackOptions || {}
+    // Ensure slackOptions has all required properties
+    {
+      ...defaultSlackConfig,
+      ...(options.slackConfig || {})
+    } as SlackConfig
   );
   
   // By default, enhance with Jest mocks unless explicitly disabled
   const shouldEnhanceWithJestMocks = options.enhanceWithJestMocks !== false;
   
-  if (shouldEnhanceWithJestMocks) {
+  if (shouldEnhanceWithJestMocks === true) {
     // Get the original values before mocking
     const originalShowOptions = configService.getShowOptions();
     const originalCliOptions = configService.getCliOptions();

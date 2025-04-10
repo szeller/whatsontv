@@ -1,18 +1,8 @@
-import { inject, injectable } from 'tsyringe';
 import { WebClient } from '@slack/web-api';
-import type { SlackClient, SlackMessagePayload } from '../../interfaces/slackClient.js';
+import { injectable, inject } from 'tsyringe';
 import type { ConfigService } from '../../interfaces/configService.js';
-
-/**
- * Configuration options for Slack
- */
-export interface SlackOptions {
-  token: string;
-  channelId: string;
-  username: string;
-  icon_emoji?: string;
-  dateFormat?: string;
-}
+import type { SlackClient, SlackMessagePayload } from '../../interfaces/slackClient.js';
+import type { SlackConfig } from '../../types/configTypes.js';
 
 /**
  * Implementation of the SlackClient interface
@@ -21,7 +11,7 @@ export interface SlackOptions {
 @injectable()
 export class SlackClientImpl implements SlackClient {
   private _client: WebClient;
-  private _options: SlackOptions;
+  private _options: SlackConfig;
 
   /**
    * Creates a new SlackClientImpl instance
@@ -33,7 +23,13 @@ export class SlackClientImpl implements SlackClient {
     webClient?: WebClient
   ) {
     this._options = this.configService.getSlackOptions();
-    this._client = webClient || new WebClient(this._options.token);
+    
+    // Allow injecting a client for testing
+    if (webClient) {
+      this._client = webClient;
+    } else {
+      this._client = new WebClient(this._options.token);
+    }
   }
 
   /**

@@ -136,9 +136,9 @@ describe('ConsoleConfigServiceImpl', () => {
     languages: ['English'],
     notificationTime: '9:00',
     slack: {
-      enabled: true,
-      botToken: undefined,
-      channel: undefined
+      token: '',
+      channelId: '',
+      username: 'WhatsOnTV'
     }
   };
 
@@ -432,9 +432,9 @@ describe('ConsoleConfigServiceImpl', () => {
     // Arrange
     const mockConfig = {
       slack: {
-        enabled: true,
-        botToken: 'test-token',
-        channel: 'test-channel'
+        token: 'test-token',
+        channelId: 'test-channel',
+        username: 'test-username'
       }
     };
     
@@ -446,9 +446,9 @@ describe('ConsoleConfigServiceImpl', () => {
     
     // Assert
     const config = configService.getConfig();
-    expect(config.slack.enabled).toBe(true);
-    expect(config.slack.botToken).toBe('test-token');
-    expect(config.slack.channel).toBe('test-channel');
+    expect(config.slack.token).toBe('test-token');
+    expect(config.slack.channelId).toBe('test-channel');
+    expect(config.slack.username).toBe('test-username');
   });
 
   it('should handle empty config file', () => {
@@ -502,8 +502,9 @@ describe('ConsoleConfigServiceImpl', () => {
       languages: ['English'],
       notificationTime: '10:00',
       slack: {
-        enabled: true,
-        channel: '#test'
+        token: 'test-token',
+        channelId: 'test-channel',
+        username: 'test-username'
       }
     };
     
@@ -896,7 +897,9 @@ describe('ConsoleConfigServiceImpl', () => {
       languages: [],
       notificationTime: '09:00',
       slack: {
-        enabled: false
+        token: '',
+        channelId: '',
+        username: 'WhatsOnTV'
       }
     }));
   });
@@ -933,7 +936,9 @@ describe('ConsoleConfigServiceImpl', () => {
       languages: [],
       notificationTime: '09:00',
       slack: {
-        enabled: false
+        token: '',
+        channelId: '',
+        username: 'WhatsOnTV'
       }
     }));
   });
@@ -972,7 +977,9 @@ describe('ConsoleConfigServiceImpl', () => {
       languages: [],
       notificationTime: '09:00',
       slack: {
-        enabled: false
+        token: '',
+        channelId: '',
+        username: 'WhatsOnTV'
       }
     }));
   });
@@ -1004,7 +1011,9 @@ describe('ConsoleConfigServiceImpl', () => {
           languages: [],
           notificationTime: '09:00',
           slack: {
-            enabled: false
+            token: '',
+            channelId: '',
+            username: 'WhatsOnTV'
           }
         };
       }
@@ -1023,9 +1032,11 @@ describe('ConsoleConfigServiceImpl', () => {
     expect(config.types).toBeDefined();
     expect(config.slack).toBeDefined();
     
-    // Slack should be an object with the enabled property
+    // Slack should be an object with the token, channelId, and username properties
     expect(typeof config.slack).toBe('object');
-    expect(config.slack).toHaveProperty('enabled');
+    expect(config.slack).toHaveProperty('token');
+    expect(config.slack).toHaveProperty('channelId');
+    expect(config.slack).toHaveProperty('username');
   });
 
   it('should handle partial slack configuration', () => {
@@ -1040,8 +1051,8 @@ describe('ConsoleConfigServiceImpl', () => {
         return JSON.stringify({
           country: 'CA',
           slack: {
-            // Only specify enabled, missing other potential slack properties
-            enabled: true
+            // Only specify token, missing other potential slack properties
+            token: 'test-token'
           }
         });
       }
@@ -1053,10 +1064,12 @@ describe('ConsoleConfigServiceImpl', () => {
     
     // Assert - should correctly merge slack properties
     expect(config.country).toBe('CA');
-    expect(config.slack.enabled).toBe(true);
+    expect(config.slack.token).toBe('test-token');
     
     // Slack object should exist and have the right structure
     expect(config.slack).toBeDefined();
-    expect(Object.keys(config.slack)).toContain('enabled');
+    expect(Object.keys(config.slack)).toContain('token');
+    expect(Object.keys(config.slack)).toContain('channelId');
+    expect(Object.keys(config.slack)).toContain('username');
   });
 });

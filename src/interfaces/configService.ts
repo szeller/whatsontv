@@ -2,8 +2,7 @@
  * Interface for application configuration service
  */
 import type { ShowOptions } from '../types/tvShowOptions.js';
-import type { CliOptions, AppConfig } from '../types/configTypes.js';
-import type { SlackOptions } from '../implementations/slack/slackClientImpl.js';
+import type { CliOptions, AppConfig, SlackConfig } from '../types/configTypes.js';
 
 export interface ConfigService {
   /**
@@ -35,5 +34,5 @@ export interface ConfigService {
    * Get Slack configuration options
    * @returns The Slack configuration options
    */
-  getSlackOptions(): SlackOptions;
+  getSlackOptions(): SlackConfig;
 }

@@ -9,9 +9,8 @@ import yargs from 'yargs';
 
 import type { ConfigService } from '../../interfaces/configService.js';
 import type { ShowOptions } from '../../types/tvShowOptions.js';
-import type { CliOptions, AppConfig } from '../../types/configTypes.js';
+import type { CliOptions, AppConfig, SlackConfig } from '../../types/configTypes.js';
 import type { CliArgs } from '../../types/cliArgs.js';
-import type { SlackOptions } from '../../implementations/slack/slackClientImpl.js';
 import { getTodayDate } from '../../utils/dateUtils.js';
 import { getStringValue } from '../../utils/stringUtils.js';
 import { 
@@ -97,18 +96,21 @@ export class ConsoleConfigServiceImpl implements ConfigService {
    * Get Slack configuration options
    * @returns The Slack configuration options
    */
-  getSlackOptions(): SlackOptions {
+  getSlackOptions(): SlackConfig {
     // Return default Slack options if not configured
-    const defaultSlackOptions: SlackOptions = {
+    const defaultSlackOptions: SlackConfig = {
       token: process.env.SLACK_TOKEN !== undefined 
         && process.env.SLACK_TOKEN !== null 
         ? process.env.SLACK_TOKEN 
         : '',
-      channelId: process.env.SLACK_CHANNEL_ID !== undefined 
-        && process.env.SLACK_CHANNEL_ID !== null 
-        ? process.env.SLACK_CHANNEL_ID 
+      channelId: process.env.SLACK_CHANNEL !== undefined 
+        && process.env.SLACK_CHANNEL !== null 
+        ? process.env.SLACK_CHANNEL 
         : '',
-      username: 'WhatsOnTV',
+      username: process.env.SLACK_USERNAME !== undefined 
+        && process.env.SLACK_USERNAME !== null 
+        ? process.env.SLACK_USERNAME 
+        : 'WhatsOnTV',
       icon_emoji: ':tv:',
       dateFormat: 'dddd, MMMM D, YYYY'
     };
@@ -117,7 +119,7 @@ export class ConsoleConfigServiceImpl implements ConfigService {
     if (this.appConfig.slack !== undefined && this.appConfig.slack !== null) {
       return {
         ...defaultSlackOptions,
-        ...(this.appConfig.slack as Partial<SlackOptions>)
+        ...(this.appConfig.slack as Partial<SlackConfig>)
       };
     }
     
@@ -273,7 +275,9 @@ export class ConsoleConfigServiceImpl implements ConfigService {
       languages: [], // e.g., ['English']
       notificationTime: '09:00', // 24-hour format
       slack: {
-        enabled: false
+        token: '',
+        channelId: '',
+        username: 'WhatsOnTV'
       }
     };
   }

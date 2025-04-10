@@ -4,14 +4,13 @@
  */
 import type { ConfigService } from '../../interfaces/configService.js';
 import type { ShowOptions } from '../../types/tvShowOptions.js';
-import type { CliOptions, AppConfig } from '../../types/configTypes.js';
-import type { SlackOptions } from '../../implementations/slack/slackClientImpl.js';
+import type { CliOptions, AppConfig, SlackConfig } from '../../types/configTypes.js';
 
 export class TestConfigServiceImpl implements ConfigService {
   private showOptions: ShowOptions;
   private cliOptions: CliOptions;
   private appConfig: AppConfig;
-  private slackOptions: SlackOptions;
+  private slackOptions: SlackConfig;
 
   /**
    * Create a new TestConfigServiceImpl
@@ -24,7 +23,7 @@ export class TestConfigServiceImpl implements ConfigService {
     showOptions: Partial<ShowOptions> = {}, 
     cliOptions: Partial<CliOptions> = {},
     appConfig: Partial<AppConfig> = {},
-    slackOptions: Partial<SlackOptions> = {}
+    slackOptions: Partial<SlackConfig> = {}
   ) {
     // Initialize show options with defaults
     this.showOptions = {
@@ -52,7 +51,9 @@ export class TestConfigServiceImpl implements ConfigService {
       languages: appConfig.languages ?? ['English'],
       notificationTime: appConfig.notificationTime ?? '09:00',
       slack: appConfig.slack ?? {
-        enabled: false
+        token: '',
+        channelId: '',
+        username: 'WhatsOnTV'
       }
     };
 
@@ -102,7 +103,7 @@ export class TestConfigServiceImpl implements ConfigService {
    * Get Slack configuration options
    * @returns Slack configuration options
    */
-  getSlackOptions(): SlackOptions {
+  getSlackOptions(): SlackConfig {
     return { ...this.slackOptions };
   }
   
@@ -147,7 +148,7 @@ export class TestConfigServiceImpl implements ConfigService {
    * Update Slack options for testing
    * @param options New Slack options
    */
-  setSlackOptions(options: Partial<SlackOptions>): void {
+  setSlackOptions(options: Partial<SlackConfig>): void {
     this.slackOptions = {
       ...this.slackOptions,
       ...options

@@ -6,9 +6,11 @@
  * Slack integration configuration
  */
 export interface SlackConfig {
-  enabled: boolean;
-  botToken?: string;
-  channel?: string;
+  token: string;
+  channelId: string;
+  username: string;
+  icon_emoji?: string;
+  dateFormat?: string;
 }
 
 /**
