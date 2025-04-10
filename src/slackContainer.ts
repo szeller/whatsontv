@@ -17,12 +17,10 @@ import type { TvShowService } from './interfaces/tvShowService.js';
 import { ConsoleConfigServiceImpl } from './implementations/console/consoleConfigServiceImpl.js';
 import { ConsoleOutputImpl } from './implementations/console/consoleOutputImpl.js';
 import { FetchHttpClientImpl } from './implementations/fetchHttpClientImpl.js';
+import { SlackClientImpl } from './implementations/slack/slackClientImpl.js';
 import { SlackOutputServiceImpl } from './implementations/slack/slackOutputServiceImpl.js';
 import { SlackShowFormatterImpl } from './implementations/slack/slackShowFormatterImpl.js';
 import { TvMazeServiceImpl } from './implementations/tvMazeServiceImpl.js';
-
-// Mock implementation for development/testing
-import { createMockSlackClient } from './tests/mocks/factories/slackClientFactory.js';
 
 /**
  * Initialize the Slack container with all required dependencies
@@ -45,19 +43,8 @@ export function initializeSlackContainer(): void {
     useFactory: () => new FetchHttpClientImpl()
   });
   
-  // Register Mock SlackClient for development/testing
-  // Ensure logToConsole is explicitly set to true for visibility
-  container.register<SlackClient>('SlackClient', {
-    useFactory: () => {
-      // Create a mock client with logging enabled
-      const mockClient = createMockSlackClient({ 
-        logToConsole: true 
-      });
-      
-      // Force the client to log to console
-      return mockClient;
-    }
-  });
+  // Register real SlackClient implementation
+  container.registerSingleton<SlackClient>('SlackClient', SlackClientImpl);
   
   // Register SlackOutputService with factory to properly inject dependencies
   container.register<OutputService>('SlackOutputService', {

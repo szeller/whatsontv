@@ -20,6 +20,8 @@ export class SlackClientImpl implements SlackClient {
    */
   constructor(
     @inject('ConfigService') private readonly configService: ConfigService,
+    // Make the webClient parameter optional but not part of the DI system
+    // This allows us to inject it for testing but not require it for normal use
     webClient?: WebClient
   ) {
     this._options = this.configService.getSlackOptions();
