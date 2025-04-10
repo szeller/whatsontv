@@ -7,6 +7,9 @@ on:
       - 'package-lock.json'
     branches: [ main ]
 
+env:
+  FORCE_COLOR: 1
+
 jobs:
   test-dependency-update:
     runs-on: ubuntu-latest
