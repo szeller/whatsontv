@@ -33,7 +33,8 @@ export class TestConfigServiceImpl implements ConfigService {
       networks: showOptions.networks ?? [],
       genres: showOptions.genres ?? [],
       languages: showOptions.languages ?? ['English'],
-      fetchSource: showOptions.fetchSource ?? 'all'
+      fetchSource: showOptions.fetchSource ?? 'all',
+      minAirtime: showOptions.minAirtime ?? '18:00'
     };
     
     // Initialize CLI options with defaults
@@ -49,6 +50,7 @@ export class TestConfigServiceImpl implements ConfigService {
       networks: appConfig.networks ?? [],
       genres: appConfig.genres ?? [],
       languages: appConfig.languages ?? ['English'],
+      minAirtime: appConfig.minAirtime ?? '18:00',
       notificationTime: appConfig.notificationTime ?? '09:00',
       slack: appConfig.slack ?? {
         token: '',

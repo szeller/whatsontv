@@ -22,4 +22,7 @@ export interface ShowOptions {
   
   /** Source to fetch shows from: 'web', 'network', or 'all' */
   fetchSource?: 'web' | 'network' | 'all';
+  
+  /** Minimum airtime to include (format: HH:MM, 24-hour format) */
+  minAirtime?: string;
 }

@@ -482,6 +482,65 @@ describe('TvMazeServiceImpl', () => {
       });
     });
     
+    it('applies minAirtime filter correctly', () => {
+      // Create test shows with different airtimes
+      const showsWithAirtimes = [
+        { ...testShows[0], airtime: '20:00' }, // 8:00 PM
+        { ...testShows[1], airtime: '15:30' }, // 3:30 PM
+        { ...testShows[2], airtime: '19:00' }, // 7:00 PM
+        { ...testShows[3], airtime: '' },      // No airtime (streaming)
+        { ...testShows[4], airtime: '08:00' }  // 8:00 AM
+      ];
+      
+      // Filter for shows that air at or after 18:00 (6:00 PM)
+      const result = testService.testApplyFilters(showsWithAirtimes, {
+        date: '',
+        country: 'US',
+        fetchSource: 'all',
+        types: [],
+        genres: [],
+        languages: [],
+        networks: [],
+        minAirtime: '18:00'
+      });
+      
+      // Should include 8:00 PM, 7:00 PM, and the streaming show with no airtime
+      expect(result.length).toBe(3);
+      
+      // Verify the correct shows were included
+      const airtimes = result.map(show => show.airtime).sort();
+      expect(airtimes).toEqual(['', '19:00', '20:00']);
+    });
+    
+    it('handles minAirtime filter with empty airtime values', () => {
+      // Create test shows with some missing airtimes
+      const showsWithMissingAirtimes = [
+        { ...testShows[0], airtime: '20:00' },     // 8:00 PM
+        { ...testShows[1], airtime: null },        // Null airtime
+        { ...testShows[2], airtime: null },        // Null airtime
+        { ...testShows[3], airtime: '' },          // Empty string airtime
+        { ...testShows[4], airtime: '08:00' }      // 8:00 AM
+      ];
+      
+      // Filter for shows that air at or after 18:00 (6:00 PM)
+      const result = testService.testApplyFilters(showsWithMissingAirtimes, {
+        date: '',
+        country: 'US',
+        fetchSource: 'all',
+        types: [],
+        genres: [],
+        languages: [],
+        networks: [],
+        minAirtime: '18:00'
+      });
+      
+      // Should include 8:00 PM and all shows with null/empty airtimes
+      expect(result.length).toBe(4);
+      
+      // Verify the 8:00 AM show was excluded
+      expect(result.some(show => show.airtime === '08:00')).toBe(false);
+    });
+    
     it('handles case insensitive language matching', () => {
       const result = testService.testApplyFilters(testShows, {
         date: '',

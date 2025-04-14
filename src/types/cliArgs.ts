@@ -47,4 +47,9 @@ export interface CliArgs {
    * Whether to group shows by network
    */
   groupByNetwork: boolean;
+  
+  /**
+   * Minimum airtime to include (format: HH:MM, 24-hour format)
+   */
+  minAirtime: string;
 }

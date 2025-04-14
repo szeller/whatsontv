@@ -24,7 +24,8 @@ describe('TestConfigServiceImpl', () => {
       networks: ['BBC'],
       genres: ['Drama'],
       languages: ['English'],
-      fetchSource: 'web' as 'web' | 'network' | 'all'
+      fetchSource: 'web' as 'web' | 'network' | 'all',
+      minAirtime: '20:00'
     };
     
     // Act
@@ -35,6 +36,7 @@ describe('TestConfigServiceImpl', () => {
     expect(configService.getShowOption('date')).toBe('2025-04-01');
     expect(configService.getShowOption('country')).toBe('UK');
     expect(configService.getShowOption('types')).toEqual(['Scripted']);
+    expect(configService.getShowOption('minAirtime')).toBe('20:00');
   });
 
   it('should use provided CLI options', () => {
@@ -55,9 +57,9 @@ describe('TestConfigServiceImpl', () => {
     // Arrange
     const appConfig = {
       slack: {
-        enabled: true,
-        botToken: 'test-token',
-        channel: 'test-channel'
+        token: 'test-token',
+        channelId: 'test-channel',
+        username: 'TestBot'
       }
     };
     
@@ -65,7 +67,7 @@ describe('TestConfigServiceImpl', () => {
     const configService = new TestConfigServiceImpl({}, {}, appConfig);
     
     // Assert
-    expect(configService.getConfig().slack.botToken).toBe('test-token');
+    expect(configService.getConfig().slack.token).toBe('test-token');
   });
 
   it('should allow updating show options', () => {
@@ -106,13 +108,14 @@ describe('TestConfigServiceImpl', () => {
     // Act
     configService.setAppConfig({
       slack: {
-        enabled: false,
-        channel: 'updated-channel'
+        token: 'updated-token',
+        channelId: 'updated-channel',
+        username: 'UpdatedBot'
       }
     });
     
     // Assert
-    expect(configService.getConfig().slack.channel).toBe('updated-channel');
-    expect(configService.getConfig().slack.enabled).toBe(false); // Unchanged default
+    expect(configService.getConfig().slack.channelId).toBe('updated-channel');
+    expect(configService.getConfig().slack.token).toBe('updated-token');
   });
 });

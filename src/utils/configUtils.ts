@@ -115,6 +115,8 @@ export function mergeShowOptions(
     String(cliArgs.date) : '';
   const cliCountry = typeof cliArgs.country !== 'undefined' && cliArgs.country !== null ? 
     String(cliArgs.country) : '';
+  const cliMinAirtime = typeof cliArgs.minAirtime !== 'undefined' && cliArgs.minAirtime !== null ?
+    String(cliArgs.minAirtime) : '';
   
   // Safely handle base options
   const baseDate = typeof base.date !== 'undefined' && base.date !== null ? 
@@ -123,6 +125,8 @@ export function mergeShowOptions(
     base.country : appConfig.country;
   const baseFetchSource = typeof base.fetchSource !== 'undefined' && base.fetchSource !== null ? 
     base.fetchSource : 'all';
+  const baseMinAirtime = typeof base.minAirtime !== 'undefined' && base.minAirtime !== null ?
+    base.minAirtime : appConfig.minAirtime;
   
   return {
     // Use base options as fallback if provided
@@ -154,6 +158,11 @@ export function mergeShowOptions(
     // Handle fetch source with conditional coercion
     fetchSource: typeof cliArgs.fetch !== 'undefined' && cliArgs.fetch !== null ? 
       coerceFetchSource(cliArgs.fetch) : 
-      baseFetchSource
+      baseFetchSource,
+    // Handle minimum airtime
+    minAirtime: getStringValue(
+      cliMinAirtime,
+      baseMinAirtime
+    )
   };
 }

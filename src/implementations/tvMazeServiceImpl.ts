@@ -177,8 +177,55 @@ export class TvMazeServiceImpl implements TvShowService {
                );
       });
     }
+    
+    // Apply minimum airtime filter
+    const minAirtime = options.minAirtime;
+    if (minAirtime !== undefined && minAirtime !== null && minAirtime !== '') {
+      // Convert minAirtime to minutes for comparison
+      const minTimeInMinutes = this.convertTimeToMinutes(minAirtime);
+      
+      if (minTimeInMinutes >= 0) {
+        filteredShows = filteredShows.filter((show: Show) => {
+          // Skip shows with no airtime (streaming shows often have no airtime)
+          if (show.airtime === undefined || 
+              show.airtime === null || 
+              show.airtime.trim() === '') {
+            return true;
+          }
+          
+          const showTimeInMinutes = this.convertTimeToMinutes(show.airtime);
+          return showTimeInMinutes >= minTimeInMinutes;
+        });
+      }
+    }
 
     return filteredShows;
+  }
+  
+  /**
+   * Convert a time string to minutes since midnight for comparison
+   * @param timeStr - The time string to convert
+   * @returns Minutes since midnight, or -1 if the time string is invalid
+   * @private
+   */
+  private convertTimeToMinutes(timeStr: string): number {
+    if (!timeStr || typeof timeStr !== 'string') {
+      return -1;
+    }
+    
+    const timeParts = timeStr.split(':');
+    if (timeParts.length !== 2) {
+      return -1;
+    }
+    
+    const hours = parseInt(timeParts[0], 10);
+    const minutes = parseInt(timeParts[1], 10);
+    
+    if (isNaN(hours) || isNaN(minutes)) {
+      return -1;
+    }
+    
+    return hours * 60 + minutes;
   }
 
   /**

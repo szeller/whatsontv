@@ -185,6 +185,7 @@ export class ConsoleConfigServiceImpl implements ConfigService {
       networks: toStringArray(parsedArgs.networks as string | string[] | undefined),
       genres: toStringArray(parsedArgs.genres as string | string[] | undefined),
       languages: toStringArray(parsedArgs.languages as string | string[] | undefined),
+      minAirtime: getStringValue(String(parsedArgs.minAirtime), '18:00'),
       debug: Boolean(parsedArgs.debug),
       fetch: parsedArgs.fetch !== undefined ? 
         coerceFetchSource(parsedArgs.fetch as string) : 'network',
@@ -202,12 +203,11 @@ export class ConsoleConfigServiceImpl implements ConfigService {
    */
   protected createYargsInstance(args: string[]): ReturnType<typeof yargs> {
     return yargs(args)
-      .options({
+      .option({
         date: {
           alias: 'd',
-          describe: 'Date to show TV schedule for (YYYY-MM-DD)',
-          type: 'string',
-          default: getTodayDate()
+          describe: 'Date to get schedule for (YYYY-MM-DD)',
+          type: 'string'
         },
         country: {
           alias: 'c',
@@ -216,24 +216,32 @@ export class ConsoleConfigServiceImpl implements ConfigService {
           default: 'US'
         },
         types: {
+          alias: 't',
           describe: 'Show types to include (e.g., Scripted,Reality)',
           type: 'string',
-          coerce: (arg: string) => arg.split(',')
+          coerce: (arg: string) => toStringArray(arg)
         },
         networks: {
-          describe: 'Networks to include (e.g., HBO,Netflix)',
+          alias: 'n',
+          describe: 'Networks to include (e.g., CBS,HBO)',
           type: 'string',
-          coerce: (arg: string) => arg.split(',')
+          coerce: (arg: string) => toStringArray(arg)
         },
         genres: {
+          alias: 'g',
           describe: 'Genres to include (e.g., Drama,Comedy)',
           type: 'string',
-          coerce: (arg: string) => arg.split(',')
+          coerce: (arg: string) => toStringArray(arg)
         },
         languages: {
           describe: 'Languages to include (e.g., English,Spanish)',
           type: 'string',
-          coerce: (arg: string) => arg.split(',')
+          coerce: (arg: string) => toStringArray(arg)
+        },
+        minAirtime: {
+          describe: 'Minimum airtime to include (format: HH:MM, 24-hour format)',
+          type: 'string',
+          default: '18:00'
         },
         debug: {
           alias: 'D',
@@ -300,6 +308,7 @@ export class ConsoleConfigServiceImpl implements ConfigService {
       networks: [], // e.g., ['Discovery', 'CBS']
       genres: [], // e.g., ['Drama', 'Comedy']
       languages: [], // e.g., ['English']
+      minAirtime: '18:00', // Default to primetime shows
       notificationTime: '09:00', // 24-hour format
       slack: {
         token: '',

@@ -43,6 +43,7 @@ const defaultArgs: CliArgs & Record<string, unknown> = {
   limit: 10,
   time: false,
   groupByNetwork: true,
+  minAirtime: '18:00',
   _: [],
   $0: 'whatsontv'
 };
