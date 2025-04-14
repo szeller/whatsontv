@@ -3,10 +3,10 @@
  */
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { WebClient } from '@slack/web-api';
-import { SlackClientImpl } from '../../../../implementations/slack/slackClientImpl.js';
-import type { ConfigService } from '../../../../interfaces/configService.js';
-import type { SlackConfig } from '../../../../types/configTypes.js';
-import { SlackClientFixture } from '../../../fixtures/helpers/slackClientFixture.js';
+import { SlackClientImpl } from '../../../implementations/slack/slackClientImpl.js';
+import type { ConfigService } from '../../../interfaces/configService.js';
+import type { SlackConfig } from '../../../types/configTypes.js';
+import { SlackClientFixture } from '../../fixtures/helpers/slackClientFixture.js';
 
 // Create mock functions with proper typing
 interface MockPostMessageResponse {

@@ -3,15 +3,15 @@
  */
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { container } from 'tsyringe';
-import { SlackShowFormatterImpl } from '../../../../implementations/slack/slackShowFormatterImpl';
-import { ShowBuilder } from '../../../fixtures/helpers/showFixtureBuilder';
-import type { Show } from '../../../../schemas/domain';
+import { SlackShowFormatterImpl } from '../../../implementations/slack/slackShowFormatterImpl';
+import { ShowBuilder } from '../../fixtures/helpers/showFixtureBuilder';
+import type { Show } from '../../../schemas/domain';
 import { 
   isSectionBlock,
   isHeaderBlock,
   type SlackSectionBlock,
   type SlackHeaderBlock
-} from '../../../../interfaces/slackClient';
+} from '../../../interfaces/slackClient';
 
 describe('SlackShowFormatterImpl', () => {
   let formatter: SlackShowFormatterImpl;

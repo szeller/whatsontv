@@ -3,14 +3,14 @@
  */
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { container } from 'tsyringe';
-import { SlackOutputServiceImpl } from '../../../../implementations/slack/slackOutputServiceImpl';
-import type { SlackShowFormatter } from '../../../../interfaces/showFormatter';
-import type { SlackClient } from '../../../../interfaces/slackClient';
-import type { ConfigService } from '../../../../interfaces/configService';
-import type { NetworkGroups, Show } from '../../../../schemas/domain';
-import { ShowBuilder } from '../../../fixtures/helpers/showFixtureBuilder';
-import { SlackShowFormatterFixture } from '../../../fixtures/helpers/slackShowFormatterFixture';
-import { groupShowsByNetwork } from '../../../../utils/showUtils';
+import { SlackOutputServiceImpl } from '../../../implementations/slack/slackOutputServiceImpl';
+import type { SlackShowFormatter } from '../../../interfaces/showFormatter';
+import type { SlackClient } from '../../../interfaces/slackClient';
+import type { ConfigService } from '../../../interfaces/configService';
+import type { NetworkGroups, Show } from '../../../schemas/domain';
+import { ShowBuilder } from '../../fixtures/helpers/showFixtureBuilder';
+import { SlackShowFormatterFixture } from '../../fixtures/helpers/slackShowFormatterFixture';
+import { groupShowsByNetwork } from '../../../utils/showUtils';
 
 describe('SlackOutputServiceImpl', () => {
   let outputService: SlackOutputServiceImpl;
