@@ -39,7 +39,7 @@ container.register<OutputService>('OutputService', {
     const formatter = dependencyContainer.resolve<TextShowFormatter>('TextShowFormatter');
     const consoleOutput = dependencyContainer.resolve<ConsoleOutput>('ConsoleOutput');
     const configService = dependencyContainer.resolve<ConfigService>('ConfigService');
-    return new ConsoleOutputServiceImpl(formatter, consoleOutput, configService, false);
+    return new ConsoleOutputServiceImpl(formatter, consoleOutput, configService);
   }
 });
 

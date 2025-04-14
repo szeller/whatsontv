@@ -108,6 +108,34 @@ export class TestConfigServiceImpl implements ConfigService {
   }
   
   /**
+   * Get the date to use for TV show display
+   * Returns date object from the configured date string
+   * @returns Date object for the configured date
+   */
+  getDate(): Date {
+    // Parse the date string from showOptions
+    const dateStr = this.showOptions.date;
+    if (dateStr !== undefined && dateStr !== null && dateStr !== '') {
+      // Try to parse the date string
+      const parsedDate = new Date(dateStr);
+      // Check if the date is valid
+      if (!isNaN(parsedDate.getTime())) {
+        return parsedDate;
+      }
+    }
+    // Return current date as fallback
+    return new Date();
+  }
+  
+  /**
+   * Check if debug mode is enabled
+   * @returns True if debug mode is enabled
+   */
+  isDebugMode(): boolean {
+    return this.cliOptions.debug === true;
+  }
+  
+  /**
    * Update show options for testing
    * @param options New show options
    */

@@ -10,6 +10,7 @@ import type { ConfigService } from '../../../../interfaces/configService';
 import type { NetworkGroups } from '../../../../schemas/domain';
 import { ShowBuilder } from '../../../fixtures/helpers/showFixtureBuilder';
 import { SlackShowFormatterFixture } from '../../../fixtures/helpers/slackShowFormatterFixture';
+import { groupShowsByNetwork } from '../../../../utils/showUtils';
 
 describe('SlackOutputServiceImpl', () => {
   let outputService: SlackOutputServiceImpl;
@@ -41,10 +42,7 @@ describe('SlackOutputServiceImpl', () => {
     ];
     
     // Create network groups
-    _testNetworkGroups = {
-      'Test Network': [testShows[0], testShows[1]],
-      'Another Network': [testShows[2]]
-    };
+    _testNetworkGroups = groupShowsByNetwork(testShows);
     
     // Create mock dependencies with proper types
     mockFormatter = SlackShowFormatterFixture.createMockFormatter();
@@ -54,6 +52,8 @@ describe('SlackOutputServiceImpl', () => {
     } as jest.Mocked<SlackClient>;
     
     mockConfigService = {
+      getDate: jest.fn().mockReturnValue(new Date('2023-01-01')),
+      isDebugMode: jest.fn().mockReturnValue(false),
       getShowOptions: jest.fn().mockReturnValue({}),
       getSlackOptions: jest.fn().mockReturnValue({
         token: 'mock-token',
@@ -99,7 +99,7 @@ describe('SlackOutputServiceImpl', () => {
     
     it('should handle errors when formatting shows', async () => {
       // Arrange
-      const error = new Error('Formatting error');
+      const error = new Error('Formatter error');
       mockFormatter.formatNetworkGroups.mockImplementation(() => {
         throw error;
       });
@@ -113,12 +113,12 @@ describe('SlackOutputServiceImpl', () => {
       // Assert
       expect(consoleSpy).toHaveBeenCalledWith(
         'Error rendering Slack output:',
-        'Formatting error'
+        'Formatter error'
       );
       expect(mockSlackClient.sendMessage).toHaveBeenCalledWith(
         expect.objectContaining({
           channel: 'mock-channel',
-          text: 'Error fetching TV shows: Formatting error'
+          text: 'Error fetching TV shows: Formatter error'
         })
       );
       
@@ -150,7 +150,7 @@ describe('SlackOutputServiceImpl', () => {
     it('should handle errors when sending error message to Slack', async () => {
       // Arrange
       // First call throws an error, second call also throws (when trying to send error message)
-      const firstError = new Error('Formatting error');
+      const firstError = new Error('Formatter error');
       const secondError = new Error('Failed to send error message');
       
       mockFormatter.formatNetworkGroups.mockImplementation(() => {
@@ -168,7 +168,7 @@ describe('SlackOutputServiceImpl', () => {
       // Assert
       expect(consoleSpy).toHaveBeenCalledWith(
         'Error rendering Slack output:',
-        'Formatting error'
+        'Formatter error'
       );
       expect(consoleSpy).toHaveBeenCalledWith(
         'Failed to send error message to Slack:',

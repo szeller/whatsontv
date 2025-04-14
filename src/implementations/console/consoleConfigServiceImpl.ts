@@ -127,6 +127,30 @@ export class ConsoleConfigServiceImpl implements ConfigService {
   }
   
   /**
+   * Get the date to use for TV show display
+   * Returns current date if not explicitly set
+   * @returns Date object for the configured date
+   */
+  getDate(): Date {
+    const dateArg = this.getDateArg();
+    // Explicitly check for null, undefined, or empty string
+    if (dateArg !== undefined && dateArg !== null && dateArg !== '') {
+      return new Date(dateArg);
+    }
+    return new Date();
+  }
+  
+  /**
+   * Check if debug mode is enabled
+   * @returns True if debug mode is enabled
+   */
+  isDebugMode(): boolean {
+    // Get CLI options and check debug flag
+    const cliOptions = this.getCliOptions();
+    return cliOptions.debug === true;
+  }
+  
+  /**
    * Parse command line arguments
    * @param args Optional array of command line arguments
    * @returns Parsed CLI arguments
@@ -361,5 +385,13 @@ export class ConsoleConfigServiceImpl implements ConfigService {
     if (error instanceof Error) {
       console.error(`Warning: Could not load config.json: ${error.message}`);
     }
+  }
+  
+  /**
+   * Get the date argument from the CLI args
+   * @returns Date argument
+   */
+  protected getDateArg(): string | undefined {
+    return this.cliArgs.date;
   }
 }
