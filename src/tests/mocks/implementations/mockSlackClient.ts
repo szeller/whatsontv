@@ -5,24 +5,28 @@ import type { SlackClient, SlackMessagePayload } from '../../../interfaces/slack
 
 /**
  * Mock implementation of SlackClient for testing
- * Stores all messages for later verification and optionally logs to console
+ * Stores all messages for later verification and provides configurable debug output
  */
 @injectable()
 export class MockSlackClient implements SlackClient {
   private messages: SlackMessagePayload[] = [];
-  private shouldLogToConsole: boolean;
+  private debugMode: 'none' | 'console' | 'store';
+  private debugLogs: string[] = [];
   
   /**
    * Create a new MockSlackClient
    * @param options Configuration options
    */
-  constructor(options: { logToConsole?: boolean } = {}) {
-    this.shouldLogToConsole = options.logToConsole ?? false;
+  constructor(options: { 
+    debugMode?: 'none' | 'console' | 'store';
+  } = {}) {
+    this.debugMode = options.debugMode ?? 'none';
     
-    // Logging is disabled in tests to avoid cluttering output
-    // if (this.shouldLogToConsole) {
-    //   console.log('MockSlackClient initialized with options:', JSON.stringify(options));
-    // }
+    if (this.debugMode === 'console') {
+      console.log('MockSlackClient initialized with debug mode:', this.debugMode);
+    } else if (this.debugMode === 'store') {
+      this.debugLogs.push(`MockSlackClient initialized with debug mode: ${this.debugMode}`);
+    }
   }
   
   /**
@@ -37,30 +41,38 @@ export class MockSlackClient implements SlackClient {
     // Simulate network latency
     await new Promise(resolve => global.setTimeout(resolve, 0));
     
-    // Logging is disabled in tests to avoid cluttering output
-    // if (this.shouldLogToConsole) {
-    //   // console.log('--- MockSlackClient: Message Sent ---');
-    //   // console.log(`Channel: ${payload.channel}`);
-    //   // console.log(`Text: ${payload.text}`);
+    // Handle debug output based on mode
+    if (this.debugMode !== 'none') {
+      const logMessages = [
+        '--- MockSlackClient: Message Sent ---',
+        `Channel: ${payload.channel}`,
+        `Text: ${payload.text}`
+      ];
       
-    //   // // Check for blocks with explicit null/undefined and empty array checks
-    //   // const hasBlocks = payload.blocks !== undefined && 
-    //   //                payload.blocks !== null && 
-    //   //                payload.blocks.length > 0;
-    //   // if (hasBlocks) {
-    //   //   // console.log(`Blocks: ${JSON.stringify(payload.blocks, null, 2)}`);
-    //   // }
+      // Check for blocks
+      const hasBlocks = payload.blocks !== undefined && 
+                        payload.blocks !== null && 
+                        payload.blocks.length > 0;
+      if (hasBlocks) {
+        logMessages.push(`Blocks: ${JSON.stringify(payload.blocks, null, 2)}`);
+      }
       
-    //   // // Check for username with explicit null/undefined and empty string checks
-    //   // const hasUsername = payload.username !== undefined && 
-    //   //                  payload.username !== null && 
-    //   //                  payload.username.length > 0;
-    //   // if (hasUsername) {
-    //   //   // console.log(`Username: ${payload.username}`);
-    //   // }
+      // Check for username
+      const hasUsername = payload.username !== undefined && 
+                          payload.username !== null && 
+                          payload.username !== '';
+      if (hasUsername) {
+        logMessages.push(`Username: ${payload.username}`);
+      }
       
-    //   // console.log('--- End of MockSlackClient Message ---');
-    // }
+      logMessages.push('--- End of MockSlackClient Message ---');
+      
+      if (this.debugMode === 'console') {
+        logMessages.forEach(msg => console.log(msg));
+      } else if (this.debugMode === 'store') {
+        this.debugLogs.push(...logMessages);
+      }
+    }
     
     // Simulate async behavior
     return Promise.resolve();
@@ -143,23 +155,71 @@ export class MockSlackClient implements SlackClient {
   }
   
   /**
-   * Debug method to print all stored messages to the console
-   * @param prefix Optional prefix to add to each line
+   * Clear all stored debug logs
    */
-  debugMessages(_prefix = 'MockSlackClient'): void {
-    // Logging is disabled in tests to avoid cluttering output
-    // console.log(`--- ${_prefix} stored messages (${this.messages.length}) ---`);
-    // this.messages.forEach((msg, index) => {
-    //   console.log(`[${index}] Channel: ${msg.channel}, Text: ${msg.text}`);
+  clearDebugLogs(): void {
+    this.debugLogs = [];
+  }
+  
+  /**
+   * Get stored debug logs
+   * @returns Array of debug log messages
+   */
+  getDebugLogs(): string[] {
+    return [...this.debugLogs];
+  }
+  
+  /**
+   * Set the debug mode
+   * @param mode The debug mode to set
+   */
+  setDebugMode(mode: 'none' | 'console' | 'store'): void {
+    this.debugMode = mode;
+    
+    if (this.debugMode === 'console') {
+      console.log('MockSlackClient debug mode changed to:', mode);
+    } else if (this.debugMode === 'store') {
+      this.debugLogs.push(`MockSlackClient debug mode changed to: ${mode}`);
+    }
+  }
+  
+  /**
+   * Print debug information about stored messages
+   * @param options Options for formatting the debug output
+   */
+  printMessageSummary(options: { 
+    includeBlocks?: boolean;
+    toConsole?: boolean;
+  } = {}): string[] {
+    const includeBlocks = options.includeBlocks ?? false;
+    const toConsole = options.toConsole ?? (this.debugMode === 'console');
+    
+    const summary = [
+      `--- MockSlackClient stored messages (${this.messages.length}) ---`
+    ];
+    
+    this.messages.forEach((msg, index) => {
+      summary.push(`[${index}] Channel: ${msg.channel}, Text: ${msg.text}`);
       
-    //   // Check for blocks with explicit null/undefined and empty array checks
-    //   const hasBlocks = msg.blocks !== undefined && 
-    //                    msg.blocks !== null && 
-    //                    msg.blocks.length > 0;
-    //   if (hasBlocks) {
-    //     console.log(`    Blocks: ${JSON.stringify(msg.blocks, null, 2)}`);
-    //   }
-    // });
-    // console.log(`--- End of ${_prefix} stored messages ---`);
+      const hasBlocks = includeBlocks && 
+                        msg.blocks !== undefined && 
+                        msg.blocks !== null && 
+                        msg.blocks.length > 0;
+      if (hasBlocks) {
+        summary.push(`    Blocks: ${JSON.stringify(msg.blocks, null, 2)}`);
+      }
+    });
+    
+    summary.push('--- End of MockSlackClient stored messages ---');
+    
+    if (toConsole) {
+      summary.forEach(line => console.log(line));
+    }
+    
+    if (this.debugMode === 'store') {
+      this.debugLogs.push(...summary);
+    }
+    
+    return summary;
   }
 }

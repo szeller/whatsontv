@@ -6,10 +6,13 @@ import type { SlackClient } from '../../../interfaces/slackClient.js';
  */
 export interface SlackClientOptions {
   /**
-   * Whether to log messages to the console
-   * @default false
+   * Debug mode for the mock client
+   * - 'none': No debug output (default)
+   * - 'console': Log messages to console
+   * - 'store': Store debug logs in memory
+   * @default 'none'
    */
-  logToConsole?: boolean;
+  debugMode?: 'none' | 'console' | 'store';
 }
 
 /**
