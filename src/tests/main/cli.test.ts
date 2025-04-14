@@ -15,7 +15,7 @@ import type { Show } from '../../schemas/domain.js';
 import type { CliOptions, AppConfig } from '../../types/configTypes';
 import type { ShowOptions } from '../../types/tvShowOptions';
 import { Fixtures } from '../helpers/fixtureHelper';
-import { BaseCliApplication } from '../../utils/cliBase.js';
+import { BaseCliApplication } from '../../cli/cliBase.js';
 
 // Mock the console implementation to avoid actual console output during tests
 jest.spyOn(console, 'log').mockImplementation(() => {});

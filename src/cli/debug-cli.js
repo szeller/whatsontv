@@ -4,7 +4,7 @@
  * Debug wrapper for the CLI to catch and handle errors
  */
 
-/* eslint-disable no-console */
+/* eslint-disable no-console, no-undef */
 /* eslint-env node */
 
 // Set up global error handlers
@@ -34,10 +34,11 @@ process.on('uncaughtException', (error) => {
 });
 
 // Import and run the CLI
-import('./cli.ts')
-  .then(({ main }) => {
+import('./consoleCli.ts')
+  .then(({ createCliApp }) => {
     console.log('CLI module loaded successfully, running main function...');
-    return main();
+    const app = createCliApp();
+    return app.run();
   })
   .catch((error) => {
     console.error('Failed to import or run the CLI module:', error);
