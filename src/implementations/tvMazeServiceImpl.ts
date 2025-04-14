@@ -96,6 +96,9 @@ export class TvMazeServiceImpl implements TvShowService {
         .map(scheduleResult => transformSchedule(scheduleResult))
         .flat();
       
+      // Deduplicate shows based on unique combination of show ID and episode
+      shows = this.deduplicateShows(shows);
+      
       // Always apply filters - the applyFilters method will handle empty filter arrays
       shows = this.applyFilters(shows, mergedOptions);
       
@@ -171,5 +174,29 @@ export class TvMazeServiceImpl implements TvShowService {
     }
 
     return filteredShows;
+  }
+
+  /**
+   * Deduplicate shows based on unique combination of show ID and episode
+   * @param shows Shows to deduplicate
+   * @returns Deduplicated shows
+   * @private
+   */
+  private deduplicateShows(shows: Show[]): Show[] {
+    if (!Array.isArray(shows) || shows.length === 0) {
+      return [];
+    }
+
+    const showMap: Map<string, Show> = new Map();
+
+    shows.forEach((show: Show) => {
+      // Create a unique key using show ID, season, and episode number
+      const key = `${show.id}-${show.season}-${show.number}`;
+      if (!showMap.has(key)) {
+        showMap.set(key, show);
+      }
+    });
+
+    return Array.from(showMap.values());
   }
 }
