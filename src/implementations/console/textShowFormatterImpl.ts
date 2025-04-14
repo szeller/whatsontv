@@ -9,11 +9,7 @@ import { BaseShowFormatterImpl } from '../baseShowFormatterImpl.js';
  */
 @injectable()
 export class TextShowFormatterImpl extends BaseShowFormatterImpl<string> {
-  readonly NO_AIRTIME = 'N/A';
-  readonly NO_NETWORK = 'Unknown Network';
-  readonly UNKNOWN_SHOW = 'Unknown Show';
-  readonly UNKNOWN_TYPE = 'Unknown';
-
+  
   constructor(
     @inject('StyleService') private readonly styleService: StyleService
   ) {

@@ -10,7 +10,7 @@ import {
   formatNetworkName,
   formatShowType
 } from '../utils/formatUtils.js';
-import { sortShowsByTime } from '../utils/showUtils.js';
+import { sortShowsByTime, sortEpisodesByNumber } from '../utils/showUtils.js';
 
 /**
  * Base abstract implementation of ShowFormatter with common functionality
@@ -203,18 +203,7 @@ export abstract class BaseShowFormatterImpl<TOutput> implements ShowFormatter<TO
    * @returns Sorted shows
    */
   protected sortEpisodesByNumber(shows: Show[]): Show[] {
-    if (!Array.isArray(shows) || shows.length === 0) {
-      return [];
-    }
-    
-    return [...shows].sort((a, b) => {
-      // First sort by season
-      if (a.season !== b.season) {
-        return (a.season || 0) - (b.season || 0);
-      }
-      // Then by episode number
-      return (a.number || 0) - (b.number || 0);
-    });
+    return sortEpisodesByNumber(shows);
   }
 
   /**

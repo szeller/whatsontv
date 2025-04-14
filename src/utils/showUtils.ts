@@ -244,6 +244,26 @@ export function formatEpisodeRanges(
 }
 
 /**
+ * Sort episodes by season and episode number
+ * @param shows - Shows to sort
+ * @returns Sorted array of shows
+ */
+export function sortEpisodesByNumber(shows: Show[]): Show[] {
+  if (!Array.isArray(shows) || shows.length === 0) {
+    return [];
+  }
+  
+  return [...shows].sort((a, b) => {
+    // First sort by season
+    if (a.season !== b.season) {
+      return (a.season || 0) - (b.season || 0);
+    }
+    // Then by episode number
+    return (a.number || 0) - (b.number || 0);
+  });
+}
+
+/**
  * Filter shows by type
  * @param shows - Shows to filter
  * @param types - Types to include
