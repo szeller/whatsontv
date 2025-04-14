@@ -356,4 +356,237 @@ describe('SlackShowFormatterImpl', () => {
       expect(headerBlocks.length).toBeGreaterThan(0);
     });
   });
+
+  describe('getTypeEmoji', () => {
+    // Since getTypeEmoji is private, we'll test it indirectly through formatTimedShow
+    // by creating shows with different types and checking the output
+    
+    it('should use different emojis for different show types', () => {
+      // Create shows with different types
+      const scriptedShow = ShowBuilder.createTestShow({
+        name: 'Scripted Show',
+        type: 'scripted',
+        airtime: '20:00'
+      });
+      
+      const realityShow = ShowBuilder.createTestShow({
+        name: 'Reality Show',
+        type: 'reality',
+        airtime: '20:00'
+      });
+      
+      const talkShow = ShowBuilder.createTestShow({
+        name: 'Talk Show',
+        type: 'talk',
+        airtime: '20:00'
+      });
+      
+      const documentaryShow = ShowBuilder.createTestShow({
+        name: 'Documentary',
+        type: 'documentary',
+        airtime: '20:00'
+      });
+      
+      const varietyShow = ShowBuilder.createTestShow({
+        name: 'Variety Show',
+        type: 'variety',
+        airtime: '20:00'
+      });
+      
+      const gameShow = ShowBuilder.createTestShow({
+        name: 'Game Show',
+        type: 'game',
+        airtime: '20:00'
+      });
+      
+      const newsShow = ShowBuilder.createTestShow({
+        name: 'News Show',
+        type: 'news',
+        airtime: '20:00'
+      });
+      
+      const sportsShow = ShowBuilder.createTestShow({
+        name: 'Sports Show',
+        type: 'sports',
+        airtime: '20:00'
+      });
+      
+      const unknownTypeShow = ShowBuilder.createTestShow({
+        name: 'Unknown Type Show',
+        type: 'unknown',
+        airtime: '20:00'
+      });
+      
+      const noTypeShow = ShowBuilder.createTestShow({
+        name: 'No Type Show',
+        type: '',
+        airtime: '20:00'
+      });
+      
+      // Format each show and check for the appropriate emoji
+      const scriptedResult = formatter.formatTimedShow(scriptedShow);
+      expect(scriptedResult.text.text).toContain('📝');
+      
+      const realityResult = formatter.formatTimedShow(realityShow);
+      expect(realityResult.text.text).toContain('👁');
+      
+      const talkResult = formatter.formatTimedShow(talkShow);
+      expect(talkResult.text.text).toContain('🎙');
+      
+      const documentaryResult = formatter.formatTimedShow(documentaryShow);
+      expect(documentaryResult.text.text).toContain('🎬');
+      
+      const varietyResult = formatter.formatTimedShow(varietyShow);
+      expect(varietyResult.text.text).toContain('🎭');
+      
+      const gameResult = formatter.formatTimedShow(gameShow);
+      expect(gameResult.text.text).toContain('🎮');
+      
+      const newsResult = formatter.formatTimedShow(newsShow);
+      expect(newsResult.text.text).toContain('📰');
+      
+      const sportsResult = formatter.formatTimedShow(sportsShow);
+      expect(sportsResult.text.text).toContain('⚽');
+      
+      // Unknown and empty types should use the default emoji
+      const unknownResult = formatter.formatTimedShow(unknownTypeShow);
+      expect(unknownResult.text.text).toContain('📺');
+      
+      const noTypeResult = formatter.formatTimedShow(noTypeShow);
+      expect(noTypeResult.text.text).toContain('📺');
+    });
+    
+    it('should be case insensitive for show types', () => {
+      // Create shows with uppercase types
+      const upperCaseShow = ShowBuilder.createTestShow({
+        name: 'Upper Case Show',
+        type: 'SCRIPTED',
+        airtime: '20:00'
+      });
+      
+      const mixedCaseShow = ShowBuilder.createTestShow({
+        name: 'Mixed Case Show',
+        type: 'ReAlItY',
+        airtime: '20:00'
+      });
+      
+      // Format and check for the appropriate emoji
+      const upperCaseResult = formatter.formatTimedShow(upperCaseShow);
+      expect(upperCaseResult.text.text).toContain('📝');
+      
+      const mixedCaseResult = formatter.formatTimedShow(mixedCaseShow);
+      expect(mixedCaseResult.text.text).toContain('👁');
+    });
+  });
+
+  describe('formatMultipleEpisodes edge cases', () => {
+    it('should handle null or undefined shows array', () => {
+      // Act with null
+      const resultNull = formatter.formatMultipleEpisodes(null as unknown as Show[]);
+      
+      // Assert
+      expect(resultNull).toHaveLength(1);
+      expect(resultNull[0].type).toBe('section');
+      const sectionBlockNull = resultNull[0] as SlackSectionBlock;
+      expect(sectionBlockNull.text.text).toBe('No episodes found');
+      
+      // Act with undefined
+      const resultUndefined = formatter.formatMultipleEpisodes(undefined as unknown as Show[]);
+      
+      // Assert
+      expect(resultUndefined).toHaveLength(1);
+      expect(resultUndefined[0].type).toBe('section');
+      const sectionBlockUndefined = resultUndefined[0] as SlackSectionBlock;
+      expect(sectionBlockUndefined.text.text).toBe('No episodes found');
+    });
+    
+    it('should handle episodes from different seasons', () => {
+      // Arrange
+      const episodes = [
+        ShowBuilder.createTestShow({
+          name: 'Test Show',
+          airtime: '20:00',
+          season: 1,
+          number: 1
+        }),
+        ShowBuilder.createTestShow({
+          name: 'Test Show',
+          airtime: '21:00',
+          season: 2,
+          number: 1
+        })
+      ];
+      
+      // Act
+      const result = formatter.formatMultipleEpisodes(episodes);
+      
+      // Assert
+      expect(result).toHaveLength(1);
+      const sectionBlock = result[0] as SlackSectionBlock;
+      
+      // Should show individual episodes, not consolidated
+      expect(sectionBlock.text.text).toContain('S01E01');
+      expect(sectionBlock.text.text).toContain('S02E01');
+    });
+    
+    it('should handle episodes with mixed airtime values', () => {
+      // Arrange
+      const episodes = [
+        ShowBuilder.createTestShow({
+          name: 'Test Show',
+          airtime: '20:00',
+          season: 1,
+          number: 1
+        }),
+        ShowBuilder.createTestShow({
+          name: 'Test Show',
+          airtime: null,
+          season: 1,
+          number: 2
+        })
+      ];
+      
+      // Act
+      const result = formatter.formatMultipleEpisodes(episodes);
+      
+      // Assert
+      expect(result).toHaveLength(1);
+      const sectionBlock = result[0] as SlackSectionBlock;
+      
+      // The implementation consolidates sequential episodes and uses the first episode's airtime
+      // So we should only expect to see the airtime from the first episode
+      expect(sectionBlock.text.text).toContain('8:00 PM');
+      // Since the episodes are consolidated, we won't see N/A in the output
+      expect(sectionBlock.text.text).toContain('S01E01-02');
+    });
+    
+    it('should handle episodes with missing episode numbers', () => {
+      // Arrange
+      const episodes = [
+        ShowBuilder.createTestShow({
+          name: 'Test Show',
+          airtime: '20:00',
+          season: 1,
+          number: undefined
+        }),
+        ShowBuilder.createTestShow({
+          name: 'Test Show',
+          airtime: '21:00',
+          season: 1,
+          number: 2
+        })
+      ];
+      
+      // Act
+      const result = formatter.formatMultipleEpisodes(episodes);
+      
+      // Assert
+      expect(result).toHaveLength(1);
+      const sectionBlock = result[0] as SlackSectionBlock;
+      
+      // Should not consolidate when episode numbers are missing
+      expect(sectionBlock.text.text).toContain('S01');
+      expect(sectionBlock.text.text).toContain('S01E02');
+    });
+  });
 });
