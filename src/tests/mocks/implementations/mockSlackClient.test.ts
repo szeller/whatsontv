@@ -1,11 +1,23 @@
 import { MockSlackClient } from './mockSlackClient.js';
 import type { SlackMessagePayload } from '../../../interfaces/slackClient.js';
+import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 
 describe('MockSlackClient', () => {
   let mockSlackClient: MockSlackClient;
+  let originalConsoleLog: typeof console.log;
   
   beforeEach(() => {
+    // Save original console.log
+    originalConsoleLog = console.log;
+    // Mock console.log to suppress output
+    console.log = jest.fn();
+    
     mockSlackClient = new MockSlackClient();
+  });
+  
+  afterEach(() => {
+    // Restore original console.log
+    console.log = originalConsoleLog;
   });
   
   it('should store sent messages', async () => {
@@ -175,52 +187,37 @@ describe('MockSlackClient', () => {
       const debugClient = new MockSlackClient();
       await debugClient.sendMessage({ channel: 'test', text: 'Console output test' });
       
-      // Mock console.log
-      const originalConsoleLog = console.log;
-      let logCalled = false;
-      console.log = (..._args: unknown[]) => {
-        logCalled = true;
-        // Optional: originalConsoleLog(...args);
-      };
+      // Act
+      const consoleLogMock = console.log as jest.Mock;
+      consoleLogMock.mockClear(); // Clear previous calls
       
-      try {
-        // Act
-        debugClient.printMessageSummary({ toConsole: true });
-        
-        // Assert
-        expect(logCalled).toBe(true);
-      } finally {
-        // Restore console.log
-        console.log = originalConsoleLog;
-      }
+      debugClient.printMessageSummary({ toConsole: true });
+      
+      // Assert
+      expect(consoleLogMock).toHaveBeenCalled();
     });
     
     it('should handle different debug modes correctly', async () => {
-      // Test console mode
+      // Test console mode - no need to mock console.log again as it's already mocked in beforeEach
       const consoleClient = new MockSlackClient({ debugMode: 'console' });
       
-      // Temporarily replace console.log
-      const originalConsoleLog = console.log;
-      let consoleLogCalled = false;
-      console.log = (..._args: unknown[]) => {
-        consoleLogCalled = true;
-        // Optional: originalConsoleLog(...args);
-      };
+      // Use the already mocked console.log
+      const consoleLogMock = console.log as jest.Mock;
+      consoleLogMock.mockClear(); // Clear previous calls
       
       try {
         await consoleClient.sendMessage({ channel: 'test', text: 'Console mode test' });
-        expect(consoleLogCalled).toBe(true);
+        expect(consoleLogMock).toHaveBeenCalled();
         
         // Reset for next test
-        consoleLogCalled = false;
+        consoleLogMock.mockClear();
         
         // Test none mode
         const noneClient = new MockSlackClient({ debugMode: 'none' });
         await noneClient.sendMessage({ channel: 'test', text: 'None mode test' });
-        expect(consoleLogCalled).toBe(false);
+        expect(consoleLogMock).not.toHaveBeenCalled();
       } finally {
-        // Restore original console.log
-        console.log = originalConsoleLog;
+        // Restore is handled by afterEach
       }
     });
   });
