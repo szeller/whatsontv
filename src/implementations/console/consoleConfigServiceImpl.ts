@@ -135,7 +135,10 @@ export class ConsoleConfigServiceImpl implements ConfigService {
     const dateArg = this.getDateArg();
     // Explicitly check for null, undefined, or empty string
     if (dateArg !== undefined && dateArg !== null && dateArg !== '') {
-      return new Date(dateArg);
+      // Fix timezone issue by ensuring date is interpreted in local timezone
+      const [year, month, day] = dateArg.split('-').map(Number);
+      // Month is 0-indexed in JavaScript Date
+      return new Date(year, month - 1, day);
     }
     return new Date();
   }

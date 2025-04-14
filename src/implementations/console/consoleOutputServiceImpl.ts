@@ -77,13 +77,6 @@ export class ConsoleOutputServiceImpl extends BaseOutputServiceImpl<string> {
       for (const line of formattedOutput) {
         this.output.log(line);
       }
-      
-      // Show total number of shows
-      const totalShows = Object.values(networkGroups).reduce(
-        (count, shows) => count + shows.length, 
-        0
-      );
-      this.output.log(`\nTotal shows: ${totalShows}`);
     } catch (error) {
       const errorPrefix = 'Error: ';
       const errorMessage = error instanceof Error 
