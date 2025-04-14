@@ -35,4 +35,17 @@ export interface ConfigService {
    * @returns The Slack configuration options
    */
   getSlackOptions(): SlackConfig;
+
+  /**
+   * Get the date to use for TV show display
+   * Returns current date if not explicitly set
+   * @returns Date object for the configured date
+   */
+  getDate(): Date;
+  
+  /**
+   * Check if debug mode is enabled
+   * @returns True if debug mode is enabled
+   */
+  isDebugMode(): boolean;
 }

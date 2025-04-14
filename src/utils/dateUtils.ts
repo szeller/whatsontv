@@ -125,3 +125,22 @@ export function isValidTime(time: string | null | undefined): boolean {
   
   return parseTimeString(time) !== null;
 }
+
+/**
+ * Parse a date string in YYYY-MM-DD format and return a Date object
+ * Ensures the date is interpreted in local timezone
+ * @param dateStr - The date string to parse in YYYY-MM-DD format
+ * @returns Date object for the parsed date, or current date if invalid
+ */
+export function parseDateString(dateStr: string | null | undefined): Date {
+  if (dateStr !== undefined && dateStr !== null && dateStr !== '') {
+    // Parse the date string in a reliable way that preserves the local timezone
+    const [year, month, day] = dateStr.split('-').map(Number);
+    if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+      // Month is 0-indexed in JavaScript Date
+      return new Date(year, month - 1, day);
+    }
+  }
+  // Return current date as fallback
+  return new Date();
+}

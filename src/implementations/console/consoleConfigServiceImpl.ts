@@ -11,7 +11,7 @@ import type { ConfigService } from '../../interfaces/configService.js';
 import type { ShowOptions } from '../../types/tvShowOptions.js';
 import type { CliOptions, AppConfig, SlackConfig } from '../../types/configTypes.js';
 import type { CliArgs } from '../../types/cliArgs.js';
-import { getTodayDate } from '../../utils/dateUtils.js';
+import { getTodayDate, parseDateString } from '../../utils/dateUtils.js';
 import { getStringValue } from '../../utils/stringUtils.js';
 import { 
   toStringArray, 
@@ -127,6 +127,25 @@ export class ConsoleConfigServiceImpl implements ConfigService {
   }
   
   /**
+   * Get the date to use for TV show display
+   * Returns current date if not explicitly set
+   * @returns Date object for the configured date
+   */
+  getDate(): Date {
+    return parseDateString(this.cliArgs.date);
+  }
+  
+  /**
+   * Check if debug mode is enabled
+   * @returns True if debug mode is enabled
+   */
+  isDebugMode(): boolean {
+    // Get CLI options and check debug flag
+    const cliOptions = this.getCliOptions();
+    return cliOptions.debug === true;
+  }
+  
+  /**
    * Parse command line arguments
    * @param args Optional array of command line arguments
    * @returns Parsed CLI arguments
@@ -158,6 +177,7 @@ export class ConsoleConfigServiceImpl implements ConfigService {
       networks: toStringArray(parsedArgs.networks as string | string[] | undefined),
       genres: toStringArray(parsedArgs.genres as string | string[] | undefined),
       languages: toStringArray(parsedArgs.languages as string | string[] | undefined),
+      minAirtime: getStringValue(String(parsedArgs.minAirtime), '18:00'),
       debug: Boolean(parsedArgs.debug),
       fetch: parsedArgs.fetch !== undefined ? 
         coerceFetchSource(parsedArgs.fetch as string) : 'network',
@@ -175,12 +195,11 @@ export class ConsoleConfigServiceImpl implements ConfigService {
    */
   protected createYargsInstance(args: string[]): ReturnType<typeof yargs> {
     return yargs(args)
-      .options({
+      .option({
         date: {
           alias: 'd',
-          describe: 'Date to show TV schedule for (YYYY-MM-DD)',
-          type: 'string',
-          default: getTodayDate()
+          describe: 'Date to get schedule for (YYYY-MM-DD)',
+          type: 'string'
         },
         country: {
           alias: 'c',
@@ -189,24 +208,32 @@ export class ConsoleConfigServiceImpl implements ConfigService {
           default: 'US'
         },
         types: {
+          alias: 't',
           describe: 'Show types to include (e.g., Scripted,Reality)',
           type: 'string',
-          coerce: (arg: string) => arg.split(',')
+          coerce: (arg: string) => toStringArray(arg)
         },
         networks: {
-          describe: 'Networks to include (e.g., HBO,Netflix)',
+          alias: 'n',
+          describe: 'Networks to include (e.g., CBS,HBO)',
           type: 'string',
-          coerce: (arg: string) => arg.split(',')
+          coerce: (arg: string) => toStringArray(arg)
         },
         genres: {
+          alias: 'g',
           describe: 'Genres to include (e.g., Drama,Comedy)',
           type: 'string',
-          coerce: (arg: string) => arg.split(',')
+          coerce: (arg: string) => toStringArray(arg)
         },
         languages: {
           describe: 'Languages to include (e.g., English,Spanish)',
           type: 'string',
-          coerce: (arg: string) => arg.split(',')
+          coerce: (arg: string) => toStringArray(arg)
+        },
+        minAirtime: {
+          describe: 'Minimum airtime to include (format: HH:MM, 24-hour format)',
+          type: 'string',
+          default: '18:00'
         },
         debug: {
           alias: 'D',
@@ -273,6 +300,7 @@ export class ConsoleConfigServiceImpl implements ConfigService {
       networks: [], // e.g., ['Discovery', 'CBS']
       genres: [], // e.g., ['Drama', 'Comedy']
       languages: [], // e.g., ['English']
+      minAirtime: '18:00', // Default to primetime shows
       notificationTime: '09:00', // 24-hour format
       slack: {
         token: '',

@@ -11,7 +11,7 @@ import {
   getWebScheduleUrl, 
   transformSchedule 
 } from '../utils/tvMazeUtils.js';
-import { getTodayDate } from '../utils/dateUtils.js';
+import { convertTimeToMinutes, getTodayDate } from '../utils/dateUtils.js';
 import { getStringOrDefault } from '../utils/stringUtils.js';
 
 /**
@@ -96,6 +96,9 @@ export class TvMazeServiceImpl implements TvShowService {
         .map(scheduleResult => transformSchedule(scheduleResult))
         .flat();
       
+      // Deduplicate shows based on unique combination of show ID and episode
+      shows = this.deduplicateShows(shows);
+      
       // Always apply filters - the applyFilters method will handle empty filter arrays
       shows = this.applyFilters(shows, mergedOptions);
       
@@ -122,6 +125,11 @@ export class TvMazeServiceImpl implements TvShowService {
     }
 
     let filteredShows = [...shows];
+
+    // Filter out shows without episode numbers (specials, etc.)
+    filteredShows = filteredShows.filter((show: Show) => {
+      return typeof show.number === 'number' && show.number > 0;
+    });
 
     // Apply type filter
     const typeValues = options.types;
@@ -169,7 +177,52 @@ export class TvMazeServiceImpl implements TvShowService {
                );
       });
     }
+    
+    // Apply minimum airtime filter
+    const minAirtime = options.minAirtime;
+    if (minAirtime !== undefined && minAirtime !== null && minAirtime !== '') {
+      // Convert minAirtime to minutes for comparison
+      const minTimeInMinutes = convertTimeToMinutes(minAirtime);
+      
+      if (minTimeInMinutes >= 0) {
+        filteredShows = filteredShows.filter((show: Show) => {
+          // Skip shows with no airtime (streaming shows often have no airtime)
+          if (show.airtime === undefined || 
+              show.airtime === null || 
+              show.airtime.trim() === '') {
+            return true;
+          }
+          
+          const showTimeInMinutes = convertTimeToMinutes(show.airtime);
+          return showTimeInMinutes >= minTimeInMinutes;
+        });
+      }
+    }
 
     return filteredShows;
+  }
+
+  /**
+   * Deduplicate shows based on unique combination of show ID and episode
+   * @param shows Shows to deduplicate
+   * @returns Deduplicated shows
+   * @private
+   */
+  private deduplicateShows(shows: Show[]): Show[] {
+    if (!Array.isArray(shows) || shows.length === 0) {
+      return [];
+    }
+
+    const showMap: Map<string, Show> = new Map();
+
+    shows.forEach((show: Show) => {
+      // Create a unique key using show ID, season, and episode number
+      const key = `${show.id}-${show.season}-${show.number}`;
+      if (!showMap.has(key)) {
+        showMap.set(key, show);
+      }
+    });
+
+    return Array.from(showMap.values());
   }
 }

@@ -5,6 +5,7 @@
 import type { ConfigService } from '../../interfaces/configService.js';
 import type { ShowOptions } from '../../types/tvShowOptions.js';
 import type { CliOptions, AppConfig, SlackConfig } from '../../types/configTypes.js';
+import { parseDateString } from '../../utils/dateUtils.js';
 
 export class TestConfigServiceImpl implements ConfigService {
   private showOptions: ShowOptions;
@@ -33,7 +34,8 @@ export class TestConfigServiceImpl implements ConfigService {
       networks: showOptions.networks ?? [],
       genres: showOptions.genres ?? [],
       languages: showOptions.languages ?? ['English'],
-      fetchSource: showOptions.fetchSource ?? 'all'
+      fetchSource: showOptions.fetchSource ?? 'all',
+      minAirtime: showOptions.minAirtime ?? '18:00'
     };
     
     // Initialize CLI options with defaults
@@ -49,6 +51,7 @@ export class TestConfigServiceImpl implements ConfigService {
       networks: appConfig.networks ?? [],
       genres: appConfig.genres ?? [],
       languages: appConfig.languages ?? ['English'],
+      minAirtime: appConfig.minAirtime ?? '18:00',
       notificationTime: appConfig.notificationTime ?? '09:00',
       slack: appConfig.slack ?? {
         token: '',
@@ -105,6 +108,25 @@ export class TestConfigServiceImpl implements ConfigService {
    */
   getSlackOptions(): SlackConfig {
     return { ...this.slackOptions };
+  }
+  
+  /**
+   * Get the date to use for TV show display
+   * Returns date object from the configured date string
+   * @returns Date object for the configured date
+   */
+  getDate(): Date {
+    // Parse the date string from showOptions
+    const dateStr = this.showOptions.date;
+    return parseDateString(dateStr);
+  }
+  
+  /**
+   * Check if debug mode is enabled
+   * @returns True if debug mode is enabled
+   */
+  isDebugMode(): boolean {
+    return this.cliOptions.debug === true;
   }
   
   /**

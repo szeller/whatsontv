@@ -10,11 +10,7 @@ import { container, initializeSlackContainer } from './slackContainer.js';
 import type { ConsoleOutput } from './interfaces/consoleOutput.js';
 import type { TvShowService } from './interfaces/tvShowService.js';
 import type { ConfigService } from './interfaces/configService.js';
-import type { SlackShowFormatter } from './interfaces/showFormatter.js';
 import type { OutputService } from './interfaces/outputService.js';
-import type { Show } from './schemas/domain.js';
-import { formatDate } from './utils/dateUtils.js';
-import { groupShowsByNetwork } from './utils/showUtils.js';
 import { BaseCliApplication, runMain } from './utils/cliBase.js';
 import { registerGlobalErrorHandler } from './utils/errorHandling.js';
 
@@ -28,86 +24,22 @@ const consoleOutput = container.resolve<ConsoleOutput>('ConsoleOutput');
 registerGlobalErrorHandler(consoleOutput);
 
 /**
- * Slack CLI application implementation
- */
-export class SlackCliApplication extends BaseCliApplication {
-  /**
-   * Create a new SlackCliApplication
-   * @param tvShowService Service for fetching TV shows
-   * @param configService Service for configuration
-   * @param consoleOutput Service for console output
-   * @param slackFormatter Service for formatting shows for Slack
-   * @param slackOutputService Service for sending messages to Slack
-   */
-  constructor(
-    tvShowService: TvShowService,
-    configService: ConfigService,
-    consoleOutput: ConsoleOutput,
-    private readonly slackFormatter: SlackShowFormatter,
-    private readonly slackOutputService: OutputService
-  ) {
-    super(tvShowService, configService, consoleOutput);
-  }
-  
-  /**
-   * Process the fetched shows
-   * @param shows The shows to process
-   */
-  protected async processShows(shows: Show[]): Promise<void> {
-    try {
-      // Use the Slack output service to send the message
-      await this.slackOutputService.renderOutput(shows);
-      
-      // For development/testing, also output the formatted message to console
-      this.consoleOutput.log('Successfully sent message to Slack (mock)');
-      
-      // Get the channel from config
-      const channelId = this.configService.getSlackOptions().channelId || 'console-output';
-      
-      // Group shows by network for console display
-      const networkGroups = groupShowsByNetwork(shows);
-      
-      // Format the shows for console display
-      const blocks = this.slackFormatter.formatNetworkGroups(networkGroups);
-      
-      // Create the full Slack message payload for console display
-      const slackPayload = {
-        channel: channelId,
-        text: `*📺 TV Shows for ${formatDate(new Date())}*`, // Fallback text
-        blocks
-      };
-      
-      // Output the formatted JSON to the console
-      this.consoleOutput.log('Slack message payload:');
-      this.consoleOutput.log(JSON.stringify(slackPayload, null, 2));
-    } catch (error) {
-      this.consoleOutput.error(`Error processing shows for Slack: ${String(error)}`);
-      
-      // Re-throw to allow the base class to handle it
-      throw error;
-    }
-  }
-}
-
-/**
  * Create a Slack CLI application instance with all required services
  * @returns A new SlackCliApplication instance
  */
-export function createSlackApp(): SlackCliApplication {
+export function createSlackApp(): BaseCliApplication {
   try {
     // Resolve all required services from the container
     const tvShowService = container.resolve<TvShowService>('TvShowService');
     const configService = container.resolve<ConfigService>('ConfigService');
-    const slackFormatter = container.resolve<SlackShowFormatter>('SlackFormatter');
-    const slackOutputService = container.resolve<OutputService>('SlackOutputService');
+    const outputService = container.resolve<OutputService>('SlackOutputService');
     
     // Create the Slack CLI application
-    return new SlackCliApplication(
+    return new BaseCliApplication(
       tvShowService,
       configService,
       consoleOutput,
-      slackFormatter,
-      slackOutputService
+      outputService
     );
   } catch (error) {
     consoleOutput.error(`Error resolving services: ${String(error)}`);

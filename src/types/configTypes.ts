@@ -22,6 +22,7 @@ export interface AppConfig {
   networks: string[];
   genres: string[];
   languages: string[];
+  minAirtime: string;
   notificationTime: string;
   slack: SlackConfig;
 }
