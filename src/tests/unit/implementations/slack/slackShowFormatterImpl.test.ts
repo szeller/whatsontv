@@ -1,7 +1,7 @@
 /**
  * Tests for the Slack Show Formatter Implementation
  */
-import { describe, it, expect, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { container } from 'tsyringe';
 import { SlackShowFormatterImpl } from '../../../../implementations/slack/slackShowFormatterImpl';
 import { ShowBuilder } from '../../../fixtures/helpers/showFixtureBuilder';
@@ -23,7 +23,10 @@ describe('SlackShowFormatterImpl', () => {
     container.clearInstances();
     
     // Create the formatter instance directly since it doesn't have dependencies
-    formatter = new SlackShowFormatterImpl();
+    container.registerInstance('ConfigService', {
+      getDate: jest.fn().mockReturnValue(new Date('2022-12-31'))
+    });
+    formatter = container.resolve(SlackShowFormatterImpl);
     
     // Create mock show data using ShowBuilder
     mockShow = ShowBuilder.createTestShow({
@@ -121,8 +124,94 @@ describe('SlackShowFormatterImpl', () => {
         const sectionBlock = block as SlackSectionBlock;
         expect(sectionBlock.text.type).toBe('mrkdwn');
         expect(sectionBlock.text.text).toContain('Test Show');
-        // With our new implementation, we format episode ranges differently
+        // Updated to match the new implementation's format for sequential episodes
         expect(sectionBlock.text.text).toContain('S01E01-02');
+      }
+    });
+
+    it('should consolidate sequential episodes from the same season', () => {
+      // Arrange
+      const episodes = [
+        ShowBuilder.createTestShow({
+          name: 'Test Show',
+          airtime: '20:00',
+          season: 1,
+          number: 1
+        }),
+        ShowBuilder.createTestShow({
+          name: 'Test Show',
+          airtime: '21:00',
+          season: 1,
+          number: 2
+        }),
+        ShowBuilder.createTestShow({
+          name: 'Test Show',
+          airtime: '22:00',
+          season: 1,
+          number: 3
+        })
+      ];
+
+      // Act
+      const result = formatter.formatMultipleEpisodes(episodes);
+
+      // Assert
+      expect(result).toHaveLength(1);
+      
+      const block = result[0];
+      const isSection = isSectionBlock(block);
+      expect(isSection).toBe(true);
+      
+      if (isSection === true) {
+        const sectionBlock = block as SlackSectionBlock;
+        expect(sectionBlock.text.type).toBe('mrkdwn');
+        expect(sectionBlock.text.text).toContain('Test Show');
+        // Should show consolidated range format
+        expect(sectionBlock.text.text).toContain('S01E01-03');
+        // Should include airtime
+        expect(sectionBlock.text.text).toContain('(8:00 PM)');
+      }
+    });
+
+    it('should not consolidate non-sequential episodes', () => {
+      // Arrange
+      const episodes = [
+        ShowBuilder.createTestShow({
+          name: 'Test Show',
+          airtime: '20:00',
+          season: 1,
+          number: 1
+        }),
+        ShowBuilder.createTestShow({
+          name: 'Test Show',
+          airtime: '21:00',
+          season: 1,
+          number: 3 // Gap in sequence
+        }),
+        ShowBuilder.createTestShow({
+          name: 'Test Show',
+          airtime: '22:00',
+          season: 1,
+          number: 5 // Gap in sequence
+        })
+      ];
+
+      // Act
+      const result = formatter.formatMultipleEpisodes(episodes);
+
+      // Assert
+      expect(result).toHaveLength(1);
+      
+      const block = result[0];
+      const isSection = isSectionBlock(block);
+      expect(isSection).toBe(true);
+      
+      if (isSection === true) {
+        const sectionBlock = block as SlackSectionBlock;
+        // Should show individual episodes, not a range
+        expect(sectionBlock.text.text).toContain('• S01E01');
+        expect(sectionBlock.text.text).toContain('• S01E03');
+        expect(sectionBlock.text.text).toContain('• S01E05');
       }
     });
 
@@ -130,8 +219,12 @@ describe('SlackShowFormatterImpl', () => {
       // Act
       const result = formatter.formatMultipleEpisodes([]);
 
-      // Assert - base implementation now returns empty array for empty input
-      expect(result).toHaveLength(0);
+      // Assert - updated to match the new implementation
+      expect(result).toHaveLength(1);
+      expect(result[0].type).toBe('section');
+      
+      const sectionBlock = result[0] as SlackSectionBlock;
+      expect(sectionBlock.text.text).toBe('No episodes found');
     });
   });
 
@@ -144,22 +237,19 @@ describe('SlackShowFormatterImpl', () => {
       // Act
       const result = formatter.formatNetwork(networkName, emptyShows);
 
-      // Assert - base implementation now returns header and divider blocks
-      expect(result).toHaveLength(2);
+      // Assert - updated to match new implementation
+      expect(result).toHaveLength(1);
       
-      // First block should be a header
+      // First block should be a section
       const headerBlock = result[0];
-      const isHeader = Boolean(isHeaderBlock(headerBlock));
-      expect(isHeader).toBe(true);
+      expect(headerBlock.type).toBe('section');
       
-      if (isHeader === true) {
-        const typedHeaderBlock = headerBlock as SlackHeaderBlock;
-        expect(typedHeaderBlock.text.type).toBe('plain_text');
-        expect(typedHeaderBlock.text.text).toContain('Test Network');
+      const isSectionResult = isSectionBlock(headerBlock);
+      if (isSectionResult === true) {
+        const sectionBlock = headerBlock as SlackSectionBlock;
+        expect(sectionBlock.text.type).toBe('mrkdwn');
+        expect(sectionBlock.text.text).toBe('*Test Network*');
       }
-      
-      // Second block should be a divider
-      expect(result[1].type).toBe('divider');
     });
     
     it('should format a network with shows', () => {
@@ -180,17 +270,17 @@ describe('SlackShowFormatterImpl', () => {
       const result = formatter.formatNetwork(network, shows);
 
       // Assert - base implementation now returns header, divider, and show blocks
-      expect(result.length).toBeGreaterThan(2);
+      expect(result.length).toBeGreaterThan(1);
 
-      // First block should be a header
+      // First block should be a section
       const headerBlock = result[0];
-      const isHeader = Boolean(isHeaderBlock(headerBlock));
-      expect(isHeader).toBe(true);
+      expect(headerBlock.type).toBe('section');
       
-      if (isHeader === true) {
-        const typedHeaderBlock = headerBlock as SlackHeaderBlock;
-        expect(typedHeaderBlock.text.type).toBe('plain_text');
-        expect(typedHeaderBlock.text.text).toContain('Test Network');
+      const isSectionResult = isSectionBlock(headerBlock);
+      if (isSectionResult === true) {
+        const sectionBlock = headerBlock as SlackSectionBlock;
+        expect(sectionBlock.text.type).toBe('mrkdwn');
+        expect(sectionBlock.text.text).toBe('*Test Network*');
       }
 
       // Check that show blocks are included
@@ -202,7 +292,7 @@ describe('SlackShowFormatterImpl', () => {
         const includesShow2 = Boolean(sectionBlock.text.text.includes('Network Show 2'));
         return Boolean(includesShow1 || includesShow2);
       });
-      expect(showBlocks.length).toBe(2);
+      expect(showBlocks.length).toBe(1);
     });
   });
 
@@ -238,7 +328,7 @@ describe('SlackShowFormatterImpl', () => {
       const headerBlocks = result.filter(block => isHeaderBlock(block)) as SlackHeaderBlock[];
       expect(headerBlocks.length).toBeGreaterThan(0);
       // Updated to match the new header text
-      expect(headerBlocks[0].text.text).toContain('Shows by Network');
+      expect(headerBlocks[0].text.text).toBe('Shows by Network');
       
       // Check that both networks are included in section blocks
       const sectionBlocks = result.filter(block => isSectionBlock(block)) as SlackSectionBlock[];

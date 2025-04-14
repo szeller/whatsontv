@@ -57,10 +57,7 @@ export class SlackCliApplication extends BaseCliApplication {
     try {
       // Use the Slack output service to send the message
       await this.slackOutputService.renderOutput(shows);
-      
-      // For development/testing, also output the formatted message to console
-      this.consoleOutput.log('Successfully sent message to Slack (mock)');
-      
+            
       // Get the channel from config
       const channelId = this.configService.getSlackOptions().channelId || 'console-output';
       
@@ -73,13 +70,19 @@ export class SlackCliApplication extends BaseCliApplication {
       // Create the full Slack message payload for console display
       const slackPayload = {
         channel: channelId,
-        text: `*📺 TV Shows for ${formatDate(new Date())}*`, // Fallback text
+        text: `*📺 TV Shows for ${formatDate(this.configService.getDate())}*`, // Fallback text
         blocks
       };
       
-      // Output the formatted JSON to the console
-      this.consoleOutput.log('Slack message payload:');
-      this.consoleOutput.log(JSON.stringify(slackPayload, null, 2));
+      const debug = this.configService.isDebugMode();
+
+      // For development/testing, also output the formatted message to console
+      if (debug) {
+        this.consoleOutput.log('Successfully sent message to Slack (mock)');
+        // Output the formatted JSON to the console
+        this.consoleOutput.log('Slack message payload:');
+        this.consoleOutput.log(JSON.stringify(slackPayload, null, 2));
+      }
     } catch (error) {
       this.consoleOutput.error(`Error processing shows for Slack: ${String(error)}`);
       

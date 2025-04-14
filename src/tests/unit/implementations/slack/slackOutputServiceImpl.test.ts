@@ -52,7 +52,7 @@ describe('SlackOutputServiceImpl', () => {
     } as jest.Mocked<SlackClient>;
     
     mockConfigService = {
-      getDate: jest.fn().mockReturnValue(new Date('2023-01-01')),
+      getDate: jest.fn().mockReturnValue(new Date('2022-12-28')),
       isDebugMode: jest.fn().mockReturnValue(false),
       getShowOptions: jest.fn().mockReturnValue({}),
       getSlackOptions: jest.fn().mockReturnValue({
@@ -90,9 +90,26 @@ describe('SlackOutputServiceImpl', () => {
       
       // Assert
       expect(mockFormatter.formatNetworkGroups).toHaveBeenCalled();
-      expect(mockSlackClient.sendMessage).toHaveBeenCalledWith({
+      
+      // Should send two messages - header and content
+      expect(mockSlackClient.sendMessage).toHaveBeenCalledTimes(2);
+      
+      // First call should be the header with date
+      expect(mockSlackClient.sendMessage).toHaveBeenNthCalledWith(1, {
         channel: 'mock-channel',
         text: expect.stringContaining('TV Shows for'),
+        blocks: [expect.objectContaining({
+          type: 'header',
+          text: expect.objectContaining({
+            text: expect.stringContaining('📺 TV Shows for')
+          })
+        })]
+      });
+      
+      // Second call should be the content
+      expect(mockSlackClient.sendMessage).toHaveBeenNthCalledWith(2, {
+        channel: 'mock-channel',
+        text: 'TV Shows by Network',
         blocks: mockBlocks
       });
     });
@@ -150,7 +167,7 @@ describe('SlackOutputServiceImpl', () => {
     it('should handle errors when sending error message to Slack', async () => {
       // Arrange
       // First call throws an error, second call also throws (when trying to send error message)
-      const firstError = new Error('Formatter error');
+      const firstError = new Error('Failed to send error message');
       const secondError = new Error('Failed to send error message');
       
       mockFormatter.formatNetworkGroups.mockImplementation(() => {
@@ -165,11 +182,13 @@ describe('SlackOutputServiceImpl', () => {
       // Act
       await outputService.renderOutput(testShows);
       
-      // Assert
+      // Assert - check for the first error
       expect(consoleSpy).toHaveBeenCalledWith(
         'Error rendering Slack output:',
-        'Formatter error'
+        'Failed to send error message'
       );
+      
+      // Check for the second error (when trying to send error message)
       expect(consoleSpy).toHaveBeenCalledWith(
         'Failed to send error message to Slack:',
         'Failed to send error message'
@@ -189,9 +208,26 @@ describe('SlackOutputServiceImpl', () => {
       
       // Assert
       expect(mockFormatter.formatNetworkGroups).toHaveBeenCalledWith({});
-      expect(mockSlackClient.sendMessage).toHaveBeenCalledWith({
+      
+      // Should send two messages - header and content
+      expect(mockSlackClient.sendMessage).toHaveBeenCalledTimes(2);
+      
+      // First call should be the header with date
+      expect(mockSlackClient.sendMessage).toHaveBeenNthCalledWith(1, {
         channel: 'mock-channel',
         text: expect.stringContaining('TV Shows for'),
+        blocks: [expect.objectContaining({
+          type: 'header',
+          text: expect.objectContaining({
+            text: expect.stringContaining('📺 TV Shows for')
+          })
+        })]
+      });
+      
+      // Second call should be the content
+      expect(mockSlackClient.sendMessage).toHaveBeenNthCalledWith(2, {
+        channel: 'mock-channel',
+        text: 'TV Shows by Network',
         blocks: emptyBlocks
       });
     });

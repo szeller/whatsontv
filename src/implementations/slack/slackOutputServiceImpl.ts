@@ -25,21 +25,39 @@ export class SlackOutputServiceImpl extends BaseOutputServiceImpl<SlackBlock> {
 
   /**
    * Render the header section
-   * @param _date The date for which shows are being displayed
+   * @param date The date for which shows are being displayed
    */
-  protected async renderHeader(_date: Date): Promise<void> {
-    // Header is handled in the renderContent method for Slack
-    await Promise.resolve();
+  protected async renderHeader(date: Date): Promise<void> {
+    // Get Slack configuration options
+    const slackOptions = this.configService.getSlackOptions();
+    const channelId = slackOptions.channelId;
+    
+    // Create a header block with the date
+    const dateHeaderBlock: SlackBlock = {
+      type: 'header',
+      text: {
+        type: 'plain_text',
+        text: `📺 TV Shows for ${this.formatDate(date)}`,
+        emoji: true
+      }
+    };
+    
+    // Send the header to Slack
+    await this.slackClient.sendMessage({
+      channel: channelId,
+      text: `TV Shows for ${this.formatDate(date)}`,
+      blocks: [dateHeaderBlock]
+    });
   }
   
   /**
    * Render the main content section
    * @param networkGroups Shows grouped by network
-   * @param date The date for which shows are being displayed
+   * @param _date The date for which shows are being displayed (unused)
    */
   protected async renderContent(
     networkGroups: Record<string, Show[]>, 
-    date: Date
+    _date: Date
   ): Promise<void> {
     // Get Slack configuration options
     const slackOptions = this.configService.getSlackOptions();
@@ -51,7 +69,7 @@ export class SlackOutputServiceImpl extends BaseOutputServiceImpl<SlackBlock> {
     // Send to Slack
     await this.slackClient.sendMessage({
       channel: channelId,
-      text: `TV Shows for ${this.formatDate(date)}`,
+      text: 'TV Shows by Network',
       blocks
     });
   }

@@ -177,10 +177,16 @@ export abstract class BaseShowFormatterImpl<TOutput> implements ShowFormatter<TO
       ? `S${String(show.season).padStart(2, '0')}` 
       : '';
       
-    const episode = show.number 
-      ? `E${String(show.number).padStart(2, '0')}` 
-      : '';
+    // Handle special episodes or episodes with missing numbers
+    if (!show.number) {
+      // For special episodes, we'll indicate it's a special
+      if (show.type && show.type.toLowerCase().includes('special')) {
+        return `${season} Special`;
+      }
+      return season;
+    }
     
+    const episode = `E${String(show.number).padStart(2, '0')}`;
     return season + episode;
   }
 
