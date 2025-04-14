@@ -6,7 +6,7 @@ import type { TextShowFormatter } from '../../interfaces/showFormatter.js';
 import type { Show } from '../../schemas/domain.js';
 import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
 import { BaseOutputServiceImpl } from '../baseOutputServiceImpl.js';
-import { padString } from '../../utils/stringUtils.js';
+import { createSeparator } from '../../utils/stringUtils.js';
 import { formatDate } from '../../utils/dateUtils.js';
 import { formatError, generateDebugInfo, safeResolve } from '../../utils/errorHandling.js';
 
@@ -43,7 +43,7 @@ export class ConsoleOutputServiceImpl extends BaseOutputServiceImpl<string> {
     
     // Create a header with app name and version
     const appHeader = `WhatsOnTV v${this.version}`;
-    const separator = this.createSeparator();
+    const separator = createSeparator();
     
     // Display header with date
     this.output.log('');
@@ -88,7 +88,7 @@ export class ConsoleOutputServiceImpl extends BaseOutputServiceImpl<string> {
   protected async renderFooter(): Promise<void> {
     await safeResolve();
     
-    const separator = this.createSeparator();
+    const separator = createSeparator();
     
     // Display footer
     this.output.log('');
@@ -121,14 +121,5 @@ export class ConsoleOutputServiceImpl extends BaseOutputServiceImpl<string> {
     await safeResolve();
     
     this.output.error(formatError(error, 'Error: '));
-  }
-  
-  /**
-   * Create a separator line with consistent length
-   * @returns Formatted separator string
-   * @private
-   */
-  private createSeparator(length = 30, char = '='): string {
-    return padString('', length, char);
   }
 }

@@ -7,7 +7,8 @@ import {
   padString,
   truncateString,
   formatListWithSeparator,
-  wrapText
+  wrapText,
+  createSeparator
 } from '../../utils/stringUtils.js';
 
 describe('stringUtils', () => {
@@ -164,6 +165,20 @@ describe('stringUtils', () => {
 
     it('should handle zero max width', () => {
       expect(wrapText('test', 0)).toEqual([]);
+    });
+  });
+
+  describe('createSeparator', () => {
+    it('should create a separator with default length and character', () => {
+      expect(createSeparator()).toBe('==============================');
+    });
+
+    it('should create a separator with specified length', () => {
+      expect(createSeparator(10)).toBe('==========');
+    });
+
+    it('should create a separator with specified character', () => {
+      expect(createSeparator(10, '-')).toBe('----------');
     });
   });
 });

@@ -147,3 +147,13 @@ export function wrapText(text: string, maxWidth: number): string[] {
   
   return lines;
 }
+
+/**
+ * Create a separator line with consistent length
+ * @param length - Length of the separator line
+ * @param char - Character to use for the separator
+ * @returns Formatted separator string
+ */
+export function createSeparator(length = 30, char = '='): string {
+  return padString('', length, char);
+}
