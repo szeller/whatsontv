@@ -1,37 +1,31 @@
 import { injectable, inject } from 'tsyringe';
 import type { StyleService } from '../../interfaces/styleService.js';
-import type { TextShowFormatter } from '../../interfaces/showFormatter.js';
-import type { Show, NetworkGroups } from '../../schemas/domain.js';
-import {
-  formatNetworkHeader,
-  groupShowsByShowId,
-  prepareShowRowComponents,
-  hasAirtime,
-  allShowsHaveNoAirtime
-} from '../../utils/consoleFormatUtils.js';
-import { compareEpisodes, sortShowsByTime, formatEpisodeRanges } from '../../utils/showUtils.js';
+import type { Show } from '../../schemas/domain.js';
+import { formatNetworkHeader } from '../../utils/consoleFormatUtils.js';
+import { BaseShowFormatterImpl } from '../baseShowFormatterImpl.js';
 
 /**
  * Implementation of TextShowFormatter that uses console styling
  */
 @injectable()
-export class TextShowFormatterImpl implements TextShowFormatter {
-  // Constants for formatting
-  private readonly NO_AIRTIME = 'N/A';
-  private readonly NO_NETWORK = 'N/A';
-  private readonly UNKNOWN_SHOW = 'Unknown Show';
-  private readonly UNKNOWN_TYPE = 'Unknown';
-    
+export class TextShowFormatterImpl extends BaseShowFormatterImpl<string> {
+  readonly NO_AIRTIME = 'N/A';
+  readonly NO_NETWORK = 'N/A';
+  readonly UNKNOWN_SHOW = 'Unknown Show';
+  readonly UNKNOWN_TYPE = 'Unknown';
+
   constructor(
     @inject('StyleService') private readonly styleService: StyleService
-  ) {}
+  ) {
+    super();
+  }
 
   /**
    * Format a show with a specific airtime
    * @param show Show with a specific airtime
    * @returns Formatted show representation
    */
-  formatTimedShow(show: Show): string {
+  public formatTimedShow(show: Show): string {
     return this.formatShow(show, true);
   }
 
@@ -40,7 +34,7 @@ export class TextShowFormatterImpl implements TextShowFormatter {
    * @param show Show with no specific airtime
    * @returns Formatted show representation
    */
-  formatUntimedShow(show: Show): string {
+  public formatUntimedShow(show: Show): string {
     return this.formatShow(show, false);
   }
 
@@ -56,12 +50,7 @@ export class TextShowFormatterImpl implements TextShowFormatter {
     useShowAirtime: boolean,
     customEpisodeInfo?: string
   ): string {
-    const components = prepareShowRowComponents(show, {
-      noAirtime: this.NO_AIRTIME,
-      noNetwork: this.NO_NETWORK,
-      unknownShow: this.UNKNOWN_SHOW,
-      unknownType: this.UNKNOWN_TYPE
-    });
+    const components = this.prepareShowRowComponents(show);
     
     // Apply padding before styling
     const timeValue = useShowAirtime ? components.time : this.NO_AIRTIME;
@@ -92,19 +81,26 @@ export class TextShowFormatterImpl implements TextShowFormatter {
    * @param shows Multiple episodes of the same show
    * @returns Formatted output for multiple episodes
    */
-  formatMultipleEpisodes(shows: Show[]): string[] {
+  public formatMultipleEpisodes(shows: Show[]): string[] {
     if (!Array.isArray(shows) || shows.length === 0) {
       return [];
     }
     
     // Sort episodes by season and episode number
-    const sortedEpisodes = [...shows].sort(compareEpisodes);
+    const sortedEpisodes = [...shows].sort((a, b) => {
+      // First sort by season
+      if (a.season !== b.season) {
+        return (a.season || 0) - (b.season || 0);
+      }
+      // Then by episode number
+      return (a.number || 0) - (b.number || 0);
+    });
     
     // Get the first show for basic information
     const firstShow = sortedEpisodes[0];
     
     // Format episode ranges
-    const episodeRange = formatEpisodeRanges(sortedEpisodes);
+    const episodeRange = this.formatEpisodeRange(sortedEpisodes);
     
     // Use the existing formatShow method with custom episode range
     const formattedShow = this.formatShow(firstShow, true, episodeRange);
@@ -112,143 +108,125 @@ export class TextShowFormatterImpl implements TextShowFormatter {
     // Return as array with a single string
     return [formattedShow];
   }
-  
+
   /**
-   * Format a single network and its shows
-   * @param network Network name
-   * @param shows Shows in the network
-   * @returns Formatted output for the network and its shows
+   * Format episode range for multiple episodes
+   * @param shows Multiple episodes of the same show
+   * @returns Formatted episode range
    */
-  formatNetwork(network: string, shows: Show[]): string[] {
-    if (!Array.isArray(shows) || shows.length === 0) {
-      return [];
+  private formatEpisodeRange(shows: Show[]): string {
+    if (!Array.isArray(shows)) {
+      return '';
     }
     
-    const output: string[] = [];
+    if (shows.length === 0) {
+      return '';
+    }
     
-    // Add the network header
+    if (shows.length === 1) {
+      return this.formatEpisodeInfo(shows[0]);
+    }
+    
+    const firstEpisode = shows[0];
+    const lastEpisode = shows[shows.length - 1];
+    
+    const firstInfo = this.formatEpisodeInfo(firstEpisode);
+    const lastInfo = this.formatEpisodeInfo(lastEpisode);
+    
+    // If same season, just show a range of episode numbers
+    if (firstEpisode.season === lastEpisode.season) {
+      if (!firstEpisode.number || !lastEpisode.number) {
+        return firstInfo;
+      }
+      
+      const season = `S${String(firstEpisode.season).padStart(2, '0')}`;
+      const firstEp = String(firstEpisode.number).padStart(2, '0');
+      const lastEp = String(lastEpisode.number).padStart(2, '0');
+      
+      return `${season}E${firstEp}-${lastEp}`;
+    }
+    
+    // Different seasons, show full range
+    return `${firstInfo}-${lastInfo}`;
+  }
+  
+  /**
+   * Prepare components for a show row
+   * @param show Show to prepare components for
+   * @returns Object with prepared components
+   */
+  private prepareShowRowComponents(show: Show): {
+    time: string;
+    showName: string;
+    episodeInfo: string;
+    network: string;
+    type: string;
+  } {
+    // Handle airtime with explicit null/undefined checks
+    const time = show.airtime !== null && show.airtime !== undefined ? 
+      show.airtime : this.NO_AIRTIME;
+    
+    // Handle show name with explicit null/undefined checks
+    const showName = show.name !== null && show.name !== undefined ? 
+      show.name : this.UNKNOWN_SHOW;
+    
+    // Format episode info (e.g., S01E01)
+    const episodeInfo = this.formatEpisodeInfo(show);
+    
+    // Handle network with explicit null/undefined checks
+    const network = show.network !== null && show.network !== undefined ? 
+      show.network : this.NO_NETWORK;
+    
+    // Handle show type with explicit null/undefined checks
+    const type = show.type !== null && show.type !== undefined ? 
+      show.type : this.UNKNOWN_TYPE;
+    
+    return { time, showName, episodeInfo, network, type };
+  }
+
+  /**
+   * Format the header for network display
+   * @param network The network name
+   * @returns Formatted header items
+   */
+  protected formatNetworkHeader(network: string): string[] {
     const [networkHeader, separatorLine] = formatNetworkHeader(network, this.NO_NETWORK);
-    output.push(this.styleService.boldCyan(networkHeader));
-    output.push(this.styleService.dim(separatorLine));
-    
-    // Sort shows by time
-    const sortedShows = sortShowsByTime(shows);
-    
-    // Group shows by show ID
-    const showGroups = groupShowsByShowId(sortedShows);
-    
-    // Process each show in the sorted order
-    const processedShowIds = new Set<string>();
-    
-    for (const show of sortedShows) {
-      const showId = show.id.toString();
-      if (processedShowIds.has(showId)) {
-        continue;
-      }
-      
-      const showGroup = showGroups[showId];
-      processedShowIds.add(showId);
-      
-      // Format based on number of episodes
-      if (showGroup.length === 1) {
-        // Single episode
-        output.push(
-          hasAirtime(show)
-            ? this.formatTimedShow(show) 
-            : this.formatUntimedShow(show)
-        );
-      } else if (allShowsHaveNoAirtime(showGroup)) {
-        // Multiple episodes without airtime
-        output.push(...this.formatMultipleEpisodes(showGroup));
-      } else {
-        // Multiple episodes with different airtimes
-        // Sort by airtime, then by episode number
-        const sortedEpisodes = sortShowsByTime(showGroup);
-        for (const episode of sortedEpisodes) {
-          output.push(
-            hasAirtime(episode)
-              ? this.formatTimedShow(episode) 
-              : this.formatUntimedShow(episode)
-          );
-        }
-      }
-    }
-    
-    return output;
-  }
-  
-  /**
-   * Format a group of shows by network
-   * @param networkGroups Shows grouped by network
-   * @returns Formatted output for the network groups
-   */
-  formatNetworkGroups(networkGroups: NetworkGroups): string[] {
-    if (networkGroups === null || networkGroups === undefined) {
-      return [];
-    }
-    
-    const output: string[] = [];
-    
-    // Get network names and sort them alphabetically
-    const networks = Object.keys(networkGroups).sort();
-    
-    // Process each network
-    for (const network of networks) {
-      // Get shows for this network
-      const shows = networkGroups[network];
-      
-      // Skip empty networks
-      if (!Array.isArray(shows) || shows.length === 0) {
-        continue;
-      }
-      
-      // Add extra line before each network (except the first one)
-      if (output.length > 0) {
-        output.push('');
-      }
-      
-      // Add the formatted network and its shows
-      output.push(...this.formatNetwork(network, shows));
-    }
-    
-    return output;
+    return [
+      this.styleService.boldCyan(networkHeader),
+      this.styleService.dim(separatorLine)
+    ];
   }
 
   /**
-   * Format a list of shows
-   * @param shows Shows to format
-   * @returns Formatted text output
+   * Format content for an empty network
+   * @param network The network name
+   * @returns Formatted empty network content
    */
-  formatShows(shows: Show[]): string[] {
-    if (shows === null || shows === undefined || shows.length === 0) {
-      return ['No shows found'];
-    }
-
-    // Group shows by network
-    const networkGroups: Record<string, Show[]> = this.groupShowsByNetwork(shows);
-    
-    // Format the network groups
-    return this.formatNetworkGroups(networkGroups);
+  protected formatEmptyNetwork(network: string): string[] {
+    return this.formatNetworkHeader(network);
   }
 
   /**
-   * Group shows by network
-   * @param shows - Shows to group
-   * @returns Record with network names as keys and arrays of shows as values
+   * Format the header content for the network groups
+   * @returns Formatted header content
    */
-  private groupShowsByNetwork(shows: Show[]): NetworkGroups {
-    const networkGroups: NetworkGroups = {};
-    
-    shows.forEach(show => {
-      const networkName = show.network || 'Unknown Network';
-      
-      if (!Object.prototype.hasOwnProperty.call(networkGroups, networkName)) {
-        networkGroups[networkName] = [];
-      }
-      
-      networkGroups[networkName].push(show);
-    });
-    
-    return networkGroups;
+  protected formatHeader(): string[] {
+    return []; // No header content for text formatter
+  }
+
+  /**
+   * Format the footer content for the network groups
+   * @returns Formatted footer content
+   */
+  protected formatFooter(): string[] {
+    return []; // No footer content for text formatter
+  }
+
+  /**
+   * Format separator between networks
+   * @returns Formatted network separator
+   */
+  protected formatNetworkSeparator(): string[] {
+    return [''];
   }
 }

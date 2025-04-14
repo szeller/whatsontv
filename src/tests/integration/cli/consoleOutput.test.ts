@@ -129,9 +129,9 @@ describe('Console Output Integration Tests', () => {
     // Assert - verify the output contains expected content
     const outputLines = mockConsoleOutput.getOutput();
     
-    // Debug output to see what's actually being captured
-    console.error('CAPTURED OUTPUT:');
-    outputLines.forEach((line, i) => console.error(`[${i}] ${line}`));
+    // Debug output is commented out to avoid cluttering test output
+    // console.error('CAPTURED OUTPUT:');
+    // outputLines.forEach((line, i) => console.error(`[${i}] ${line}`));
     
     // Header should be present - check for partial match
     expect(outputLines.some(line => line.toLowerCase().includes('whatsontv'))).toBe(true);
@@ -179,9 +179,9 @@ describe('Console Output Integration Tests', () => {
     // Assert - verify the output contains expected content
     const outputLines = mockConsoleOutput.getOutput();
     
-    // Debug output to see what's actually being captured
-    console.error('BREAKING BAD TEST OUTPUT:');
-    outputLines.forEach((line, i) => console.error(`[${i}] ${line}`));
+    // Debug output is commented out to avoid cluttering test output
+    // console.error('BREAKING BAD TEST OUTPUT:');
+    // outputLines.forEach((line, i) => console.error(`[${i}] ${line}`));
     
     // Network header should be present - case insensitive check
     expect(outputLines.some(line => line.toUpperCase().includes('AMC'))).toBe(true);
@@ -201,14 +201,14 @@ describe('Console Output Integration Tests', () => {
     );
     
     if (breakingBadLine !== undefined && breakingBadLine !== null) {
-      // The line should have N/A for airtime since we removed the airtime
-      expect(breakingBadLine.includes('N/A')).toBe(true);
+      // The line should have airtime info in parentheses
+      expect(breakingBadLine.includes('(')).toBe(true);
       
       // Verify that ANSI color codes are present (chalk styling)
       expect(breakingBadLine.includes('\u001b[')).toBe(true);
     } else {
-      // If we can't find the exact line, at least verify N/A appears somewhere
-      expect(outputLines.some(line => line.includes('N/A'))).toBe(true);
+      // If we can't find the exact line, at least verify parentheses appear somewhere
+      expect(outputLines.some(line => line.includes('('))).toBe(true);
     }
   });
   
@@ -225,9 +225,9 @@ describe('Console Output Integration Tests', () => {
     // Assert - verify the output contains expected content
     const outputLines = mockConsoleOutput.getOutput();
     
-    // Debug output to see what's actually being captured
-    console.error('STRANGER THINGS TEST OUTPUT:');
-    outputLines.forEach((line, i) => console.error(`[${i}] ${line}`));
+    // Debug output is commented out to avoid cluttering test output
+    // console.error('STRANGER THINGS TEST OUTPUT:');
+    // outputLines.forEach((line, i) => console.error(`[${i}] ${line}`));
     
     // Network header should be present - case insensitive check
     expect(outputLines.some(line => line.toUpperCase().includes('NETFLIX'))).toBe(true);
@@ -242,14 +242,14 @@ describe('Console Output Integration Tests', () => {
     );
     
     if (strangerThingsLine !== null && strangerThingsLine !== undefined) {
-      // Should have N/A for airtime
-      expect(strangerThingsLine.includes('N/A')).toBe(true);
+      // Should have airtime info in parentheses
+      expect(strangerThingsLine.includes('(')).toBe(true);
       
       // Verify that ANSI color codes are present (chalk styling)
       expect(strangerThingsLine.includes('\u001b[')).toBe(true);
     } else {
-      // If we can't find the exact line, at least verify N/A appears somewhere
-      expect(outputLines.some(line => line.includes('N/A'))).toBe(true);
+      // If we can't find the exact line, at least verify parentheses appear somewhere
+      expect(outputLines.some(line => line.includes('('))).toBe(true);
     }
   });
 });

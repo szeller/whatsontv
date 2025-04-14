@@ -8,7 +8,9 @@ import { ShowBuilder } from '../../../fixtures/helpers/showFixtureBuilder';
 import type { Show } from '../../../../schemas/domain';
 import { 
   isSectionBlock,
-  isHeaderBlock
+  isHeaderBlock,
+  type SlackSectionBlock,
+  type SlackHeaderBlock
 } from '../../../../interfaces/slackClient';
 
 describe('SlackShowFormatterImpl', () => {
@@ -54,8 +56,12 @@ describe('SlackShowFormatterImpl', () => {
       
       // Check if the airtime is included
       expect(result.type).toBe('section');
-      expect(result.text.type).toBe('mrkdwn');
-      expect(result.text.text).toContain('Test Show');
+      const isSectionResult = isSectionBlock(result);
+      if (isSectionResult === true) {
+        const sectionBlock = result as SlackSectionBlock;
+        expect(sectionBlock.text.type).toBe('mrkdwn');
+        expect(sectionBlock.text.text).toContain('Test Show');
+      }
     });
   });
 
@@ -75,8 +81,12 @@ describe('SlackShowFormatterImpl', () => {
       
       // Check that the result includes TBA for airtime
       expect(result.type).toBe('section');
-      expect(result.text.type).toBe('mrkdwn');
-      expect(result.text.text).toContain('TBA');
+      const isSectionResult = isSectionBlock(result);
+      if (isSectionResult === true) {
+        const sectionBlock = result as SlackSectionBlock;
+        expect(sectionBlock.text.type).toBe('mrkdwn');
+        expect(sectionBlock.text.text).toContain('TBA');
+      }
     });
   });
 
@@ -108,10 +118,11 @@ describe('SlackShowFormatterImpl', () => {
       expect(isSection).toBe(true);
       
       if (isSection === true) {
-        expect(block.text.type).toBe('mrkdwn');
-        expect(block.text.text).toContain('Test Show');
-        expect(block.text.text).toContain('S01E01');
-        expect(block.text.text).toContain('S01E02');
+        const sectionBlock = block as SlackSectionBlock;
+        expect(sectionBlock.text.type).toBe('mrkdwn');
+        expect(sectionBlock.text.text).toContain('Test Show');
+        // With our new implementation, we format episode ranges differently
+        expect(sectionBlock.text.text).toContain('S01E01-02');
       }
     });
 
@@ -119,9 +130,8 @@ describe('SlackShowFormatterImpl', () => {
       // Act
       const result = formatter.formatMultipleEpisodes([]);
 
-      // Assert
-      expect(result).toHaveLength(1);
-      expect(result[0].type).toBe('section');
+      // Assert - base implementation now returns empty array for empty input
+      expect(result).toHaveLength(0);
     });
   });
 
@@ -129,21 +139,27 @@ describe('SlackShowFormatterImpl', () => {
     it('should format a network header', () => {
       // Arrange
       const networkName = 'Test Network';
+      const emptyShows: Show[] = [];
 
       // Act
-      const result = formatter.formatNetwork(networkName);
+      const result = formatter.formatNetwork(networkName, emptyShows);
 
-      // Assert
-      expect(result).toHaveLength(1);
+      // Assert - base implementation now returns header and divider blocks
+      expect(result).toHaveLength(2);
       
-      const block = result[0];
-      const isSection = isSectionBlock(block);
-      expect(isSection).toBe(true);
+      // First block should be a header
+      const headerBlock = result[0];
+      const isHeader = Boolean(isHeaderBlock(headerBlock));
+      expect(isHeader).toBe(true);
       
-      if (isSection === true) {
-        expect(block.text.type).toBe('mrkdwn');
-        expect(block.text.text).toContain('Test Network');
+      if (isHeader === true) {
+        const typedHeaderBlock = headerBlock as SlackHeaderBlock;
+        expect(typedHeaderBlock.text.type).toBe('plain_text');
+        expect(typedHeaderBlock.text.text).toContain('Test Network');
       }
+      
+      // Second block should be a divider
+      expect(result[1].type).toBe('divider');
     });
     
     it('should format a network with shows', () => {
@@ -163,27 +179,30 @@ describe('SlackShowFormatterImpl', () => {
       // Act
       const result = formatter.formatNetwork(network, shows);
 
-      // Assert
-      expect(result).toHaveLength(2);
+      // Assert - base implementation now returns header, divider, and show blocks
+      expect(result.length).toBeGreaterThan(2);
 
+      // First block should be a header
       const headerBlock = result[0];
-      const isHeaderSection = isSectionBlock(headerBlock);
-      expect(isHeaderSection).toBe(true);
+      const isHeader = Boolean(isHeaderBlock(headerBlock));
+      expect(isHeader).toBe(true);
       
-      if (isHeaderSection === true) {
-        expect(headerBlock.text.type).toBe('mrkdwn');
-        expect(headerBlock.text.text).toContain('Test Network');
+      if (isHeader === true) {
+        const typedHeaderBlock = headerBlock as SlackHeaderBlock;
+        expect(typedHeaderBlock.text.type).toBe('plain_text');
+        expect(typedHeaderBlock.text.text).toContain('Test Network');
       }
 
-      const showsBlock = result[1];
-      const isShowsSection = isSectionBlock(showsBlock);
-      expect(isShowsSection).toBe(true);
-      
-      if (isShowsSection === true) {
-        expect(showsBlock.text.type).toBe('mrkdwn');
-        expect(showsBlock.text.text).toContain('Network Show 1');
-        expect(showsBlock.text.text).toContain('Network Show 2');
-      }
+      // Check that show blocks are included
+      const showBlocks = result.filter((block): boolean => {
+        const isSectionResult = isSectionBlock(block);
+        if (isSectionResult !== true) return false;
+        const sectionBlock = block as SlackSectionBlock;
+        const includesShow1 = Boolean(sectionBlock.text.text.includes('Network Show 1'));
+        const includesShow2 = Boolean(sectionBlock.text.text.includes('Network Show 2'));
+        return Boolean(includesShow1 || includesShow2);
+      });
+      expect(showBlocks.length).toBe(2);
     });
   });
 
@@ -216,39 +235,21 @@ describe('SlackShowFormatterImpl', () => {
       expect(result.length).toBeGreaterThan(0);
       
       // Check for header block
-      const headerBlocks = result.filter(block => {
-        const isHeader = isHeaderBlock(block);
-        return isHeader === true;
-      });
+      const headerBlocks = result.filter(block => isHeaderBlock(block)) as SlackHeaderBlock[];
       expect(headerBlocks.length).toBeGreaterThan(0);
-      expect(headerBlocks[0].text.text).toContain('TV Shows');
+      // Updated to match the new header text
+      expect(headerBlocks[0].text.text).toContain('Shows by Network');
       
       // Check that both networks are included in section blocks
-      const sectionBlocks = result.filter(block => {
-        const isSection = isSectionBlock(block);
-        return isSection === true;
-      });
-      
-      // Find network blocks
-      const networkBlocks = sectionBlocks.filter(block => {
-        const isSection = isSectionBlock(block);
-        if (isSection !== true) return false;
-        
-        const includesNetworkA = block.text.text.includes('Network A') === true;
-        const includesNetworkB = block.text.text.includes('Network B') === true;
-        return includesNetworkA || includesNetworkB;
-      });
-      expect(networkBlocks.length).toBeGreaterThan(0);
+      const sectionBlocks = result.filter(block => isSectionBlock(block)) as SlackSectionBlock[];
+      expect(sectionBlocks.length).toBeGreaterThan(0);
       
       // Find show blocks
-      const showBlocks = sectionBlocks.filter(block => {
-        const isSection = isSectionBlock(block);
-        if (isSection !== true) return false;
-        
-        const includesShow1 = block.text.text.includes('Show 1') === true;
-        const includesShow2 = block.text.text.includes('Show 2') === true;
-        const includesShow3 = block.text.text.includes('Show 3') === true;
-        return includesShow1 || includesShow2 || includesShow3;
+      const showBlocks = sectionBlocks.filter((block): boolean => {
+        const includesShow1 = Boolean(block.text.text.includes('Show 1'));
+        const includesShow2 = Boolean(block.text.text.includes('Show 2'));
+        const includesShow3 = Boolean(block.text.text.includes('Show 3'));
+        return Boolean(includesShow1 || includesShow2 || includesShow3);
       });
       expect(showBlocks.length).toBeGreaterThan(0);
     });
@@ -261,10 +262,7 @@ describe('SlackShowFormatterImpl', () => {
       expect(result.length).toBeGreaterThan(0);
       
       // Check that it includes a header
-      const headerBlocks = result.filter(block => {
-        const isHeader = isHeaderBlock(block);
-        return isHeader === true;
-      });
+      const headerBlocks = result.filter(block => isHeaderBlock(block));
       expect(headerBlocks.length).toBeGreaterThan(0);
     });
   });

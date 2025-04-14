@@ -19,10 +19,10 @@ export class MockSlackClient implements SlackClient {
   constructor(options: { logToConsole?: boolean } = {}) {
     this.shouldLogToConsole = options.logToConsole ?? false;
     
-    // Log initialization for debugging
-    if (this.shouldLogToConsole) {
-      console.log('MockSlackClient initialized with options:', JSON.stringify(options));
-    }
+    // Logging is disabled in tests to avoid cluttering output
+    // if (this.shouldLogToConsole) {
+    //   console.log('MockSlackClient initialized with options:', JSON.stringify(options));
+    // }
   }
   
   /**
@@ -37,30 +37,30 @@ export class MockSlackClient implements SlackClient {
     // Simulate network latency
     await new Promise(resolve => global.setTimeout(resolve, 0));
     
-    // Optionally log to console for debugging
-    if (this.shouldLogToConsole) {
-      console.log('--- MockSlackClient: Message Sent ---');
-      console.log(`Channel: ${payload.channel}`);
-      console.log(`Text: ${payload.text}`);
+    // Logging is disabled in tests to avoid cluttering output
+    // if (this.shouldLogToConsole) {
+    //   // console.log('--- MockSlackClient: Message Sent ---');
+    //   // console.log(`Channel: ${payload.channel}`);
+    //   // console.log(`Text: ${payload.text}`);
       
-      // Check for blocks with explicit null/undefined and empty array checks
-      const hasBlocks = payload.blocks !== undefined && 
-                       payload.blocks !== null && 
-                       payload.blocks.length > 0;
-      if (hasBlocks) {
-        console.log(`Blocks: ${JSON.stringify(payload.blocks, null, 2)}`);
-      }
+    //   // // Check for blocks with explicit null/undefined and empty array checks
+    //   // const hasBlocks = payload.blocks !== undefined && 
+    //   //                payload.blocks !== null && 
+    //   //                payload.blocks.length > 0;
+    //   // if (hasBlocks) {
+    //   //   // console.log(`Blocks: ${JSON.stringify(payload.blocks, null, 2)}`);
+    //   // }
       
-      // Check for username with explicit null/undefined and empty string checks
-      const hasUsername = payload.username !== undefined && 
-                         payload.username !== null && 
-                         payload.username.length > 0;
-      if (hasUsername) {
-        console.log(`Username: ${payload.username}`);
-      }
+    //   // // Check for username with explicit null/undefined and empty string checks
+    //   // const hasUsername = payload.username !== undefined && 
+    //   //                  payload.username !== null && 
+    //   //                  payload.username.length > 0;
+    //   // if (hasUsername) {
+    //   //   // console.log(`Username: ${payload.username}`);
+    //   // }
       
-      console.log('--- End of MockSlackClient Message ---');
-    }
+    //   // console.log('--- End of MockSlackClient Message ---');
+    // }
     
     // Simulate async behavior
     return Promise.resolve();
@@ -146,19 +146,20 @@ export class MockSlackClient implements SlackClient {
    * Debug method to print all stored messages to the console
    * @param prefix Optional prefix to add to each line
    */
-  debugMessages(prefix = 'MockSlackClient'): void {
-    console.log(`--- ${prefix} stored messages (${this.messages.length}) ---`);
-    this.messages.forEach((msg, index) => {
-      console.log(`[${index}] Channel: ${msg.channel}, Text: ${msg.text}`);
+  debugMessages(_prefix = 'MockSlackClient'): void {
+    // Logging is disabled in tests to avoid cluttering output
+    // console.log(`--- ${_prefix} stored messages (${this.messages.length}) ---`);
+    // this.messages.forEach((msg, index) => {
+    //   console.log(`[${index}] Channel: ${msg.channel}, Text: ${msg.text}`);
       
-      // Check for blocks with explicit null/undefined and empty array checks
-      const hasBlocks = msg.blocks !== undefined && 
-                       msg.blocks !== null && 
-                       msg.blocks.length > 0;
-      if (hasBlocks) {
-        console.log(`    Blocks: ${JSON.stringify(msg.blocks, null, 2)}`);
-      }
-    });
-    console.log(`--- End of ${prefix} stored messages ---`);
+    //   // Check for blocks with explicit null/undefined and empty array checks
+    //   const hasBlocks = msg.blocks !== undefined && 
+    //                    msg.blocks !== null && 
+    //                    msg.blocks.length > 0;
+    //   if (hasBlocks) {
+    //     console.log(`    Blocks: ${JSON.stringify(msg.blocks, null, 2)}`);
+    //   }
+    // });
+    // console.log(`--- End of ${_prefix} stored messages ---`);
   }
 }
