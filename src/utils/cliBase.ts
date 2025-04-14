@@ -6,11 +6,12 @@ import type { TvShowService } from '../interfaces/tvShowService.js';
 import type { ConfigService } from '../interfaces/configService.js';
 import type { Show } from '../schemas/domain.js';
 import { formatError, handleMainError, isDirectExecution } from './errorHandling.js';
+import { OutputService } from '../interfaces/outputService.js';
 
 /**
  * Base CLI application class with common functionality
  */
-export abstract class BaseCliApplication {
+export class BaseCliApplication {
   /**
    * Create a new BaseCliApplication
    * @param tvShowService Service for fetching TV shows
@@ -20,7 +21,8 @@ export abstract class BaseCliApplication {
   constructor(
     protected readonly tvShowService: TvShowService,
     protected readonly configService: ConfigService,
-    protected readonly consoleOutput: ConsoleOutput
+    protected readonly consoleOutput: ConsoleOutput,
+    protected readonly outputService: OutputService
   ) {}
 
   /**
@@ -49,7 +51,10 @@ export abstract class BaseCliApplication {
    * Process the fetched shows
    * @param shows The shows to process
    */
-  protected abstract processShows(shows: Show[]): Promise<void>;
+  protected async processShows(shows: Show[]): Promise<void> {
+    // Let the OutputService handle all rendering aspects
+    await this.outputService.renderOutput(shows);
+  }
 }
 
 /**

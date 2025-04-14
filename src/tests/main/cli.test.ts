@@ -15,7 +15,7 @@ import type { Show } from '../../schemas/domain.js';
 import type { CliOptions, AppConfig } from '../../types/configTypes';
 import type { ShowOptions } from '../../types/tvShowOptions';
 import { Fixtures } from '../helpers/fixtureHelper';
-import { CliApplication } from '../../cli';
+import { BaseCliApplication } from '../../utils/cliBase.js';
 
 // Mock the console implementation to avoid actual console output during tests
 jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -63,7 +63,12 @@ describe('CLI', () => {
       genres: [],
       languages: ['English'],
       notificationTime: '09:00',
-      slack: { enabled: false }
+      minAirtime: '18:00',
+      slack: { 
+        token: 'mock-token',
+        channelId: 'mock-channel',
+        username: 'WhatsOnTV'
+      }
     }),
     getSlackOptions: jest.fn().mockReturnValue({
       token: 'test-token',
@@ -78,14 +83,14 @@ describe('CLI', () => {
   };
 
   // Create CLI application instance for testing
-  let cliApp: CliApplication;
+  let cliApp: BaseCliApplication;
 
   beforeEach(() => {
     // Reset all mocks before each test
     jest.clearAllMocks();
     
     // Create CLI application with mock services
-    cliApp = new CliApplication(
+    cliApp = new BaseCliApplication(
       mockTvShowService as unknown as TvShowService,
       mockConfigService as unknown as ConfigService,
       mockConsoleOutput as unknown as ConsoleOutput,
