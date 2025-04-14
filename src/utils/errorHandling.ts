@@ -2,6 +2,8 @@
  * Shared error handling utilities
  */
 import type { ConsoleOutput } from '../interfaces/consoleOutput.js';
+import type { Show } from '../schemas/domain.js';
+import { formatDate } from './dateUtils.js';
 
 /**
  * Register a global uncaught exception handler
@@ -25,10 +27,12 @@ export function registerGlobalErrorHandler(consoleOutput: ConsoleOutput): void {
 /**
  * Format an error message from any error type
  * @param error The error to format
+ * @param prefix Optional prefix to add before the error message
  * @returns Formatted error message
  */
-export function formatError(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
+export function formatError(error: unknown, prefix = ''): string {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  return prefix ? `${prefix}${errorMessage}` : errorMessage;
 }
 
 /**
@@ -56,4 +60,38 @@ export function handleMainError(error: unknown, consoleOutput: ConsoleOutput): v
 export function isDirectExecution(): boolean {
   // Don't run main() when in a test environment
   return process.env.NODE_ENV !== 'test';
+}
+
+/**
+ * Generate standardized debug information for shows
+ * @param shows List of shows to generate debug information for
+ * @param date The date for which shows are being displayed
+ * @returns Object containing debug information
+ */
+export function generateDebugInfo(shows: Show[], date: Date): {
+  dateFormatted: string;
+  networks: string[];
+  totalShows: number;
+} {
+  const uniqueNetworks = new Set<string>();
+  
+  for (const show of shows) {
+    if (show.network && typeof show.network === 'string') {
+      uniqueNetworks.add(show.network);
+    }
+  }
+  
+  return {
+    dateFormatted: formatDate(date),
+    networks: [...uniqueNetworks].sort(),
+    totalShows: shows.length
+  };
+}
+
+/**
+ * Safely resolve a promise for methods that need to be async but don't have async operations
+ * Used to satisfy lint rules requiring await in async methods
+ */
+export async function safeResolve(): Promise<void> {
+  await Promise.resolve();
 }

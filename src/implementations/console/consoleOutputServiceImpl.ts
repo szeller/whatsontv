@@ -8,6 +8,7 @@ import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
 import { BaseOutputServiceImpl } from '../baseOutputServiceImpl.js';
 import { padString } from '../../utils/stringUtils.js';
 import { formatDate } from '../../utils/dateUtils.js';
+import { formatError, generateDebugInfo, safeResolve } from '../../utils/errorHandling.js';
 
 /**
  * Console output service for displaying TV show information
@@ -38,8 +39,7 @@ export class ConsoleOutputServiceImpl extends BaseOutputServiceImpl<string> {
    * @param date The date for which shows are being displayed
    */
   protected async renderHeader(date: Date): Promise<void> {
-    // Using await with a resolved promise to satisfy the lint rule
-    await Promise.resolve();
+    await safeResolve();
     
     // Create a header with app name and version
     const appHeader = `WhatsOnTV v${this.version}`;
@@ -62,8 +62,7 @@ export class ConsoleOutputServiceImpl extends BaseOutputServiceImpl<string> {
     networkGroups: Record<string, Show[]>, 
     _date: Date // Prefix with underscore to indicate it's not used
   ): Promise<void> {
-    // Using await with a resolved promise to satisfy the lint rule
-    await Promise.resolve();
+    await safeResolve();
     
     if (Object.keys(networkGroups).length === 0) {
       this.output.log('No shows found for the specified criteria.');
@@ -79,11 +78,7 @@ export class ConsoleOutputServiceImpl extends BaseOutputServiceImpl<string> {
         this.output.log(line);
       }
     } catch (error) {
-      const errorPrefix = 'Error: ';
-      const errorMessage = error instanceof Error 
-        ? errorPrefix + error.message 
-        : errorPrefix + String(error);
-      this.output.error(errorMessage);
+      this.output.error(formatError(error, 'Error: '));
     }
   }
   
@@ -91,8 +86,7 @@ export class ConsoleOutputServiceImpl extends BaseOutputServiceImpl<string> {
    * Render the footer section
    */
   protected async renderFooter(): Promise<void> {
-    // Using await with a resolved promise to satisfy the lint rule
-    await Promise.resolve();
+    await safeResolve();
     
     const separator = this.createSeparator();
     
@@ -108,22 +102,15 @@ export class ConsoleOutputServiceImpl extends BaseOutputServiceImpl<string> {
    * @param date The date for which shows are being displayed
    */
   protected async renderDebugInfo(shows: Show[], date: Date): Promise<void> {
-    // Using await with a resolved promise to satisfy the lint rule
-    await Promise.resolve();
+    await safeResolve();
     
-    const uniqueNetworks = new Set<string>();
-    
-    for (const show of shows) {
-      if (show.network && typeof show.network === 'string') {
-        uniqueNetworks.add(show.network);
-      }
-    }
+    const debugInfo = generateDebugInfo(shows, date);
     
     this.output.log('\nDebug Information:');
-    this.output.log(`Date queried: ${formatDate(date)}`);
+    this.output.log(`Date queried: ${debugInfo.dateFormatted}`);
     this.output.log('\nAvailable Networks:');
-    this.output.log([...uniqueNetworks].sort().join(', '));
-    this.output.log(`\nTotal Shows: ${shows.length}`);
+    this.output.log(debugInfo.networks.join(', '));
+    this.output.log(`\nTotal Shows: ${debugInfo.totalShows}`);
   }
   
   /**
@@ -131,11 +118,9 @@ export class ConsoleOutputServiceImpl extends BaseOutputServiceImpl<string> {
    * @param error The error that occurred
    */
   protected async handleError(error: unknown): Promise<void> {
-    // Using await with a resolved promise to satisfy the lint rule
-    await Promise.resolve();
+    await safeResolve();
     
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    this.output.error(`Error: ${errorMessage}`);
+    this.output.error(formatError(error, 'Error: '));
   }
   
   /**
