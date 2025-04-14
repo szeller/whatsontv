@@ -12,7 +12,8 @@ const COVERAGE_THRESHOLD = {
  * Jest configuration for TypeScript project with ESM support
  * Version constraints:
  * - Jest v29.x.x for ESM and TypeScript compatibility
- * - ts-jest for TypeScript transformation
+ * - ts-jest for TypeScript transformation (needed for Jest integration)
+ * - tsx is used as the runtime for both application code and tests
  */
 const config = {
   // Always collect coverage

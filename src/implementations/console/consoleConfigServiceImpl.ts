@@ -152,6 +152,11 @@ export class ConsoleConfigServiceImpl implements ConfigService {
    * @protected
    */
   protected parseArgs(args?: string[]): CliArgs {
+    // Use debug flag to conditionally log arguments
+    if (process.env.DEBUG === 'true') {
+      console.warn('Args:', args || process.argv.slice(2));
+    }
+    
     const yargsInstance = this.createYargsInstance(args || process.argv.slice(2));
     
     // In tests, we need to disable strict mode and exit behavior
@@ -169,9 +174,16 @@ export class ConsoleConfigServiceImpl implements ConfigService {
       .fail(false)
       .parseSync();
     
+    // Use debug flag to conditionally log parsed arguments
+    if (process.env.DEBUG === 'true') {
+      console.warn('Parsed args:', parsedArgs);
+    }
+    
     // Convert to CliArgs type with proper handling of optional arrays
+    const dateValue = String(parsedArgs.date) === 'undefined' ? undefined : String(parsedArgs.date);
+    
     return {
-      date: getStringValue(String(parsedArgs.date), getTodayDate()),
+      date: getStringValue(dateValue, getTodayDate()),
       country: getStringValue(String(parsedArgs.country), 'US'),
       types: toStringArray(parsedArgs.types as string | string[] | undefined),
       networks: toStringArray(parsedArgs.networks as string | string[] | undefined),

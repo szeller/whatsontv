@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env tsx
 
 import 'reflect-metadata';
 import { container } from './container.js';
