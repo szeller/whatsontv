@@ -126,6 +126,11 @@ export class TvMazeServiceImpl implements TvShowService {
 
     let filteredShows = [...shows];
 
+    // Filter out shows without episode numbers (specials, etc.)
+    filteredShows = filteredShows.filter((show: Show) => {
+      return typeof show.number === 'number' && show.number > 0;
+    });
+
     // Apply type filter
     const typeValues = options.types;
     if (Array.isArray(typeValues) && typeValues.length > 0) {
