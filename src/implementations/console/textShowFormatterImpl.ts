@@ -1,7 +1,7 @@
 import { injectable, inject } from 'tsyringe';
 import type { StyleService } from '../../interfaces/styleService.js';
 import type { Show } from '../../schemas/domain.js';
-import { formatNetworkHeader } from '../../utils/consoleFormatUtils.js';
+import { formatNetworkHeader } from '../../utils/formatUtils.js';
 import { BaseShowFormatterImpl } from '../baseShowFormatterImpl.js';
 
 /**

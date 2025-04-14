@@ -5,8 +5,9 @@ import type { Show, NetworkGroups } from '../schemas/domain.js';
 import { 
   groupShowsByShowId, 
   hasAirtime, 
-  allShowsHaveNoAirtime 
-} from '../utils/consoleFormatUtils.js';
+  allShowsHaveNoAirtime,
+  formatEpisodeInfo
+} from '../utils/formatUtils.js';
 import { sortShowsByTime } from '../utils/showUtils.js';
 
 /**
@@ -77,6 +78,10 @@ export abstract class BaseShowFormatterImpl<TOutput> implements ShowFormatter<TO
       }
       
       const showGroup = showGroups[showId];
+      if (showGroup === undefined) {
+        continue;
+      }
+      
       processedShowIds.add(showId);
       
       // Format based on number of episodes
@@ -169,25 +174,7 @@ export abstract class BaseShowFormatterImpl<TOutput> implements ShowFormatter<TO
    * @returns Formatted episode info string
    */
   protected formatEpisodeInfo(show: Show): string {
-    if (show === null || show === undefined || (!show.season && !show.number)) {
-      return '';
-    }
-    
-    const season = show.season 
-      ? `S${String(show.season).padStart(2, '0')}` 
-      : '';
-      
-    // Handle special episodes or episodes with missing numbers
-    if (!show.number) {
-      // For special episodes, we'll indicate it's a special
-      if (show.type && show.type.toLowerCase().includes('special')) {
-        return `${season} Special`;
-      }
-      return season;
-    }
-    
-    const episode = `E${String(show.number).padStart(2, '0')}`;
-    return season + episode;
+    return formatEpisodeInfo(show);
   }
 
   /**
