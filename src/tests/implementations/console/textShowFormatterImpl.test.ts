@@ -67,8 +67,8 @@ describe('TextShowFormatterImpl', () => {
         
       const result = formatter.formatTimedShow(incompleteShow);
       expect(result).toContain('21:00');
-      // After refactoring, the N/A is shown in parentheses with the network
-      expect(result).toContain('(,');  // Network is empty, not N/A in the new implementation
+      // After refactoring, the network is "Unknown Network" instead of empty
+      expect(result).toContain('Unknown Network');
       expect(result).toContain('Unknown Show');
       expect(result).toContain('S02E03');
     });

@@ -6,7 +6,9 @@ import {
   groupShowsByShowId, 
   hasAirtime, 
   allShowsHaveNoAirtime,
-  formatEpisodeInfo
+  formatEpisodeInfo,
+  formatNetworkName,
+  formatShowType
 } from '../utils/formatUtils.js';
 import { sortShowsByTime } from '../utils/showUtils.js';
 
@@ -18,7 +20,7 @@ import { sortShowsByTime } from '../utils/showUtils.js';
 export abstract class BaseShowFormatterImpl<TOutput> implements ShowFormatter<TOutput> {
   // Constants for formatting that can be overridden by subclasses
   protected readonly NO_AIRTIME = 'N/A';
-  protected readonly NO_NETWORK = 'N/A';
+  protected readonly NO_NETWORK = 'Unknown Network';
   protected readonly UNKNOWN_SHOW = 'Unknown Show';
   protected readonly UNKNOWN_TYPE = 'Unknown';
 
@@ -175,6 +177,76 @@ export abstract class BaseShowFormatterImpl<TOutput> implements ShowFormatter<TO
    */
   protected formatEpisodeInfo(show: Show): string {
     return formatEpisodeInfo(show);
+  }
+
+  /**
+   * Format a network name consistently
+   * @param networkName Network name to format
+   * @returns Formatted network name
+   */
+  protected formatNetworkName(networkName: string | null | undefined): string {
+    return formatNetworkName(networkName, this.NO_NETWORK);
+  }
+
+  /**
+   * Format a show type consistently
+   * @param type Show type to format
+   * @returns Formatted show type
+   */
+  protected formatShowType(type: string | null | undefined): string {
+    return formatShowType(type, this.UNKNOWN_TYPE);
+  }
+
+  /**
+   * Sort episodes by season and episode number
+   * @param shows Shows to sort
+   * @returns Sorted shows
+   */
+  protected sortEpisodesByNumber(shows: Show[]): Show[] {
+    if (!Array.isArray(shows) || shows.length === 0) {
+      return [];
+    }
+    
+    return [...shows].sort((a, b) => {
+      // First sort by season
+      if (a.season !== b.season) {
+        return (a.season || 0) - (b.season || 0);
+      }
+      // Then by episode number
+      return (a.number || 0) - (b.number || 0);
+    });
+  }
+
+  /**
+   * Prepare common components for a show
+   * @param show Show to prepare components for
+   * @returns Object with prepared components
+   */
+  protected prepareShowComponents(show: Show): {
+    time: string;
+    showName: string;
+    episodeInfo: string;
+    network: string;
+    type: string;
+  } {
+    // Handle airtime with explicit null/undefined checks
+    const time = show.airtime !== null && show.airtime !== undefined ? 
+      show.airtime : this.NO_AIRTIME;
+    
+    // Handle show name with explicit null/undefined checks
+    const showName = show.name !== null && show.name !== undefined ? 
+      show.name : this.UNKNOWN_SHOW;
+    
+    // Format episode info (e.g., S01E01)
+    const episodeInfo = this.formatEpisodeInfo(show);
+    
+    // Handle network with explicit null/undefined checks
+    const network = this.formatNetworkName(show.network);
+    
+    // Handle show type with explicit null/undefined checks
+    const type = this.formatShowType(show.type);
+    
+    return { time, showName, episodeInfo, network, type };
   }
 
   /**

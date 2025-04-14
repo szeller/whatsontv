@@ -10,7 +10,7 @@ import { BaseShowFormatterImpl } from '../baseShowFormatterImpl.js';
 @injectable()
 export class TextShowFormatterImpl extends BaseShowFormatterImpl<string> {
   readonly NO_AIRTIME = 'N/A';
-  readonly NO_NETWORK = 'N/A';
+  readonly NO_NETWORK = 'Unknown Network';
   readonly UNKNOWN_SHOW = 'Unknown Show';
   readonly UNKNOWN_TYPE = 'Unknown';
 
@@ -50,7 +50,7 @@ export class TextShowFormatterImpl extends BaseShowFormatterImpl<string> {
     useShowAirtime: boolean,
     customEpisodeInfo?: string
   ): string {
-    const components = this.prepareShowRowComponents(show);
+    const components = this.prepareShowComponents(show);
     
     // Apply padding before styling
     const timeValue = useShowAirtime ? components.time : this.NO_AIRTIME;
@@ -87,14 +87,7 @@ export class TextShowFormatterImpl extends BaseShowFormatterImpl<string> {
     }
     
     // Sort episodes by season and episode number
-    const sortedEpisodes = [...shows].sort((a, b) => {
-      // First sort by season
-      if (a.season !== b.season) {
-        return (a.season || 0) - (b.season || 0);
-      }
-      // Then by episode number
-      return (a.number || 0) - (b.number || 0);
-    });
+    const sortedEpisodes = this.sortEpisodesByNumber(shows);
     
     // Get the first show for basic information
     const firstShow = sortedEpisodes[0];
@@ -150,40 +143,6 @@ export class TextShowFormatterImpl extends BaseShowFormatterImpl<string> {
     return `${firstInfo}-${lastInfo}`;
   }
   
-  /**
-   * Prepare components for a show row
-   * @param show Show to prepare components for
-   * @returns Object with prepared components
-   */
-  private prepareShowRowComponents(show: Show): {
-    time: string;
-    showName: string;
-    episodeInfo: string;
-    network: string;
-    type: string;
-  } {
-    // Handle airtime with explicit null/undefined checks
-    const time = show.airtime !== null && show.airtime !== undefined ? 
-      show.airtime : this.NO_AIRTIME;
-    
-    // Handle show name with explicit null/undefined checks
-    const showName = show.name !== null && show.name !== undefined ? 
-      show.name : this.UNKNOWN_SHOW;
-    
-    // Format episode info (e.g., S01E01)
-    const episodeInfo = this.formatEpisodeInfo(show);
-    
-    // Handle network with explicit null/undefined checks
-    const network = show.network !== null && show.network !== undefined ? 
-      show.network : this.NO_NETWORK;
-    
-    // Handle show type with explicit null/undefined checks
-    const type = show.type !== null && show.type !== undefined ? 
-      show.type : this.UNKNOWN_TYPE;
-    
-    return { time, showName, episodeInfo, network, type };
-  }
-
   /**
    * Format the header for network display
    * @param network The network name
