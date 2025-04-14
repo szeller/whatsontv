@@ -10,7 +10,8 @@ import {
   convertTimeToMinutes,
   parseTimeString,
   formatTimeWithPeriod,
-  isValidTime
+  isValidTime,
+  parseDateString
 } from '../../utils/dateUtils.js';
 
 describe('DateUtils', () => {
@@ -144,6 +145,37 @@ describe('DateUtils', () => {
     it('validates hour-only format', () => {
       expect(isValidTime('14')).toBe(true);
       expect(isValidTime('9')).toBe(true);
+    });
+  });
+
+  describe('parseDateString', () => {
+    it('parses a valid date string correctly', () => {
+      const result = parseDateString('2025-03-20');
+      expect(result.getFullYear()).toBe(2025);
+      expect(result.getMonth()).toBe(2); // 0-indexed, so 2 = March
+      expect(result.getDate()).toBe(20);
+    });
+
+    it('handles different date formats', () => {
+      const result = parseDateString('2025-12-01');
+      expect(result.getFullYear()).toBe(2025);
+      expect(result.getMonth()).toBe(11); // 0-indexed, so 11 = December
+      expect(result.getDate()).toBe(1);
+    });
+
+    it('returns current date for invalid date strings', () => {
+      const now = new Date();
+      const result1 = parseDateString('invalid');
+      const result2 = parseDateString('');
+      const result3 = parseDateString(null);
+      const result4 = parseDateString(undefined);
+
+      // We can't test exact equality since the current date might change during test execution
+      // So we check if the dates are close (within 1 second)
+      expect(Math.abs(result1.getTime() - now.getTime())).toBeLessThan(1000);
+      expect(Math.abs(result2.getTime() - now.getTime())).toBeLessThan(1000);
+      expect(Math.abs(result3.getTime() - now.getTime())).toBeLessThan(1000);
+      expect(Math.abs(result4.getTime() - now.getTime())).toBeLessThan(1000);
     });
   });
 });

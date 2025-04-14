@@ -4,6 +4,7 @@ import type { ConfigService } from '../../interfaces/configService.js';
 import type { SlackClient, SlackBlock } from '../../interfaces/slackClient.js';
 import type { Show } from '../../schemas/domain.js';
 import { BaseOutputServiceImpl } from '../baseOutputServiceImpl.js';
+import { formatDate } from '../../utils/dateUtils.js';
 
 /**
  * Slack implementation of the OutputService interface
@@ -37,7 +38,7 @@ export class SlackOutputServiceImpl extends BaseOutputServiceImpl<SlackBlock> {
       type: 'header',
       text: {
         type: 'plain_text',
-        text: `📺 TV Shows for ${this.formatDate(date)}`,
+        text: `📺 TV Shows for ${formatDate(date)}`,
         emoji: true
       }
     };
@@ -45,7 +46,7 @@ export class SlackOutputServiceImpl extends BaseOutputServiceImpl<SlackBlock> {
     // Send the header to Slack
     await this.slackClient.sendMessage({
       channel: channelId,
-      text: `TV Shows for ${this.formatDate(date)}`,
+      text: `TV Shows for ${formatDate(date)}`,
       blocks: [dateHeaderBlock]
     });
   }
@@ -97,7 +98,7 @@ export class SlackOutputServiceImpl extends BaseOutputServiceImpl<SlackBlock> {
     
     const debugText = [
       '*Debug Information:*',
-      `Date queried: ${this.formatDate(_date)}`,
+      `Date queried: ${formatDate(_date)}`,
       `Available Networks: ${[...uniqueNetworks].sort().join(', ')}`,
       `Total Shows: ${shows.length}`
     ].join('\n');

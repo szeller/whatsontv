@@ -3,7 +3,6 @@ import type { ConfigService } from '../interfaces/configService.js';
 import type { ShowFormatter } from '../interfaces/showFormatter.js';
 import type { Show } from '../schemas/domain.js';
 import { groupShowsByNetwork } from '../utils/showUtils.js';
-import { formatDate } from '../utils/dateUtils.js';
 
 /**
  * Base abstract class for output services
@@ -48,16 +47,6 @@ export abstract class BaseOutputServiceImpl<TOutput> implements OutputService {
     } catch (error) {
       await this.handleError(error);
     }
-  }
-  
-  /**
-   * Format a date using the standard application format
-   * Utility method for subclasses to use
-   * @param date The date to format
-   * @returns Formatted date string
-   */
-  protected formatDate(date: Date): string {
-    return formatDate(date);
   }
   
   /**

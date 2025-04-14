@@ -7,6 +7,7 @@ import type { Show } from '../../schemas/domain.js';
 import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
 import { BaseOutputServiceImpl } from '../baseOutputServiceImpl.js';
 import { padString } from '../../utils/stringUtils.js';
+import { formatDate } from '../../utils/dateUtils.js';
 
 /**
  * Console output service for displaying TV show information
@@ -48,7 +49,7 @@ export class ConsoleOutputServiceImpl extends BaseOutputServiceImpl<string> {
     this.output.log('');
     this.output.log(appHeader);
     this.output.log(separator);
-    this.output.log(`Shows for ${this.formatDate(date)}`);
+    this.output.log(`Shows for ${formatDate(date)}`);
     this.output.log('');
   }
   
@@ -119,7 +120,7 @@ export class ConsoleOutputServiceImpl extends BaseOutputServiceImpl<string> {
     }
     
     this.output.log('\nDebug Information:');
-    this.output.log(`Date queried: ${this.formatDate(date)}`);
+    this.output.log(`Date queried: ${formatDate(date)}`);
     this.output.log('\nAvailable Networks:');
     this.output.log([...uniqueNetworks].sort().join(', '));
     this.output.log(`\nTotal Shows: ${shows.length}`);

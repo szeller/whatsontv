@@ -11,7 +11,7 @@ import type { ConfigService } from '../../interfaces/configService.js';
 import type { ShowOptions } from '../../types/tvShowOptions.js';
 import type { CliOptions, AppConfig, SlackConfig } from '../../types/configTypes.js';
 import type { CliArgs } from '../../types/cliArgs.js';
-import { getTodayDate } from '../../utils/dateUtils.js';
+import { getTodayDate, parseDateString } from '../../utils/dateUtils.js';
 import { getStringValue } from '../../utils/stringUtils.js';
 import { 
   toStringArray, 
@@ -132,15 +132,7 @@ export class ConsoleConfigServiceImpl implements ConfigService {
    * @returns Date object for the configured date
    */
   getDate(): Date {
-    const dateArg = this.getDateArg();
-    // Explicitly check for null, undefined, or empty string
-    if (dateArg !== undefined && dateArg !== null && dateArg !== '') {
-      // Fix timezone issue by ensuring date is interpreted in local timezone
-      const [year, month, day] = dateArg.split('-').map(Number);
-      // Month is 0-indexed in JavaScript Date
-      return new Date(year, month - 1, day);
-    }
-    return new Date();
+    return parseDateString(this.cliArgs.date);
   }
   
   /**
@@ -397,13 +389,5 @@ export class ConsoleConfigServiceImpl implements ConfigService {
     if (error instanceof Error) {
       console.error(`Warning: Could not load config.json: ${error.message}`);
     }
-  }
-  
-  /**
-   * Get the date argument from the CLI args
-   * @returns Date argument
-   */
-  protected getDateArg(): string | undefined {
-    return this.cliArgs.date;
   }
 }

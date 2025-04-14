@@ -5,6 +5,7 @@
 import type { ConfigService } from '../../interfaces/configService.js';
 import type { ShowOptions } from '../../types/tvShowOptions.js';
 import type { CliOptions, AppConfig, SlackConfig } from '../../types/configTypes.js';
+import { parseDateString } from '../../utils/dateUtils.js';
 
 export class TestConfigServiceImpl implements ConfigService {
   private showOptions: ShowOptions;
@@ -117,16 +118,7 @@ export class TestConfigServiceImpl implements ConfigService {
   getDate(): Date {
     // Parse the date string from showOptions
     const dateStr = this.showOptions.date;
-    if (dateStr !== undefined && dateStr !== null && dateStr !== '') {
-      // Try to parse the date string
-      const parsedDate = new Date(dateStr);
-      // Check if the date is valid
-      if (!isNaN(parsedDate.getTime())) {
-        return parsedDate;
-      }
-    }
-    // Return current date as fallback
-    return new Date();
+    return parseDateString(dateStr);
   }
   
   /**
