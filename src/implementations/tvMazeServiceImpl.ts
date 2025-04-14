@@ -11,7 +11,7 @@ import {
   getWebScheduleUrl, 
   transformSchedule 
 } from '../utils/tvMazeUtils.js';
-import { getTodayDate } from '../utils/dateUtils.js';
+import { convertTimeToMinutes, getTodayDate } from '../utils/dateUtils.js';
 import { getStringOrDefault } from '../utils/stringUtils.js';
 
 /**
@@ -182,7 +182,7 @@ export class TvMazeServiceImpl implements TvShowService {
     const minAirtime = options.minAirtime;
     if (minAirtime !== undefined && minAirtime !== null && minAirtime !== '') {
       // Convert minAirtime to minutes for comparison
-      const minTimeInMinutes = this.convertTimeToMinutes(minAirtime);
+      const minTimeInMinutes = convertTimeToMinutes(minAirtime);
       
       if (minTimeInMinutes >= 0) {
         filteredShows = filteredShows.filter((show: Show) => {
@@ -193,39 +193,13 @@ export class TvMazeServiceImpl implements TvShowService {
             return true;
           }
           
-          const showTimeInMinutes = this.convertTimeToMinutes(show.airtime);
+          const showTimeInMinutes = convertTimeToMinutes(show.airtime);
           return showTimeInMinutes >= minTimeInMinutes;
         });
       }
     }
 
     return filteredShows;
-  }
-  
-  /**
-   * Convert a time string to minutes since midnight for comparison
-   * @param timeStr - The time string to convert
-   * @returns Minutes since midnight, or -1 if the time string is invalid
-   * @private
-   */
-  private convertTimeToMinutes(timeStr: string): number {
-    if (!timeStr || typeof timeStr !== 'string') {
-      return -1;
-    }
-    
-    const timeParts = timeStr.split(':');
-    if (timeParts.length !== 2) {
-      return -1;
-    }
-    
-    const hours = parseInt(timeParts[0], 10);
-    const minutes = parseInt(timeParts[1], 10);
-    
-    if (isNaN(hours) || isNaN(minutes)) {
-      return -1;
-    }
-    
-    return hours * 60 + minutes;
   }
 
   /**
