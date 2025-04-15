@@ -253,6 +253,20 @@ npm run lint
 npm run typecheck
 ```
 
+### Testing Strategy
+
+The project follows a comprehensive testing strategy with a focus on high code coverage:
+
+- **Unit Testing**: All core components and utilities are unit tested
+- **Test Coverage**: Aiming for 80% coverage across statements, branches, functions, and lines
+- **Pure Function Testing**: Direct testing of pure functions without complex mocking
+- **Pragmatic Mocking**: Using Jest's spyOn for mocking when necessary
+- **Edge Case Testing**: Comprehensive testing of error handling and edge cases
+
+Recent improvements include achieving 100% test coverage for the `fileUtils.ts` module by implementing focused tests for pure functions and edge cases.
+
+For detailed test coverage information, see the [test coverage documentation](./docs/archive/testCoverage.md).
+
 ### Linting
 
 ```bash

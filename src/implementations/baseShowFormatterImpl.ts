@@ -5,9 +5,12 @@ import type { Show, NetworkGroups } from '../schemas/domain.js';
 import { 
   groupShowsByShowId, 
   hasAirtime, 
-  allShowsHaveNoAirtime 
-} from '../utils/consoleFormatUtils.js';
-import { sortShowsByTime } from '../utils/showUtils.js';
+  allShowsHaveNoAirtime,
+  formatEpisodeInfo,
+  formatNetworkName,
+  formatShowType
+} from '../utils/formatUtils.js';
+import { sortShowsByTime, sortEpisodesByNumber } from '../utils/showUtils.js';
 
 /**
  * Base abstract implementation of ShowFormatter with common functionality
@@ -17,7 +20,7 @@ import { sortShowsByTime } from '../utils/showUtils.js';
 export abstract class BaseShowFormatterImpl<TOutput> implements ShowFormatter<TOutput> {
   // Constants for formatting that can be overridden by subclasses
   protected readonly NO_AIRTIME = 'N/A';
-  protected readonly NO_NETWORK = 'N/A';
+  protected readonly NO_NETWORK = 'Unknown Network';
   protected readonly UNKNOWN_SHOW = 'Unknown Show';
   protected readonly UNKNOWN_TYPE = 'Unknown';
 
@@ -77,6 +80,10 @@ export abstract class BaseShowFormatterImpl<TOutput> implements ShowFormatter<TO
       }
       
       const showGroup = showGroups[showId];
+      if (showGroup === undefined) {
+        continue;
+      }
+      
       processedShowIds.add(showId);
       
       // Format based on number of episodes
@@ -169,25 +176,66 @@ export abstract class BaseShowFormatterImpl<TOutput> implements ShowFormatter<TO
    * @returns Formatted episode info string
    */
   protected formatEpisodeInfo(show: Show): string {
-    if (show === null || show === undefined || (!show.season && !show.number)) {
-      return '';
-    }
+    return formatEpisodeInfo(show);
+  }
+
+  /**
+   * Format a network name consistently
+   * @param networkName Network name to format
+   * @returns Formatted network name
+   */
+  protected formatNetworkName(networkName: string | null | undefined): string {
+    return formatNetworkName(networkName, this.NO_NETWORK);
+  }
+
+  /**
+   * Format a show type consistently
+   * @param type Show type to format
+   * @returns Formatted show type
+   */
+  protected formatShowType(type: string | null | undefined): string {
+    return formatShowType(type, this.UNKNOWN_TYPE);
+  }
+
+  /**
+   * Sort episodes by season and episode number
+   * @param shows Shows to sort
+   * @returns Sorted shows
+   */
+  protected sortEpisodesByNumber(shows: Show[]): Show[] {
+    return sortEpisodesByNumber(shows);
+  }
+
+  /**
+   * Prepare common components for a show
+   * @param show Show to prepare components for
+   * @returns Object with prepared components
+   */
+  protected prepareShowComponents(show: Show): {
+    time: string;
+    showName: string;
+    episodeInfo: string;
+    network: string;
+    type: string;
+  } {
+    // Handle airtime with explicit null/undefined checks
+    const time = show.airtime !== null && show.airtime !== undefined ? 
+      show.airtime : this.NO_AIRTIME;
     
-    const season = show.season 
-      ? `S${String(show.season).padStart(2, '0')}` 
-      : '';
-      
-    // Handle special episodes or episodes with missing numbers
-    if (!show.number) {
-      // For special episodes, we'll indicate it's a special
-      if (show.type && show.type.toLowerCase().includes('special')) {
-        return `${season} Special`;
-      }
-      return season;
-    }
+    // Handle show name with explicit null/undefined checks
+    const showName = show.name !== null && show.name !== undefined ? 
+      show.name : this.UNKNOWN_SHOW;
     
-    const episode = `E${String(show.number).padStart(2, '0')}`;
-    return season + episode;
+    // Format episode info (e.g., S01E01)
+    const episodeInfo = this.formatEpisodeInfo(show);
+    
+    // Handle network with explicit null/undefined checks
+    const network = this.formatNetworkName(show.network);
+    
+    // Handle show type with explicit null/undefined checks
+    const type = this.formatShowType(show.type);
+    
+    return { time, showName, episodeInfo, network, type };
   }
 
   /**

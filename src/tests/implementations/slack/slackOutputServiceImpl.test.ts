@@ -3,14 +3,14 @@
  */
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { container } from 'tsyringe';
-import { SlackOutputServiceImpl } from '../../../../implementations/slack/slackOutputServiceImpl';
-import type { SlackShowFormatter } from '../../../../interfaces/showFormatter';
-import type { SlackClient } from '../../../../interfaces/slackClient';
-import type { ConfigService } from '../../../../interfaces/configService';
-import type { NetworkGroups } from '../../../../schemas/domain';
-import { ShowBuilder } from '../../../fixtures/helpers/showFixtureBuilder';
-import { SlackShowFormatterFixture } from '../../../fixtures/helpers/slackShowFormatterFixture';
-import { groupShowsByNetwork } from '../../../../utils/showUtils';
+import { SlackOutputServiceImpl } from '../../../implementations/slack/slackOutputServiceImpl';
+import type { SlackShowFormatter } from '../../../interfaces/showFormatter';
+import type { SlackClient } from '../../../interfaces/slackClient';
+import type { ConfigService } from '../../../interfaces/configService';
+import type { NetworkGroups, Show } from '../../../schemas/domain';
+import { ShowBuilder } from '../../fixtures/helpers/showFixtureBuilder';
+import { SlackShowFormatterFixture } from '../../fixtures/helpers/slackShowFormatterFixture';
+import { groupShowsByNetwork } from '../../../utils/showUtils';
 
 describe('SlackOutputServiceImpl', () => {
   let outputService: SlackOutputServiceImpl;
@@ -230,6 +230,126 @@ describe('SlackOutputServiceImpl', () => {
         text: 'TV Shows by Network',
         blocks: emptyBlocks
       });
+    });
+  });
+  
+  describe('renderFooter', () => {
+    it('should not send any additional messages', async () => {
+      // We need to access the protected method, so we'll create a test class
+      class TestSlackOutputService extends SlackOutputServiceImpl {
+        public async testRenderFooter(): Promise<void> {
+          return this.renderFooter();
+        }
+      }
+      
+      // Create instance with our existing mocks
+      const testService = new TestSlackOutputService(
+        mockFormatter,
+        mockSlackClient,
+        mockConfigService
+      );
+      
+      // Act
+      await testService.testRenderFooter();
+      
+      // Assert - footer doesn't send any messages for Slack
+      expect(mockSlackClient.sendMessage).not.toHaveBeenCalled();
+    });
+  });
+  
+  describe('renderDebugInfo', () => {
+    it('should send debug information to Slack when debug mode is enabled', async () => {
+      // We need to access the protected method, so we'll create a test class
+      class TestSlackOutputService extends SlackOutputServiceImpl {
+        public async testRenderDebugInfo(shows: Show[], date: Date): Promise<void> {
+          return this.renderDebugInfo(shows, date);
+        }
+      }
+      
+      // Create instance with our existing mocks
+      const testService = new TestSlackOutputService(
+        mockFormatter,
+        mockSlackClient,
+        mockConfigService
+      );
+      
+      // Enable debug mode
+      mockConfigService.isDebugMode.mockReturnValue(true);
+      
+      // Act
+      await testService.testRenderDebugInfo(testShows, new Date('2022-12-28'));
+      
+      // Assert
+      expect(mockSlackClient.sendMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          channel: 'mock-channel',
+          text: expect.stringContaining('*Debug Information:*')
+        })
+      );
+      expect(mockSlackClient.sendMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          text: expect.stringContaining('Total Shows: 3')
+        })
+      );
+    });
+    
+    it('should handle errors when sending debug information', async () => {
+      // We need to access the protected method, so we'll create a test class
+      class TestSlackOutputService extends SlackOutputServiceImpl {
+        public async testRenderDebugInfo(shows: Show[], date: Date): Promise<void> {
+          return this.renderDebugInfo(shows, date);
+        }
+      }
+      
+      // Create instance with our existing mocks
+      const testService = new TestSlackOutputService(
+        mockFormatter,
+        mockSlackClient,
+        mockConfigService
+      );
+      
+      // Mock Slack client to throw an error
+      const error = new Error('Failed to send debug info');
+      mockSlackClient.sendMessage.mockRejectedValue(error);
+      
+      // Spy on console.error
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      
+      // Act
+      await testService.testRenderDebugInfo(testShows, new Date('2022-12-28'));
+      
+      // Assert
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Failed to send debug info to Slack:',
+        'Failed to send debug info'
+      );
+      
+      // Restore console.error
+      consoleSpy.mockRestore();
+    });
+  });
+  
+  describe('full renderOutput with debug mode', () => {
+    it('should include debug information when debug mode is enabled', async () => {
+      // Arrange
+      mockConfigService.isDebugMode.mockReturnValue(true);
+      const mockBlocks = [SlackShowFormatterFixture.createHeaderBlock()];
+      mockFormatter.formatNetworkGroups.mockReturnValue(mockBlocks);
+      
+      // Act
+      await outputService.renderOutput(testShows);
+      
+      // Assert
+      // Should send three messages - header, content, and debug info
+      expect(mockSlackClient.sendMessage).toHaveBeenCalledTimes(3);
+      
+      // Verify that one of the calls contains debug info
+      expect(mockSlackClient.sendMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          channel: 'mock-channel',
+          text: expect.stringContaining('*Debug Information:*')
+        })
+      );
     });
   });
 });

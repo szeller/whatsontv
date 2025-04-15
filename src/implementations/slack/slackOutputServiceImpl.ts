@@ -5,6 +5,7 @@ import type { SlackClient, SlackBlock } from '../../interfaces/slackClient.js';
 import type { Show } from '../../schemas/domain.js';
 import { BaseOutputServiceImpl } from '../baseOutputServiceImpl.js';
 import { formatDate } from '../../utils/dateUtils.js';
+import { formatError, generateDebugInfo, safeResolve } from '../../utils/errorHandling.js';
 
 /**
  * Slack implementation of the OutputService interface
@@ -80,7 +81,7 @@ export class SlackOutputServiceImpl extends BaseOutputServiceImpl<SlackBlock> {
    */
   protected async renderFooter(): Promise<void> {
     // Footer is handled in the renderContent method for Slack
-    await Promise.resolve();
+    await safeResolve();
   }
   
   /**
@@ -88,19 +89,14 @@ export class SlackOutputServiceImpl extends BaseOutputServiceImpl<SlackBlock> {
    * @param shows List of shows
    * @param _date The date for which shows are being displayed
    */
-  protected async renderDebugInfo(shows: Show[], _date: Date): Promise<void> {
-    const uniqueNetworks = new Set<string>();
-    for (const show of shows) {
-      if (show.network && typeof show.network === 'string') {
-        uniqueNetworks.add(show.network);
-      }
-    }
+  protected async renderDebugInfo(shows: Show[], date: Date): Promise<void> {
+    const debugInfo = generateDebugInfo(shows, date);
     
     const debugText = [
       '*Debug Information:*',
-      `Date queried: ${formatDate(_date)}`,
-      `Available Networks: ${[...uniqueNetworks].sort().join(', ')}`,
-      `Total Shows: ${shows.length}`
+      `Date queried: ${debugInfo.dateFormatted}`,
+      `Available Networks: ${debugInfo.networks.join(', ')}`,
+      `Total Shows: ${debugInfo.totalShows}`
     ].join('\n');
     
     try {
@@ -109,8 +105,7 @@ export class SlackOutputServiceImpl extends BaseOutputServiceImpl<SlackBlock> {
         text: debugText
       });
     } catch (error) {
-      console.error('Failed to send debug info to Slack:', 
-        error instanceof Error ? error.message : String(error));
+      console.error('Failed to send debug info to Slack:', formatError(error));
     }
   }
   
@@ -120,23 +115,17 @@ export class SlackOutputServiceImpl extends BaseOutputServiceImpl<SlackBlock> {
    */
   protected async handleError(error: unknown): Promise<void> {
     // Log the error
-    console.error('Error rendering Slack output:', 
-      error instanceof Error ? error.message : String(error));
+    console.error('Error rendering Slack output:', formatError(error));
     
     // Attempt to send error message
     try {
-      const errorMessage = error instanceof Error
-        ? error.message
-        : String(error);
-        
       await this.slackClient.sendMessage({
         channel: this.configService.getSlackOptions().channelId,
-        text: 'Error fetching TV shows: ' + errorMessage
+        text: 'Error fetching TV shows: ' + formatError(error)
       });
     } catch (sendError) {
       // If we can't even send the error message, just log it
-      console.error('Failed to send error message to Slack:', 
-        sendError instanceof Error ? sendError.message : String(sendError));
+      console.error('Failed to send error message to Slack:', formatError(sendError));
     }
   }
 }

@@ -1,11 +1,23 @@
 import { MockSlackClient } from './mockSlackClient.js';
 import type { SlackMessagePayload } from '../../../interfaces/slackClient.js';
+import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 
 describe('MockSlackClient', () => {
   let mockSlackClient: MockSlackClient;
+  let originalConsoleLog: typeof console.log;
   
   beforeEach(() => {
+    // Save original console.log
+    originalConsoleLog = console.log;
+    // Mock console.log to suppress output
+    console.log = jest.fn();
+    
     mockSlackClient = new MockSlackClient();
+  });
+  
+  afterEach(() => {
+    // Restore original console.log
+    console.log = originalConsoleLog;
   });
   
   it('should store sent messages', async () => {
@@ -70,7 +82,10 @@ describe('MockSlackClient', () => {
     expect(mockSlackClient.wasMessageSent({ text: 'Test with blocks' })).toBe(true);
     expect(mockSlackClient.wasMessageSent({ username: 'TestBot' })).toBe(true);
     expect(mockSlackClient.wasMessageSent({ 
-      blocks: [{ type: 'header' }, { type: 'section' }] 
+      blocks: [
+        { type: 'header', text: { type: 'plain_text', text: 'Test' } }, 
+        { type: 'section', text: { type: 'mrkdwn', text: 'Test' } }
+      ] 
     })).toBe(true);
     
     // Negative cases
@@ -101,5 +116,109 @@ describe('MockSlackClient', () => {
     
     // Assert
     expect(mockSlackClient.getMessages()[0].text).toBe('Original');
+  });
+  
+  describe('Debug functionality', () => {
+    it('should store debug logs when in store mode', async () => {
+      // Arrange
+      const debugClient = new MockSlackClient({ debugMode: 'store' });
+      
+      // Act
+      await debugClient.sendMessage({ 
+        channel: 'debug-channel', 
+        text: 'Debug message',
+        blocks: [{ type: 'section', text: { type: 'mrkdwn', text: 'Content' } }],
+        username: 'DebugBot'
+      });
+      
+      // Assert
+      expect(debugClient.getDebugLogs().length).toBeGreaterThan(0);
+      expect(debugClient.getDebugLogs()[0]).toContain('initialized with debug mode');
+    });
+    
+    it('should clear debug logs', async () => {
+      // Arrange
+      const debugClient = new MockSlackClient({ debugMode: 'store' });
+      await debugClient.sendMessage({ channel: 'test', text: 'Test' });
+      expect(debugClient.getDebugLogs().length).toBeGreaterThan(0);
+      
+      // Act
+      debugClient.clearDebugLogs();
+      
+      // Assert
+      expect(debugClient.getDebugLogs()).toHaveLength(0);
+    });
+    
+    it('should change debug mode', async () => {
+      // Arrange
+      const debugClient = new MockSlackClient();
+      
+      // Act
+      debugClient.setDebugMode('store');
+      await debugClient.sendMessage({ channel: 'test', text: 'After mode change' });
+      
+      // Assert
+      expect(debugClient.getDebugLogs().length).toBeGreaterThan(0);
+    });
+    
+    it('should generate message summary', async () => {
+      // Arrange
+      const debugClient = new MockSlackClient();
+      await debugClient.sendMessage({ 
+        channel: 'test', 
+        text: 'Test message',
+        blocks: [{ type: 'section', text: { type: 'mrkdwn', text: 'Content' } }]
+      });
+      
+      // Act
+      const summary = debugClient.printMessageSummary({ 
+        includeBlocks: true,
+        toConsole: false 
+      });
+      
+      // Assert
+      expect(summary.length).toBeGreaterThan(0);
+      expect(summary[0]).toContain('stored messages');
+      expect(summary.some(line => line.includes('Blocks:'))).toBe(true);
+    });
+    
+    it('should print message summary to console when toConsole is true', async () => {
+      // Arrange
+      const debugClient = new MockSlackClient();
+      await debugClient.sendMessage({ channel: 'test', text: 'Console output test' });
+      
+      // Act
+      const consoleLogMock = console.log as jest.Mock;
+      consoleLogMock.mockClear(); // Clear previous calls
+      
+      debugClient.printMessageSummary({ toConsole: true });
+      
+      // Assert
+      expect(consoleLogMock).toHaveBeenCalled();
+    });
+    
+    it('should handle different debug modes correctly', async () => {
+      // Test console mode - no need to mock console.log again as it's already mocked in beforeEach
+      const consoleClient = new MockSlackClient({ debugMode: 'console' });
+      
+      // Use the already mocked console.log
+      const consoleLogMock = console.log as jest.Mock;
+      consoleLogMock.mockClear(); // Clear previous calls
+      
+      try {
+        await consoleClient.sendMessage({ channel: 'test', text: 'Console mode test' });
+        expect(consoleLogMock).toHaveBeenCalled();
+        
+        // Reset for next test
+        consoleLogMock.mockClear();
+        
+        // Test none mode
+        const noneClient = new MockSlackClient({ debugMode: 'none' });
+        await noneClient.sendMessage({ channel: 'test', text: 'None mode test' });
+        expect(consoleLogMock).not.toHaveBeenCalled();
+      } finally {
+        // Restore is handled by afterEach
+      }
+    });
   });
 });

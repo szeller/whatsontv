@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { injectable } from 'tsyringe';
 
 import type { SlackShowFormatter } from '../../interfaces/showFormatter.js';
-import type { NetworkGroups, Show } from '../../schemas/domain.js';
+import type { Show } from '../../schemas/domain.js';
 import type { 
   SlackBlock, 
   SlackSectionBlock, 
@@ -11,27 +11,31 @@ import type {
   SlackContextBlock
 } from '../../interfaces/slackClient.js';
 import { formatTimeWithPeriod } from '../../utils/dateUtils.js';
+import { BaseShowFormatterImpl } from '../baseShowFormatterImpl.js';
+import { hasAirtime } from '../../utils/formatUtils.js';
 
 /**
  * Formats TV show data into Slack message blocks using the compact format
  */
 @injectable()
-export class SlackShowFormatterImpl implements SlackShowFormatter {
+export class SlackShowFormatterImpl extends BaseShowFormatterImpl<SlackBlock> 
+  implements SlackShowFormatter {
+
   /**
    * Format a show with a specific airtime
    * @param show Show with a specific airtime
    * @returns Formatted show representation as a Slack block
    */
   public formatTimedShow(show: Show): SlackSectionBlock {
+    const components = this.prepareShowComponents(show);
     const airtime = formatTimeWithPeriod(show.airtime);
-    const episodeInfo = this.formatEpisodeInfo(show);
-    const typeEmoji = this.getTypeEmoji(show.type);
+    const typeEmoji = this.getTypeEmoji(components.type);
     
     return {
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: `${typeEmoji} *${show.name}* ${episodeInfo} (${airtime})`
+        text: `${typeEmoji} *${components.showName}* ${components.episodeInfo} (${airtime})`
       }
     };
   }
@@ -42,14 +46,14 @@ export class SlackShowFormatterImpl implements SlackShowFormatter {
    * @returns Formatted show representation as a Slack block
    */
   public formatUntimedShow(show: Show): SlackSectionBlock {
-    const episodeInfo = this.formatEpisodeInfo(show);
-    const typeEmoji = this.getTypeEmoji(show.type);
+    const components = this.prepareShowComponents(show);
+    const typeEmoji = this.getTypeEmoji(components.type);
     
     return {
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: `${typeEmoji} *${show.name}* ${episodeInfo} (TBA)`
+        text: `${typeEmoji} *${components.showName}* ${components.episodeInfo} (${this.NO_AIRTIME})`
       }
     };
   }
@@ -60,7 +64,7 @@ export class SlackShowFormatterImpl implements SlackShowFormatter {
    * @returns Formatted show representations as Slack blocks
    */
   public formatMultipleEpisodes(shows: Show[]): SlackBlock[] {
-    if (!shows.length) {
+    if (!shows?.length) {
       const emptyBlock: SlackSectionBlock = {
         type: 'section',
         text: {
@@ -72,17 +76,11 @@ export class SlackShowFormatterImpl implements SlackShowFormatter {
     }
     
     // Sort episodes by season and episode number
-    const sortedEpisodes = [...shows].sort((a, b) => {
-      // First sort by season
-      if (a.season !== b.season) {
-        return (a.season || 0) - (b.season || 0);
-      }
-      // Then by episode number
-      return (a.number || 0) - (b.number || 0);
-    });
+    const sortedEpisodes = this.sortEpisodesByNumber(shows);
     
-    const typeEmoji = this.getTypeEmoji(shows[0].type);
-    const showName = shows[0].name;
+    const firstShow = sortedEpisodes[0];
+    const components = this.prepareShowComponents(firstShow);
+    const typeEmoji = this.getTypeEmoji(components.type);
     
     // If all episodes are from the same season, consolidate them
     const allSameSeason = sortedEpisodes.every(
@@ -101,19 +99,20 @@ export class SlackShowFormatterImpl implements SlackShowFormatter {
         const lastEpNum = String(lastEp.number).padStart(2, '0');
         
         // Determine if any episode has an airtime
-        const hasAirtime = sortedEpisodes.some(
-          (show) => show.airtime !== null && show.airtime !== undefined && show.airtime !== ''
-        );
+        const hasAirtimeValue = shows.some(show => hasAirtime(show));
         
-        const airtime = hasAirtime ? 
+        const airtime = hasAirtimeValue ? 
           ` (${formatTimeWithPeriod(firstEp.airtime)})` : 
-          ' (TBA)';
+          ` (${this.NO_AIRTIME})`;
         
         const consolidatedBlock: SlackSectionBlock = {
           type: 'section',
           text: {
             type: 'mrkdwn',
-            text: `${typeEmoji} *${showName}* ${season}E${firstEpNum}-${lastEpNum}${airtime}`
+            text: (
+              `${typeEmoji} *${components.showName}* ` +
+              `${season}E${firstEpNum}-${lastEpNum}${airtime}`
+            )
           }
         };
         
@@ -124,145 +123,74 @@ export class SlackShowFormatterImpl implements SlackShowFormatter {
     // If not consolidated, show each episode on its own line
     const episodeTexts = sortedEpisodes.map(show => {
       const episodeInfo = this.formatEpisodeInfo(show);
-      const hasAirtime = show.airtime !== null && 
-                         show.airtime !== undefined && 
-                         show.airtime !== '';
-      const airtimeText = hasAirtime ? 
-        ` (${formatTimeWithPeriod(show.airtime)})` : 
-        ' (TBA)';
-      return `  • ${episodeInfo}${airtimeText}`;
+      const hasAirtimeValue = hasAirtime(show);
+      const airtime = hasAirtimeValue ? 
+        formatTimeWithPeriod(show.airtime) : 
+        this.NO_AIRTIME;
+      
+      return (
+        `${typeEmoji} *${components.showName}* ` +
+        `${episodeInfo} (${airtime})`
+      );
     });
     
-    const episodesBlock: SlackSectionBlock = {
+    const multiEpisodeBlock: SlackSectionBlock = {
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: `${typeEmoji} *${showName}*\n${episodeTexts.join('\n')}`
+        text: episodeTexts.join('\n')
       }
     };
     
-    return [episodesBlock];
+    return [multiEpisodeBlock];
   }
   
   /**
-   * Format a single network and its shows
-   * @param network Network name
-   * @param shows Shows in the network
-   * @returns Formatted output for the network and its shows as Slack blocks
+   * Format the header for network display
+   * @param network The network name
+   * @returns Formatted header items
    */
-  public formatNetwork(network: string, shows?: Show[]): SlackBlock[] {
-    if (!shows || shows.length === 0) {
-      const headerBlock: SlackSectionBlock = {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: `*${network}*`
-        }
-      };
-      return [headerBlock];
-    }
+  protected formatNetworkHeader(network: string): SlackBlock[] {
+    const formattedNetwork = this.formatNetworkName(network);
     
-    const blocks: SlackBlock[] = [];
-    
-    // Add network header
-    const headerBlock: SlackSectionBlock = {
-      type: 'section',
+    const headerBlock: SlackHeaderBlock = {
+      type: 'header',
       text: {
-        type: 'mrkdwn',
-        text: `*${network}*`
+        type: 'plain_text',
+        text: formattedNetwork,
+        emoji: true
       }
     };
-    blocks.push(headerBlock);
     
-    // Group shows by name to consolidate multiple episodes of the same show
-    const showsByName: Record<string, Show[]> = {};
-    for (const show of shows) {
-      const name = show.name || 'Unknown Show';
-      if (showsByName[name] === undefined) {
-        showsByName[name] = [];
-      }
-      showsByName[name].push(show);
-    }
-    
-    // Format all shows for this network into a single block
-    const showLines: string[] = [];
-    
-    for (const [showName, showGroup] of Object.entries(showsByName)) {
-      if (showGroup.length > 1 && showGroup.every(s => s.season === showGroup[0].season)) {
-        // Check if episodes are sequential
-        const sortedEpisodes = [...showGroup].sort((a, b) => {
-          return (a.number || 0) - (b.number || 0);
-        });
-        
-        const isSequential = sortedEpisodes.every((show, index, arr) => {
-          if (index === 0) return true;
-          return (show.number || 0) === (arr[index - 1].number || 0) + 1;
-        });
-        
-        if (isSequential && sortedEpisodes.length > 1) {
-          // Consolidate sequential episodes
-          const firstEp = sortedEpisodes[0];
-          const lastEp = sortedEpisodes[sortedEpisodes.length - 1];
-          
-          if (firstEp.number && lastEp.number) {
-            const typeEmoji = this.getTypeEmoji(firstEp.type);
-            const season = `S${String(firstEp.season).padStart(2, '0')}`;
-            const firstEpNum = String(firstEp.number).padStart(2, '0');
-            const lastEpNum = String(lastEp.number).padStart(2, '0');
-            
-            // Use the airtime of the first episode if available
-            const hasAirtime = firstEp.airtime !== null && 
-                              firstEp.airtime !== undefined && 
-                              firstEp.airtime !== '';
-            const airtime = hasAirtime ? 
-              ` (${formatTimeWithPeriod(firstEp.airtime)})` : 
-              ' (N/A)';
-            
-            showLines.push(
-              `${typeEmoji} *${showName}* ${season}E${firstEpNum}-${lastEpNum}${airtime}`
-            );
-            continue;
-          }
-        }
-      }
-      
-      // If not consolidated, format each show individually
-      for (const show of showGroup) {
-        const airtime = show.airtime !== null && 
-                        show.airtime !== undefined && 
-                        show.airtime !== '' ? 
-          formatTimeWithPeriod(show.airtime) : 'N/A';
-        const episodeInfo = this.formatEpisodeInfo(show);
-        const typeEmoji = this.getTypeEmoji(show.type);
-        
-        showLines.push(`${typeEmoji} *${showName}* ${episodeInfo} (${airtime})`);
-      }
-    }
-    
-    const showsBlock: SlackSectionBlock = {
-      type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: showLines.join('\n')
-      }
-    };
-    blocks.push(showsBlock);
-    
-    return blocks;
+    return [headerBlock];
   }
   
   /**
-   * Format a list of network groups into Slack blocks
-   * @param networkGroups The network groups to format
-   * @returns Slack blocks representing the network groups
+   * Format content for an empty network
+   * @param network The network name
+   * @returns Formatted empty network content
    */
-  public formatNetworkGroups(networkGroups: NetworkGroups): SlackBlock[] {
+  protected formatEmptyNetwork(network: string): SlackBlock[] {
+    const headerBlocks = this.formatNetworkHeader(network);
+    
+    const emptyBlock: SlackSectionBlock = {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: 'No shows found for this network'
+      }
+    };
+    
+    return [...headerBlocks, emptyBlock];
+  }
+  
+  /**
+   * Format the header content for the network groups
+   * @returns Formatted header content
+   */
+  protected formatHeader(): SlackBlock[] {
     const blocks: SlackBlock[] = [];
-    const totalShows = Object.values(networkGroups).reduce(
-      (count, shows) => count + shows.length, 
-      0
-    );
-
+    
     // Add header block
     const headerBlock: SlackHeaderBlock = {
       type: 'header',
@@ -273,32 +201,19 @@ export class SlackShowFormatterImpl implements SlackShowFormatter {
       }
     };
     blocks.push(headerBlock);
-
-    // Add context with show count
-    const contextBlock: SlackContextBlock = {
-      type: 'context',
-      elements: [
-        {
-          type: 'mrkdwn',
-          text: `Found *${totalShows}* shows airing today`
-        }
-      ]
-    };
-    blocks.push(contextBlock);
-
+    
     // Add divider after header
     const dividerBlock: SlackDividerBlock = { type: 'divider' };
     blocks.push(dividerBlock);
-
-    // Process each network group
-    Object.entries(networkGroups).forEach(([network, shows]) => {
-      // Add network blocks
-      blocks.push(...this.formatNetwork(network, shows));
-      
-      // Add divider between networks
-      blocks.push({ type: 'divider' });
-    });
-
+    
+    return blocks;
+  }
+  
+  /**
+   * Format the footer content for the network groups
+   * @returns Formatted footer content
+   */
+  protected formatFooter(): SlackBlock[] {
     // Add footer
     const footerBlock: SlackContextBlock = {
       type: 'context',
@@ -309,30 +224,16 @@ export class SlackShowFormatterImpl implements SlackShowFormatter {
         }
       ]
     };
-    blocks.push(footerBlock);
-
-    return blocks;
+    
+    return [footerBlock];
   }
-
+  
   /**
-   * Format episode info in the format S01E01
-   * @param show The show to format episode info for
-   * @returns Formatted episode info string
+   * Format separator between networks
+   * @returns Formatted network separator
    */
-  private formatEpisodeInfo(show: Show): string {
-    if (!show.season && !show.number) {
-      return '';
-    }
-    
-    const season = show.season 
-      ? `S${String(show.season).padStart(2, '0')}` 
-      : '';
-      
-    const episode = show.number 
-      ? `E${String(show.number).padStart(2, '0')}` 
-      : '';
-    
-    return season + episode;
+  protected formatNetworkSeparator(): SlackBlock[] {
+    return [{ type: 'divider' }];
   }
 
   /**
@@ -340,8 +241,8 @@ export class SlackShowFormatterImpl implements SlackShowFormatter {
    * @param type The show type
    * @returns An emoji representing the show type
    */
-  private getTypeEmoji(type: string | null | undefined): string {
-    if (type === null || type === undefined || type === '') {
+  private getTypeEmoji(type: string): string {
+    if (!type || type === this.UNKNOWN_TYPE) {
       return '📺';
     }
     

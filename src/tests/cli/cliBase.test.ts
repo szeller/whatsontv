@@ -7,15 +7,15 @@ import {
   it,
   expect
 } from '@jest/globals';
-import type { OutputService } from '../../interfaces/outputService';
-import type { TvShowService } from '../../interfaces/tvShowService';
-import type { ConfigService } from '../../interfaces/configService';
-import type { ConsoleOutput } from '../../interfaces/consoleOutput';
+import type { OutputService } from '../../interfaces/outputService.js';
+import type { TvShowService } from '../../interfaces/tvShowService.js';
+import type { ConfigService } from '../../interfaces/configService.js';
+import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
 import type { Show } from '../../schemas/domain.js';
-import type { CliOptions, AppConfig } from '../../types/configTypes';
-import type { ShowOptions } from '../../types/tvShowOptions';
-import { Fixtures } from '../helpers/fixtureHelper';
-import { BaseCliApplication } from '../../utils/cliBase.js';
+import type { CliOptions, AppConfig } from '../../types/configTypes.js';
+import type { ShowOptions } from '../../types/tvShowOptions.js';
+import { Fixtures } from '../helpers/fixtureHelper.js';
+import { BaseCliApplication } from '../../cli/cliBase.js';
 
 // Mock the console implementation to avoid actual console output during tests
 jest.spyOn(console, 'log').mockImplementation(() => {});

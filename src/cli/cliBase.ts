@@ -5,7 +5,7 @@ import type { ConsoleOutput } from '../interfaces/consoleOutput.js';
 import type { TvShowService } from '../interfaces/tvShowService.js';
 import type { ConfigService } from '../interfaces/configService.js';
 import type { Show } from '../schemas/domain.js';
-import { formatError, handleMainError, isDirectExecution } from './errorHandling.js';
+import { formatError, handleMainError, isDirectExecution } from '../utils/errorHandling.js';
 import { OutputService } from '../interfaces/outputService.js';
 
 /**

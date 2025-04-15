@@ -2,13 +2,13 @@
   "name": "whatsontv",
   "version": "1.0.0",
   "description": "A CLI tool to notify about TV show schedules using TVMaze API",
-  "main": "src/slack.ts",
+  "main": "src/cli/slackCli.ts",
   "type": "module",
   "bin": {
-    "whatsontv": "./src/cli.ts"
+    "whatsontv": "./src/cli/consoleCli.ts"
   },
   "scripts": {
-    "start": "tsx src/cli.ts",
+    "start": "tsx src/cli/consoleCli.ts",
     "test": "NODE_OPTIONS=\"--experimental-vm-modules --no-warnings\" tsx node_modules/jest/bin/jest.js --coverage --coverageReporters=text --coverageReporters=lcov --coverageReporters=json-summary",
     "test:no-coverage": "NODE_OPTIONS=\"--experimental-vm-modules --no-warnings\" tsx node_modules/jest/bin/jest.js --coverage=false",
     "lint": "eslint --config eslint.config.js 'src/**/*.ts' --report-unused-disable-directives",
@@ -16,8 +16,8 @@
     "lint:ci": "eslint --config eslint.config.js 'src/**/*.ts' --report-unused-disable-directives --max-warnings 999",
     "ci": "npm run lint:ci && tsc --noEmit && npm test",
     "precommit": "npm run lint:ci && tsc --noEmit && npm run test:no-coverage",
-    "shows": "tsx src/cli.ts",
-    "slack": "tsx src/slack.ts",
+    "shows": "tsx src/cli/consoleCli.ts",
+    "slack": "tsx src/cli/slackCli.ts",
     "prepare": "husky",
     "build": "tsc --emitDeclarationOnly",
     "prepublishOnly": "npm run build",

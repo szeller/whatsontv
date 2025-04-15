@@ -1,13 +1,13 @@
 #!/usr/bin/env tsx
 
 import 'reflect-metadata';
-import { container } from './container.js';
-import type { ConsoleOutput } from './interfaces/consoleOutput.js';
-import type { OutputService } from './interfaces/outputService.js';
-import type { TvShowService } from './interfaces/tvShowService.js';
-import type { ConfigService } from './interfaces/configService.js';
-import { BaseCliApplication, runMain } from './utils/cliBase.js';
-import { registerGlobalErrorHandler } from './utils/errorHandling.js';
+import { container } from '../container.js';
+import type { ConsoleOutput } from '../interfaces/consoleOutput.js';
+import type { OutputService } from '../interfaces/outputService.js';
+import type { TvShowService } from '../interfaces/tvShowService.js';
+import type { ConfigService } from '../interfaces/configService.js';
+import { BaseCliApplication, runMain } from './cliBase.js';
+import { registerGlobalErrorHandler } from '../utils/errorHandling.js';
 
 // Get ConsoleOutput service for global error handling
 const consoleOutput = container.resolve<ConsoleOutput>('ConsoleOutput');

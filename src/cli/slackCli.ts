@@ -6,13 +6,13 @@
  */
 
 import 'reflect-metadata';
-import { container, initializeSlackContainer } from './slackContainer.js';
-import type { ConsoleOutput } from './interfaces/consoleOutput.js';
-import type { TvShowService } from './interfaces/tvShowService.js';
-import type { ConfigService } from './interfaces/configService.js';
-import type { OutputService } from './interfaces/outputService.js';
-import { BaseCliApplication, runMain } from './utils/cliBase.js';
-import { registerGlobalErrorHandler } from './utils/errorHandling.js';
+import { container, initializeSlackContainer } from '../slackContainer.js';
+import type { ConsoleOutput } from '../interfaces/consoleOutput.js';
+import type { TvShowService } from '../interfaces/tvShowService.js';
+import type { ConfigService } from '../interfaces/configService.js';
+import type { OutputService } from '../interfaces/outputService.js';
+import { BaseCliApplication, runMain } from './cliBase.js';
+import { registerGlobalErrorHandler } from '../utils/errorHandling.js';
 
 // Initialize the Slack container
 initializeSlackContainer();

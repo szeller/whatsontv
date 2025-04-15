@@ -1,6 +1,6 @@
 # WhatsOnTV Testing Standards
 
-This document outlines the testing standards, patterns, and utilities used in the WhatsOnTV application. It serves as a reference for developers working on the codebase to ensure consistent testing practices.
+This document outlines the comprehensive testing standards, patterns, and utilities used in the WhatsOnTV application. It serves as a reference for developers working on the codebase to ensure consistent testing practices.
 
 ## Table of Contents
 
@@ -8,9 +8,18 @@ This document outlines the testing standards, patterns, and utilities used in th
 2. [Test Coverage Requirements](#test-coverage-requirements)
 3. [Test Directory Structure](#test-directory-structure)
 4. [Test Fixtures System](#test-fixtures-system)
-5. [Testing Patterns](#testing-patterns)
-6. [Mocking Strategy](#mocking-strategy)
-7. [Test Naming Conventions](#test-naming-conventions)
+   - [JSON Fixtures](#json-fixtures)
+   - [Builder Pattern](#builder-pattern)
+   - [ShowBuilder Usage](#showbuilder-usage)
+   - [Best Practices](#fixture-best-practices)
+5. [Mock Implementation System](#mock-implementation-system)
+   - [Mock Factories](#mock-factories)
+   - [Mock Implementations](#mock-implementations)
+   - [Using Mocks in Tests](#using-mocks-in-tests)
+6. [Testing Patterns](#testing-patterns)
+7. [Mocking Strategy](#mocking-strategy)
+8. [Testing ES Modules](#testing-es-modules)
+9. [Test Naming Conventions](#test-naming-conventions)
 
 ## Testing Philosophy
 
@@ -45,75 +54,214 @@ Tests are organized to mirror the source code structure:
 src/
 ├── tests/
 │   ├── fixtures/       # Test fixtures and test data
+│   │   ├── domain/     # Domain model fixtures
+│   │   └── helpers/    # Fixture helper utilities
 │   ├── helpers/        # Test helper utilities
 │   ├── implementations/ # Tests for implementation classes
 │   │   ├── console/    # Tests for console implementations
 │   │   └── tvmaze/     # Tests for TVMaze implementations
 │   ├── interfaces/     # Tests for interface definitions
+│   ├── mocks/          # Mock implementations and factories
+│   │   ├── factories/  # Factory functions for creating mocks
+│   │   └── implementations/ # Mock implementations of interfaces
 │   ├── services/       # Tests for service classes
 │   └── utils/          # Tests for utility functions
 ```
 
 ## Test Fixtures System
 
-### Fixture Organization
+The WhatsOnTV project uses a standardized approach to test fixtures to ensure consistency, maintainability, and readability across all test files.
 
-The WhatsOnTV project uses a comprehensive fixtures system located in `src/tests/fixtures/` to provide consistent test data across all tests:
+### JSON Fixtures
 
-```
-src/tests/fixtures/
-├── domain/             # Domain model fixtures
-│   ├── networks.ts     # Network groups fixtures
-│   └── shows.ts        # Show domain model fixtures
-├── tvmaze/             # TVMaze API fixtures
-│   ├── models.ts       # TVMaze API model fixtures
-│   └── *.json          # Raw JSON fixture data
-└── index.ts            # Main export file
-```
+Use JSON fixtures when:
 
-### Using Fixtures in Tests
+- You need consistent, reusable test data across multiple test files
+- The test data represents real-world examples (e.g., API responses)
+- The data structure is complex and would be verbose to create programmatically
+- You want to simulate specific edge cases consistently
 
-The fixtures are exported through a centralized `Fixtures` object that provides access to all test data:
+JSON fixtures are located in `src/tests/fixtures/domain/` and can be loaded using the `Fixtures` helper.
+
+### Builder Pattern
+
+Use the builder pattern (e.g., `ShowBuilder`) when:
+
+- You need to create variations of objects with specific properties
+- You need to create objects dynamically during test execution
+- You need to create multiple similar objects with slight variations
+- You want to improve test readability by focusing on the properties relevant to the test
+
+### ShowBuilder Usage
+
+The `ShowBuilder` class provides a fluent interface for creating `Show` objects:
 
 ```typescript
-import { Fixtures } from '../../fixtures/index.js';
+import { ShowBuilder } from '../fixtures/helpers/showFixtureBuilder.js';
 
-describe('MyComponent', () => {
-  it('should process shows correctly', () => {
-    // Get sample network shows
-    const shows = Fixtures.domain.getNetworkShows();
-    
-    // Use the fixture data in your test
-    const result = myComponent.processShows(shows);
-    expect(result).toBeDefined();
-  });
+// Create a basic show
+const basicShow = new ShowBuilder()
+  .withId(1)
+  .withName('Test Show')
+  .withNetwork('Test Network')
+  .build();
+
+// Create a show with an episode
+const episodeShow = new ShowBuilder()
+  .withId(2)
+  .withName('Episode Show')
+  .withEpisode(1, 5) // Season 1, Episode 5
+  .build();
+```
+
+### Fixture Best Practices
+
+1. **Use Helper Functions**: Create helper functions for common test data patterns to avoid duplication:
+
+   ```typescript
+   function createTestEpisode(season: number, number: number): Show {
+     return new ShowBuilder()
+       .withId(1)
+       .withName('Test Show')
+       .withEpisode(season, number)
+       .build();
+   }
+   ```
+
+2. **Minimal Test Data**: Only set the properties that are relevant to your test:
+
+   ```typescript
+   // Good - only sets properties needed for the test
+   const show = new ShowBuilder()
+     .withNetwork('CBS')
+     .build();
+
+   // Avoid - sets unnecessary properties
+   const show = new ShowBuilder()
+     .withId(1)
+     .withName('Test Show')
+     .withNetwork('CBS')
+     .withLanguage('English')
+     .withType('Scripted')
+     .withGenres(['Drama'])
+     .withSummary('Test summary')
+     .withAirtime('20:00')
+     .withEpisode(1, 1)
+     .build();
+   ```
+
+3. **Consistent Naming**: Use consistent naming conventions for test data:
+
+   ```typescript
+   // Descriptive names that indicate the purpose
+   const showWithNoAirtime = new ShowBuilder().withAirtime(null).build();
+   const englishShow = new ShowBuilder().withLanguage('English').build();
+   ```
+
+4. **Array Creation Helpers**: Use the helper functions in `showFixtureHelpers.ts` for creating arrays of shows:
+
+   ```typescript
+   import { createShowArrayWithSequentialIds } from '../fixtures/helpers/showFixtureHelpers.js';
+
+   // Create 5 shows with IDs 1-5
+   const shows = createShowArrayWithSequentialIds(5);
+   ```
+
+## Mock Implementation System
+
+The WhatsOnTV project uses a standardized approach to mocks with centralized mock implementations and factory functions to create properly configured mock instances.
+
+### Mock Factories
+
+Mock factories are reusable functions that create and configure mock instances for testing:
+
+```typescript
+import { createMockHttpClient } from '../../mocks/factories/httpClientFactory.js';
+import { createMockConfigService } from '../../mocks/factories/configServiceFactory.js';
+
+// Create a mock HTTP client with specific configuration
+const mockHttpClient = createMockHttpClient({
+  defaultResponse: { data: { result: 'success' }, status: 200, headers: {} },
+  errorOnPaths: ['/error']
+});
+
+// Create a mock config service with specific settings
+const mockConfigService = createMockConfigService({
+  date: new Date('2025-04-14'),
+  debugMode: true
 });
 ```
 
-### Available Fixture Categories
+The project provides the following mock factories:
 
-1. **Domain Fixtures**
-   - `Fixtures.domain.getNetworkShows()` - Sample network TV shows
-   - `Fixtures.domain.getStreamingShows()` - Sample streaming shows
-   - `Fixtures.domain.getCableShows()` - Sample cable shows
-   - `Fixtures.domain.getAllShows()` - Combined array of all show types
-   - `Fixtures.domain.getNetworkGroups()` - Sample network groups object
+1. `configServiceFactory.ts` - Creates mock ConfigService instances
+2. `consoleOutputFactory.ts` - Creates mock ConsoleOutput instances
+3. `formatterFactory.ts` - Creates mock ShowFormatter instances
+4. `httpClientFactory.ts` - Creates mock HttpClient instances
+5. `outputServiceFactory.ts` - Creates mock OutputService instances
+6. `slackClientFactory.ts` - Creates mock SlackClient instances
+7. `styleServiceFactory.ts` - Creates mock StyleService instances
+8. `tvShowServiceFactory.ts` - Creates mock TvShowService instances
 
-2. **TVMaze API Fixtures**
-   - `Fixtures.tvMaze.getSchedule()` - Raw TVMaze schedule data
-   - `Fixtures.tvMaze.getNetworkSchedule()` - Network schedule data
-   - `Fixtures.tvMaze.getWebSchedule()` - Web/streaming schedule data
-   - `Fixtures.tvMaze.getCombinedSchedule()` - Combined schedule data
-   - `Fixtures.tvMaze.loadNetworkShows()` - Transformed network shows
-   - `Fixtures.tvMaze.loadWebShows()` - Transformed web shows
+All factories are exported through a central index.ts file and can be imported as:
 
-### Extending Fixtures
+```typescript
+import { 
+  createMockHttpClient, 
+  createMockConfigService,
+  // other factories...
+} from '../../mocks/factories/index.js';
+```
 
-When adding new test cases that require specific data patterns, extend the existing fixtures rather than creating inline test data:
+### Mock Implementations
 
-1. Add your new fixture function to the appropriate file in `src/tests/fixtures/`
-2. Follow the established naming conventions and documentation patterns
-3. Export the function through the main `index.ts` file
+For interfaces that require more complex behavior, the project maintains dedicated mock implementations:
+
+```typescript
+// Using a mock implementation directly
+import { MockSlackClient } from '../../mocks/implementations/mockSlackClient.js';
+
+const slackClient = new MockSlackClient();
+```
+
+Mock implementations are found in the `src/tests/mocks/implementations/` directory.
+
+### Using Mocks in Tests
+
+Tests should use mock factories and implementations to create consistent, type-safe mocks:
+
+```typescript
+describe('MyService', () => {
+  let service: MyService;
+  let mockHttpClient: jest.Mocked<HttpClient>;
+  let mockConfigService: ConfigService;
+
+  beforeEach(() => {
+    // Create mocks using factories
+    mockHttpClient = createMockHttpClient();
+    mockConfigService = createMockConfigService();
+
+    // Create the service with mocks injected
+    service = new MyService(mockHttpClient, mockConfigService);
+  });
+
+  it('should fetch data successfully', async () => {
+    // Configure mock behavior for this test
+    mockHttpClient.get.mockResolvedValueOnce({
+      data: { id: 1, name: 'Test' },
+      status: 200,
+      headers: {}
+    });
+
+    // Test the service
+    const result = await service.fetchData();
+    
+    // Verify expectations
+    expect(result).toEqual({ id: 1, name: 'Test' });
+    expect(mockHttpClient.get).toHaveBeenCalledWith('/data');
+  });
+});
+```
 
 ## Testing Patterns
 
@@ -182,11 +330,72 @@ const service = new ConsoleOutputServiceImpl(mockTvShowService, mockFormatter);
 For utility functions or external dependencies, use Jest's mocking capabilities:
 
 ```typescript
-// Mock a module
-jest.mock('../../../utils/dateUtils.js', () => ({
-  formatDate: jest.fn().mockReturnValue('2023-01-01'),
-  getCurrentDate: jest.fn().mockReturnValue(new Date('2023-01-01'))
-}));
+// Mock a function using spyOn
+jest.spyOn(fs, 'readFileSync').mockReturnValue('{"key": "value"}');
+
+// Restore mocks after test
+afterEach(() => {
+  jest.restoreAllMocks();
+});
+```
+
+### Pragmatic Testing Approach
+
+When testing ES modules and pure functions, follow these pragmatic guidelines:
+
+1. **Focus on Pure Functions**: Test pure functions directly without complex mocking
+2. **Use spyOn for Mocking**: Prefer `jest.spyOn()` over direct module mocking when possible
+3. **Mock at the Function Level**: Mock specific functions rather than entire modules
+4. **Restore Mocks**: Always restore mocks after tests to prevent test pollution
+5. **Test Edge Cases**: Include tests for error handling and edge cases
+
+This approach has proven effective in achieving high test coverage while maintaining test simplicity, as demonstrated in the `fileUtils.ts` module tests.
+
+## Testing ES Modules
+
+Testing ES modules can be challenging due to their import/export behavior. Follow these best practices:
+
+1. **Direct Testing**: When possible, test the exported functions directly rather than mocking the entire module
+2. **Function Spying**: Use `jest.spyOn()` to mock specific imported functions:
+   ```typescript
+   import * as fs from 'fs';
+   
+   jest.spyOn(fs, 'readFileSync').mockImplementation(() => '{"key": "value"}');
+   ```
+3. **Avoid Manual Mocks**: Prefer direct mocking over creating manual mock files in `__mocks__` directories
+4. **Test Pure Functions**: Focus on testing the pure logic of functions, isolating them from external dependencies
+5. **Error Handling**: Include tests for error scenarios, especially for file operations and parsing functions
+
+Example of testing a function that uses ES module imports:
+
+```typescript
+import { parseConfigFile } from '../../../utils/fileUtils.js';
+import * as fs from 'fs';
+
+describe('parseConfigFile', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('should parse valid JSON content', () => {
+    // Arrange
+    const mockContent = '{"key": "value"}';
+    
+    // Act
+    const result = parseConfigFile(mockContent);
+    
+    // Assert
+    expect(result).toEqual({ key: 'value' });
+  });
+
+  it('should handle invalid JSON content', () => {
+    // Arrange
+    const mockContent = 'invalid json';
+    
+    // Act & Assert
+    expect(() => parseConfigFile(mockContent)).toThrow();
+  });
+});
 ```
 
 ## Test Naming Conventions
@@ -220,4 +429,4 @@ describe('formatEpisodeRanges', () => {
 });
 ```
 
-By following these testing standards and leveraging our fixture system, we can maintain high-quality tests that are consistent, maintainable, and effective at catching regressions.
+By following these testing standards and leveraging our fixture and mock systems, we can maintain high-quality tests that are consistent, maintainable, and effective at catching regressions.
