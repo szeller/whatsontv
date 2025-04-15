@@ -1,9 +1,6 @@
 /**
  * Implementation of ConfigService that combines CLI arguments and config file
  */
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { injectable } from 'tsyringe';
 import yargs from 'yargs';
 
@@ -15,10 +12,17 @@ import { getTodayDate, parseDateString } from '../../utils/dateUtils.js';
 import { getStringValue } from '../../utils/stringUtils.js';
 import { 
   toStringArray, 
-  resolveRelativePath,
   coerceFetchSource,
-  mergeShowOptions
+  mergeShowOptions,
+  getDefaultConfig
 } from '../../utils/configUtils.js';
+import {
+  fileExists,
+  readFile,
+  parseConfigFile,
+  handleConfigError,
+  getConfigFilePath
+} from '../../utils/fileUtils.js';
 
 @injectable()
 export class ConsoleConfigServiceImpl implements ConfigService {
@@ -140,9 +144,7 @@ export class ConsoleConfigServiceImpl implements ConfigService {
    * @returns True if debug mode is enabled
    */
   isDebugMode(): boolean {
-    // Get CLI options and check debug flag
-    const cliOptions = this.getCliOptions();
-    return cliOptions.debug === true;
+    return Boolean(this.cliOptions.debug);
   }
   
   /**
@@ -152,50 +154,24 @@ export class ConsoleConfigServiceImpl implements ConfigService {
    * @protected
    */
   protected parseArgs(args?: string[]): CliArgs {
-    // Use debug flag to conditionally log arguments
-    if (process.env.DEBUG === 'true') {
-      console.warn('Args:', args || process.argv.slice(2));
-    }
-    
+    // Create a yargs instance with our options
     const yargsInstance = this.createYargsInstance(args || process.argv.slice(2));
     
-    // In tests, we need to disable strict mode and exit behavior
-    const parsedArgs = yargsInstance
-      .parserConfiguration({
-        'boolean-negation': false,
-        'camel-case-expansion': false,
-        'dot-notation': false,
-        'duplicate-arguments-array': false,
-        'halt-at-non-option': false,
-        'strip-aliased': true,
-        'strip-dashed': true,
-        'unknown-options-as-args': true
-      })
-      .fail(false)
-      .parseSync();
+    // Parse the arguments - use parseSync to ensure we get a synchronous result
+    const parsedArgs = yargsInstance.parseSync();
     
-    // Use debug flag to conditionally log parsed arguments
-    if (process.env.DEBUG === 'true') {
-      console.warn('Parsed args:', parsedArgs);
-    }
-    
-    // Convert to CliArgs type with proper handling of optional arrays
-    const dateValue = String(parsedArgs.date) === 'undefined' ? undefined : String(parsedArgs.date);
-    
+    // Convert to our CliArgs type with proper type handling
     return {
-      date: getStringValue(dateValue, getTodayDate()),
-      country: getStringValue(String(parsedArgs.country), 'US'),
+      date: getStringValue(String(parsedArgs.date ?? ''), getTodayDate()),
+      country: getStringValue(String(parsedArgs.country ?? ''), 'US'),
       types: toStringArray(parsedArgs.types as string | string[] | undefined),
       networks: toStringArray(parsedArgs.networks as string | string[] | undefined),
       genres: toStringArray(parsedArgs.genres as string | string[] | undefined),
       languages: toStringArray(parsedArgs.languages as string | string[] | undefined),
-      minAirtime: getStringValue(String(parsedArgs.minAirtime), '18:00'),
+      minAirtime: getStringValue(String(parsedArgs.minAirtime ?? ''), '18:00'),
       debug: Boolean(parsedArgs.debug),
-      fetch: parsedArgs.fetch !== undefined ? 
-        coerceFetchSource(parsedArgs.fetch as string) : 'network',
-      groupByNetwork: parsedArgs['group-by-network'] !== undefined 
-        ? Boolean(parsedArgs['group-by-network']) 
-        : true // Default to true if not specified
+      fetch: coerceFetchSource(parsedArgs.fetch),
+      groupByNetwork: true // Default to true, not configurable via CLI yet
     };
   }
   
@@ -210,12 +186,13 @@ export class ConsoleConfigServiceImpl implements ConfigService {
       .option({
         date: {
           alias: 'd',
-          describe: 'Date to get schedule for (YYYY-MM-DD)',
-          type: 'string'
+          describe: 'Date to show TV listings for (format: YYYY-MM-DD)',
+          type: 'string',
+          default: getTodayDate()
         },
         country: {
           alias: 'c',
-          describe: 'Country code (e.g., US, GB)',
+          describe: 'Country code (e.g., US, UK, CA)',
           type: 'string',
           default: 'US'
         },
@@ -227,7 +204,7 @@ export class ConsoleConfigServiceImpl implements ConfigService {
         },
         networks: {
           alias: 'n',
-          describe: 'Networks to include (e.g., CBS,HBO)',
+          describe: 'Networks to include (e.g., HBO,Netflix)',
           type: 'string',
           coerce: (arg: string) => toStringArray(arg)
         },
@@ -238,6 +215,7 @@ export class ConsoleConfigServiceImpl implements ConfigService {
           coerce: (arg: string) => toStringArray(arg)
         },
         languages: {
+          alias: 'l',
           describe: 'Languages to include (e.g., English,Spanish)',
           type: 'string',
           coerce: (arg: string) => toStringArray(arg)
@@ -271,19 +249,19 @@ export class ConsoleConfigServiceImpl implements ConfigService {
    */
   protected loadConfig(): AppConfig {
     // Default configuration
-    const defaultConfig = this.getDefaultConfig();
+    const defaultConfig = getDefaultConfig();
     
     // Try to load user config from config.json
     let userConfig: Partial<AppConfig> = {};
     try {
-      const configPath = this.getConfigFilePath();
+      const configPath = getConfigFilePath(import.meta.url);
       
-      if (this.fileExists(configPath)) {
-        const configFile = this.readFile(configPath);
-        userConfig = this.parseConfigFile(configFile);
+      if (fileExists(configPath)) {
+        const configFile = readFile(configPath);
+        userConfig = parseConfigFile(configFile);
       }
     } catch (error) {
-      this.handleConfigError(error);
+      handleConfigError(error);
     }
     
     // Merge default and user config
@@ -298,108 +276,5 @@ export class ConsoleConfigServiceImpl implements ConfigService {
     };
     
     return mergedConfig;
-  }
-  
-  /**
-   * Get the default configuration
-   * @returns Default configuration
-   * @protected
-   */
-  protected getDefaultConfig(): AppConfig {
-    return {
-      country: 'US',
-      types: [], // e.g., ['Reality', 'Scripted']
-      networks: [], // e.g., ['Discovery', 'CBS']
-      genres: [], // e.g., ['Drama', 'Comedy']
-      languages: [], // e.g., ['English']
-      minAirtime: '18:00', // Default to primetime shows
-      notificationTime: '09:00', // 24-hour format
-      slack: {
-        token: '',
-        channelId: '',
-        username: 'WhatsOnTV'
-      }
-    };
-  }
-  
-  /**
-   * Get the path to the config file
-   * @returns Path to the config file
-   * @protected
-   */
-  protected getConfigFilePath(): string {
-    const dirname = this.getDirname(this.getFilePath());
-    return resolveRelativePath(dirname, '../../../config.json');
-  }
-  
-  /**
-   * Get the current file path
-   * @returns Current file path
-   * @protected
-   */
-  protected getFilePath(): string {
-    return fileURLToPath(import.meta.url);
-  }
-  
-  /**
-   * Get the directory name from a file path
-   * @param filePath File path
-   * @returns Directory name
-   * @protected
-   */
-  protected getDirname(filePath: string): string {
-    return path.dirname(filePath);
-  }
-  
-  /**
-   * Resolve a path
-   * @param basePath Base path
-   * @param relativePath Relative path
-   * @returns Resolved path
-   * @protected
-   */
-  protected resolvePath(basePath: string, relativePath: string): string {
-    return resolveRelativePath(basePath, relativePath);
-  }
-  
-  /**
-   * Check if a file exists
-   * @param filePath File path
-   * @returns True if the file exists
-   * @protected
-   */
-  protected fileExists(filePath: string): boolean {
-    return fs.existsSync(filePath);
-  }
-  
-  /**
-   * Read a file
-   * @param filePath File path
-   * @returns File contents
-   * @protected
-   */
-  protected readFile(filePath: string): string {
-    return fs.readFileSync(filePath, 'utf8');
-  }
-  
-  /**
-   * Parse a config file
-   * @param fileContents File contents
-   * @returns Parsed config
-   * @protected
-   */
-  protected parseConfigFile(fileContents: string): Partial<AppConfig> {
-    return JSON.parse(fileContents) as Partial<AppConfig>;
-  }
-  
-  /**
-   * Handle a config error
-   * @param error Error
-   * @protected
-   */
-  protected handleConfigError(error: unknown): void {
-    if (error instanceof Error) {
-      console.error(`Warning: Could not load config.json: ${error.message}`);
-    }
   }
 }

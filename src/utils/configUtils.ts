@@ -95,6 +95,26 @@ export function coerceFetchSource(value: unknown): 'web' | 'network' | 'all' {
   return 'all';
 }
 
+/**
+ * Get the default application configuration
+ * @returns Default AppConfig object
+ */
+export function getDefaultConfig(): AppConfig {
+  return {
+    country: 'US',
+    types: [], // e.g., ['Reality', 'Scripted']
+    networks: [], // e.g., ['Discovery', 'CBS']
+    genres: [], // e.g., ['Drama', 'Comedy']
+    languages: [], // e.g., ['English']
+    minAirtime: '18:00', // Default to primetime shows
+    notificationTime: '09:00', // 24-hour format
+    slack: {
+      token: '',
+      channelId: '',
+      username: 'WhatsOnTV'
+    }
+  };
+}
 
 /**
  * Merge CLI arguments with app configuration to create show options
