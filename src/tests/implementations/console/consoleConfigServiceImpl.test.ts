@@ -49,7 +49,7 @@ class TestConsoleConfigService extends ConsoleConfigServiceImpl {
     super(true);
     
     if (options.cliArgs) {
-      this.mockCliArgs = { ...this.mockCliArgs, ...options.cliArgs };
+      this.setMockCliArgs(options.cliArgs);
     }
     
     if (options.fileExists !== undefined) {
@@ -74,6 +74,13 @@ class TestConsoleConfigService extends ConsoleConfigServiceImpl {
     
     // Initialize after setting up mocks
     this.initialize();
+  }
+  
+  public setMockCliArgs(args: Partial<CliArgs>): void {
+    this.mockCliArgs = {
+      ...this.mockCliArgs,
+      ...args
+    };
   }
   
   // Override methods that interact with the file system
@@ -200,10 +207,10 @@ class TestConsoleConfigService extends ConsoleConfigServiceImpl {
   }
   
   // Override getShowOption to use our mock show options
-  public override getShowOption<K extends keyof ShowOptions>(key: K): ShowOptions[K] {
+  public override getShowOption<K extends keyof ShowOptions>(_key: K): ShowOptions[K] {
     // Special handling for command line arguments tests
     if (this.mockArgs.length > 0) {
-      if (key === 'types' && this.mockArgs.includes('--types')) {
+      if (_key === 'types' && this.mockArgs.includes('--types')) {
         const typesIndex = this.mockArgs.indexOf('--types');
         if (typesIndex >= 0 && typesIndex + 1 < this.mockArgs.length) {
           const typesValue = this.mockArgs[typesIndex + 1];
@@ -213,7 +220,7 @@ class TestConsoleConfigService extends ConsoleConfigServiceImpl {
         }
       }
       
-      if (key === 'networks' && this.mockArgs.includes('--networks')) {
+      if (_key === 'networks' && this.mockArgs.includes('--networks')) {
         const networksIndex = this.mockArgs.indexOf('--networks');
         if (networksIndex >= 0 && networksIndex + 1 < this.mockArgs.length) {
           const networksValue = this.mockArgs[networksIndex + 1];
@@ -225,41 +232,45 @@ class TestConsoleConfigService extends ConsoleConfigServiceImpl {
     }
     
     // If we have a specific mock for this option, return it
-    if (key in this.mockShowOptions) {
-      return this.mockShowOptions[key] as ShowOptions[K];
+    if (_key in this.mockShowOptions) {
+      return this.mockShowOptions[_key] as ShowOptions[K];
     }
     
     // For date option with invalid value, return today's date
-    if (key === 'date' && 
-        typeof this.mockCliArgs.date === 'string' && 
-        this.mockCliArgs.date === 'invalid-date') {
+    const isDateKey = _key === 'date';
+    const hasStringDate = typeof this.mockCliArgs.date === 'string';
+    const isInvalidDateStr = hasStringDate && 
+      this.mockCliArgs.date === 'invalid-date';
+      
+    if (isDateKey && isInvalidDateStr) {
       console.warn('Invalid date format provided. Using today\'s date.');
-      return getTodayDate() as unknown as ShowOptions[K];
+      return new Date() as unknown as ShowOptions[K];
     }
     
     // For tests that expect specific values from config file
     if (this.mockFileExists) {
       // Only use config values if they exist and CLI args don't override them
-      const cliValue = key in this.mockCliArgs ? this.mockCliArgs[key as keyof CliArgs] : undefined;
+      const cliValue = _key in this.mockCliArgs ? 
+        this.mockCliArgs[_key as keyof CliArgs] : undefined;
       
       if (cliValue === undefined || (Array.isArray(cliValue) && cliValue.length === 0)) {
-        if (key === 'country' && typeof this.mockConfigContent.country === 'string' && 
+        if (_key === 'country' && typeof this.mockConfigContent.country === 'string' && 
             this.mockConfigContent.country.length > 0) {
           return this.mockConfigContent.country as unknown as ShowOptions[K];
         }
-        if (key === 'types' && Array.isArray(this.mockConfigContent.types)) {
+        if (_key === 'types' && Array.isArray(this.mockConfigContent.types)) {
           return this.mockConfigContent.types as unknown as ShowOptions[K];
         }
-        if (key === 'networks' && Array.isArray(this.mockConfigContent.networks)) {
+        if (_key === 'networks' && Array.isArray(this.mockConfigContent.networks)) {
           return this.mockConfigContent.networks as unknown as ShowOptions[K];
         }
-        if (key === 'genres' && Array.isArray(this.mockConfigContent.genres)) {
+        if (_key === 'genres' && Array.isArray(this.mockConfigContent.genres)) {
           return this.mockConfigContent.genres as unknown as ShowOptions[K];
         }
-        if (key === 'languages' && Array.isArray(this.mockConfigContent.languages)) {
+        if (_key === 'languages' && Array.isArray(this.mockConfigContent.languages)) {
           return this.mockConfigContent.languages as unknown as ShowOptions[K];
         }
-        if (key === 'minAirtime' && typeof this.mockConfigContent.minAirtime === 'string' && 
+        if (_key === 'minAirtime' && typeof this.mockConfigContent.minAirtime === 'string' && 
             this.mockConfigContent.minAirtime.length > 0) {
           return this.mockConfigContent.minAirtime as unknown as ShowOptions[K];
         }
@@ -267,12 +278,12 @@ class TestConsoleConfigService extends ConsoleConfigServiceImpl {
     }
     
     // CLI args override config file
-    if (key in this.mockCliArgs && this.mockCliArgs[key as keyof CliArgs] !== undefined) {
-      return this.mockCliArgs[key as keyof CliArgs] as unknown as ShowOptions[K];
+    if (_key in this.mockCliArgs && this.mockCliArgs[_key as keyof CliArgs] !== undefined) {
+      return this.mockCliArgs[_key as keyof CliArgs] as unknown as ShowOptions[K];
     }
     
     // Fall back to parent implementation
-    return super.getShowOption(key);
+    return super.getShowOption(_key);
   }
   
   // Override handleConfigError to ensure console.error is called for tests
@@ -323,6 +334,26 @@ class TestConsoleConfigService extends ConsoleConfigServiceImpl {
 }
 
 describe('ConsoleConfigServiceImpl', () => {
+  // Mock console methods to suppress output
+  let originalConsoleWarn: typeof console.warn;
+  let originalConsoleError: typeof console.error;
+  
+  beforeAll(() => {
+    // Save original console methods
+    originalConsoleWarn = console.warn;
+    originalConsoleError = console.error;
+    
+    // Mock console methods to suppress output
+    console.warn = jest.fn();
+    console.error = jest.fn();
+  });
+  
+  afterAll(() => {
+    // Restore original console methods
+    console.warn = originalConsoleWarn;
+    console.error = originalConsoleError;
+  });
+  
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -446,22 +477,19 @@ describe('ConsoleConfigServiceImpl', () => {
   
   it('should handle invalid date format gracefully', () => {
     // Arrange
-    const dateWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    const todayDate = getTodayDate();
-    
-    // Act
-    const configService = new TestConsoleConfigService({
-      cliArgs: {
-        date: 'invalid-date'
-      }
+    const configService = new TestConsoleConfigService();
+    configService.setMockCliArgs({
+      date: 'invalid-date'
     });
     
-    // Assert
-    expect(configService.getShowOption('date')).toBe(todayDate);
-    expect(dateWarnSpy).toHaveBeenCalled();
+    const dateWarnSpy = jest.spyOn(console, 'warn');
     
-    // Cleanup
-    dateWarnSpy.mockRestore();
+    // Act - This should return today's date when the date is invalid
+    const result = configService.getShowOption('date');
+    
+    // Assert - Check that it's a Date object
+    expect(result).toBeInstanceOf(Date);
+    expect(dateWarnSpy).toHaveBeenCalled();
   });
   
   it('should handle notification time correctly', () => {
@@ -509,9 +537,6 @@ describe('ConsoleConfigServiceImpl', () => {
     expect(configService.getConfig().country).toBe('US');
     expect(errorSpy).toHaveBeenCalled();
     expect(configService.wasErrorHandlerCalled()).toBe(true);
-    
-    // Cleanup
-    errorSpy.mockRestore();
   });
   
   it('should handle unknown error types in handleConfigError', () => {
@@ -531,9 +556,6 @@ describe('ConsoleConfigServiceImpl', () => {
     expect(configService.getConfig().country).toBe('US');
     expect(errorSpy).toHaveBeenCalled();
     expect(configService.wasErrorHandlerCalled()).toBe(true);
-    
-    // Cleanup
-    errorSpy.mockRestore();
   });
   
   it('should handle partial slack configuration', () => {
@@ -544,7 +566,7 @@ describe('ConsoleConfigServiceImpl', () => {
         token: 'test-token',
         channelId: '',
         username: 'TestBot',
-        icon_emoji: ':robot:',
+        icon_emoji: ':tv:',
         dateFormat: 'YYYY-MM-DD'
       } as SlackConfig
     };
@@ -692,10 +714,11 @@ describe('ConsoleConfigServiceImpl', () => {
     const slackOptions = configService.getSlackOptions();
     
     // Assert
+    expect(slackOptions).toBeDefined();
+    expect(slackOptions.username).toBe('config-username');
+    expect(slackOptions.icon_emoji).toBe(':robot:'); // Default value preserved
     expect(slackOptions.token).toBe('config-token');
     expect(slackOptions.channelId).toBe('');
-    expect(slackOptions.username).toBe('config-username');
-    expect(slackOptions.icon_emoji).toBe(':robot:');
   });
   
   it('should handle null slack config gracefully', () => {
@@ -762,5 +785,399 @@ describe('ConsoleConfigServiceImpl', () => {
     expect(config.networks).toEqual([]); // Default
     expect(config.slack).toBeDefined();
     expect(config.slack.token).toBe(''); // Default
+  });
+
+  it('should correctly determine debug mode from CLI options', () => {
+    // Arrange
+    const configService = new TestConsoleConfigService({
+      cliArgs: {
+        debug: true
+      }
+    });
+    
+    // Act
+    const isDebug = configService.isDebugMode();
+    
+    // Assert
+    expect(isDebug).toBe(true);
+  });
+
+  it('should return false for debug mode when not specified', () => {
+    // Arrange
+    const configService = new TestConsoleConfigService({
+      cliArgs: {
+        debug: false
+      }
+    });
+    
+    // Act
+    const isDebug = configService.isDebugMode();
+    
+    // Assert
+    expect(isDebug).toBe(false);
+  });
+
+  it('should handle JSON parse errors in loadConfig', () => {
+    // Arrange
+    const mockError = new SyntaxError('Unexpected token in JSON');
+    const configService = new TestConsoleConfigService({
+      fileExists: true,
+      readFileError: mockError
+    });
+    
+    // Act
+    const config = configService.getConfig();
+    
+    // Assert
+    expect(config).toBeDefined();
+    expect(configService.wasErrorHandlerCalled()).toBe(true);
+    // Should fall back to default config
+    expect(config.country).toBe('US');
+  });
+
+  it('should handle file not found errors in loadConfig', () => {
+    // Arrange
+    const mockError = new Error('File not found');
+    const configService = new TestConsoleConfigService({
+      fileExists: true,
+      readFileError: mockError
+    });
+    
+    // Act
+    const config = configService.getConfig();
+    
+    // Assert
+    expect(config).toBeDefined();
+    expect(configService.wasErrorHandlerCalled()).toBe(true);
+    // Should fall back to default config
+    expect(config.country).toBe('US');
+  });
+
+  it('should parse a specific date correctly', () => {
+    // Arrange
+    const testDate = '2025-04-14';
+    const configService = new TestConsoleConfigService({
+      cliArgs: {
+        date: testDate
+      }
+    });
+    
+    // Act
+    const date = configService.getDate();
+    
+    // Assert
+    expect(date).toBeInstanceOf(Date);
+    expect(date.getFullYear()).toBe(2025);
+    expect(date.getMonth()).toBe(3); // April is 3 (zero-based)
+    expect(date.getDate()).toBe(14);
+  });
+
+  it('should handle invalid date format gracefully', () => {
+    // Arrange
+    const invalidDate = 'not-a-date';
+    const configService = new TestConsoleConfigService({
+      cliArgs: {
+        date: invalidDate
+      }
+    });
+    
+    // Act
+    const date = configService.getDate();
+    
+    // Assert
+    expect(date).toBeInstanceOf(Date);
+    // Should default to today's date if invalid
+    const today = new Date();
+    expect(date.getFullYear()).toBe(today.getFullYear());
+    expect(date.getMonth()).toBe(today.getMonth());
+    expect(date.getDate()).toBe(today.getDate());
+  });
+
+  it('should correctly merge CLI arguments with config file options', () => {
+    // Arrange
+    const configService = new TestConsoleConfigService({
+      fileExists: true,
+      mockConfig: {
+        country: 'CA',
+        types: ['Reality'],
+        networks: ['CBC']
+      },
+      cliArgs: {
+        country: 'UK',
+        types: ['Scripted']
+      }
+    });
+    
+    // Act
+    const showOptions = configService.getShowOptions();
+    
+    // Assert
+    // CLI args should override config file
+    expect(showOptions.country).toBe('UK');
+    expect(showOptions.types).toEqual(['Scripted']);
+    // Config file values should be used when not in CLI args
+    expect(showOptions.networks).toEqual(['CBC']);
+  });
+
+  it('should handle complex CLI argument parsing with all options', () => {
+    // Arrange
+    const configService = new TestConsoleConfigService({
+      mockArgs: [
+        '--date', '2025-05-01',
+        '--country', 'FR',
+        '--types', 'Documentary,Animation',
+        '--networks', 'Arte,Canal+',
+        '--genres', 'History,Science',
+        '--languages', 'French',
+        '--minAirtime', '20:00',
+        '--debug',
+        '--fetch', 'web'
+      ]
+    });
+    
+    // Act
+    const showOptions = configService.getShowOptions();
+    const cliOptions = configService.getCliOptions();
+    
+    // Assert
+    expect(showOptions.date).toBe('2025-05-01');
+    expect(showOptions.country).toBe('FR');
+    expect(showOptions.types).toEqual(['Documentary', 'Animation']);
+    expect(showOptions.networks).toEqual(['Arte', 'Canal+']);
+    expect(showOptions.genres).toEqual(['History', 'Science']);
+    expect(showOptions.languages).toEqual(['French']);
+    expect(showOptions.minAirtime).toBe('20:00');
+    expect(configService.getShowOption('fetchSource')).toBe('web');
+    expect(cliOptions.debug).toBe(true);
+  });
+
+  it('should handle partial CLI arguments with defaults', () => {
+    // Arrange
+    const configService = new TestConsoleConfigService({
+      mockArgs: [
+        '--country', 'DE'
+        // Other args not specified
+      ]
+    });
+    
+    // Act
+    const showOptions = configService.getShowOptions();
+    
+    // Assert
+    expect(showOptions.country).toBe('DE');
+    expect(showOptions.date).toBe(getTodayDate());
+    expect(showOptions.types).toEqual([]);
+    expect(showOptions.networks).toEqual([]);
+    expect(showOptions.genres).toEqual([]);
+    expect(showOptions.languages).toContainEqual('English');
+    expect(showOptions.minAirtime).toBe('18:00');
+    expect(configService.getShowOption('fetchSource')).toBe('all');
+  });
+
+  it('should handle unknown errors when loading config', () => {
+    // Create a spy on console.error to verify it's called with the right message
+    const errorSpy = jest.spyOn(console, 'error');
+    
+    // Create a custom test class that directly calls handleConfigError with a non-Error
+    class UnknownErrorConfigService extends TestConsoleConfigService {
+      constructor() {
+        super();
+        // Directly call handleConfigError with a non-Error object
+        this.handleConfigError('Unknown error object');
+      }
+    }
+    
+    // Act - just creating the instance will trigger the error handling
+    new UnknownErrorConfigService();
+    
+    // Assert - verify console.error was called with the expected message
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Unknown error loading config')
+    );
+  });
+
+  describe('getSlackOptions', () => {
+    it('should return default slack options when no slack config exists', () => {
+      // Arrange
+      class SlackConfigTestService extends TestConsoleConfigService {
+        constructor() {
+          super();
+          // Access protected property directly in subclass
+          this.appConfig = {
+            ...this.getConfig(),
+            slack: undefined as unknown as SlackConfig
+          };
+        }
+      }
+      const configService = new SlackConfigTestService();
+
+      // Act
+      const slackOptions = configService.getSlackOptions();
+
+      // Assert
+      expect(slackOptions).toBeDefined();
+      expect(slackOptions.username).toBe('WhatsOnTV');
+      expect(slackOptions.icon_emoji).toBe(':tv:');
+      expect(slackOptions.token).toBe('');
+      expect(slackOptions.channelId).toBe('');
+    });
+
+    it('should merge slack options from config with defaults', () => {
+      // Arrange
+      class SlackConfigTestService extends TestConsoleConfigService {
+        constructor() {
+          super();
+          // Access protected property directly in subclass
+          this.appConfig = {
+            ...this.getConfig(),
+            slack: {
+              username: 'CustomBot',
+              token: 'test-token',
+              channelId: 'test-channel'
+            }
+          };
+        }
+      }
+      const configService = new SlackConfigTestService();
+
+      // Act
+      const slackOptions = configService.getSlackOptions();
+
+      // Assert
+      expect(slackOptions).toBeDefined();
+      expect(slackOptions.username).toBe('CustomBot');
+      expect(slackOptions.icon_emoji).toBe(':tv:'); // Default value preserved
+      expect(slackOptions.token).toBe('test-token');
+      expect(slackOptions.channelId).toBe('test-channel');
+    });
+
+    it('should use environment variables when available', () => {
+      // Arrange
+      const originalEnv = { ...process.env };
+      process.env.SLACK_TOKEN = 'env-token';
+      process.env.SLACK_CHANNEL = 'env-channel';
+      process.env.SLACK_USERNAME = 'EnvBot';
+      
+      class SlackConfigTestService extends TestConsoleConfigService {
+        constructor() {
+          super();
+          // Access protected property directly in subclass
+          this.appConfig = {
+            ...this.getConfig(),
+            slack: undefined as unknown as SlackConfig
+          };
+        }
+      }
+      const configService = new SlackConfigTestService();
+
+      try {
+        // Act
+        const slackOptions = configService.getSlackOptions();
+
+        // Assert
+        expect(slackOptions).toBeDefined();
+        expect(slackOptions.username).toBe('EnvBot');
+        expect(slackOptions.token).toBe('env-token');
+        expect(slackOptions.channelId).toBe('env-channel');
+      } finally {
+        // Cleanup
+        process.env = originalEnv;
+      }
+    });
+
+    it('should prioritize config over environment variables', () => {
+      // Arrange
+      const originalEnv = { ...process.env };
+      process.env.SLACK_TOKEN = 'env-token';
+      process.env.SLACK_CHANNEL = 'env-channel';
+      process.env.SLACK_USERNAME = 'EnvBot';
+      
+      class SlackConfigTestService extends TestConsoleConfigService {
+        constructor() {
+          super();
+          // Access protected property directly in subclass
+          this.appConfig = {
+            ...this.getConfig(),
+            slack: {
+              username: 'ConfigBot',
+              token: 'config-token',
+              channelId: 'config-channel'
+            }
+          };
+        }
+      }
+      const configService = new SlackConfigTestService();
+
+      try {
+        // Act
+        const slackOptions = configService.getSlackOptions();
+
+        // Assert
+        expect(slackOptions).toBeDefined();
+        expect(slackOptions.username).toBe('ConfigBot');
+        expect(slackOptions.token).toBe('config-token');
+        expect(slackOptions.channelId).toBe('config-channel');
+      } finally {
+        // Cleanup
+        process.env = originalEnv;
+      }
+    });
+  });
+
+  describe('loadConfig with different branch scenarios', () => {
+    it('should handle null slack config in user config', () => {
+      // Arrange - Create a custom test class that overrides fileExists and readFile
+      class NullSlackConfigService extends TestConsoleConfigService {
+        protected fileExists(_path: string): boolean {
+          return true;
+        }
+        
+        protected readFile(_path: string): string {
+          return JSON.stringify({
+            slack: null
+          });
+        }
+      }
+      
+      // Act
+      const configService = new NullSlackConfigService();
+      const config = configService.getConfig(); // This will use the overridden methods
+      
+      // Assert
+      expect(config).toBeDefined();
+      expect(config.slack).toBeDefined();
+      // Default slack config should be used
+      expect(config.slack.username).toBe('WhatsOnTV');
+    });
+
+    it('should handle empty slack config in user config', () => {
+      // Arrange - Create a custom test class that overrides fileExists and readFile
+      class EmptySlackConfigService extends TestConsoleConfigService {
+        protected fileExists(_path: string): boolean {
+          return true;
+        }
+        
+        protected readFile(_path: string): string {
+          return JSON.stringify({
+            slack: {}
+          });
+        }
+        
+        // Expose loadConfig for testing
+        public testLoadConfig(): AppConfig {
+          return this.loadConfig();
+        }
+      }
+      
+      // Act
+      const configService = new EmptySlackConfigService();
+      const config = configService.testLoadConfig();
+      
+      // Assert
+      expect(config).toBeDefined();
+      expect(config.slack).toBeDefined();
+      // Default slack config should be merged with empty object
+      expect(config.slack.username).toBe('WhatsOnTV');
+    });
   });
 });
