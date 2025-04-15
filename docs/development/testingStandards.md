@@ -10,7 +10,8 @@ This document outlines the testing standards, patterns, and utilities used in th
 4. [Test Fixtures System](#test-fixtures-system)
 5. [Testing Patterns](#testing-patterns)
 6. [Mocking Strategy](#mocking-strategy)
-7. [Test Naming Conventions](#test-naming-conventions)
+7. [Testing ES Modules](#testing-es-modules)
+8. [Test Naming Conventions](#test-naming-conventions)
 
 ## Testing Philosophy
 
@@ -182,11 +183,72 @@ const service = new ConsoleOutputServiceImpl(mockTvShowService, mockFormatter);
 For utility functions or external dependencies, use Jest's mocking capabilities:
 
 ```typescript
-// Mock a module
-jest.mock('../../../utils/dateUtils.js', () => ({
-  formatDate: jest.fn().mockReturnValue('2023-01-01'),
-  getCurrentDate: jest.fn().mockReturnValue(new Date('2023-01-01'))
-}));
+// Mock a function using spyOn
+jest.spyOn(fs, 'readFileSync').mockReturnValue('{"key": "value"}');
+
+// Restore mocks after test
+afterEach(() => {
+  jest.restoreAllMocks();
+});
+```
+
+### Pragmatic Testing Approach
+
+When testing ES modules and pure functions, follow these pragmatic guidelines:
+
+1. **Focus on Pure Functions**: Test pure functions directly without complex mocking
+2. **Use spyOn for Mocking**: Prefer `jest.spyOn()` over direct module mocking when possible
+3. **Mock at the Function Level**: Mock specific functions rather than entire modules
+4. **Restore Mocks**: Always restore mocks after tests to prevent test pollution
+5. **Test Edge Cases**: Include tests for error handling and edge cases
+
+This approach has proven effective in achieving high test coverage while maintaining test simplicity, as demonstrated in the `fileUtils.ts` module tests.
+
+## Testing ES Modules
+
+Testing ES modules can be challenging due to their import/export behavior. Follow these best practices:
+
+1. **Direct Testing**: When possible, test the exported functions directly rather than mocking the entire module
+2. **Function Spying**: Use `jest.spyOn()` to mock specific imported functions:
+   ```typescript
+   import * as fs from 'fs';
+   
+   jest.spyOn(fs, 'readFileSync').mockImplementation(() => '{"key": "value"}');
+   ```
+3. **Avoid Manual Mocks**: Prefer direct mocking over creating manual mock files in `__mocks__` directories
+4. **Test Pure Functions**: Focus on testing the pure logic of functions, isolating them from external dependencies
+5. **Error Handling**: Include tests for error scenarios, especially for file operations and parsing functions
+
+Example of testing a function that uses ES module imports:
+
+```typescript
+import { parseConfigFile } from '../../../utils/fileUtils.js';
+import * as fs from 'fs';
+
+describe('parseConfigFile', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('should parse valid JSON content', () => {
+    // Arrange
+    const mockContent = '{"key": "value"}';
+    
+    // Act
+    const result = parseConfigFile(mockContent);
+    
+    // Assert
+    expect(result).toEqual({ key: 'value' });
+  });
+
+  it('should handle invalid JSON content', () => {
+    // Arrange
+    const mockContent = 'invalid json';
+    
+    // Act & Assert
+    expect(() => parseConfigFile(mockContent)).toThrow();
+  });
+});
 ```
 
 ## Test Naming Conventions
