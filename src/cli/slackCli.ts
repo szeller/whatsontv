@@ -58,4 +58,4 @@ export function createSlackApp(): BaseCliApplication {
 }
 
 // Create the Slack app and run it if this file is executed directly
-runMain(createSlackApp(), consoleOutput);
+runMain(() => createSlackApp(), consoleOutput);

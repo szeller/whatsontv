@@ -34,4 +34,4 @@ export function createCliApp(): BaseCliApplication {
 }
 
 // Create the CLI app and run it if this file is executed directly
-runMain(createCliApp(), consoleOutput);
+runMain(() => createCliApp(), consoleOutput);

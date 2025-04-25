@@ -59,11 +59,11 @@ export class BaseCliApplication {
 
 /**
  * Run the main function if this file is executed directly
- * @param app The CLI application instance to run
+ * @param appFactory Factory function to create a CLI application instance
  * @param consoleOutput Console output service for logging
  */
-export function runMain(app: BaseCliApplication, consoleOutput: ConsoleOutput): void {
+export function runMain(appFactory: () => BaseCliApplication, consoleOutput: ConsoleOutput): void {
   if (isDirectExecution()) {
-    app.run().catch((error) => handleMainError(error, consoleOutput));
+    appFactory().run().catch((error) => handleMainError(error, consoleOutput));
   }
 }
