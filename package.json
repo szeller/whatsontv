@@ -47,7 +47,7 @@
     "reflect-metadata": "^0.2.2",
     "tsyringe": "^4.10.0",
     "yargs": "^17.7.2",
-    "zod": "^3.24.3"
+    "zod": "^3.24.4"
   },
   "devDependencies": {
     "@babel/core": "^7.26.10",
