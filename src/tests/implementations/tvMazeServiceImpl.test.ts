@@ -560,6 +560,52 @@ describe('TvMazeServiceImpl', () => {
       });
     });
     
+    it('handles multiple language filtering', () => {
+      const result = testService.testApplyFilters(testShows, {
+        date: '',
+        country: 'US',
+        fetchSource: 'all',
+        types: [],
+        genres: [],
+        languages: ['english', 'spanish'], // multiple languages
+        networks: []
+      });
+      
+      expect(result.length).toBe(3); // Should match shows with English or Spanish
+      
+      // Verify that all shows have either English or Spanish language
+      const languages = result.map(show => show.language?.toLowerCase()).sort();
+      expect(languages).toEqual(['english', 'english', 'spanish']);
+    });
+    
+    it('properly handles null language values', () => {
+      // Create test shows with null language
+      const showsWithNullLanguage = [
+        ...testShows,
+        {
+          ...testShows[0],
+          id: 6,
+          language: null
+        }
+      ];
+      
+      const result = testService.testApplyFilters(showsWithNullLanguage, {
+        date: '',
+        country: 'US',
+        fetchSource: 'all',
+        types: [],
+        genres: [],
+        languages: ['english'],
+        networks: []
+      });
+      
+      // Should only match shows with English language, not null
+      expect(result.length).toBe(2);
+      result.forEach(show => {
+        expect(show.language?.toLowerCase()).toBe('english');
+      });
+    });
+    
     it('applies multiple filters correctly', () => {
       const result = testService.testApplyFilters(testShows, {
         date: '',

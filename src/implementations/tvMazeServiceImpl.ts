@@ -176,11 +176,16 @@ export class TvMazeServiceImpl implements TvShowService {
     const languageValues = options.languages;
     if (Array.isArray(languageValues) && languageValues.length > 0) {
       filteredShows = filteredShows.filter((show: Show) => {
-        return typeof show.language === 'string' && 
-               show.language !== null && 
-               languageValues.some((language: string) => 
-                 show.language?.toLowerCase() === language.toLowerCase()
-               );
+        // Skip shows with no language
+        if (typeof show.language !== 'string' || show.language === null) {
+          return false;
+        }
+        
+        // Case-insensitive language matching
+        const showLanguage = show.language;
+        return languageValues.some((language: string) => 
+          showLanguage.toLowerCase() === language.toLowerCase()
+        );
       });
     }
     
