@@ -146,10 +146,16 @@ export class TvMazeServiceImpl implements TvShowService {
     const networkValues = options.networks;
     if (Array.isArray(networkValues) && networkValues.length > 0) {
       filteredShows = filteredShows.filter((show: Show) => {
-        return typeof show.network === 'string' && 
-               networkValues.some((network: string) => 
-                 show.network.toLowerCase().includes(network.toLowerCase())
-               );
+        if (typeof show.network !== 'string') {
+          return false;
+        }
+        
+        // Remove country codes for exact matching
+        const showNetwork = show.network.replace(/\s+\([A-Z]{2}\)$/, '').toLowerCase();
+        
+        return networkValues.some((network: string) => 
+          showNetwork === network.toLowerCase()
+        );
       });
     }
 

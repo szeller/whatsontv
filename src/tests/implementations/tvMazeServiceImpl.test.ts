@@ -594,8 +594,24 @@ describe('TvMazeServiceImpl', () => {
       expect(result.every(show => show.type.toLowerCase() === 'scripted')).toBe(true);
     });
     
-    it('handles case insensitive network matching', () => {
-      const result = testService.testApplyFilters(testShows, {
+    it('handles case insensitive network matching with exact matching', () => {
+      // Create a show with country code in network name
+      const showsWithCountryCodes = [
+        ...testShows,
+        {
+          ...testShows[0],
+          id: 6,
+          network: 'Hulu (JP)'
+        },
+        {
+          ...testShows[0],
+          id: 7,
+          network: 'Hulu'
+        }
+      ];
+      
+      // Test exact matching with lowercase
+      const result = testService.testApplyFilters(showsWithCountryCodes, {
         date: '',
         country: 'US',
         fetchSource: 'all',
@@ -605,8 +621,25 @@ describe('TvMazeServiceImpl', () => {
         networks: ['netflix'] // lowercase
       });
       
+      // Should match Netflix exactly (case insensitive)
       expect(result.length).toBe(1);
       expect(result[0].network).toBe('Netflix');
+      
+      // Test that country codes are removed for matching
+      const huluResult = testService.testApplyFilters(showsWithCountryCodes, {
+        date: '',
+        country: 'US',
+        fetchSource: 'all',
+        types: [],
+        genres: [],
+        languages: [],
+        networks: ['hulu'] // lowercase
+      });
+      
+      // Should match both Hulu and Hulu (JP) since country codes are removed
+      expect(huluResult.length).toBe(2);
+      expect(huluResult.some(show => show.network === 'Hulu')).toBe(true);
+      expect(huluResult.some(show => show.network === 'Hulu (JP)')).toBe(true);
     });
     
     it('handles case insensitive genre matching', () => {
