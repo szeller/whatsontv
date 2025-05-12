@@ -11,11 +11,19 @@ export type NetworkGroups = Record<string, Show[]>;
 
 /**
  * Get the network name from a show with fallback to "Unknown Network"
+ * Removes country codes from network names (e.g., "Hulu (JP)" becomes "Hulu")
  * @param show - Show to get network name from
  * @returns Network name or fallback value
  */
 export function getNetworkName(show: Show): string {
-  return show.network ?? 'Unknown Network';
+  let networkName = 'Unknown Network';
+  
+  if (show.network) {
+    // Remove country codes in parentheses, e.g., "Hulu (JP)" -> "Hulu"
+    networkName = show.network.replace(/\s+\([A-Z]{2}\)$/, '');
+  }
+  
+  return networkName;
 }
 
 /**

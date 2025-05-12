@@ -146,10 +146,16 @@ export class TvMazeServiceImpl implements TvShowService {
     const networkValues = options.networks;
     if (Array.isArray(networkValues) && networkValues.length > 0) {
       filteredShows = filteredShows.filter((show: Show) => {
-        return typeof show.network === 'string' && 
-               networkValues.some((network: string) => 
-                 show.network.toLowerCase().includes(network.toLowerCase())
-               );
+        if (typeof show.network !== 'string') {
+          return false;
+        }
+        
+        // Remove country codes for exact matching
+        const showNetwork = show.network.replace(/\s+\([A-Z]{2}\)$/, '').toLowerCase();
+        
+        return networkValues.some((network: string) => 
+          showNetwork === network.toLowerCase()
+        );
       });
     }
 
@@ -170,11 +176,16 @@ export class TvMazeServiceImpl implements TvShowService {
     const languageValues = options.languages;
     if (Array.isArray(languageValues) && languageValues.length > 0) {
       filteredShows = filteredShows.filter((show: Show) => {
-        return typeof show.language === 'string' && 
-               show.language !== null && 
-               languageValues.some((language: string) => 
-                 show.language?.toLowerCase() === language.toLowerCase()
-               );
+        // Skip shows with no language
+        if (typeof show.language !== 'string' || show.language === null) {
+          return false;
+        }
+        
+        // Case-insensitive language matching
+        const showLanguage = show.language;
+        return languageValues.some((language: string) => 
+          showLanguage.toLowerCase() === language.toLowerCase()
+        );
       });
     }
     

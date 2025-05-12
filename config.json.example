@@ -1,6 +1,7 @@
 {
     "country": "US",
     "types": ["Reality", "Scripted"],
+    "languages": ["English"],
     "networks": ["Discovery", "CBS", "Netflix", "Paramount+"],
     "notificationTime": "9:00",
     "slack": {

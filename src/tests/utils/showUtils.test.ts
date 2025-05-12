@@ -77,16 +77,39 @@ describe('ShowUtils', () => {
       const result = groupShowsByNetwork(shows);
       
       // Assert the result
-      expect(Object.keys(result).length).toBe(3);
+      expect(Object.keys(result).length).toBe(2);
       expect(result['NBC'].length).toBe(1);
-      expect(result['Unknown Network'].length).toBe(1);
+      // Both null and empty string are now 'Unknown Network'
+      expect(result['Unknown Network'].length).toBe(2);
       
       // Check that the shows are in the right groups
       expect(result['NBC'][0].name).toBe('Show 1');
-      expect(result['Unknown Network'][0].name).toBe('Show 2');
-      // Empty string network is treated as its own group, not 'Unknown Network'
-      expect(result[''].length).toBe(1);
-      expect(result[''][0].name).toBe('Show 3');
+      
+      // Both null and empty string networks are now in 'Unknown Network' group
+      const unknownNetworkNames = result['Unknown Network'].map(show => show.name).sort();
+      expect(unknownNetworkNames).toEqual(['Show 2', 'Show 3']);
+    });
+    
+    it('removes country codes from network names when grouping', () => {
+      // Create test data with country codes in network names
+      const shows = [
+        new ShowBuilder().withName('Show 1').withNetwork('Hulu (JP)').build(),
+        new ShowBuilder().withName('Show 2').withNetwork('Hulu').build(),
+        new ShowBuilder().withName('Show 3').withNetwork('Netflix (US)').build()
+      ];
+      
+      // Call the function
+      const result = groupShowsByNetwork(shows);
+      
+      // Assert the result - country codes should be removed, so we expect 2 groups
+      expect(Object.keys(result).length).toBe(2);
+      expect(result['Hulu'].length).toBe(2); // Both Hulu and Hulu (JP) should be in this group
+      expect(result['Netflix'].length).toBe(1);
+      
+      // Check that the shows are in the right groups
+      const huluShows = result['Hulu'].map(show => show.name).sort();
+      expect(huluShows).toEqual(['Show 1', 'Show 2']);
+      expect(result['Netflix'][0].name).toBe('Show 3');
     });
   });
   
