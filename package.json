@@ -42,11 +42,11 @@
     "@slack/web-api": "^7.9.1",
     "boxen": "^8.0.1",
     "chalk": "^5.4.1",
-    "commander": "^13.1.0",
+    "commander": "^14.0.0",
     "ky": "^1.8.1",
     "reflect-metadata": "^0.2.2",
     "tsyringe": "^4.10.0",
-    "yargs": "^17.7.2",
+    "yargs": "^18.0.0",
     "zod": "^3.24.3"
   },
   "devDependencies": {
