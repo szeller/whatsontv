@@ -13,7 +13,7 @@ import type {
   HttpResponse, 
   RequestOptions as HttpRequestOptions 
 } from '../interfaces/httpClient.js';
-import type { ZodType, ZodTypeDef } from 'zod';
+import { z } from 'zod';
 
 /**
  * Request options for HTTP client
@@ -162,7 +162,7 @@ export class FetchHttpClientImpl implements HttpClient {
   async get<T>(
     url: string, 
     options?: HttpRequestOptions,
-    schema?: ZodType<T, ZodTypeDef, unknown>
+    schema?: z.ZodType
   ): Promise<HttpResponse<T>> {
     try {
       // Special handling for interface tests
@@ -211,7 +211,7 @@ export class FetchHttpClientImpl implements HttpClient {
       // Validate with schema if provided
       let data: T;
       if (schema) {
-        data = schema.parse(responseData);
+        data = schema.parse(responseData) as T;
       } else {
         data = responseData as T;
       }
@@ -248,7 +248,7 @@ export class FetchHttpClientImpl implements HttpClient {
     url: string, 
     data?: D, 
     options?: HttpRequestOptions,
-    schema?: ZodType<T, ZodTypeDef, unknown>
+    schema?: z.ZodType
   ): Promise<HttpResponse<T>> {
     try {
       // Special handling for interface tests
@@ -317,7 +317,7 @@ export class FetchHttpClientImpl implements HttpClient {
       // Validate with schema if provided
       let parsedData: T;
       if (schema) {
-        parsedData = schema.parse(responseData);
+        parsedData = schema.parse(responseData) as T;
       } else {
         parsedData = responseData as T;
       }

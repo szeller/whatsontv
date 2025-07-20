@@ -37,6 +37,7 @@ export function validateData<T extends z.ZodType>(
     }
     
     if (includeDetails) {
+      // Zod v4 format() method returns a formatted object with error messages
       const formattedError = JSON.stringify(result.error.format(), null, 2);
       throw new Error(`${errorMessage}\n${formattedError}`);
     } else {
@@ -45,7 +46,6 @@ export function validateData<T extends z.ZodType>(
   }
   
   // Type assertion is safe because we've verified the data with safeParse
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return result.data;
 }
 
@@ -71,7 +71,6 @@ export function validateDataOrNull<T extends z.ZodType>(
   }
   
   // Type assertion is safe because we've verified the data with safeParse
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return result.data;
 }
 
