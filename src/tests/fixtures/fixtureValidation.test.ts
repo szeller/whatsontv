@@ -143,7 +143,8 @@ describe('Fixture Validation', () => {
         // Check for specific missing fields in the error message
         expect(errorString).toContain('id');
         expect(errorString).toContain('show');
-        expect(errorString).toContain('Required');
+        // Zod v4 uses 'invalid_type' instead of 'Required'
+        expect(errorString).toContain('invalid_type');
       }
     });
   });

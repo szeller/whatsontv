@@ -2,7 +2,6 @@
  * Utilities for working with Jest in a type-safe way
  */
 import { jest } from '@jest/globals';
-import type { SpyInstance } from 'jest-mock';
 
 /**
  * Creates a typed Jest mock function
@@ -19,7 +18,7 @@ export function createTypedMock<T extends (...args: unknown[]) => unknown>():
 export function createTypedSpy<T extends object, K extends keyof T>(
   obj: T,
   method: K
-): SpyInstance {
+): ReturnType<typeof jest.spyOn> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return jest.spyOn(obj as any, method as any);
 }

@@ -10,9 +10,9 @@ import { z } from 'zod';
  * HTTP request options schema
  */
 export const requestOptionsSchema = z.object({
-  headers: z.record(z.string()).optional(),
+  headers: z.record(z.string(), z.string()).optional(),
   timeout: z.number().positive().optional(),
-  query: z.record(z.union([z.string(), z.number(), z.boolean()])).optional()
+  query: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional()
 });
 
 /**
@@ -21,7 +21,7 @@ export const requestOptionsSchema = z.object({
 export const httpResponseSchema = z.object({
   status: z.number(),
   statusText: z.string().optional(),
-  headers: z.record(z.string()).optional(),
+  headers: z.record(z.string(), z.string()).optional(),
   body: z.unknown()
 });
 

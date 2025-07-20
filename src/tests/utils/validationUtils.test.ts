@@ -44,7 +44,7 @@ describe('Validation Utilities', () => {
     it('should include detailed validation errors when includeDetails is true', () => {
       const testData = { id: 'not-a-number', name: 'Test' };
       expect(() => validateData(testSchema, testData, 'Validation error', true))
-        .toThrow(/Validation error[\s\S]*id[\s\S]*Expected number/);
+        .toThrow(/Validation error[\s\S]*id[\s\S]*number/);
     });
 
     it('should log validation errors in development environment', () => {
@@ -196,7 +196,7 @@ describe('Validation Utilities', () => {
       ];
       
       expect(() => validateArray(itemSchema, testData, 'Array validation error', true))
-        .toThrow(/Array validation error[\s\S]*1[\s\S]*value[\s\S]*Expected number/);
+        .toThrow(/Array validation error[\s\S]*1[\s\S]*value[\s\S]*number/);
     });
 
     it('should validate an empty array', () => {
