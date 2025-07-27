@@ -50,6 +50,7 @@ export class SlackClientImpl implements SlackClient {
    * @returns Promise resolving when the message is sent
    */
   public async sendMessage(payload: SlackMessagePayload): Promise<void> {
+    const startTime = Date.now();
     try {
       // Ensure channel is set
       if (payload.channel === undefined || payload.channel === null || payload.channel === '') {
@@ -70,7 +71,21 @@ export class SlackClientImpl implements SlackClient {
       };
 
       // Send the message
-      await this._client.chat.postMessage(completePayload);
+      const result = await this._client.chat.postMessage(completePayload);
+      
+      if (!result.ok) {
+        throw new Error(`Slack API returned error: ${result.error}`);
+      }
+      
+      // Log successful message sending
+      this.logger.info({
+        channel: payload.channel,
+        messageLength: payload.text?.length ?? 0,
+        hasBlocks: payload.blocks !== undefined,
+        blocksCount: payload.blocks?.length ?? 0,
+        duration: Date.now() - startTime,
+        timestamp: result.ts
+      }, 'Successfully sent Slack message');
     } catch (error) {
       this.logger.error({
         error: String(error),
@@ -78,6 +93,7 @@ export class SlackClientImpl implements SlackClient {
         messageLength: payload.text?.length ?? 0,
         hasBlocks: payload.blocks !== undefined,
         blocksCount: payload.blocks?.length ?? 0,
+        duration: Date.now() - startTime,
         stack: error instanceof Error ? error.stack : undefined
       }, 'Failed to send Slack message');
       throw new Error(`Failed to send Slack message: ${String(error)}`);

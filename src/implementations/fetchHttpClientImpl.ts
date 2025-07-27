@@ -84,13 +84,22 @@ export class FetchHttpClientImpl implements HttpClient {
         ],
         afterResponse: [
           (_request, _options, response) => {
-            if (!this.isTestEnvironment && !response.ok) {
-              this.logger.error({
-                status: response.status,
-                statusText: response.statusText,
-                url: response.url,
-                headers: Object.fromEntries(response.headers.entries())
-              }, 'HTTP request returned error response');
+            if (!this.isTestEnvironment) {
+              if (response.ok) {
+                this.logger.debug({
+                  status: response.status,
+                  statusText: response.statusText,
+                  url: response.url,
+                  contentLength: response.headers.get('content-length')
+                }, 'HTTP request completed successfully');
+              } else {
+                this.logger.error({
+                  status: response.status,
+                  statusText: response.statusText,
+                  url: response.url,
+                  headers: Object.fromEntries(response.headers.entries())
+                }, 'HTTP request returned error response');
+              }
             }
             return response;
           },

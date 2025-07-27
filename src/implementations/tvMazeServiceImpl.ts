@@ -44,9 +44,17 @@ export class TvMazeServiceImpl implements TvShowService {
    * @private
    */
   private async getSchedule(url: string): Promise<Record<string, unknown>[]> {
+    const startTime = Date.now();
     try {
       const response = await this._apiClient.get<unknown[]>(url);
       if (Array.isArray(response.data)) {
+        // Log successful API call
+        this.logger.info({
+          url,
+          showCount: response.data.length,
+          duration: Date.now() - startTime,
+          statusCode: response.status
+        }, 'Successfully fetched schedule from TVMaze API');
         return response.data as Record<string, unknown>[];
       }
       return [];
@@ -55,7 +63,7 @@ export class TvMazeServiceImpl implements TvShowService {
       this.logger.error({
         error: String(error),
         url,
-        environment: process.env.NODE_ENV,
+        duration: Date.now() - startTime,
         stack: error instanceof Error ? error.stack : undefined
       }, 'Failed to fetch schedule from TVMaze API');
       return [];
