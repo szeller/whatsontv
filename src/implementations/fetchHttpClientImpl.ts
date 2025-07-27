@@ -6,13 +6,14 @@
  */
 
 import 'reflect-metadata';
-import { injectable } from 'tsyringe';
+import { injectable, inject } from 'tsyringe';
 import ky, { Options as KyOptions, Hooks } from 'ky';
 import type { 
   HttpClient, 
   HttpResponse, 
   RequestOptions as HttpRequestOptions 
 } from '../interfaces/httpClient.js';
+import type { LoggerService } from '../interfaces/loggerService.js';
 import { z } from 'zod';
 
 /**
@@ -42,12 +43,17 @@ export class FetchHttpClientImpl implements HttpClient {
   private readonly kyInstance: typeof ky;
   private readonly isTestEnvironment: boolean;
   private readonly baseUrl: string;
+  private readonly logger: LoggerService;
 
   /**
    * Creates a new Ky HTTP client
    * @param options Client configuration options
+   * @param logger Logger service for structured logging
    */
-  constructor(options: KyHttpClientOptions = {}) {
+  constructor(
+    options: KyHttpClientOptions = {},
+    @inject('LoggerService') logger?: LoggerService
+  ) {
     const prefixUrl = options.baseUrl !== undefined ? options.baseUrl : '';
     const timeout = options.timeout !== undefined ? options.timeout : 30000;
     const headers = options.headers !== undefined ? options.headers : {};
@@ -56,6 +62,13 @@ export class FetchHttpClientImpl implements HttpClient {
                              process.env.JEST_WORKER_ID !== undefined;
     
     this.baseUrl = prefixUrl;
+    this.logger = logger?.child({ module: 'HttpClient' }) ?? {
+      error: () => {},
+      warn: () => {},
+      info: () => {},
+      debug: () => {},
+      child: () => this.logger
+    } as LoggerService;
     
     // Create a configured instance of ky
     this.kyInstance = ky.create({
@@ -72,7 +85,12 @@ export class FetchHttpClientImpl implements HttpClient {
         afterResponse: [
           (_request, _options, response) => {
             if (!this.isTestEnvironment && !response.ok) {
-              console.error(`Error response: ${response.status} ${response.statusText}`);
+              this.logger.error({
+                status: response.status,
+                statusText: response.statusText,
+                url: response.url,
+                headers: Object.fromEntries(response.headers.entries())
+              }, 'HTTP request returned error response');
             }
             return response;
           },
@@ -224,7 +242,13 @@ export class FetchHttpClientImpl implements HttpClient {
       };
     } catch (error) {
       if (!this.isTestEnvironment) {
-        console.error('GET request error:', error);
+        this.logger.error({
+          error: String(error),
+          url,
+          method: 'GET',
+          options,
+          stack: error instanceof Error ? error.stack : undefined
+        }, 'GET request failed');
       }
       
       // For tests, we need to match the expected error message format
@@ -330,7 +354,14 @@ export class FetchHttpClientImpl implements HttpClient {
       };
     } catch (error) {
       if (!this.isTestEnvironment) {
-        console.error('POST request error:', error);
+        this.logger.error({
+          error: String(error),
+          url,
+          method: 'POST',
+          dataSize: data !== null && data !== undefined ? JSON.stringify(data).length : 0,
+          options,
+          stack: error instanceof Error ? error.stack : undefined
+        }, 'POST request failed');
       }
       
       // For tests, we need to match the expected error message format

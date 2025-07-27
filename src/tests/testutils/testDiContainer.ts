@@ -12,6 +12,7 @@ import { ConsoleOutputServiceImpl } from
   '../../implementations/console/consoleOutputServiceImpl.js';
 import { TvMazeServiceImpl } from '../../implementations/tvMazeServiceImpl.js';
 import { PlainStyleServiceImpl } from '../../implementations/test/plainStyleServiceImpl.js';
+import { MockLoggerServiceImpl } from '../../implementations/test/mockLoggerServiceImpl.js';
 
 import type { HttpClient, HttpResponse } from '../../interfaces/httpClient.js';
 
@@ -70,8 +71,9 @@ export function createTestContainer(mockConsole: Console): DependencyContainer {
   testContainer.register('TvShowService', { useClass: TvMazeServiceImpl });
   testContainer.register('OutputService', { useClass: ConsoleOutputServiceImpl });
   
-  // Register mock HTTP client
+  // Register mock HTTP client and logger
   testContainer.register('HttpClient', { useValue: createMockHttpClient() });
+  testContainer.register('LoggerService', { useClass: MockLoggerServiceImpl });
   
   return testContainer;
 }

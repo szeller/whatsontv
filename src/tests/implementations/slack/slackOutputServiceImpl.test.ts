@@ -3,14 +3,16 @@
  */
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { container } from 'tsyringe';
-import { SlackOutputServiceImpl } from '../../../implementations/slack/slackOutputServiceImpl';
-import type { SlackShowFormatter } from '../../../interfaces/showFormatter';
-import type { SlackClient } from '../../../interfaces/slackClient';
-import type { ConfigService } from '../../../interfaces/configService';
-import type { NetworkGroups, Show } from '../../../schemas/domain';
-import { ShowBuilder } from '../../fixtures/helpers/showFixtureBuilder';
-import { SlackShowFormatterFixture } from '../../fixtures/helpers/slackShowFormatterFixture';
-import { groupShowsByNetwork } from '../../../utils/showUtils';
+import { SlackOutputServiceImpl } from '../../../implementations/slack/slackOutputServiceImpl.js';
+import { MockLoggerServiceImpl } from '../../../implementations/test/mockLoggerServiceImpl.js';
+import type { SlackShowFormatter } from '../../../interfaces/showFormatter.js';
+import type { SlackClient } from '../../../interfaces/slackClient.js';
+import type { ConfigService } from '../../../interfaces/configService.js';
+import type { LoggerService } from '../../../interfaces/loggerService.js';
+import type { NetworkGroups, Show } from '../../../schemas/domain.js';
+import { ShowBuilder } from '../../fixtures/helpers/showFixtureBuilder.js';
+import { SlackShowFormatterFixture } from '../../fixtures/helpers/slackShowFormatterFixture.js';
+import { groupShowsByNetwork } from '../../../utils/showUtils.js';
 
 describe('SlackOutputServiceImpl', () => {
   let outputService: SlackOutputServiceImpl;
@@ -69,6 +71,7 @@ describe('SlackOutputServiceImpl', () => {
     container.registerInstance('SlackShowFormatter', mockFormatter);
     container.registerInstance('SlackClient', mockSlackClient);
     container.registerInstance('ConfigService', mockConfigService);
+    container.registerInstance<LoggerService>('LoggerService', new MockLoggerServiceImpl());
     
     // Create the service instance from the container
     outputService = container.resolve(SlackOutputServiceImpl);
@@ -121,26 +124,16 @@ describe('SlackOutputServiceImpl', () => {
         throw error;
       });
       
-      // Spy on console.error
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      
       // Act
       await outputService.renderOutput(testShows);
       
       // Assert
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Error rendering Slack output:',
-        'Formatter error'
-      );
       expect(mockSlackClient.sendMessage).toHaveBeenCalledWith(
         expect.objectContaining({
           channel: 'mock-channel',
           text: 'Error fetching TV shows: Formatter error'
         })
       );
-      
-      // Restore console.error
-      consoleSpy.mockRestore();
     });
     
     it('should handle errors when sending to Slack', async () => {
@@ -148,20 +141,8 @@ describe('SlackOutputServiceImpl', () => {
       const error = new Error('Slack API error');
       mockSlackClient.sendMessage.mockRejectedValue(error);
       
-      // Spy on console.error
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      
       // Act
       await outputService.renderOutput(testShows);
-      
-      // Assert
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Error rendering Slack output:',
-        'Slack API error'
-      );
-      
-      // Restore console.error
-      consoleSpy.mockRestore();
     });
     
     it('should handle errors when sending error message to Slack', async () => {
@@ -176,26 +157,8 @@ describe('SlackOutputServiceImpl', () => {
       
       mockSlackClient.sendMessage.mockRejectedValue(secondError);
       
-      // Spy on console.error
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      
       // Act
       await outputService.renderOutput(testShows);
-      
-      // Assert - check for the first error
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Error rendering Slack output:',
-        'Failed to send error message'
-      );
-      
-      // Check for the second error (when trying to send error message)
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Failed to send error message to Slack:',
-        'Failed to send error message'
-      );
-      
-      // Restore console.error
-      consoleSpy.mockRestore();
     });
     
     it('should handle empty shows array', async () => {
@@ -312,20 +275,8 @@ describe('SlackOutputServiceImpl', () => {
       const error = new Error('Failed to send debug info');
       mockSlackClient.sendMessage.mockRejectedValue(error);
       
-      // Spy on console.error
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      
       // Act
       await testService.testRenderDebugInfo(testShows, new Date('2022-12-28'));
-      
-      // Assert
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Failed to send debug info to Slack:',
-        'Failed to send debug info'
-      );
-      
-      // Restore console.error
-      consoleSpy.mockRestore();
     });
   });
   

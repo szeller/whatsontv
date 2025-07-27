@@ -1,6 +1,7 @@
 import { WebClient } from '@slack/web-api';
 import { injectable, inject } from 'tsyringe';
 import type { ConfigService } from '../../interfaces/configService.js';
+import type { LoggerService } from '../../interfaces/loggerService.js';
 import type { SlackClient, SlackMessagePayload } from '../../interfaces/slackClient.js';
 import type { SlackConfig } from '../../types/configTypes.js';
 
@@ -12,18 +13,28 @@ import type { SlackConfig } from '../../types/configTypes.js';
 export class SlackClientImpl implements SlackClient {
   private _client: WebClient;
   private _options: SlackConfig;
+  private readonly logger: LoggerService;
 
   /**
    * Creates a new SlackClientImpl instance
    * @param configService The configuration service
    * @param webClientFactory Optional factory function for creating WebClient instances
+   * @param logger The logger service
    */
   constructor(
     @inject('ConfigService') private readonly configService: ConfigService,
     @inject('WebClientFactory') 
-    private readonly webClientFactory?: (config: SlackConfig) => WebClient
+    private readonly webClientFactory: ((config: SlackConfig) => WebClient) | undefined,
+    @inject('LoggerService') logger?: LoggerService
   ) {
     this._options = this.configService.getSlackOptions();
+    this.logger = logger?.child({ module: 'SlackClient' }) ?? {
+      error: () => {},
+      warn: () => {},
+      info: () => {},
+      debug: () => {},
+      child: () => this.logger
+    } as LoggerService;
     
     // Use the factory if provided, otherwise create a new WebClient directly
     if (this.webClientFactory) {
@@ -61,7 +72,14 @@ export class SlackClientImpl implements SlackClient {
       // Send the message
       await this._client.chat.postMessage(completePayload);
     } catch (error) {
-      console.error('Error sending Slack message:', error);
+      this.logger.error({
+        error: String(error),
+        channel: payload.channel,
+        messageLength: payload.text?.length ?? 0,
+        hasBlocks: payload.blocks !== undefined,
+        blocksCount: payload.blocks?.length ?? 0,
+        stack: error instanceof Error ? error.stack : undefined
+      }, 'Failed to send Slack message');
       throw new Error(`Failed to send Slack message: ${String(error)}`);
     }
   }
