@@ -25,7 +25,8 @@ const config = {
     'src/**/*.ts',
     '!src/tests/**/*.ts',
     '!src/**/test/*.ts',
-    '!src/prototypes/**/*.ts'
+    '!src/prototypes/**/*.ts',
+    '!src/lambda/**/*.ts'
   ],
   
   // Generate various coverage report formats

@@ -41,6 +41,17 @@ export const handler = async (
   consoleOutput.log(`Remaining time: ${typedContext.getRemainingTimeInMillis()}ms`);
   
   try {
+    // Validate environment variables before creating the app
+    const slackToken = process.env.SLACK_TOKEN;
+    const slackChannel = process.env.SLACK_CHANNEL;
+    
+    if (slackToken === undefined || slackToken === null || slackToken.trim() === '') {
+      throw new Error('SLACK_TOKEN environment variable is required but not set');
+    }
+    if (slackChannel === undefined || slackChannel === null || slackChannel.trim() === '') {
+      throw new Error('SLACK_CHANNEL environment variable is required but not set');
+    }
+    
     // Create the Slack application using the existing factory
     const app = createSlackApp();
     
