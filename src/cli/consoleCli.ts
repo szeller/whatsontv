@@ -19,16 +19,24 @@ registerGlobalErrorHandler(consoleOutput);
  * Main function that resolves services from the container and runs the CLI
  */
 export function createCliApp(): BaseCliApplication {
-  // Resolve all required services from the container
-  const tvShowService = container.resolve<TvShowService>('TvShowService');
-  const configService = container.resolve<ConfigService>('ConfigService');
-  const outputService = container.resolve<OutputService>('OutputService');
+  return createCliAppWithContainer(container);
+}
+
+/**
+ * Create CLI app with a specific container (useful for testing)
+ */
+export function createCliAppWithContainer(containerInstance: typeof container): BaseCliApplication {
+  // Resolve all required services from the specified container
+  const tvShowService = containerInstance.resolve<TvShowService>('TvShowService');
+  const configService = containerInstance.resolve<ConfigService>('ConfigService');
+  const outputService = containerInstance.resolve<OutputService>('OutputService');
+  const consoleOutputFromContainer = containerInstance.resolve<ConsoleOutput>('ConsoleOutput');
   
   // Create the CLI application
   return new BaseCliApplication(
     tvShowService,
     configService,
-    consoleOutput,
+    consoleOutputFromContainer,
     outputService
   );
 }

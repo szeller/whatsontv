@@ -4,11 +4,9 @@
  * This utility allows running the CLI with different arguments and capturing the output
  * for integration testing purposes.
  */
-import { createCliApp } from '../../../cli/consoleCli.js';
+import { createCliAppWithContainer } from '../../../cli/consoleCli.js';
 import type { CliArgs } from '../../../types/cliArgs.js';
 import { container } from '../../../container.js';
-import type { ConsoleOutput } from '../../../interfaces/consoleOutput.js';
-import type { ConfigService } from '../../../interfaces/configService.js';
 import type { TvShowService } from '../../../interfaces/tvShowService.js';
 import { createMockConsoleOutput } from '../../mocks/factories/consoleOutputFactory.js';
 import { createMockConfigService } from '../../mocks/factories/configServiceFactory.js';
@@ -88,9 +86,8 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
     originalLogWithLevelFn(level, message, ...args);
   };
 
-  // Register mock ConsoleOutput
-  const originalConsoleOutput = container.resolve<ConsoleOutput>('ConsoleOutput');
-  container.register('ConsoleOutput', { useValue: mockConsoleOutput });
+  // Create child container for test isolation - no global container mutation
+  const testContainer = container.createChildContainer();
 
   // Create a mock config service with the provided args using our factory
   const mockConfigService = createMockConfigService({
@@ -110,17 +107,9 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
     enhanceWithJestMocks: false
   });
   
-  // Try to get the original ConfigService, but don't fail if it can't be resolved
-  let originalConfigService: ConfigService | null = null;
-  try {
-    originalConfigService = container.resolve<ConfigService>('ConfigService');
-  } catch (_) {
-    // If we can't resolve it, that's fine - we'll register our mock anyway
-    originalConfigService = null;
-  }
-  
-  // Register test config service
-  container.register('ConfigService', { useValue: mockConfigService });
+  // Register services in isolated test container
+  testContainer.register('ConsoleOutput', { useValue: mockConsoleOutput });
+  testContainer.register('ConfigService', { useValue: mockConfigService });
   
   try {
     // Debug log the fetch source
@@ -202,8 +191,8 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
       console.error('[TEST DEBUG] Error resolving or using TvShowService:', error);
     }
     
-    // Create the CLI app using the factory function
-    const cliApp = createCliApp();
+    // Create the CLI app using the test container
+    const cliApp = createCliAppWithContainer(testContainer);
     
     // Debug log the services
     console.log('[TEST DEBUG] Created CLI application');
@@ -239,15 +228,8 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
       console.error('[TEST DEBUG] Unknown error:', String(error));
     }
     exitCode = 1;
-  } finally {
-    // Restore original services
-    container.register('ConsoleOutput', { useValue: originalConsoleOutput });
-    
-    // Only restore the original ConfigService if we had one
-    if (originalConfigService !== null) {
-      container.register('ConfigService', { useValue: originalConfigService });
-    }
   }
+  // No cleanup needed - child container automatically handles cleanup
   
   return {
     stdout,
