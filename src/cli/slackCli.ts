@@ -28,29 +28,50 @@ registerGlobalErrorHandler(consoleOutput);
  * @returns A new SlackCliApplication instance
  */
 export function createSlackApp(): BaseCliApplication {
+  return createSlackAppWithContainer(container);
+}
+
+/**
+ * Create Slack app with a specific container (useful for testing)
+ * @param containerInstance The container to resolve services from
+ * @returns A new SlackCliApplication instance
+ */
+export function createSlackAppWithContainer(
+  containerInstance: typeof container
+): BaseCliApplication {
   try {
-    // Resolve all required services from the container
-    const tvShowService = container.resolve<TvShowService>('TvShowService');
-    const configService = container.resolve<ConfigService>('ConfigService');
-    const outputService = container.resolve<OutputService>('SlackOutputService');
+    // Resolve all required services from the specified container
+    const tvShowService = containerInstance.resolve<TvShowService>('TvShowService');
+    const configService = containerInstance.resolve<ConfigService>('ConfigService');
+    const outputService = containerInstance.resolve<OutputService>('SlackOutputService');
+    const consoleOutputFromContainer = containerInstance.resolve<ConsoleOutput>('ConsoleOutput');
     
     // Create the Slack CLI application
     return new BaseCliApplication(
       tvShowService,
       configService,
-      consoleOutput,
+      consoleOutputFromContainer,
       outputService
     );
   } catch (error) {
-    consoleOutput.error(`Error resolving services: ${String(error)}`);
+    const consoleOutputForError = containerInstance.resolve<ConsoleOutput>('ConsoleOutput');
+    consoleOutputForError.error(`Error resolving services: ${String(error)}`);
     
     // Check if the error is related to missing service registrations
     if (String(error).includes('SlackFormatter')) {
-      consoleOutput.error('The SlackFormatter service is not registered in the container.');
-      consoleOutput.error('Please make sure to register it before running this application.');
+      consoleOutputForError.error(
+        'The SlackFormatter service is not registered in the container.'
+      );
+      consoleOutputForError.error(
+        'Please make sure to register it before running this application.'
+      );
     } else if (String(error).includes('SlackOutputService')) {
-      consoleOutput.error('The SlackOutputService service is not registered in the container.');
-      consoleOutput.error('Please make sure to register it before running this application.');
+      consoleOutputForError.error(
+        'The SlackOutputService service is not registered in the container.'
+      );
+      consoleOutputForError.error(
+        'Please make sure to register it before running this application.'
+      );
     }
     
     throw error;

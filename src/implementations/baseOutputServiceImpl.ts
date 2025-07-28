@@ -30,15 +30,11 @@ export abstract class BaseOutputServiceImpl<TOutput> implements OutputService {
     try {
       // Get date from ConfigService - standardized approach
       const date = this.configService.getDate();
-      const isDebugMode = this.configService.isDebugMode();
-      
       // Common preprocessing logic
       const networkGroups = groupShowsByNetwork(shows);
       
-      // Debug output if enabled
-      if (isDebugMode) {
-        await this.renderDebugInfo(shows, date);
-      }
+      // Debug information is now handled via structured logging (LoggerService.debug)
+      // Set LOG_LEVEL=debug to see detailed debug information
       
       // Abstract methods to be implemented by subclasses
       await this.renderHeader(date);
@@ -69,13 +65,6 @@ export abstract class BaseOutputServiceImpl<TOutput> implements OutputService {
    * Render the footer section
    */
   protected abstract renderFooter(): Promise<void>;
-  
-  /**
-   * Render debug information
-   * @param shows List of shows
-   * @param date The date for which shows are being displayed
-   */
-  protected abstract renderDebugInfo(shows: Show[], date: Date): Promise<void>;
   
   /**
    * Handle errors that occur during rendering

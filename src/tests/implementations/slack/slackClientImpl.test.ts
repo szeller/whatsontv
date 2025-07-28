@@ -191,17 +191,12 @@ describe('SlackClientImpl', () => {
       const error = new Error('Slack API error');
       mockPostMessage.mockRejectedValueOnce(error as never);
       
-      // Spy on console.error to verify it was called
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      
       // Act & Assert
       await expect(slackClient.sendMessage(payload)).rejects.toThrow(
         'Failed to send Slack message'
       );
-      expect(consoleSpy).toHaveBeenCalledWith('Error sending Slack message:', error);
       
-      // Restore console.error
-      consoleSpy.mockRestore();
+      // Note: Error logging is now handled by LoggerService instead of console.error
     });
   });
 });

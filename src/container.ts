@@ -8,6 +8,7 @@ import { container } from 'tsyringe';
 import type { ConfigService } from './interfaces/configService.js';
 import type { ConsoleOutput } from './interfaces/consoleOutput.js';
 import type { HttpClient } from './interfaces/httpClient.js';
+import type { LoggerService } from './interfaces/loggerService.js';
 import type { OutputService } from './interfaces/outputService.js';
 import type { TextShowFormatter } from './interfaces/showFormatter.js';
 import type { StyleService } from './interfaces/styleService.js';
@@ -19,6 +20,7 @@ import { ConsoleConfigServiceImpl } from './implementations/console/consoleConfi
 import { ConsoleOutputImpl } from './implementations/console/consoleOutputImpl.js';
 import { ConsoleOutputServiceImpl } from './implementations/console/consoleOutputServiceImpl.js';
 import { FetchHttpClientImpl } from './implementations/fetchHttpClientImpl.js';
+import { PinoLoggerServiceImpl } from './implementations/pino/pinoLoggerServiceImpl.js';
 import { TextShowFormatterImpl } from './implementations/console/textShowFormatterImpl.js';
 import { TvMazeServiceImpl } from './implementations/tvMazeServiceImpl.js';
 
@@ -27,6 +29,7 @@ container.registerSingleton<StyleService>('StyleService', ChalkStyleServiceImpl)
 container.registerSingleton<TvShowService>('TvShowService', TvMazeServiceImpl);
 container.registerSingleton<ConsoleOutput>('ConsoleOutput', ConsoleOutputImpl);
 container.registerSingleton<TextShowFormatter>('TextShowFormatter', TextShowFormatterImpl);
+container.registerSingleton<LoggerService>('LoggerService', PinoLoggerServiceImpl);
 
 // Register ConfigService with factory to handle the optional parameter
 container.register<ConfigService>('ConfigService', {

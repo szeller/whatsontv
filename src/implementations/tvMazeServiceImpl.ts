@@ -3,6 +3,7 @@
  */
 import { inject, injectable } from 'tsyringe';
 import type { HttpClient } from '../interfaces/httpClient.js';
+import type { LoggerService } from '../interfaces/loggerService.js';
 import type { TvShowService } from '../interfaces/tvShowService.js';
 import type { Show } from '../schemas/domain.js';
 import type { ShowOptions } from '../types/tvShowOptions.js';
@@ -20,9 +21,20 @@ import { getStringOrDefault } from '../utils/stringUtils.js';
 @injectable()
 export class TvMazeServiceImpl implements TvShowService {
   private _apiClient: HttpClient;
+  private readonly logger: LoggerService;
 
-  constructor(@inject('HttpClient') apiClient: HttpClient) {
+  constructor(
+    @inject('HttpClient') apiClient: HttpClient,
+    @inject('LoggerService') logger?: LoggerService
+  ) {
     this._apiClient = apiClient;
+    this.logger = logger?.child({ module: 'TvMazeService' }) ?? {
+      error: () => {},
+      warn: () => {},
+      info: () => {},
+      debug: () => {},
+      child: () => this.logger
+    } as LoggerService;
   }
 
   /**
@@ -32,17 +44,63 @@ export class TvMazeServiceImpl implements TvShowService {
    * @private
    */
   private async getSchedule(url: string): Promise<Record<string, unknown>[]> {
+    const startTime = Date.now();
+    
+    // Debug: Log the API request details
+    this.logger.debug({
+      operation: 'getSchedule',
+      url,
+      timestamp: new Date().toISOString()
+    }, 'Making TVMaze API request');
+    
     try {
       const response = await this._apiClient.get<unknown[]>(url);
       if (Array.isArray(response.data)) {
+        // Debug: Log raw API response (with size limits)
+        const responseSize = JSON.stringify(response.data).length;
+        this.logger.debug({
+          operation: 'getSchedule',
+          url,
+          rawResponseSize: responseSize,
+          rawResponseSample: response.data.slice(0, 3), // First 3 items for debugging
+          totalItems: response.data.length,
+          statusCode: response.status,
+          headers: {
+            contentType: response.headers?.['content-type'],
+            contentLength: response.headers?.['content-length']
+          },
+          duration: Date.now() - startTime
+        }, 'Raw TVMaze API response captured');
+        
+        // Log successful API call (info level)
+        this.logger.info({
+          url,
+          showCount: response.data.length,
+          duration: Date.now() - startTime,
+          statusCode: response.status
+        }, 'Successfully fetched schedule from TVMaze API');
+        
         return response.data as Record<string, unknown>[];
       }
+      
+      // Debug: Log empty or invalid response
+      this.logger.debug({
+        operation: 'getSchedule',
+        url,
+        responseType: typeof response.data,
+        isArray: Array.isArray(response.data),
+        statusCode: response.status
+      }, 'TVMaze API returned non-array response');
+      
       return [];
     } catch (error) {
-      // Only log errors in production environments
-      if (process.env.NODE_ENV === 'production') {
-        console.error(`Error fetching schedule from ${url}:`, error);
-      }
+      // Log errors with structured logging for better observability
+      this.logger.error({
+        error: String(error),
+        url,
+        duration: Date.now() - startTime,
+        stack: error instanceof Error ? error.stack : undefined
+      }, 'Failed to fetch schedule from TVMaze API');
       return [];
     }
   }
@@ -74,9 +132,10 @@ export class TvMazeServiceImpl implements TvShowService {
     const dateStr = getStringOrDefault(mergedOptions.date, getTodayDate());
     const countryStr = getStringOrDefault(mergedOptions.country, 'US');
     
+    // URLs to fetch based on options
+    const urlsToFetch: string[] = [];
+    
     try {
-      // URLs to fetch based on options
-      const urlsToFetch: string[] = [];
 
       // Determine which sources to fetch based on fetchSource
       if (mergedOptions.fetchSource === 'all' || mergedOptions.fetchSource === 'network') {
@@ -104,10 +163,14 @@ export class TvMazeServiceImpl implements TvShowService {
       
       return shows;
     } catch (error) {
-      // Only log errors in production environments
-      if (process.env.NODE_ENV === 'production') {
-        console.error('Error fetching shows:', error);
-      }
+      // Log errors with structured logging for better observability
+      this.logger.error({
+        error: String(error),
+        options: mergedOptions,
+        urlsCount: urlsToFetch.length,
+        environment: process.env.NODE_ENV,
+        stack: error instanceof Error ? error.stack : undefined
+      }, 'Failed to fetch TV shows');
       return [];
     }
   }
