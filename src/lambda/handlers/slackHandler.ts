@@ -58,32 +58,10 @@ export const handler = async (
   }, 'Lambda execution started');
   
   try {
-    // Validate environment variables before creating the app
-    const slackToken = process.env.SLACK_TOKEN;
-    const slackChannel = process.env.SLACK_CHANNEL;
-    
-    requestLogger.debug({ 
-      slackToken: slackToken !== null && slackToken !== undefined && 
-        slackToken.trim() !== '' ? '***' : 'missing', 
-      slackChannel: slackChannel ?? 'missing' 
-    }, 'Environment variables validation');
-    
-    if (slackToken === undefined || slackToken === null || slackToken.trim() === '') {
-      const error = new Error('SLACK_TOKEN environment variable is required but not set');
-      requestLogger.error({ error: error.message }, 'Environment validation failed');
-      throw error;
-    }
-    if (slackChannel === undefined || slackChannel === null || slackChannel.trim() === '') {
-      const error = new Error('SLACK_CHANNEL environment variable is required but not set');
-      requestLogger.error({ error: error.message }, 'Environment validation failed');
-      throw error;
-    }
-    
-    requestLogger.info('Environment variables validated successfully');
-    
     // Create the Slack application using the existing factory
+    // This will validate environment variables through ConfigService
     const startTime = Date.now();
-    requestLogger.info('Creating Slack application');
+    requestLogger.info('Creating Slack application with environment validation');
     const app = createSlackApp();
     
     // Run the application
