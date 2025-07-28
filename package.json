@@ -52,7 +52,7 @@
   "devDependencies": {
     "@babel/core": "^7.26.10",
     "@babel/preset-env": "^7.26.9",
-    "@eslint/js": "^9.25.1",
+    "@eslint/js": "^9.32.0",
     "@jest/globals": "^30.0.4",
     "@types/aws-lambda": "^8.10.149",
     "@types/jest": "^30.0.0",
@@ -62,7 +62,7 @@
     "@typescript-eslint/parser": "^8.31.0",
     "babel-jest": "^30.0.4",
     "esbuild": "^0.25.2",
-    "eslint": "^9.25.1",
+    "eslint": "^9.32.0",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-jest": "^29.0.1",
     "eslint-plugin-promise": "^7.2.1",
