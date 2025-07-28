@@ -81,7 +81,7 @@ export class PinoLoggerServiceImpl implements LoggerService {
       return 'silent';
     case 'development':
     default:
-      return 'debug';
+      return 'warn';
     }
   }
 }

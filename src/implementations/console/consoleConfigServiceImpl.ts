@@ -97,24 +97,41 @@ export class ConsoleConfigServiceImpl implements ConfigService {
   }
   
   /**
+   * Get required environment variable (throws if missing or empty)
+   * @param key Environment variable name
+   * @returns Environment variable value
+   * @protected
+   */
+  protected getRequiredEnv(key: string): string {
+    const value = process.env[key];
+    if (value === undefined || value === null || value.trim() === '') {
+      throw new Error(`${key} environment variable is required but not set`);
+    }
+    return value;
+  }
+  
+  /**
+   * Get optional environment variable with default
+   * @param key Environment variable name
+   * @param defaultValue Default value if not set
+   * @returns Environment variable value or default
+   * @protected
+   */
+  protected getOptionalEnv(key: string, defaultValue: string): string {
+    const value = process.env[key];
+    return (value !== undefined && value !== null && value.trim() !== '') ? value : defaultValue;
+  }
+  
+  /**
    * Get Slack configuration options
    * @returns The Slack configuration options
    */
   getSlackOptions(): SlackConfig {
-    // Return default Slack options if not configured
+    // Use environment variable helpers for cleaner code
     const defaultSlackOptions: SlackConfig = {
-      token: process.env.SLACK_TOKEN !== undefined 
-        && process.env.SLACK_TOKEN !== null 
-        ? process.env.SLACK_TOKEN 
-        : '',
-      channelId: process.env.SLACK_CHANNEL !== undefined 
-        && process.env.SLACK_CHANNEL !== null 
-        ? process.env.SLACK_CHANNEL 
-        : '',
-      username: process.env.SLACK_USERNAME !== undefined 
-        && process.env.SLACK_USERNAME !== null 
-        ? process.env.SLACK_USERNAME 
-        : 'WhatsOnTV',
+      token: this.getOptionalEnv('SLACK_TOKEN', ''),
+      channelId: this.getOptionalEnv('SLACK_CHANNEL', ''),
+      username: this.getOptionalEnv('SLACK_USERNAME', 'WhatsOnTV'),
       icon_emoji: ':tv:',
       dateFormat: 'dddd, MMMM D, YYYY'
     };
