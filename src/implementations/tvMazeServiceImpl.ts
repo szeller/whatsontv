@@ -45,18 +45,53 @@ export class TvMazeServiceImpl implements TvShowService {
    */
   private async getSchedule(url: string): Promise<Record<string, unknown>[]> {
     const startTime = Date.now();
+    
+    // Debug: Log the API request details
+    this.logger.debug({
+      operation: 'getSchedule',
+      url,
+      timestamp: new Date().toISOString()
+    }, 'Making TVMaze API request');
+    
     try {
       const response = await this._apiClient.get<unknown[]>(url);
       if (Array.isArray(response.data)) {
-        // Log successful API call
+        // Debug: Log raw API response (with size limits)
+        const responseSize = JSON.stringify(response.data).length;
+        this.logger.debug({
+          operation: 'getSchedule',
+          url,
+          rawResponseSize: responseSize,
+          rawResponseSample: response.data.slice(0, 3), // First 3 items for debugging
+          totalItems: response.data.length,
+          statusCode: response.status,
+          headers: {
+            contentType: response.headers?.['content-type'],
+            contentLength: response.headers?.['content-length']
+          },
+          duration: Date.now() - startTime
+        }, 'Raw TVMaze API response captured');
+        
+        // Log successful API call (info level)
         this.logger.info({
           url,
           showCount: response.data.length,
           duration: Date.now() - startTime,
           statusCode: response.status
         }, 'Successfully fetched schedule from TVMaze API');
+        
         return response.data as Record<string, unknown>[];
       }
+      
+      // Debug: Log empty or invalid response
+      this.logger.debug({
+        operation: 'getSchedule',
+        url,
+        responseType: typeof response.data,
+        isArray: Array.isArray(response.data),
+        statusCode: response.status
+      }, 'TVMaze API returned non-array response');
+      
       return [];
     } catch (error) {
       // Log errors with structured logging for better observability

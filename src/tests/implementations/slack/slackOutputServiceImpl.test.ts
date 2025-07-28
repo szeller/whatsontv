@@ -9,7 +9,7 @@ import type { SlackShowFormatter } from '../../../interfaces/showFormatter.js';
 import type { SlackClient } from '../../../interfaces/slackClient.js';
 import type { ConfigService } from '../../../interfaces/configService.js';
 import type { LoggerService } from '../../../interfaces/loggerService.js';
-import type { NetworkGroups, Show } from '../../../schemas/domain.js';
+import type { NetworkGroups } from '../../../schemas/domain.js';
 import { ShowBuilder } from '../../fixtures/helpers/showFixtureBuilder.js';
 import { SlackShowFormatterFixture } from '../../fixtures/helpers/slackShowFormatterFixture.js';
 import { groupShowsByNetwork } from '../../../utils/showUtils.js';
@@ -220,87 +220,9 @@ describe('SlackOutputServiceImpl', () => {
     });
   });
   
-  describe('renderDebugInfo', () => {
-    it('should send debug information to Slack when debug mode is enabled', async () => {
-      // We need to access the protected method, so we'll create a test class
-      class TestSlackOutputService extends SlackOutputServiceImpl {
-        public async testRenderDebugInfo(shows: Show[], date: Date): Promise<void> {
-          return this.renderDebugInfo(shows, date);
-        }
-      }
-      
-      // Create instance with our existing mocks
-      const testService = new TestSlackOutputService(
-        mockFormatter,
-        mockSlackClient,
-        mockConfigService
-      );
-      
-      // Enable debug mode
-      mockConfigService.isDebugMode.mockReturnValue(true);
-      
-      // Act
-      await testService.testRenderDebugInfo(testShows, new Date('2022-12-28'));
-      
-      // Assert
-      expect(mockSlackClient.sendMessage).toHaveBeenCalledWith(
-        expect.objectContaining({
-          channel: 'mock-channel',
-          text: expect.stringContaining('*Debug Information:*')
-        })
-      );
-      expect(mockSlackClient.sendMessage).toHaveBeenCalledWith(
-        expect.objectContaining({
-          text: expect.stringContaining('Total Shows: 3')
-        })
-      );
-    });
-    
-    it('should handle errors when sending debug information', async () => {
-      // We need to access the protected method, so we'll create a test class
-      class TestSlackOutputService extends SlackOutputServiceImpl {
-        public async testRenderDebugInfo(shows: Show[], date: Date): Promise<void> {
-          return this.renderDebugInfo(shows, date);
-        }
-      }
-      
-      // Create instance with our existing mocks
-      const testService = new TestSlackOutputService(
-        mockFormatter,
-        mockSlackClient,
-        mockConfigService
-      );
-      
-      // Mock Slack client to throw an error
-      const error = new Error('Failed to send debug info');
-      mockSlackClient.sendMessage.mockRejectedValue(error);
-      
-      // Act
-      await testService.testRenderDebugInfo(testShows, new Date('2022-12-28'));
-    });
-  });
+  // Debug tests removed - debug functionality now uses structured logging (LoggerService.debug)
+  // Set LOG_LEVEL=debug to see detailed debug information
   
-  describe('full renderOutput with debug mode', () => {
-    it('should include debug information when debug mode is enabled', async () => {
-      // Arrange
-      mockConfigService.isDebugMode.mockReturnValue(true);
-      const mockBlocks = [SlackShowFormatterFixture.createHeaderBlock()];
-      mockFormatter.formatNetworkGroups.mockReturnValue(mockBlocks);
-      
-      // Act
-      await outputService.renderOutput(testShows);
-      
-      // Assert
-      // Should send three messages - header, content, and debug info
-      expect(mockSlackClient.sendMessage).toHaveBeenCalledTimes(3);
-      
-      // Verify that one of the calls contains debug info
-      expect(mockSlackClient.sendMessage).toHaveBeenCalledWith(
-        expect.objectContaining({
-          channel: 'mock-channel',
-          text: expect.stringContaining('*Debug Information:*')
-        })
-      );
-    });
-  });
+  // Debug test removed - debug functionality now uses structured logging
+  // Debug information is now emitted via LoggerService.debug instead of Slack messages
 });

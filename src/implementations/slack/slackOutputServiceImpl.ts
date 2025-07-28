@@ -6,7 +6,7 @@ import type { SlackClient, SlackBlock } from '../../interfaces/slackClient.js';
 import type { Show } from '../../schemas/domain.js';
 import { BaseOutputServiceImpl } from '../baseOutputServiceImpl.js';
 import { formatDate } from '../../utils/dateUtils.js';
-import { formatError, generateDebugInfo, safeResolve } from '../../utils/errorHandling.js';
+import { formatError, safeResolve } from '../../utils/errorHandling.js';
 
 /**
  * Slack implementation of the OutputService interface
@@ -94,35 +94,8 @@ export class SlackOutputServiceImpl extends BaseOutputServiceImpl<SlackBlock> {
     await safeResolve();
   }
   
-  /**
-   * Render debug information
-   * @param shows List of shows
-   * @param _date The date for which shows are being displayed
-   */
-  protected async renderDebugInfo(shows: Show[], date: Date): Promise<void> {
-    const debugInfo = generateDebugInfo(shows, date);
-    
-    const debugText = [
-      '*Debug Information:*',
-      `Date queried: ${debugInfo.dateFormatted}`,
-      `Available Networks: ${debugInfo.networks.join(', ')}`,
-      `Total Shows: ${debugInfo.totalShows}`
-    ].join('\n');
-    
-    try {
-      await this.slackClient.sendMessage({
-        channel: this.configService.getSlackOptions().channelId,
-        text: debugText
-      });
-    } catch (error) {
-      this.logger.error({
-        error: formatError(error),
-        channel: this.configService.getSlackOptions().channelId,
-        debugInfoSize: debugText.length,
-        totalShows: debugInfo.totalShows
-      }, 'Failed to send debug info to Slack');
-    }
-  }
+  // Debug information is now handled via structured logging (LoggerService.debug)
+  // Use LOG_LEVEL=debug to see detailed debug information
   
   /**
    * Handle errors that occur during rendering

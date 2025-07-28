@@ -29,9 +29,7 @@ class TestConsoleOutputService extends ConsoleOutputServiceImpl {
     return this.renderFooter();
   }
   
-  testRenderDebugInfo(shows: Show[], date: Date): Promise<void> {
-    return this.renderDebugInfo(shows, date);
-  }
+  // Debug functionality moved to structured logging - no longer need test method
   
   testHandleError(error: unknown): Promise<void> {
     return this.handleError(error);
@@ -198,34 +196,8 @@ describe('ConsoleOutputServiceImpl', () => {
     });
   });
   
-  describe('renderDebugInfo', () => {
-    it('should display debug information', async () => {
-      // Act
-      await service.testRenderDebugInfo(sampleShows, new Date('2023-01-01'));
-      
-      // Assert
-      expect(mockOutput.log).toHaveBeenCalledWith('\nDebug Information:');
-      expect(mockOutput.log).toHaveBeenCalledWith(expect.stringContaining('Available Networks:'));
-      expect(mockOutput.log).toHaveBeenCalledWith(expect.stringContaining('Total Shows: 3'));
-    });
-    
-    it('should list all unique networks in debug info', async () => {
-      // Act
-      await service.testRenderDebugInfo(sampleShows, new Date('2023-01-01'));
-      
-      // Assert
-      expect(mockOutput.log).toHaveBeenCalledWith(expect.stringContaining('ABC'));
-      expect(mockOutput.log).toHaveBeenCalledWith(expect.stringContaining('NBC'));
-    });
-    
-    it('should format the date in debug info', async () => {
-      // Act
-      await service.testRenderDebugInfo(sampleShows, new Date('2023-01-01'));
-      
-      // Assert
-      expect(mockOutput.log).toHaveBeenCalledWith(expect.stringContaining('Date queried:'));
-    });
-  });
+  // Debug tests removed - debug functionality now uses structured logging (LoggerService.debug)
+  // Set LOG_LEVEL=debug to see detailed debug information
   
   describe('handleError', () => {
     it('should handle Error objects', async () => {
@@ -281,17 +253,7 @@ describe('ConsoleOutputServiceImpl', () => {
       expect(mockOutput.error).toHaveBeenCalledWith(expectedErrorMsg);
     });
     
-    it('should display debug info when debug flag is true', async () => {
-      // Arrange
-      jest.spyOn(mockConfigService, 'isDebugMode').mockReturnValue(true);
-      
-      // Act
-      await service.renderOutput(sampleShows);
-      
-      // Assert
-      expect(mockOutput.log).toHaveBeenCalledWith('\nDebug Information:');
-      expect(mockOutput.log).toHaveBeenCalledWith(expect.stringContaining('Available Networks:'));
-    });
+    // Debug test removed - debug functionality now uses structured logging
     
     it('should call all render methods in the correct order', async () => {
       // Arrange

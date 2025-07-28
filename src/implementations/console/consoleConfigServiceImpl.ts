@@ -46,14 +46,14 @@ export class ConsoleConfigServiceImpl implements ConfigService {
    * This method is separated from the constructor to allow overriding in tests
    * @protected
    */
-  protected initialize(): void {
+  private initialize(): void {
     // Parse command line arguments
     this.cliArgs = this.parseArgs();
     
     // Load configuration
     this.appConfig = this.loadConfig();
     
-    // Set CLI options
+    // Initialize CLI options from parsed arguments
     this.cliOptions = {
       debug: Boolean(this.cliArgs.debug),
       groupByNetwork: Boolean(this.cliArgs.groupByNetwork)

@@ -8,7 +8,7 @@ import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
 import { BaseOutputServiceImpl } from '../baseOutputServiceImpl.js';
 import { createSeparator } from '../../utils/stringUtils.js';
 import { formatDate } from '../../utils/dateUtils.js';
-import { formatError, generateDebugInfo, safeResolve } from '../../utils/errorHandling.js';
+import { formatError, safeResolve } from '../../utils/errorHandling.js';
 
 /**
  * Console output service for displaying TV show information
@@ -96,22 +96,8 @@ export class ConsoleOutputServiceImpl extends BaseOutputServiceImpl<string> {
     this.output.log('Data provided by TVMaze API (https://api.tvmaze.com)');
   }
   
-  /**
-   * Render debug information
-   * @param shows List of shows
-   * @param date The date for which shows are being displayed
-   */
-  protected async renderDebugInfo(shows: Show[], date: Date): Promise<void> {
-    await safeResolve();
-    
-    const debugInfo = generateDebugInfo(shows, date);
-    
-    this.output.log('\nDebug Information:');
-    this.output.log(`Date queried: ${debugInfo.dateFormatted}`);
-    this.output.log('\nAvailable Networks:');
-    this.output.log(debugInfo.networks.join(', '));
-    this.output.log(`\nTotal Shows: ${debugInfo.totalShows}`);
-  }
+  // Debug information is now handled via structured logging (LoggerService.debug)
+  // Use LOG_LEVEL=debug to see detailed debug information
   
   /**
    * Handle errors that occur during rendering
