@@ -98,7 +98,7 @@
   "forwardPorts": [3000, 8080],
   
   // Commands to run during Codespace creation (see setup.sh for details)
-  "postCreateCommand": "npm install && npm run build && bash .devcontainer/install-claude.sh",
+  "postCreateCommand": "npm install && npm run build && bash .devcontainer/setup.sh && bash .devcontainer/install-claude.sh",
   
   // Welcome message after Codespace starts
   "postStartCommand": "echo 'WhatsOnTV development environment ready! Run npm start to begin.'",
