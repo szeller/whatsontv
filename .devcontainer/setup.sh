@@ -45,14 +45,14 @@ else
 fi
 
 # Create config.json from environment variables if available
-if [ -n "$WTV_NETWORKS" ] || [ -n "$WTV_TYPES" ] || [ -n "$WTV_GENRES" ]; then
+if [ -n "$WTV_NETWORKS" ] || [ -n "$WTV_TYPES" ] || [ -n "$WTV_GENRES" ] || [ -n "$WTV_LANGUAGE" ]; then
     echo "📝 Creating config.json from environment variables..."
     cat > /workspaces/whatsontv/config.json << EOF
 {
-  "networks": [${WTV_NETWORKS:-""}],
-  "types": [${WTV_TYPES:-"\"Scripted\""}],
-  "genres": [${WTV_GENRES:-""}],
-  "language": "${WTV_LANGUAGE:-English}"
+  "networks": ${WTV_NETWORKS:-'["Discovery", "CBS", "Netflix", "Paramount+", "Peacock", "Hulu", "NBC", "HBO", "MAX", "ABC", "Prime Video", "Disney+", "Fox"]'},
+  "types": ${WTV_TYPES:-'["Scripted", "Documentary"]'},
+  "genres": ${WTV_GENRES:-'[]'},
+  "language": ${WTV_LANGUAGE:-'["English"]'}
 }
 EOF
 else
