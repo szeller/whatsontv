@@ -8,6 +8,20 @@
 
 A TypeScript application that fetches TV shows for the current day and sends notifications to a specified Slack channel using the TVMaze API. It supports filtering shows by type, network, genre, and language. It can be used both as a CLI tool and a Slack notification service.
 
+## 🚀 Quick Start with GitHub Codespaces + AI
+
+**Get productive in 2 minutes with Claude CLI + GitHub Copilot!**
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/szeller/whatsontv)
+
+✨ **Optimized AI Workflow**:
+- 🧠 **Claude CLI** for vibe coding (exploration, architecture, debugging)
+- ✏️ **GitHub Copilot** for manual editing (implementation, completions)
+- ⚡ **Automatic setup** - everything configured in 3 minutes
+
+📖 **Quick Reference**: See [`CODESPACES-QUICKSTART.md`](CODESPACES-QUICKSTART.md) for instant productivity tips!
+
+---
 
 ## Prerequisites
 
