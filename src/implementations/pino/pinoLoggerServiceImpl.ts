@@ -1,5 +1,5 @@
 import { injectable } from 'tsyringe';
-import { pino, Logger } from 'pino';
+import pino, { Logger } from 'pino';
 import { hostname } from 'os';
 import { LoggerService } from '../../interfaces/loggerService.js';
 
