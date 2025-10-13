@@ -7,10 +7,8 @@ import sonarjsPlugin from 'eslint-plugin-sonarjs';
 import promisePlugin from 'eslint-plugin-promise';
 import unicornPlugin from 'eslint-plugin-unicorn';
 import jestPlugin from 'eslint-plugin-jest';
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 /**
  * ESLint v9 configuration with TypeScript-ESLint v8.x
@@ -98,7 +96,7 @@ export default [
         ecmaVersion: 2022,
         sourceType: 'module',
         project: './tsconfig.json',
-        tsconfigRootDir: __dirname
+        tsconfigRootDir: path.dirname(fileURLToPath(import.meta.url))
       },
       globals: {
         process: 'readonly',
@@ -168,7 +166,7 @@ export default [
         ecmaVersion: 2022,
         sourceType: 'module',
         project: './tsconfig.test.json',
-        tsconfigRootDir: __dirname
+        tsconfigRootDir: path.dirname(fileURLToPath(import.meta.url))
       },
       globals: {
         process: 'readonly',
