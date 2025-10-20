@@ -31,11 +31,31 @@ jobs:
       uses: actions/setup-node@v5
       with:
         node-version: ${{ matrix.node-version }}
-        cache: npm
-        cache-dependency-path: package-lock.json
+        # Temporarily disable cache to rule out cache-related lockfile issues
+        # cache: npm
+        # cache-dependency-path: package-lock.json
+
+    - name: Report Node and npm versions
+      run: |
+        echo "=== Node/npm versions ==="
+        node -v
+        npm -v
+        echo "=== npm cache path ==="
+        npm config get cache
+
+    - name: Pin npm to version 11 (matching local environment)
+      run: |
+        npm install -g npm@11
+        echo "Pinned npm to: $(npm -v)"
+
+    - name: Clear npm cache
+      run: |
+        npm cache clean --force
+        echo "Cache cleaned"
     
     - name: Verify package-lock.json
       run: |
+        echo "Verifying with npm $(npm -v)"
         npm install --package-lock-only --ignore-scripts
         git diff --exit-code package-lock.json || (echo "package-lock.json is out of sync" && exit 1)
     
