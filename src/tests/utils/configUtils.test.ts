@@ -272,6 +272,51 @@ describe('configUtils', () => {
       expect(showOptions.languages).toEqual([]); // Default
       expect(showOptions.fetchSource).toBe('all'); // Default
     });
+
+    it('should handle null/undefined checks correctly with strict-boolean-expressions', () => {
+      // This test verifies the strict-boolean-expressions fix works correctly
+      // The fix ensures we check !== undefined && !== null instead of using ||
+      // This matters when base config has values that should be preserved
+      
+      // Arrange - CLI provides some values, leaves others undefined
+      const cliArgs: Partial<CliArgs> = {
+        date: '2025-04-01',
+        country: 'US',
+        types: ['Action'], // CLI provides value - should be used
+        networks: [], // CLI provides empty - falls back to appConfig per mergeArraysWithPriority
+        genres: undefined, // CLI doesn't provide - falls back to appConfig
+        languages: ['French'], // CLI provides value - should be used
+        minAirtime: '18:00',
+        debug: false,
+        fetch: 'all',
+        groupByNetwork: true
+      };
+      
+      const appConfig: AppConfig = {
+        country: 'CA',
+        types: ['Drama', 'Comedy'], // Should NOT be used (CLI has value)
+        networks: ['HBO', 'Netflix'], // SHOULD be used (CLI empty array falls back)
+        genres: ['Comedy'], // SHOULD be used (CLI undefined falls back)
+        languages: ['Spanish'], // Should NOT be used (CLI has value)
+        minAirtime: '20:00',
+        notificationTime: '09:00',
+        slack: {
+          token: 'test-token',
+          channelId: 'test-channel',
+          username: 'test-bot'
+        }
+      };
+      
+      // Act
+      const showOptions = mergeShowOptions(cliArgs as CliArgs, appConfig);
+      
+      // Assert - verify the null/undefined checks work correctly
+      expect(showOptions.types).toEqual(['Action']); // CLI value used
+      expect(showOptions.networks).toEqual(['HBO', 'Netflix']); // Falls back to appConfig
+      expect(showOptions.genres).toEqual(['Comedy']); // Falls back to appConfig
+      expect(showOptions.languages).toEqual(['French']); // CLI value used
+      expect(showOptions.country).toBe('US'); // CLI overrides appConfig
+    });
   });
 
   describe('coerceFetchSource', () => {

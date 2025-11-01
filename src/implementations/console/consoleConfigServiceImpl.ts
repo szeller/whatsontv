@@ -172,7 +172,9 @@ export class ConsoleConfigServiceImpl implements ConfigService {
    */
   protected parseArgs(args?: string[]): CliArgs {
     // Create a yargs instance with our options
-    const yargsInstance = this.createYargsInstance(args || process.argv.slice(2));
+    const yargsInstance = this.createYargsInstance(
+      args !== undefined && args !== null ? args : process.argv.slice(2)
+    );
     
     // Parse the arguments - use parseSync to ensure we get a synchronous result
     const parsedArgs = yargsInstance.parseSync();
@@ -288,7 +290,9 @@ export class ConsoleConfigServiceImpl implements ConfigService {
       // Ensure slack config is properly merged
       slack: {
         ...defaultConfig.slack,
-        ...(userConfig.slack || {})
+        ...(userConfig.slack !== undefined && userConfig.slack !== null 
+          ? userConfig.slack 
+          : {})
       }
     };
     

@@ -195,7 +195,10 @@ class TestConsoleConfigService extends ConsoleConfigServiceImpl {
         // Ensure slack config is properly merged
         slack: {
           ...defaultConfig.slack,
-          ...(this.mockConfigContent.slack || {})
+          ...(this.mockConfigContent.slack !== undefined && 
+              this.mockConfigContent.slack !== null 
+            ? this.mockConfigContent.slack 
+            : {})
         }
       };
       

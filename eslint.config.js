@@ -73,9 +73,7 @@ const commonTsRules = {
 // Strict type-checking rules for source files
 const strictTypeRules = {
   '@typescript-eslint/no-explicit-any': 'error',
-  // Temporarily relaxed due to stricter checks in TypeScript ESLint 8.46+
-  // TODO: Review and fix code to be compliant with stricter boolean expressions
-  '@typescript-eslint/strict-boolean-expressions': 'off',
+  '@typescript-eslint/strict-boolean-expressions': 'error',
   '@typescript-eslint/no-non-null-assertion': 'error',
   '@typescript-eslint/no-floating-promises': 'error',
   '@typescript-eslint/no-misused-promises': 'error',
