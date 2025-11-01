@@ -161,19 +161,27 @@ export function mergeShowOptions(
     // Use utility functions for array handling
     types: mergeArraysWithPriority(
       toStringArray(cliArgs.types), 
-      base.types || toStringArray(appConfig.types)
+      base.types !== undefined && base.types !== null 
+        ? base.types 
+        : toStringArray(appConfig.types)
     ),
     networks: mergeArraysWithPriority(
       toStringArray(cliArgs.networks), 
-      base.networks || toStringArray(appConfig.networks)
+      base.networks !== undefined && base.networks !== null 
+        ? base.networks 
+        : toStringArray(appConfig.networks)
     ),
     genres: mergeArraysWithPriority(
       toStringArray(cliArgs.genres), 
-      base.genres || toStringArray(appConfig.genres)
+      base.genres !== undefined && base.genres !== null 
+        ? base.genres 
+        : toStringArray(appConfig.genres)
     ),
     languages: mergeArraysWithPriority(
       toStringArray(cliArgs.languages), 
-      base.languages || toStringArray(appConfig.languages)
+      base.languages !== undefined && base.languages !== null 
+        ? base.languages 
+        : toStringArray(appConfig.languages)
     ),
     // Handle fetch source with conditional coercion
     fetchSource: typeof cliArgs.fetch !== 'undefined' && cliArgs.fetch !== null ? 

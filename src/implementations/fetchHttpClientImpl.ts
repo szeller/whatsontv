@@ -80,7 +80,10 @@ export class FetchHttpClientImpl implements HttpClient {
       hooks: {
         beforeRequest: [
           // No longer logging request URLs
-          ...(options.hooks?.beforeRequest || [])
+          ...(options.hooks?.beforeRequest !== undefined && 
+              options.hooks?.beforeRequest !== null 
+            ? options.hooks.beforeRequest 
+            : [])
         ],
         afterResponse: [
           (_request, _options, response) => {
@@ -103,10 +106,16 @@ export class FetchHttpClientImpl implements HttpClient {
             }
             return response;
           },
-          ...(options.hooks?.afterResponse || [])
+          ...(options.hooks?.afterResponse !== undefined && 
+              options.hooks?.afterResponse !== null 
+            ? options.hooks.afterResponse 
+            : [])
         ],
         beforeError: [
-          ...(options.hooks?.beforeError || [])
+          ...(options.hooks?.beforeError !== undefined && 
+              options.hooks?.beforeError !== null 
+            ? options.hooks.beforeError 
+            : [])
         ]
       }
     });

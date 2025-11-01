@@ -39,14 +39,18 @@ export function createMockConfigService(options: ConfigServiceOptions = {}): Tes
   };
   
   // Merge slack config with app config if provided
-  let appConfig = options.appConfig || {};
+  let appConfig = options.appConfig !== undefined && options.appConfig !== null 
+    ? options.appConfig 
+    : {};
   
   // Make sure appConfig.slack has the default values
   appConfig = {
     ...appConfig,
     slack: {
       ...defaultSlackConfig,
-      ...(appConfig.slack || {})
+      ...(appConfig.slack !== undefined && appConfig.slack !== null 
+        ? appConfig.slack 
+        : {})
     } as SlackConfig
   };
   
@@ -63,13 +67,19 @@ export function createMockConfigService(options: ConfigServiceOptions = {}): Tes
   
   // Create the config service with the provided options
   const configService = new TestConfigServiceImpl(
-    options.showOptions || {},
-    options.cliOptions || {},
+    options.showOptions !== undefined && options.showOptions !== null 
+      ? options.showOptions 
+      : {},
+    options.cliOptions !== undefined && options.cliOptions !== null 
+      ? options.cliOptions 
+      : {},
     appConfig,
     // Ensure slackOptions has all required properties
     {
       ...defaultSlackConfig,
-      ...(options.slackConfig || {})
+      ...(options.slackConfig !== undefined && options.slackConfig !== null 
+        ? options.slackConfig 
+        : {})
     } as SlackConfig
   );
   

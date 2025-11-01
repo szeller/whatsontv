@@ -323,7 +323,9 @@ export class TvMazeShowBuilder {
    * @returns A TVMaze show with network
    */
   static createNetworkShow(options: Partial<TvMazeShow> = {}): TvMazeShow {
-    const network = options.network || new NetworkBuilder().build();
+    const network = options.network !== undefined && options.network !== null 
+      ? options.network 
+      : new NetworkBuilder().build();
     
     return TvMazeShowBuilder.createShow({
       ...options,
@@ -338,8 +340,9 @@ export class TvMazeShowBuilder {
    * @returns A TVMaze show with webChannel
    */
   static createWebShow(options: Partial<TvMazeShow> = {}): TvMazeShow {
-    const webChannel = options.webChannel || 
-      new NetworkBuilder().withName('Web Channel').asWebChannel().build();
+    const webChannel = options.webChannel !== undefined && options.webChannel !== null 
+      ? options.webChannel 
+      : new NetworkBuilder().withName('Web Channel').asWebChannel().build();
     
     return TvMazeShowBuilder.createShow({
       ...options,
@@ -500,7 +503,9 @@ export class TvMazeScheduleItemBuilder {
     showName?: string;
     network?: Network;
   } = {}): TvMazeScheduleItem {
-    const network = options.network || new NetworkBuilder().build();
+    const network = options.network !== undefined && options.network !== null 
+      ? options.network 
+      : new NetworkBuilder().build();
     const show = new TvMazeShowBuilder()
       .withId(options.showId !== undefined ? options.showId : 100)
       .withName(
@@ -544,7 +549,9 @@ export class TvMazeScheduleItemBuilder {
     showName?: string;
     webChannel?: Network;
   } = {}): TvMazeScheduleItem {
-    const webChannel = options.webChannel || new NetworkBuilder().asWebChannel().build();
+    const webChannel = options.webChannel !== undefined && options.webChannel !== null 
+      ? options.webChannel 
+      : new NetworkBuilder().asWebChannel().build();
     const show = new TvMazeShowBuilder()
       .withId(options.showId !== undefined ? options.showId : 200)
       .withName(
