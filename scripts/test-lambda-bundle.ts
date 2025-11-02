@@ -89,8 +89,7 @@ async function testLambdaBundle(): Promise<void> {
   try {
     // Import the compiled handler from dist/
     console.log('📦 Loading compiled handler from dist/lambda/handlers/slackHandler.js');
-    // @ts-expect-error - File will exist after build
-    const { handler } = await import('../../dist/lambda/handlers/slackHandler.js');
+    const { handler } = await import('../dist/lambda/handlers/slackHandler.js');
 
     if (typeof handler !== 'function') {
       throw new Error('Handler is not a function');
