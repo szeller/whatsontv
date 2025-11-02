@@ -20,6 +20,8 @@
     "prepare": "husky",
     "build": "tsc --emitDeclarationOnly",
     "build:lambda": "tsc",
+    "test:lambda-bundle": "tsx scripts/test-lambda-bundle.ts",
+    "build:lambda:test": "npm run build:lambda && npm run test:lambda-bundle",
     "cdk": "cdk",
     "cdk:deploy": "npm run build:lambda && cdk deploy",
     "cdk:deploy:dev": "npm run build:lambda && cdk deploy WhatsOnTvDev",
