@@ -2,28 +2,33 @@
 
 ## Current Status
 
-The WhatsOnTV Lambda deployment infrastructure is **partially complete** and requires fixes before it can be deployed.
+The WhatsOnTV Lambda deployment infrastructure is **ready for deployment** with all critical issues resolved.
 
-### ✅ Completed
-- CDK infrastructure code (`infrastructure/whatsontv-stack.ts`)
-- Lambda handler implementation (`src/lambda/handlers/slackHandler.ts`)
-- CloudWatch Events scheduling (daily at noon UTC)
-- Monitoring with CloudWatch alarms
-- SNS topic for operational notifications
-- Multi-stage support (dev/prod)
-- Test coverage for Lambda handler
+### ✅ Phase 1 & 2 Complete
+- ✅ CDK infrastructure code (`infrastructure/whatsontv-stack.ts`)
+- ✅ Lambda handler implementation (`src/lambda/handlers/slackHandler.ts`)
+- ✅ CloudWatch Events scheduling (daily at noon UTC)
+- ✅ Monitoring with CloudWatch alarms
+- ✅ SNS topic for operational notifications
+- ✅ Email notification support (optional)
+- ✅ Multi-stage support (dev/prod)
+- ✅ Test coverage for Lambda handler
+- ✅ **Build process fixed**: `tsconfig.lambda.json` emits executable `.js` files
+- ✅ **Lambda runtime updated**: Using Node.js 22 (latest available)
+- ✅ **Handler path corrected**: `lambda/handlers/slackHandler.handler`
+- ✅ **Local bundle validation**: Test script verifies compiled code
 
-### 🔴 Critical Issues
-1. **Build Process Broken**: TypeScript compilation only generates `.d.ts` files, not executable `.js` files
-2. **Lambda Runtime Outdated**: Using Node.js 18 (should be Node.js 24)
-3. **Handler Path Incorrect**: Stack expects wrong path due to build issue
-4. **Missing Environment Config**: No `.env.cdk` file exists
+### 🟡 Remaining Before First Deployment
+1. **Create `.env.cdk`**: Copy from `.env.cdk.example` and add real credentials
+2. **Bootstrap CDK**: Run `cdk bootstrap` once per AWS account
+3. **Deploy to dev**: Run `npm run cdk:deploy:dev`
 
-### 🟡 Missing Features
+### 🔵 Future Enhancements (Separate PRs)
 - CI/CD pipeline for automated deployments
-- Email subscription to SNS alarms
 - CloudWatch Dashboard for operational visibility
 - Custom business metrics
+- Lambda optimization (layers, bundle size)
+- CDK snapshot tests
 
 ---
 
@@ -31,7 +36,7 @@ The WhatsOnTV Lambda deployment infrastructure is **partially complete** and req
 
 ### Prerequisites
 - AWS CLI configured with appropriate credentials
-- Node.js 24.x installed
+- Node.js 20.x or later installed
 - Global CDK CLI: `npm install -g aws-cdk`
 
 ### Setup Steps
@@ -59,13 +64,13 @@ aws lambda invoke \
 
 ---
 
-## Fixing the Build Process
+## Build Process (COMPLETED)
 
-### Problem
-The current `tsconfig.json` has `emitDeclarationOnly: true`, which only creates `.d.ts` type definition files. Lambda needs `.js` files to execute.
+### Problem (Fixed)
+The main `tsconfig.json` has `emitDeclarationOnly: true`, which only creates `.d.ts` type definition files. Lambda needs `.js` files to execute.
 
-### Solution
-Create a Lambda-specific TypeScript configuration:
+### Solution (Implemented)
+Created a Lambda-specific TypeScript configuration:
 
 **File: `tsconfig.lambda.json`**
 ```json
@@ -106,35 +111,39 @@ ls -la dist/lambda/handlers/
 
 ---
 
-## Updating Lambda Configuration
+## Lambda Configuration (COMPLETED)
 
-### Update Runtime Version
+### Runtime Version (Updated)
 **File: `infrastructure/whatsontv-stack.ts`**
 ```typescript
-// Line 32 - Change from NODEJS_18_X to NODEJS_24_X
-runtime: lambda.Runtime.NODEJS_24_X,
+// Line 33 - Updated to Node.js 22 (latest available in AWS Lambda)
+runtime: lambda.Runtime.NODEJS_22_X,
 ```
 
-### Fix Handler Path
+**Note:** Node.js 24 is not yet available in AWS Lambda. Node.js 22 is the latest supported runtime.
+
+### Handler Path (Fixed)
 **File: `infrastructure/whatsontv-stack.ts`**
 ```typescript
-// Line 33 - Update handler path
+// Line 34 - Corrected to match compiled bundle structure
 handler: 'lambda/handlers/slackHandler.handler',
 ```
 
-### Add Email Notifications (Optional)
+### Email Notifications (Implemented)
 **File: `infrastructure/whatsontv-stack.ts`**
 ```typescript
 import * as subscriptions from 'aws-cdk-lib/aws-sns-subscriptions';
 
-// After creating operationsNotificationTopic (around line 61)
+// After creating operationsNotificationTopic (line 64-70)
 const operationsEmail = process.env.OPERATIONS_EMAIL;
-if (operationsEmail) {
+if (operationsEmail !== undefined && operationsEmail !== null && operationsEmail.trim() !== '') {
   operationsNotificationTopic.addSubscription(
     new subscriptions.EmailSubscription(operationsEmail)
   );
 }
 ```
+
+Set `OPERATIONS_EMAIL` in `.env.cdk` to receive CloudWatch alarm notifications.
 
 ---
 
@@ -239,26 +248,52 @@ The Lambda runs automatically at 12:00 UTC daily via CloudWatch Events rule.
 
 ## Next Steps
 
-### Immediate (Required for Deployment)
-1. Fix build process (create `tsconfig.lambda.json`)
-2. Update Lambda runtime to Node.js 24
-3. Create `.env.cdk` with actual credentials
-4. Test build: `npm run build:lambda`
-5. Deploy to dev and verify
+### Phase 3: Initial Deployment (Ready to Execute)
+1. ✅ ~~Fix build process~~ - COMPLETE
+2. ✅ ~~Update Lambda configuration~~ - COMPLETE
+3. **Create `.env.cdk`** with actual Slack credentials
+   ```bash
+   cp .env.cdk.example .env.cdk
+   # Edit .env.cdk with real tokens and channels
+   ```
+4. **Bootstrap CDK** (one-time per AWS account)
+   ```bash
+   cdk bootstrap
+   ```
+5. **Test local build**
+   ```bash
+   npm run build:lambda:test
+   ```
+6. **Deploy to dev environment**
+   ```bash
+   source .env.cdk
+   npm run cdk:deploy:dev
+   ```
+7. **Verify deployment**
+   - Check CloudFormation stack
+   - Manually invoke Lambda
+   - Review CloudWatch logs
+   - Wait for scheduled execution (noon UTC)
 
-### Short-term (Operational Excellence)
-1. Add CI/CD pipeline (GitHub Actions)
-2. Set up CloudWatch Dashboard
-3. Subscribe email to SNS topic
-4. Add custom business metrics
-5. Document actual deployment experience
+### Phase 4: CI/CD & Monitoring (Future PR)
+1. Add GitHub Actions workflow for automated deployment
+2. Set up CloudWatch Dashboard with key metrics
+3. Add custom business metrics (shows processed, API response times)
+4. Integrate Lambda bundle test into CI pipeline
+5. Add CDK snapshot tests
+6. Document actual deployment experience and lessons learned
 
-### Long-term (Enhancements)
-1. Add DynamoDB table for show tracking
-2. Integrate AWS Bedrock for AI summaries
-3. Add API Gateway for manual triggers
-4. Multi-region deployment
-5. Cost optimization review
+### Phase 5: Optimization (Future PR)
+1. Evaluate Lambda bundle size and add layers if needed
+2. Consider AWS Secrets Manager vs environment variables
+3. Add DynamoDB table for show tracking/history
+4. Cost analysis and optimization
+
+### Phase 6: Advanced Features (Future PRs)
+1. Integrate AWS Bedrock for AI-powered show summaries
+2. Add API Gateway for manual trigger endpoint
+3. Multi-region deployment for redundancy
+4. Advanced monitoring and alerting rules
 
 ---
 
