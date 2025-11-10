@@ -59,7 +59,7 @@
     "@jest/globals": "^30.0.4",
     "@types/aws-lambda": "^8.10.156",
     "@types/jest": "^30.0.0",
-    "@types/node": "^24.9.1",
+    "@types/node": "^24.10.0",
     "@types/yargs": "^17.0.34",
     "@typescript-eslint/eslint-plugin": "^8.46.2",
     "@typescript-eslint/parser": "^8.46.2",
