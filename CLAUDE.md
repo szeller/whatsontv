@@ -52,6 +52,80 @@ Required environment variables for CDK deployment:
 - `PROD_SLACK_TOKEN` and `PROD_SLACK_CHANNEL` for prod environment
 - `OPERATIONS_EMAIL` (optional) for CloudWatch alarm notifications
 
+## Dependency Management
+
+### Updating npm Dependencies
+
+When updating dependencies (e.g., when Dependabot PRs accumulate), follow this process:
+
+**1. Create feature branch**
+```bash
+git checkout -b chore/dependency-updates-$(date +%Y%m%d)
+```
+
+**2. Initial clean install and validation**
+```bash
+# Remove existing dependencies
+rm -rf node_modules package-lock.json
+
+# Fresh install
+npm install
+
+# Run full CI (use FORCE_COLOR=3 when running via automation)
+FORCE_COLOR=3 npm run ci
+```
+
+**3. First commit (regenerated lockfile)**
+```bash
+git add package-lock.json
+git commit --no-verify -m "chore(deps): regenerate lockfile with fresh npm install"
+```
+
+**4. Check for outdated packages**
+```bash
+npm outdated
+```
+
+**5. Update package.json versions**
+- Update version numbers for outdated packages
+- Prefer minor/patch updates; evaluate major updates carefully
+
+**6. Repeat clean install cycle**
+```bash
+# Remove and reinstall
+rm -rf node_modules package-lock.json
+npm install
+
+# Validate
+FORCE_COLOR=3 npm run ci
+```
+
+**7. Second commit (updated versions)**
+```bash
+git add package.json package-lock.json
+git commit --no-verify -m "chore(deps): update [package names]
+
+Updates:
+- package1: x.y.z → a.b.c
+- package2: x.y.z → a.b.c
+
+All tests passing with updated dependencies"
+```
+
+**8. Repeat steps 4-7 until `npm outdated` shows no updates**
+
+**9. Create PR**
+```bash
+git push -u origin HEAD
+gh pr create --title "chore(deps): update dependencies to latest versions" --body "..."
+```
+
+**Important Notes**:
+- Always use `FORCE_COLOR=3` when running tests via automation/tools (forces Chalk to emit ANSI codes without TTY)
+- Use `--no-verify` flag on commits to skip pre-commit hooks (avoids TTY issues)
+- Test coverage must remain above 75% threshold
+- All 595 tests must pass before committing
+
 ## Architecture
 
 ### Clean Architecture Layers
