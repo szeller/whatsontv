@@ -6,6 +6,7 @@ import * as logs from 'aws-cdk-lib/aws-logs';
 import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
 import * as sns from 'aws-cdk-lib/aws-sns';
 import * as cloudwatchActions from 'aws-cdk-lib/aws-cloudwatch-actions';
+import * as subscriptions from 'aws-cdk-lib/aws-sns-subscriptions';
 import { Construct } from 'constructs';
 
 export interface WhatsOnTvStackProps extends cdk.StackProps {
@@ -29,8 +30,8 @@ export class WhatsOnTvStack extends cdk.Stack {
 
     // Lambda function for daily show updates
     const dailyShowUpdatesFunction = new lambda.Function(this, 'DailyShowUpdatesFunction', {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      handler: 'slackHandler.handler',
+      runtime: lambda.Runtime.NODEJS_22_X,
+      handler: 'lambda/handlers/slackHandler.handler',
       code: lambda.Code.fromAsset('dist/lambda'),
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
@@ -59,6 +60,14 @@ export class WhatsOnTvStack extends cdk.Stack {
       topicName: `whatsontv-${stage}-operations`,
       displayName: `WhatsOnTV Operations - ${stage}`,
     });
+
+    // Subscribe email to SNS topic if OPERATIONS_EMAIL is set
+    const operationsEmail = process.env.OPERATIONS_EMAIL;
+    if (operationsEmail !== undefined && operationsEmail !== null && operationsEmail.trim() !== '') {
+      operationsNotificationTopic.addSubscription(
+        new subscriptions.EmailSubscription(operationsEmail)
+      );
+    }
 
     // CloudWatch alarm for Lambda errors
     const lambdaErrorsAlarm = new cloudwatch.Alarm(this, 'LambdaErrorsAlarm', {
