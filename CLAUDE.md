@@ -71,8 +71,8 @@ rm -rf node_modules package-lock.json
 # Fresh install
 npm install
 
-# Run full CI (use FORCE_COLOR=3 when running via automation)
-FORCE_COLOR=3 npm run ci
+# Run full CI
+npm run ci
 ```
 
 **3. First commit (regenerated lockfile)**
@@ -97,7 +97,7 @@ rm -rf node_modules package-lock.json
 npm install
 
 # Validate
-FORCE_COLOR=3 npm run ci
+npm run ci
 ```
 
 **7. Second commit (updated versions)**
@@ -121,8 +121,8 @@ gh pr create --title "chore(deps): update dependencies to latest versions" --bod
 ```
 
 **Important Notes**:
-- Always use `FORCE_COLOR=3` when running tests via automation/tools (forces Chalk to emit ANSI codes without TTY)
-- Use `--no-verify` flag on commits to skip pre-commit hooks (avoids TTY issues)
+- `FORCE_COLOR=3` is built into the test scripts (forces Chalk to emit ANSI codes even without TTY)
+- Use `--no-verify` flag on commits to skip pre-commit hooks (avoids TTY issues during automation)
 - Test coverage must remain above 75% threshold
 - All 595 tests must pass before committing
 
