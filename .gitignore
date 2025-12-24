@@ -9,8 +9,8 @@ cdk.out/
 .env
 .env.cdk
 
-# User configuration
-config.json
+# User configuration (config.json, config.dev.json, config.prod.json)
+config*.json
 
 # Logs
 *.log

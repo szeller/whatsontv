@@ -8,6 +8,18 @@ import * as sns from 'aws-cdk-lib/aws-sns';
 import * as cloudwatchActions from 'aws-cdk-lib/aws-cloudwatch-actions';
 import * as subscriptions from 'aws-cdk-lib/aws-sns-subscriptions';
 import { Construct } from 'constructs';
+import * as fs from 'fs';
+import * as path from 'path';
+
+interface AppConfig {
+  slack: {
+    token: string;
+    channelId: string;
+    username?: string;
+    icon_emoji?: string;
+  };
+  operationsEmail?: string;
+}
 
 export interface WhatsOnTvStackProps extends cdk.StackProps {
   stage: 'dev' | 'prod';
@@ -19,13 +31,16 @@ export class WhatsOnTvStack extends cdk.Stack {
 
     const { stage } = props;
 
-    // Environment variables based on stage
+    // Read configuration from config.json
+    const config = this.loadConfig();
+
+    // Environment variables for Lambda
     const environment = {
       NODE_ENV: stage,
-      SLACK_TOKEN: this.getSlackToken(stage),
-      SLACK_CHANNEL: this.getSlackChannel(stage),
-      SLACK_USERNAME: 'WhatsOnTV Bot',
-      SLACK_ICON_EMOJI: ':tv:',
+      SLACK_TOKEN: config.slack.token,
+      SLACK_CHANNEL: config.slack.channelId,
+      SLACK_USERNAME: config.slack.username ?? 'WhatsOnTV Bot',
+      SLACK_ICON_EMOJI: config.slack.icon_emoji ?? ':tv:',
     };
 
     // Lambda function for daily show updates
@@ -61,11 +76,10 @@ export class WhatsOnTvStack extends cdk.Stack {
       displayName: `WhatsOnTV Operations - ${stage}`,
     });
 
-    // Subscribe email to SNS topic if OPERATIONS_EMAIL is set
-    const operationsEmail = process.env.OPERATIONS_EMAIL;
-    if (operationsEmail !== undefined && operationsEmail !== null && operationsEmail.trim() !== '') {
+    // Subscribe email to SNS topic if operationsEmail is configured
+    if (config.operationsEmail) {
       operationsNotificationTopic.addSubscription(
-        new subscriptions.EmailSubscription(operationsEmail)
+        new subscriptions.EmailSubscription(config.operationsEmail)
       );
     }
 
@@ -124,21 +138,23 @@ export class WhatsOnTvStack extends cdk.Stack {
     });
   }
 
-  private getSlackToken(stage: 'dev' | 'prod'): string {
-    const envVar = stage === 'prod' ? 'PROD_SLACK_TOKEN' : 'DEV_SLACK_TOKEN';
-    const token = process.env[envVar];
-    if (!token) {
-      throw new Error(`Environment variable ${envVar} is required`);
+  private loadConfig(): AppConfig {
+    const configPath = path.resolve(process.cwd(), 'config.json');
+    if (!fs.existsSync(configPath)) {
+      throw new Error(
+        'config.json not found. Copy config.dev.json or config.prod.json to config.json before deploying.'
+      );
     }
-    return token;
-  }
+    const configContent = fs.readFileSync(configPath, 'utf-8');
+    const config = JSON.parse(configContent) as AppConfig;
 
-  private getSlackChannel(stage: 'dev' | 'prod'): string {
-    const envVar = stage === 'prod' ? 'PROD_SLACK_CHANNEL' : 'DEV_SLACK_CHANNEL';
-    const channel = process.env[envVar];
-    if (!channel) {
-      throw new Error(`Environment variable ${envVar} is required`);
+    if (!config.slack?.token) {
+      throw new Error('config.json must contain slack.token');
     }
-    return channel;
+    if (!config.slack?.channelId) {
+      throw new Error('config.json must contain slack.channelId');
+    }
+
+    return config;
   }
 }

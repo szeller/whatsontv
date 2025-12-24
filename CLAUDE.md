@@ -47,10 +47,17 @@ npm run cdk:diff          # Preview infrastructure changes
 npm run cdk:synth         # Synthesize CloudFormation template
 ```
 
-Required environment variables for CDK deployment:
-- `DEV_SLACK_TOKEN` and `DEV_SLACK_CHANNEL` for dev environment
-- `PROD_SLACK_TOKEN` and `PROD_SLACK_CHANNEL` for prod environment
-- `OPERATIONS_EMAIL` (optional) for CloudWatch alarm notifications
+**Configuration**: CDK reads from `config.json` (same file used by CLI):
+- `slack.token` - Slack bot token (required)
+- `slack.channelId` - Slack channel to post to (required)
+- `operationsEmail` - Email for CloudWatch alarm notifications (optional)
+
+**Deployment workflow**:
+1. Ensure `config.json` has correct credentials for target environment
+2. Run `npm run cdk:deploy:dev` or `npm run cdk:deploy:prod`
+
+For separate dev/prod configs, maintain `config.dev.json` and `config.prod.json`,
+copying the appropriate one to `config.json` before deploying.
 
 ## Dependency Management
 
