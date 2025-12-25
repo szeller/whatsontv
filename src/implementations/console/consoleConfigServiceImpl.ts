@@ -140,14 +140,20 @@ export class ConsoleConfigServiceImpl implements ConfigService {
     // Priority: appConfig values (if non-empty) > env vars > defaults
     if (this.appConfig.slack !== undefined && this.appConfig.slack !== null) {
       const appSlack = this.appConfig.slack as Partial<SlackConfig>;
+      const hasToken = appSlack.token !== undefined && appSlack.token.trim() !== '';
+      const hasChannel = appSlack.channelId !== undefined && appSlack.channelId.trim() !== '';
+      const hasUsername = appSlack.username !== undefined && appSlack.username.trim() !== '';
+      const hasEmoji = appSlack.icon_emoji !== undefined;
+      const hasDateFormat = appSlack.dateFormat !== undefined;
+
       return {
         ...envSlackOptions,
         // Only use appConfig values if they're non-empty strings
-        ...(appSlack.token && appSlack.token.trim() !== '' ? { token: appSlack.token } : {}),
-        ...(appSlack.channelId && appSlack.channelId.trim() !== '' ? { channelId: appSlack.channelId } : {}),
-        ...(appSlack.username && appSlack.username.trim() !== '' ? { username: appSlack.username } : {}),
-        ...(appSlack.icon_emoji ? { icon_emoji: appSlack.icon_emoji } : {}),
-        ...(appSlack.dateFormat ? { dateFormat: appSlack.dateFormat } : {})
+        ...(hasToken ? { token: appSlack.token } : {}),
+        ...(hasChannel ? { channelId: appSlack.channelId } : {}),
+        ...(hasUsername ? { username: appSlack.username } : {}),
+        ...(hasEmoji ? { icon_emoji: appSlack.icon_emoji } : {}),
+        ...(hasDateFormat ? { dateFormat: appSlack.dateFormat } : {})
       };
     }
 

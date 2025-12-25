@@ -42,6 +42,7 @@ export class WhatsOnTvStack extends cdk.Stack {
       SLACK_CHANNEL: config.slack.channelId,
       SLACK_USERNAME: config.slack.username ?? 'WhatsOnTV Bot',
       SLACK_ICON_EMOJI: config.slack.icon_emoji ?? ':tv:',
+      CONFIG_FILE: '/var/task/config.lambda.json',
     };
 
     // Lambda function for daily show updates (bundled with esbuild)
@@ -66,6 +67,17 @@ export class WhatsOnTvStack extends cdk.Stack {
           'const require = _createRequire(import.meta.url);' +
           'const __filename = _fileURLToPath(import.meta.url);' +
           'const __dirname = _dirname(__filename);',
+        commandHooks: {
+          beforeBundling(): string[] {
+            return [];
+          },
+          beforeInstall(): string[] {
+            return [];
+          },
+          afterBundling(inputDir: string, outputDir: string): string[] {
+            return [`cp ${inputDir}/config.lambda.json ${outputDir}/config.lambda.json`];
+          },
+        },
       },
     });
 
