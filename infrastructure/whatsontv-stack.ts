@@ -81,12 +81,12 @@ export class WhatsOnTvStack extends cdk.Stack {
       },
     });
 
-    // CloudWatch Events rule for daily scheduling (noon UTC)
+    // CloudWatch Events rule for daily scheduling (4 PM PST = midnight UTC)
     const dailyScheduleRule = new events.Rule(this, 'DailyScheduleRule', {
       description: 'Trigger WhatsOnTV daily show updates',
       schedule: events.Schedule.cron({
         minute: '0',
-        hour: '12',
+        hour: '0',
         day: '*',
         month: '*',
         year: '*',
