@@ -1,5 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as logs from 'aws-cdk-lib/aws-logs';
@@ -43,16 +44,29 @@ export class WhatsOnTvStack extends cdk.Stack {
       SLACK_ICON_EMOJI: config.slack.icon_emoji ?? ':tv:',
     };
 
-    // Lambda function for daily show updates
-    const dailyShowUpdatesFunction = new lambda.Function(this, 'DailyShowUpdatesFunction', {
+    // Lambda function for daily show updates (bundled with esbuild)
+    const dailyShowUpdatesFunction = new lambdaNodejs.NodejsFunction(this, 'DailyShowUpdatesFunction', {
       runtime: lambda.Runtime.NODEJS_22_X,
-      handler: 'lambda/handlers/slackHandler.handler',
-      code: lambda.Code.fromAsset('dist/lambda'),
+      entry: 'src/lambda/handlers/slackHandler.ts',
+      handler: 'handler',
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
       environment,
       logRetention: logs.RetentionDays.TWO_WEEKS,
       description: `WhatsOnTV daily show updates for ${stage} environment`,
+      bundling: {
+        minify: false,
+        sourceMap: true,
+        target: 'node22',
+        format: lambdaNodejs.OutputFormat.ESM,
+        banner:
+          'import { createRequire as _createRequire } from "module";' +
+          'import { fileURLToPath as _fileURLToPath } from "url";' +
+          'import { dirname as _dirname } from "path";' +
+          'const require = _createRequire(import.meta.url);' +
+          'const __filename = _fileURLToPath(import.meta.url);' +
+          'const __dirname = _dirname(__filename);',
+      },
     });
 
     // CloudWatch Events rule for daily scheduling (noon UTC)
