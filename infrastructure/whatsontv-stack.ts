@@ -81,7 +81,8 @@ export class WhatsOnTvStack extends cdk.Stack {
       },
     });
 
-    // CloudWatch Events rule for daily scheduling (4 PM PST = midnight UTC)
+    // CloudWatch Events rule for daily scheduling
+    // 4 PM PST (UTC-8) = midnight UTC. During PDT (Mar-Nov), this runs at 5 PM Pacific.
     const dailyScheduleRule = new events.Rule(this, 'DailyScheduleRule', {
       description: 'Trigger WhatsOnTV daily show updates',
       schedule: events.Schedule.cron({

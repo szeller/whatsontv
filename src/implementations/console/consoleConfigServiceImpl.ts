@@ -137,7 +137,7 @@ export class ConsoleConfigServiceImpl implements ConfigService {
     };
 
     // If slack is configured in appConfig, merge non-empty values
-    // Priority: appConfig values (if non-empty) > env vars > defaults
+    // Priority: non-empty appConfig values override env vars; empty appConfig values are ignored
     if (this.appConfig.slack !== undefined && this.appConfig.slack !== null) {
       const appSlack = this.appConfig.slack as Partial<SlackConfig>;
       const hasToken = appSlack.token !== undefined && appSlack.token.trim() !== '';
