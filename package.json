@@ -19,7 +19,7 @@
     "slack": "tsx src/cli/slackCli.ts",
     "prepare": "husky",
     "build": "tsc --emitDeclarationOnly",
-    "build:lambda": "tsc --project tsconfig.lambda.json && cp src/lambda/package.json dist/lambda/",
+    "build:lambda": "tsc --project tsconfig.lambda.json",
     "test:lambda-bundle": "tsx scripts/test-lambda-bundle.ts",
     "build:lambda:test": "npm run build:lambda && npm run test:lambda-bundle",
     "cdk": "cdk",
