@@ -127,24 +127,31 @@ export class ConsoleConfigServiceImpl implements ConfigService {
    * @returns The Slack configuration options
    */
   getSlackOptions(): SlackConfig {
-    // Use environment variable helpers for cleaner code
-    const defaultSlackOptions: SlackConfig = {
+    // Start with environment variables as the base
+    const envSlackOptions: SlackConfig = {
       token: this.getOptionalEnv('SLACK_TOKEN', ''),
       channelId: this.getOptionalEnv('SLACK_CHANNEL', ''),
       username: this.getOptionalEnv('SLACK_USERNAME', 'WhatsOnTV'),
       icon_emoji: ':tv:',
       dateFormat: 'dddd, MMMM D, YYYY'
     };
-    
-    // If slack is configured in appConfig, merge with defaults
+
+    // If slack is configured in appConfig, merge non-empty values
+    // Priority: appConfig values (if non-empty) > env vars > defaults
     if (this.appConfig.slack !== undefined && this.appConfig.slack !== null) {
+      const appSlack = this.appConfig.slack as Partial<SlackConfig>;
       return {
-        ...defaultSlackOptions,
-        ...(this.appConfig.slack as Partial<SlackConfig>)
+        ...envSlackOptions,
+        // Only use appConfig values if they're non-empty strings
+        ...(appSlack.token && appSlack.token.trim() !== '' ? { token: appSlack.token } : {}),
+        ...(appSlack.channelId && appSlack.channelId.trim() !== '' ? { channelId: appSlack.channelId } : {}),
+        ...(appSlack.username && appSlack.username.trim() !== '' ? { username: appSlack.username } : {}),
+        ...(appSlack.icon_emoji ? { icon_emoji: appSlack.icon_emoji } : {}),
+        ...(appSlack.dateFormat ? { dateFormat: appSlack.dateFormat } : {})
       };
     }
-    
-    return defaultSlackOptions;
+
+    return envSlackOptions;
   }
   
   /**
