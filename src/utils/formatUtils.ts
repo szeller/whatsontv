@@ -3,7 +3,7 @@
  */
 
 import { Show } from '../schemas/domain.js';
-import { getStringValue } from './stringUtils.js';
+import { getStringValue, hasElements } from './stringUtils.js';
 import { formatTimeWithPeriod, isValidTime } from './dateUtils.js';
 
 /**
@@ -154,8 +154,8 @@ export function prepareShowComponents(
 export function groupShowsByShowId(shows: Show[] | null | undefined): Record<string, Show[]> {
   const groups: Record<string, Show[]> = {};
 
-  // Check if shows is an array before processing
-  if (shows === null || shows === undefined || shows.length === 0) {
+  // Check if shows is an array with elements before processing
+  if (!hasElements(shows)) {
     return groups;
   }
 
