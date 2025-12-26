@@ -4,7 +4,7 @@
  * This utility allows running the CLI with different arguments and capturing the output
  * for integration testing purposes.
  */
-import { createCliAppWithContainer } from '../../../cli/consoleCli.js';
+import { createCliAppWithContainer } from '../../../cli/textCli.js';
 import type { CliArgs } from '../../../types/cliArgs.js';
 import { container } from '../../../textCliContainer.js';
 import type { TvShowService } from '../../../interfaces/tvShowService.js';

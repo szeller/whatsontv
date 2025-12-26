@@ -5,17 +5,17 @@
   "main": "src/cli/slackCli.ts",
   "type": "module",
   "bin": {
-    "whatsontv": "./src/cli/consoleCli.ts"
+    "whatsontv": "./src/cli/textCli.ts"
   },
   "scripts": {
-    "start": "tsx src/cli/consoleCli.ts",
+    "start": "tsx src/cli/textCli.ts",
     "test": "FORCE_COLOR=3 NODE_OPTIONS=\"--experimental-vm-modules --no-warnings\" tsx node_modules/jest/bin/jest.js --coverage --coverageReporters=text --coverageReporters=lcov --coverageReporters=json-summary",
     "test:no-coverage": "FORCE_COLOR=3 NODE_OPTIONS=\"--experimental-vm-modules --no-warnings\" tsx node_modules/jest/bin/jest.js --coverage=false",
     "lint": "eslint 'src/**/*.ts' --report-unused-disable-directives",
     "lint:fix": "eslint 'src/**/*.ts' --fix",
     "ci": "npm run lint && tsc --noEmit && npm test",
     "precommit": "npm run lint && tsc --noEmit && npm run test:no-coverage",
-    "shows": "tsx src/cli/consoleCli.ts",
+    "shows": "tsx src/cli/textCli.ts",
     "slack": "tsx src/cli/slackCli.ts",
     "prepare": "husky",
     "build": "tsc --emitDeclarationOnly",
