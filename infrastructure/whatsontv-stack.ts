@@ -28,6 +28,7 @@ interface AppConfig {
   languages?: string[];
   networks?: string[];
   genres?: string[];
+  minAirtime?: string;
   notificationTime?: string;
   // Slack credentials
   slack: {
@@ -59,6 +60,7 @@ export class WhatsOnTvStack extends cdk.Stack {
       languages: config.languages,
       networks: config.networks,
       genres: config.genres,
+      minAirtime: config.minAirtime,
     };
 
     // Environment variables for Lambda
