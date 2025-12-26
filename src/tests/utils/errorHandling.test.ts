@@ -102,13 +102,22 @@ describe('errorHandling', () => {
 
   describe('isDirectExecution', () => {
     let originalNodeEnv: string | undefined;
+    let originalLambdaFunctionName: string | undefined;
 
     beforeEach(() => {
       originalNodeEnv = process.env.NODE_ENV;
+      originalLambdaFunctionName = process.env.AWS_LAMBDA_FUNCTION_NAME;
+      // Clear Lambda env var for most tests
+      delete process.env.AWS_LAMBDA_FUNCTION_NAME;
     });
 
     afterEach(() => {
       process.env.NODE_ENV = originalNodeEnv;
+      if (originalLambdaFunctionName !== undefined) {
+        process.env.AWS_LAMBDA_FUNCTION_NAME = originalLambdaFunctionName;
+      } else {
+        delete process.env.AWS_LAMBDA_FUNCTION_NAME;
+      }
     });
 
     it('should return false in test environment', () => {
@@ -124,6 +133,18 @@ describe('errorHandling', () => {
     it('should return true when NODE_ENV is undefined', () => {
       delete process.env.NODE_ENV;
       expect(isDirectExecution()).toBe(true);
+    });
+
+    it('should return false in Lambda environment', () => {
+      process.env.NODE_ENV = 'production';
+      process.env.AWS_LAMBDA_FUNCTION_NAME = 'my-lambda-function';
+      expect(isDirectExecution()).toBe(false);
+    });
+
+    it('should return false in Lambda environment even with dev NODE_ENV', () => {
+      process.env.NODE_ENV = 'dev';
+      process.env.AWS_LAMBDA_FUNCTION_NAME = 'WhatsOnTvDev-DailyShowUpdates';
+      expect(isDirectExecution()).toBe(false);
     });
   });
 
