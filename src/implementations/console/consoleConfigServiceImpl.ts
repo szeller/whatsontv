@@ -127,24 +127,37 @@ export class ConsoleConfigServiceImpl implements ConfigService {
    * @returns The Slack configuration options
    */
   getSlackOptions(): SlackConfig {
-    // Use environment variable helpers for cleaner code
-    const defaultSlackOptions: SlackConfig = {
+    // Start with environment variables as the base
+    const envSlackOptions: SlackConfig = {
       token: this.getOptionalEnv('SLACK_TOKEN', ''),
       channelId: this.getOptionalEnv('SLACK_CHANNEL', ''),
       username: this.getOptionalEnv('SLACK_USERNAME', 'WhatsOnTV'),
       icon_emoji: ':tv:',
       dateFormat: 'dddd, MMMM D, YYYY'
     };
-    
-    // If slack is configured in appConfig, merge with defaults
+
+    // If slack is configured in appConfig, merge non-empty values
+    // Priority: non-empty appConfig values override env vars; empty appConfig values are ignored
     if (this.appConfig.slack !== undefined && this.appConfig.slack !== null) {
+      const appSlack = this.appConfig.slack as Partial<SlackConfig>;
+      const hasToken = appSlack.token !== undefined && appSlack.token.trim() !== '';
+      const hasChannel = appSlack.channelId !== undefined && appSlack.channelId.trim() !== '';
+      const hasUsername = appSlack.username !== undefined && appSlack.username.trim() !== '';
+      const hasEmoji = appSlack.icon_emoji !== undefined;
+      const hasDateFormat = appSlack.dateFormat !== undefined;
+
       return {
-        ...defaultSlackOptions,
-        ...(this.appConfig.slack as Partial<SlackConfig>)
+        ...envSlackOptions,
+        // Only use appConfig values if they're non-empty strings
+        ...(hasToken ? { token: appSlack.token } : {}),
+        ...(hasChannel ? { channelId: appSlack.channelId } : {}),
+        ...(hasUsername ? { username: appSlack.username } : {}),
+        ...(hasEmoji ? { icon_emoji: appSlack.icon_emoji } : {}),
+        ...(hasDateFormat ? { dateFormat: appSlack.dateFormat } : {})
       };
     }
-    
-    return defaultSlackOptions;
+
+    return envSlackOptions;
   }
   
   /**

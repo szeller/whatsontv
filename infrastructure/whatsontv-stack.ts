@@ -1,5 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as logs from 'aws-cdk-lib/aws-logs';
@@ -8,6 +9,18 @@ import * as sns from 'aws-cdk-lib/aws-sns';
 import * as cloudwatchActions from 'aws-cdk-lib/aws-cloudwatch-actions';
 import * as subscriptions from 'aws-cdk-lib/aws-sns-subscriptions';
 import { Construct } from 'constructs';
+import * as fs from 'fs';
+import * as path from 'path';
+
+interface AppConfig {
+  slack: {
+    token: string;
+    channelId: string;
+    username?: string;
+    icon_emoji?: string;
+  };
+  operationsEmail?: string;
+}
 
 export interface WhatsOnTvStackProps extends cdk.StackProps {
   stage: 'dev' | 'prod';
@@ -19,33 +32,62 @@ export class WhatsOnTvStack extends cdk.Stack {
 
     const { stage } = props;
 
-    // Environment variables based on stage
+    // Read configuration from config.json
+    const config = this.loadConfig();
+
+    // Environment variables for Lambda
     const environment = {
       NODE_ENV: stage,
-      SLACK_TOKEN: this.getSlackToken(stage),
-      SLACK_CHANNEL: this.getSlackChannel(stage),
-      SLACK_USERNAME: 'WhatsOnTV Bot',
-      SLACK_ICON_EMOJI: ':tv:',
+      SLACK_TOKEN: config.slack.token,
+      SLACK_CHANNEL: config.slack.channelId,
+      SLACK_USERNAME: config.slack.username ?? 'WhatsOnTV Bot',
+      SLACK_ICON_EMOJI: config.slack.icon_emoji ?? ':tv:',
+      CONFIG_FILE: '/var/task/config.lambda.json',
     };
 
-    // Lambda function for daily show updates
-    const dailyShowUpdatesFunction = new lambda.Function(this, 'DailyShowUpdatesFunction', {
+    // Lambda function for daily show updates (bundled with esbuild)
+    const dailyShowUpdatesFunction = new lambdaNodejs.NodejsFunction(this, 'DailyShowUpdatesFunction', {
       runtime: lambda.Runtime.NODEJS_22_X,
-      handler: 'lambda/handlers/slackHandler.handler',
-      code: lambda.Code.fromAsset('dist/lambda'),
+      entry: 'src/lambda/handlers/slackHandler.ts',
+      handler: 'handler',
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
       environment,
       logRetention: logs.RetentionDays.TWO_WEEKS,
       description: `WhatsOnTV daily show updates for ${stage} environment`,
+      bundling: {
+        minify: false,
+        sourceMap: true,
+        target: 'node22',
+        format: lambdaNodejs.OutputFormat.ESM,
+        banner:
+          'import { createRequire as _createRequire } from "module";' +
+          'import { fileURLToPath as _fileURLToPath } from "url";' +
+          'import { dirname as _dirname } from "path";' +
+          'const require = _createRequire(import.meta.url);' +
+          'const __filename = _fileURLToPath(import.meta.url);' +
+          'const __dirname = _dirname(__filename);',
+        commandHooks: {
+          beforeBundling(): string[] {
+            return [];
+          },
+          beforeInstall(): string[] {
+            return [];
+          },
+          afterBundling(inputDir: string, outputDir: string): string[] {
+            return [`cp ${inputDir}/config.lambda.json ${outputDir}/config.lambda.json`];
+          },
+        },
+      },
     });
 
-    // CloudWatch Events rule for daily scheduling (noon UTC)
+    // CloudWatch Events rule for daily scheduling
+    // 4 PM PST (UTC-8) = midnight UTC. During PDT (Mar-Nov), this runs at 5 PM Pacific.
     const dailyScheduleRule = new events.Rule(this, 'DailyScheduleRule', {
       description: 'Trigger WhatsOnTV daily show updates',
       schedule: events.Schedule.cron({
         minute: '0',
-        hour: '12',
+        hour: '0',
         day: '*',
         month: '*',
         year: '*',
@@ -61,11 +103,10 @@ export class WhatsOnTvStack extends cdk.Stack {
       displayName: `WhatsOnTV Operations - ${stage}`,
     });
 
-    // Subscribe email to SNS topic if OPERATIONS_EMAIL is set
-    const operationsEmail = process.env.OPERATIONS_EMAIL;
-    if (operationsEmail !== undefined && operationsEmail !== null && operationsEmail.trim() !== '') {
+    // Subscribe email to SNS topic if operationsEmail is configured
+    if (config.operationsEmail) {
       operationsNotificationTopic.addSubscription(
-        new subscriptions.EmailSubscription(operationsEmail)
+        new subscriptions.EmailSubscription(config.operationsEmail)
       );
     }
 
@@ -124,21 +165,23 @@ export class WhatsOnTvStack extends cdk.Stack {
     });
   }
 
-  private getSlackToken(stage: 'dev' | 'prod'): string {
-    const envVar = stage === 'prod' ? 'PROD_SLACK_TOKEN' : 'DEV_SLACK_TOKEN';
-    const token = process.env[envVar];
-    if (!token) {
-      throw new Error(`Environment variable ${envVar} is required`);
+  private loadConfig(): AppConfig {
+    const configPath = path.resolve(process.cwd(), 'config.json');
+    if (!fs.existsSync(configPath)) {
+      throw new Error(
+        'config.json not found. Copy config.dev.json or config.prod.json to config.json before deploying.'
+      );
     }
-    return token;
-  }
+    const configContent = fs.readFileSync(configPath, 'utf-8');
+    const config = JSON.parse(configContent) as AppConfig;
 
-  private getSlackChannel(stage: 'dev' | 'prod'): string {
-    const envVar = stage === 'prod' ? 'PROD_SLACK_CHANNEL' : 'DEV_SLACK_CHANNEL';
-    const channel = process.env[envVar];
-    if (!channel) {
-      throw new Error(`Environment variable ${envVar} is required`);
+    if (!config.slack?.token) {
+      throw new Error('config.json must contain slack.token');
     }
-    return channel;
+    if (!config.slack?.channelId) {
+      throw new Error('config.json must contain slack.channelId');
+    }
+
+    return config;
   }
 }

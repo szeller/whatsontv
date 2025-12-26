@@ -7,9 +7,12 @@ cdk.out/
 
 # Environment variables
 .env
+.env.cdk
 
-# User configuration
-config.json
+# User configuration (config.json, config.dev.json, config.prod.json)
+config*.json
+# Exception: config.lambda.json is tracked (non-sensitive filter settings for Lambda)
+!config.lambda.json
 
 # Logs
 *.log

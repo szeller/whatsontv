@@ -64,7 +64,8 @@ export function getFilePath(importMetaUrl: string): string {
 }
 
 /**
- * Get the config file path relative to the current module
+ * Get the config file path
+ * Priority: CONFIG_FILE env var > relative path to config.json
  * @param importMetaUrl import.meta.url value
  * @param configFileName Optional config file name (default: 'config.json')
  * @returns Absolute path to the config file
@@ -73,6 +74,13 @@ export function getConfigFilePath(
   importMetaUrl: string,
   configFileName: string = 'config.json'
 ): string {
+  // Check for CONFIG_FILE env var first (used in Lambda)
+  const envConfigFile = process.env.CONFIG_FILE;
+  if (envConfigFile !== undefined && envConfigFile.trim() !== '') {
+    return envConfigFile;
+  }
+
+  // Fall back to relative path from module
   const filePath = getFilePath(importMetaUrl);
   const dirname = getDirname(filePath);
   return path.resolve(dirname, '../../../', configFileName);

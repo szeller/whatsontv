@@ -10,5 +10,6 @@
         "username": "WhatsOnTV",
         "icon_emoji": ":tv:",
         "dateFormat": "dddd, MMMM D, YYYY"
-    }
+    },
+    "operationsEmail": "your-email@example.com"
 }
