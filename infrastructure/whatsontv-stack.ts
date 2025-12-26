@@ -13,6 +13,19 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 /**
+ * Runtime configuration for Lambda (read from config.lambda.json at deploy time)
+ * This is inlined as an environment variable to avoid file copy during bundling.
+ */
+interface LambdaRuntimeConfig {
+  country?: string;
+  types?: string[];
+  languages?: string[];
+  networks?: string[];
+  genres?: string[];
+  notificationTime?: string;
+}
+
+/**
  * CDK deployment configuration (read from config.json at deploy time)
  *
  * This is intentionally separate from src/types/configTypes.ts AppConfig:
@@ -42,8 +55,11 @@ export class WhatsOnTvStack extends cdk.Stack {
 
     const { stage } = props;
 
-    // Read configuration from config.json
+    // Read configuration from config.json (Slack credentials)
     const config = this.loadConfig();
+
+    // Read runtime config from config.lambda.json and inline as env var
+    const runtimeConfig = this.loadLambdaRuntimeConfig();
 
     // Environment variables for Lambda
     const environment = {
@@ -52,8 +68,16 @@ export class WhatsOnTvStack extends cdk.Stack {
       SLACK_CHANNEL: config.slack.channelId,
       SLACK_USERNAME: config.slack.username ?? 'WhatsOnTV Bot',
       SLACK_ICON_EMOJI: config.slack.icon_emoji ?? ':tv:',
-      CONFIG_FILE: '/var/task/config.lambda.json',
+      // Inline the runtime config as JSON - avoids file copy during bundling
+      APP_CONFIG: JSON.stringify(runtimeConfig),
     };
+
+    // Create explicit log group (avoids deprecated logRetention property)
+    const lambdaLogGroup = new logs.LogGroup(this, 'LambdaLogGroup', {
+      logGroupName: `/aws/lambda/whatsontv-${stage}-daily-updates`,
+      retention: logs.RetentionDays.TWO_WEEKS,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
 
     // Lambda function for daily show updates (bundled with esbuild)
     const dailyShowUpdatesFunction = new lambdaNodejs.NodejsFunction(this, 'DailyShowUpdatesFunction', {
@@ -63,7 +87,7 @@ export class WhatsOnTvStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
       environment,
-      logRetention: logs.RetentionDays.TWO_WEEKS,
+      logGroup: lambdaLogGroup,
       description: `WhatsOnTV daily show updates for ${stage} environment`,
       bundling: {
         minify: false,
@@ -71,18 +95,7 @@ export class WhatsOnTvStack extends cdk.Stack {
         target: 'node22',
         format: lambdaNodejs.OutputFormat.ESM,
         // No banner needed - Lambda uses LambdaConfigServiceImpl which doesn't depend on yargs
-        // (yargs was the only dependency that required CJS shim with require())
-        commandHooks: {
-          beforeBundling(): string[] {
-            return [];
-          },
-          beforeInstall(): string[] {
-            return [];
-          },
-          afterBundling(inputDir: string, outputDir: string): string[] {
-            return [`cp ${inputDir}/config.lambda.json ${outputDir}/config.lambda.json`];
-          },
-        },
+        // No commandHooks needed - config is inlined as APP_CONFIG environment variable
       },
     });
 
@@ -188,5 +201,16 @@ export class WhatsOnTvStack extends cdk.Stack {
     }
 
     return config;
+  }
+
+  private loadLambdaRuntimeConfig(): LambdaRuntimeConfig {
+    const configPath = path.resolve(process.cwd(), 'config.lambda.json');
+    if (!fs.existsSync(configPath)) {
+      throw new Error(
+        'config.lambda.json not found. This file contains runtime filtering options for Lambda.'
+      );
+    }
+    const configContent = fs.readFileSync(configPath, 'utf-8');
+    return JSON.parse(configContent) as LambdaRuntimeConfig;
   }
 }
