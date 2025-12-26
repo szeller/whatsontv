@@ -1,34 +1,22 @@
 /**
  * Implementation of ConfigService that combines CLI arguments and config file
+ * Uses yargs for command-line argument parsing
  */
 import { injectable } from 'tsyringe';
 import yargs from 'yargs';
 
-import type { ConfigService } from '../../interfaces/configService.js';
-import type { ShowOptions } from '../../types/tvShowOptions.js';
-import type { CliOptions, AppConfig, SlackConfig } from '../../types/configTypes.js';
 import type { CliArgs } from '../../types/cliArgs.js';
-import { getTodayDate, parseDateString } from '../../utils/dateUtils.js';
+import { getTodayDate } from '../../utils/dateUtils.js';
 import { getStringValue } from '../../utils/stringUtils.js';
-import { 
-  toStringArray, 
-  coerceFetchSource,
-  mergeShowOptions,
-  getDefaultConfig
-} from '../../utils/configUtils.js';
 import {
-  fileExists,
-  readFile,
-  parseConfigFile,
-  handleConfigError,
-  getConfigFilePath
-} from '../../utils/fileUtils.js';
+  toStringArray,
+  coerceFetchSource,
+  mergeShowOptions
+} from '../../utils/configUtils.js';
+import { BaseConfigServiceImpl } from '../baseConfigServiceImpl.js';
 
 @injectable()
-export class CliConfigServiceImpl implements ConfigService {
-  protected showOptions!: ShowOptions;
-  protected cliOptions!: CliOptions;
-  protected appConfig!: AppConfig;
+export class CliConfigServiceImpl extends BaseConfigServiceImpl {
   protected cliArgs!: CliArgs;
 
   /**
@@ -36,147 +24,36 @@ export class CliConfigServiceImpl implements ConfigService {
    * @param skipInitialization Optional flag to skip initialization (for testing)
    */
   constructor(skipInitialization = false) {
+    super();
     if (!skipInitialization) {
       this.initialize();
     }
   }
-  
+
   /**
-   * Initialize the service
-   * This method is separated from the constructor to allow overriding in tests
-   * @protected
+   * Initialize the service by parsing CLI arguments and loading config
+   * @private
    */
   private initialize(): void {
     // Parse command line arguments
     this.cliArgs = this.parseArgs();
-    
+
+    // Store date string for base class getDate() method
+    this.dateString = this.cliArgs.date;
+
     // Load configuration
     this.appConfig = this.loadConfig();
-    
+
     // Initialize CLI options from parsed arguments
     this.cliOptions = {
       debug: Boolean(this.cliArgs.debug),
       groupByNetwork: Boolean(this.cliArgs.groupByNetwork)
     };
-    
+
     // Set initial show options from config
     this.showOptions = mergeShowOptions(this.cliArgs, this.appConfig);
   }
 
-  /**
-   * Get the show options from the configuration
-   * @returns ShowOptions object with all show filters and options
-   */
-  getShowOptions(): ShowOptions {
-    return this.showOptions;
-  }
-  
-  /**
-   * Get a specific show option value
-   * @param key Show option key
-   * @returns Value for the specified key
-   */
-  getShowOption<K extends keyof ShowOptions>(key: K): ShowOptions[K] {
-    return this.showOptions[key];
-  }
-  
-  /**
-   * Get CLI-specific flags and options
-   * @returns CLI-specific configuration options
-   */
-  getCliOptions(): CliOptions {
-    return { ...this.cliOptions };
-  }
-  
-  /**
-   * Get the complete application configuration
-   * @returns The full application configuration
-   */
-  getConfig(): AppConfig {
-    return { ...this.appConfig };
-  }
-  
-  /**
-   * Get required environment variable (throws if missing or empty)
-   * @param key Environment variable name
-   * @returns Environment variable value
-   * @protected
-   */
-  protected getRequiredEnv(key: string): string {
-    const value = process.env[key];
-    if (value === undefined || value === null || value.trim() === '') {
-      throw new Error(`${key} environment variable is required but not set`);
-    }
-    return value;
-  }
-  
-  /**
-   * Get optional environment variable with default
-   * @param key Environment variable name
-   * @param defaultValue Default value if not set
-   * @returns Environment variable value or default
-   * @protected
-   */
-  protected getOptionalEnv(key: string, defaultValue: string): string {
-    const value = process.env[key];
-    return (value !== undefined && value !== null && value.trim() !== '') ? value : defaultValue;
-  }
-  
-  /**
-   * Get Slack configuration options
-   * @returns The Slack configuration options
-   */
-  getSlackOptions(): SlackConfig {
-    // Start with environment variables as the base
-    const envSlackOptions: SlackConfig = {
-      token: this.getOptionalEnv('SLACK_TOKEN', ''),
-      channelId: this.getOptionalEnv('SLACK_CHANNEL', ''),
-      username: this.getOptionalEnv('SLACK_USERNAME', 'WhatsOnTV'),
-      icon_emoji: ':tv:',
-      dateFormat: 'dddd, MMMM D, YYYY'
-    };
-
-    // If slack is configured in appConfig, merge non-empty values
-    // Priority: non-empty appConfig values override env vars; empty appConfig values are ignored
-    if (this.appConfig.slack !== undefined && this.appConfig.slack !== null) {
-      const appSlack = this.appConfig.slack as Partial<SlackConfig>;
-      const hasToken = appSlack.token !== undefined && appSlack.token.trim() !== '';
-      const hasChannel = appSlack.channelId !== undefined && appSlack.channelId.trim() !== '';
-      const hasUsername = appSlack.username !== undefined && appSlack.username.trim() !== '';
-      const hasEmoji = appSlack.icon_emoji !== undefined;
-      const hasDateFormat = appSlack.dateFormat !== undefined;
-
-      return {
-        ...envSlackOptions,
-        // Only use appConfig values if they're non-empty strings
-        ...(hasToken ? { token: appSlack.token } : {}),
-        ...(hasChannel ? { channelId: appSlack.channelId } : {}),
-        ...(hasUsername ? { username: appSlack.username } : {}),
-        ...(hasEmoji ? { icon_emoji: appSlack.icon_emoji } : {}),
-        ...(hasDateFormat ? { dateFormat: appSlack.dateFormat } : {})
-      };
-    }
-
-    return envSlackOptions;
-  }
-  
-  /**
-   * Get the date to use for TV show display
-   * Returns current date if not explicitly set
-   * @returns Date object for the configured date
-   */
-  getDate(): Date {
-    return parseDateString(this.cliArgs.date);
-  }
-  
-  /**
-   * Check if debug mode is enabled
-   * @returns True if debug mode is enabled
-   */
-  isDebugMode(): boolean {
-    return Boolean(this.cliOptions.debug);
-  }
-  
   /**
    * Parse command line arguments
    * @param args Optional array of command line arguments
@@ -188,10 +65,10 @@ export class CliConfigServiceImpl implements ConfigService {
     const yargsInstance = this.createYargsInstance(
       args !== undefined && args !== null ? args : process.argv.slice(2)
     );
-    
+
     // Parse the arguments - use parseSync to ensure we get a synchronous result
     const parsedArgs = yargsInstance.parseSync();
-    
+
     // Convert to our CliArgs type with proper type handling
     return {
       date: getStringValue(String(parsedArgs.date ?? ''), getTodayDate()),
@@ -206,7 +83,7 @@ export class CliConfigServiceImpl implements ConfigService {
       groupByNetwork: true // Default to true, not configurable via CLI yet
     };
   }
-  
+
   /**
    * Create and configure a yargs instance
    * @param args Command line arguments
@@ -272,43 +149,5 @@ export class CliConfigServiceImpl implements ConfigService {
       })
       .help()
       .alias('help', 'h');
-  }
-  
-  /**
-   * Load configuration from config file and merge with defaults
-   * @returns Merged application configuration
-   * @protected
-   */
-  protected loadConfig(): AppConfig {
-    // Default configuration
-    const defaultConfig = getDefaultConfig();
-    
-    // Try to load user config from config.json
-    let userConfig: Partial<AppConfig> = {};
-    try {
-      const configPath = getConfigFilePath(import.meta.url);
-      
-      if (fileExists(configPath)) {
-        const configFile = readFile(configPath);
-        userConfig = parseConfigFile(configFile);
-      }
-    } catch (error) {
-      handleConfigError(error);
-    }
-    
-    // Merge default and user config
-    const mergedConfig = {
-      ...defaultConfig,
-      ...userConfig,
-      // Ensure slack config is properly merged
-      slack: {
-        ...defaultConfig.slack,
-        ...(userConfig.slack !== undefined && userConfig.slack !== null 
-          ? userConfig.slack 
-          : {})
-      }
-    };
-    
-    return mergedConfig;
   }
 }
