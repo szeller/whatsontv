@@ -85,9 +85,29 @@ describe('PinoLoggerServiceImpl', () => {
     it('should allow child logger to create its own child', () => {
       const childLogger = loggerService.child({ module: 'test' });
       const grandChildLogger = childLogger.child({ operation: 'fetch' });
-      
+
       expect(grandChildLogger).toBeDefined();
       expect(typeof grandChildLogger.info).toBe('function');
+    });
+
+    it('should allow child logger to log with string-only argument', () => {
+      const childLogger = loggerService.child({ module: 'test' });
+
+      // Test all logging methods with string-only arguments
+      expect(() => childLogger.info('string-only info')).not.toThrow();
+      expect(() => childLogger.warn('string-only warn')).not.toThrow();
+      expect(() => childLogger.error('string-only error')).not.toThrow();
+      expect(() => childLogger.debug('string-only debug')).not.toThrow();
+    });
+
+    it('should allow child logger to log with context and message', () => {
+      const childLogger = loggerService.child({ module: 'test' });
+
+      // Test all logging methods with context object and message
+      expect(() => childLogger.info({ key: 'value' }, 'info with context')).not.toThrow();
+      expect(() => childLogger.warn({ key: 'value' }, 'warn with context')).not.toThrow();
+      expect(() => childLogger.error({ key: 'value' }, 'error with context')).not.toThrow();
+      expect(() => childLogger.debug({ key: 'value' }, 'debug with context')).not.toThrow();
     });
   });
 
