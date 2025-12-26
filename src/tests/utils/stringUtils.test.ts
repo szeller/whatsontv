@@ -2,6 +2,9 @@
  * Tests for string utility functions
  */
 import {
+  isEmptyString,
+  hasContent,
+  isEmptyArray,
   getStringOrDefault,
   getStringValue,
   padString,
@@ -12,6 +15,93 @@ import {
 } from '../../utils/stringUtils.js';
 
 describe('stringUtils', () => {
+  describe('isEmptyString', () => {
+    it('should return true for null', () => {
+      expect(isEmptyString(null)).toBe(true);
+    });
+
+    it('should return true for undefined', () => {
+      expect(isEmptyString(undefined)).toBe(true);
+    });
+
+    it('should return true for empty string', () => {
+      expect(isEmptyString('')).toBe(true);
+    });
+
+    it('should return false for non-empty string', () => {
+      expect(isEmptyString('test')).toBe(false);
+    });
+
+    it('should return false for whitespace without trim', () => {
+      expect(isEmptyString('   ')).toBe(false);
+    });
+
+    it('should return true for whitespace with trim', () => {
+      expect(isEmptyString('   ', true)).toBe(true);
+    });
+
+    it('should return false for string with content and trim', () => {
+      expect(isEmptyString('  test  ', true)).toBe(false);
+    });
+  });
+
+  describe('hasContent', () => {
+    it('should return false for null', () => {
+      expect(hasContent(null)).toBe(false);
+    });
+
+    it('should return false for undefined', () => {
+      expect(hasContent(undefined)).toBe(false);
+    });
+
+    it('should return false for empty string', () => {
+      expect(hasContent('')).toBe(false);
+    });
+
+    it('should return true for non-empty string', () => {
+      expect(hasContent('test')).toBe(true);
+    });
+
+    it('should return true for whitespace (does not trim)', () => {
+      expect(hasContent('   ')).toBe(true);
+    });
+
+    it('should narrow type correctly', () => {
+      const value: string | null = 'test';
+      if (hasContent(value)) {
+        // TypeScript should know value is string here
+        expect(value.toUpperCase()).toBe('TEST');
+      }
+    });
+  });
+
+  describe('isEmptyArray', () => {
+    it('should return true for null', () => {
+      expect(isEmptyArray(null)).toBe(true);
+    });
+
+    it('should return true for undefined', () => {
+      expect(isEmptyArray(undefined)).toBe(true);
+    });
+
+    it('should return true for empty array', () => {
+      expect(isEmptyArray([])).toBe(true);
+    });
+
+    it('should return false for array with elements', () => {
+      expect(isEmptyArray([1, 2, 3])).toBe(false);
+    });
+
+    it('should return false for array with single element', () => {
+      expect(isEmptyArray(['test'])).toBe(false);
+    });
+
+    it('should work with different types', () => {
+      expect(isEmptyArray([{ key: 'value' }])).toBe(false);
+      expect(isEmptyArray([null])).toBe(false); // Array with null element is not empty
+    });
+  });
+
   describe('getStringOrDefault', () => {
     it('should return the input value if it is valid', () => {
       expect(getStringOrDefault('test', 'default')).toBe('test');

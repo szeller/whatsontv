@@ -1,7 +1,11 @@
 /**
  * HTTP Schema Definitions
- * 
- * This file contains schema definitions for HTTP requests and responses
+ *
+ * This file contains Zod schema definitions for runtime validation of HTTP
+ * requests and responses. These schemas are primarily used for testing.
+ *
+ * Note: For the canonical TypeScript interface types, see:
+ * - src/interfaces/httpClient.ts (RequestOptions, HttpResponse<T>)
  */
 
 import { z } from 'zod';
@@ -26,11 +30,20 @@ export const httpResponseSchema = z.object({
 });
 
 /**
- * Request options type
+ * Schema-inferred request options type (for validation only)
+ * Note: Use RequestOptions from httpClient.ts for application code
  */
-export type RequestOptions = z.infer<typeof requestOptionsSchema>;
+export type RequestOptionsSchema = z.infer<typeof requestOptionsSchema>;
 
 /**
- * HTTP response type
+ * Schema-inferred HTTP response type (for validation only)
+ * Note: Use HttpResponse<T> from httpClient.ts for application code
  */
-export type HttpResponse = z.infer<typeof httpResponseSchema>;
+export type HttpResponseSchema = z.infer<typeof httpResponseSchema>;
+
+// Deprecated type aliases for backwards compatibility
+// TODO: Remove these in a future version
+/** @deprecated Use RequestOptionsSchema instead, or RequestOptions from httpClient.ts */
+export type RequestOptions = RequestOptionsSchema;
+/** @deprecated Use HttpResponseSchema instead, or HttpResponse<T> from httpClient.ts */
+export type HttpResponse = HttpResponseSchema;

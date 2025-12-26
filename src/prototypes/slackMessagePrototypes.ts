@@ -13,7 +13,10 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Types for Slack message components
+// Local types for Slack message components
+// Note: These are intentionally separate from src/interfaces/slackClient.ts types.
+// Prototypes need flexible generic types for experimentation (e.g., 'actions' blocks),
+// while production code uses strictly typed unions for type safety.
 interface SlackBlock {
   type: string;
   [key: string]: unknown;

@@ -3,13 +3,45 @@
  */
 
 /**
+ * Check if a string is null, undefined, or empty
+ * @param value - The value to check
+ * @param trim - Whether to trim whitespace before checking (default: false)
+ * @returns True if the value is null, undefined, or empty string
+ */
+export function isEmptyString(value: string | null | undefined, trim = false): boolean {
+  if (value === null || value === undefined) {
+    return true;
+  }
+  return trim ? value.trim() === '' : value === '';
+}
+
+/**
+ * Check if a string has content (type guard that narrows to string)
+ * @param value - The value to check
+ * @returns True if value is a non-empty string
+ */
+export function hasContent(value: string | null | undefined): value is string {
+  return value !== null && value !== undefined && value !== '';
+}
+
+/**
+ * Check if an array is null, undefined, or empty
+ * @param arr - The array to check
+ * @returns True if the array is null, undefined, or has no elements
+ */
+export function isEmptyArray<T>(arr: T[] | null | undefined): boolean {
+  return arr === null || arr === undefined || arr.length === 0;
+}
+
+/**
  * Get a string value or a default if empty/null/undefined
  * @param value - The string to check
  * @param defaultValue - The default value to use
  * @returns The input value if valid, or the default value
  */
 export function getStringOrDefault(value: string | null | undefined, defaultValue: string): string {
-  if (value === undefined || value === null || value.trim() === '') {
+  // Check for null/undefined/empty first, then check trimmed
+  if (value === null || value === undefined || value.trim() === '') {
     return defaultValue;
   }
   return value.trim();
@@ -23,13 +55,10 @@ export function getStringOrDefault(value: string | null | undefined, defaultValu
  * @returns The input value if valid, or the default value
  */
 export function getStringValue(
-  value: string | null | undefined, 
+  value: string | null | undefined,
   defaultValue: string = ''
 ): string {
-  if (value === null || value === undefined || value === '') {
-    return defaultValue;
-  }
-  return value;
+  return hasContent(value) ? value : defaultValue;
 }
 
 /**
@@ -82,17 +111,17 @@ export function truncateString(
  * @returns Formatted string
  */
 export function formatListWithSeparator(items: string[], separator: string = ', '): string {
-  if (items === undefined || items === null || items.length === 0) {
+  if (isEmptyArray(items)) {
     return '';
   }
-  
+
   // Filter out empty items
-  const filteredItems = items.filter(item => item !== null && item !== undefined && item !== '');
-  
-  if (filteredItems.length === 0) {
+  const filteredItems = items.filter(item => !isEmptyString(item));
+
+  if (isEmptyArray(filteredItems)) {
     return '';
   }
-  
+
   return filteredItems.join(separator);
 }
 
