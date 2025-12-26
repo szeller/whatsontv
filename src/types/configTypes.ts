@@ -20,7 +20,8 @@ export interface SlackConfig {
  * - This type: Full runtime config with filters, timing, display options
  * - whatsontv-stack.ts: Minimal CDK deployment config (just Slack credentials)
  *
- * This config is read at runtime from config.json (or config.lambda.json in Lambda).
+ * For CLI: Read from config.json at runtime
+ * For Lambda: Read from APP_CONFIG env var (populated from config.json at deploy time)
  */
 export interface AppConfig {
   country: string;
