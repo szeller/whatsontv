@@ -324,10 +324,9 @@ describe('SlackShowFormatterImpl', () => {
       // Assert
       expect(result.length).toBeGreaterThan(0);
 
-      // Check for header block
+      // No "Shows by Network" header - date header is added by SlackOutputServiceImpl
       const headerBlocks = result.filter(block => isHeaderBlock(block)) as SlackHeaderBlock[];
-      expect(headerBlocks.length).toBeGreaterThan(0);
-      expect(headerBlocks[0].text.text).toBe('Shows by Network');
+      expect(headerBlocks.length).toBe(0);
 
       // Check that networks are in context blocks
       const contextBlocks = result.filter(block => isContextBlock(block)) as SlackContextBlock[];
@@ -350,12 +349,16 @@ describe('SlackShowFormatterImpl', () => {
       // Act
       const result = formatter.formatNetworkGroups({});
 
-      // Assert
+      // Assert - should have footer context block only (no header)
       expect(result.length).toBeGreaterThan(0);
 
-      // Check that it includes a header
+      // No header blocks - date header is added by SlackOutputServiceImpl
       const headerBlocks = result.filter(block => isHeaderBlock(block));
-      expect(headerBlocks.length).toBeGreaterThan(0);
+      expect(headerBlocks.length).toBe(0);
+
+      // Should have footer context block
+      const contextBlocks = result.filter(block => isContextBlock(block));
+      expect(contextBlocks.length).toBeGreaterThan(0);
     });
   });
 

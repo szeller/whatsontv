@@ -6,7 +6,6 @@ import type { Show } from '../../schemas/domain.js';
 import type {
   SlackBlock,
   SlackSectionBlock,
-  SlackHeaderBlock,
   SlackContextBlock
 } from '../../interfaces/slackClient.js';
 import { formatTimeWithPeriod } from '../../utils/dateUtils.js';
@@ -230,19 +229,11 @@ export class SlackShowFormatterImpl extends BaseShowFormatterImpl<SlackBlock>
 
   /**
    * Format the header content for the network groups
-   * @returns Formatted header content
+   * The date header is added by SlackOutputServiceImpl, so we return empty here
+   * @returns Empty array (no additional header needed)
    */
   protected formatHeader(): SlackBlock[] {
-    const headerBlock: SlackHeaderBlock = {
-      type: 'header',
-      text: {
-        type: 'plain_text',
-        text: 'Shows by Network',
-        emoji: true
-      }
-    };
-
-    return [headerBlock];
+    return [];
   }
 
   /**
