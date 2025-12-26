@@ -97,7 +97,8 @@ export class WhatsOnTvStack extends cdk.Stack {
         sourceMap: true,
         target: 'node22',
         format: lambdaNodejs.OutputFormat.ESM,
-        // No banner needed - Lambda uses LambdaConfigServiceImpl which doesn't depend on yargs
+        // ESM banner needed for CJS dependencies like @slack/web-api that use require()
+        banner: 'import { createRequire } from "module"; const require = createRequire(import.meta.url);',
         // No commandHooks needed - config is inlined as APP_CONFIG environment variable
       },
     });
