@@ -86,6 +86,7 @@ export class LambdaConfigServiceImpl extends BaseConfigServiceImpl {
       networks: this.appConfig.networks ?? defaultConfig.networks ?? [],
       genres: this.appConfig.genres ?? defaultConfig.genres ?? [],
       languages: this.appConfig.languages ?? defaultConfig.languages ?? [],
+      minAirtime: this.appConfig.minAirtime ?? defaultConfig.minAirtime ?? '',
       // Lambda always fetches all sources (AppConfig doesn't have fetchSource field)
       fetchSource: 'all'
     };
