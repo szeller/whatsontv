@@ -58,8 +58,11 @@ export function handleMainError(error: unknown, consoleOutput: ConsoleOutput): v
  * @returns True if the file should execute its main function
  */
 export function isDirectExecution(): boolean {
-  // Don't run main() when in a test environment
-  return process.env.NODE_ENV !== 'test';
+  // Don't run main() when in a test environment or Lambda
+  // Lambda sets AWS_LAMBDA_FUNCTION_NAME, so we can detect it
+  const isTest = process.env.NODE_ENV === 'test';
+  const isLambda = process.env.AWS_LAMBDA_FUNCTION_NAME !== undefined;
+  return !isTest && !isLambda;
 }
 
 /**
