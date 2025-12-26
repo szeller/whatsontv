@@ -1,13 +1,11 @@
 /**
  * Implementation of ConfigService for Lambda environment
- * Does not use yargs - reads configuration from config file and environment variables
+ * Does not use yargs - reads configuration from APP_CONFIG environment variable
  */
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
-
 import { injectable } from 'tsyringe';
 
 import type { ShowOptions } from '../../types/tvShowOptions.js';
+import type { AppConfig } from '../../types/configTypes.js';
 import { getTodayDate } from '../../utils/dateUtils.js';
 import { getDefaultConfig } from '../../utils/configUtils.js';
 import { BaseConfigServiceImpl } from '../baseConfigServiceImpl.js';
@@ -23,13 +21,12 @@ export class LambdaConfigServiceImpl extends BaseConfigServiceImpl {
   }
 
   /**
-   * Initialize the service from config file and environment variables
+   * Initialize the service from environment variables
    * @private
    */
   private initialize(): void {
-    // Load configuration from file
-    const configPath = this.getConfigPath();
-    this.appConfig = this.loadConfig(configPath);
+    // Load configuration from APP_CONFIG env var (inlined by CDK at deploy time)
+    this.appConfig = this.loadAppConfig();
 
     // Get date from environment variable or use today
     this.dateString = this.getOptionalEnv('DATE', getTodayDate());
@@ -40,24 +37,39 @@ export class LambdaConfigServiceImpl extends BaseConfigServiceImpl {
       groupByNetwork: true
     };
 
-    // Set show options from config file
+    // Set show options from config
     this.showOptions = this.buildShowOptions();
   }
 
   /**
-   * Get the path to the config file
-   * Uses CONFIG_FILE env var or defaults to config.lambda.json in the Lambda root
+   * Load app configuration from APP_CONFIG environment variable
+   * Falls back to default config if not set
    * @private
    */
-  private getConfigPath(): string {
-    const configFileEnv = process.env.CONFIG_FILE;
-    if (configFileEnv !== undefined && configFileEnv !== null && configFileEnv.trim() !== '') {
-      return configFileEnv;
+  private loadAppConfig(): AppConfig {
+    const defaultConfig = getDefaultConfig();
+    const appConfigEnv = process.env.APP_CONFIG;
+
+    if (appConfigEnv === undefined || appConfigEnv === null || appConfigEnv.trim() === '') {
+      // No APP_CONFIG set, use defaults
+      return defaultConfig;
     }
 
-    // Default to config.lambda.json in the same directory as the handler
-    const currentDir = dirname(fileURLToPath(import.meta.url));
-    return resolve(currentDir, '../../config.lambda.json');
+    try {
+      const parsed = JSON.parse(appConfigEnv) as Partial<AppConfig>;
+      return {
+        ...defaultConfig,
+        ...parsed,
+        slack: {
+          ...defaultConfig.slack,
+          ...(parsed.slack ?? {})
+        }
+      };
+    } catch {
+      // Invalid JSON, use defaults
+      console.error('Failed to parse APP_CONFIG environment variable, using defaults');
+      return defaultConfig;
+    }
   }
 
   /**
