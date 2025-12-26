@@ -51,7 +51,7 @@ export class LambdaConfigServiceImpl extends BaseConfigServiceImpl {
    */
   private getConfigPath(): string {
     const configFileEnv = process.env.CONFIG_FILE;
-    if (configFileEnv !== undefined && configFileEnv.trim() !== '') {
+    if (configFileEnv !== undefined && configFileEnv !== null && configFileEnv.trim() !== '') {
       return configFileEnv;
     }
 

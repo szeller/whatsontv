@@ -61,20 +61,6 @@ export abstract class BaseConfigServiceImpl implements ConfigService {
   }
 
   /**
-   * Get required environment variable (throws if missing or empty)
-   * @param key Environment variable name
-   * @returns Environment variable value
-   * @protected
-   */
-  protected getRequiredEnv(key: string): string {
-    const value = process.env[key];
-    if (value === undefined || value === null || value.trim() === '') {
-      throw new Error(`${key} environment variable is required but not set`);
-    }
-    return value;
-  }
-
-  /**
    * Get optional environment variable with default
    * @param key Environment variable name
    * @param defaultValue Default value if not set
