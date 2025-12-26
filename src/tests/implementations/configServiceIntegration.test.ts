@@ -64,18 +64,25 @@ describe('ConfigService Integration Tests', () => {
 
   describe('LambdaConfigServiceImpl', () => {
     let originalAppConfig: string | undefined;
+    let originalDebug: string | undefined;
 
     beforeEach(() => {
-      // Save original env var
+      // Save original env vars
       originalAppConfig = process.env.APP_CONFIG;
+      originalDebug = process.env.DEBUG;
     });
 
     afterEach(() => {
-      // Restore original env var
+      // Restore original env vars
       if (originalAppConfig === undefined) {
         delete process.env.APP_CONFIG;
       } else {
         process.env.APP_CONFIG = originalAppConfig;
+      }
+      if (originalDebug === undefined) {
+        delete process.env.DEBUG;
+      } else {
+        process.env.DEBUG = originalDebug;
       }
     });
 
@@ -140,9 +147,7 @@ describe('ConfigService Integration Tests', () => {
 
       const configService = new LambdaConfigServiceImpl();
       expect(configService.isDebugMode()).toBe(true);
-
-      // Cleanup
-      delete process.env.DEBUG;
+      // DEBUG cleanup handled by afterEach
     });
   });
 });

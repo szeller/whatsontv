@@ -15,6 +15,9 @@ import * as path from 'path';
 /**
  * Runtime configuration for Lambda (read from config.lambda.json at deploy time)
  * This is inlined as an environment variable to avoid file copy during bundling.
+ *
+ * Note: These fields mirror the filter options in src/types/configTypes.ts AppConfig.
+ * The Lambda reads this from the APP_CONFIG env var via LambdaConfigServiceImpl.
  */
 interface LambdaRuntimeConfig {
   country?: string;
@@ -211,6 +214,25 @@ export class WhatsOnTvStack extends cdk.Stack {
       );
     }
     const configContent = fs.readFileSync(configPath, 'utf-8');
-    return JSON.parse(configContent) as LambdaRuntimeConfig;
+    const config = JSON.parse(configContent) as LambdaRuntimeConfig;
+
+    // Basic type validation - these are the fields Lambda uses for filtering
+    if (config.country !== undefined && typeof config.country !== 'string') {
+      throw new Error('config.lambda.json: country must be a string');
+    }
+    if (config.types !== undefined && !Array.isArray(config.types)) {
+      throw new Error('config.lambda.json: types must be an array');
+    }
+    if (config.languages !== undefined && !Array.isArray(config.languages)) {
+      throw new Error('config.lambda.json: languages must be an array');
+    }
+    if (config.networks !== undefined && !Array.isArray(config.networks)) {
+      throw new Error('config.lambda.json: networks must be an array');
+    }
+    if (config.genres !== undefined && !Array.isArray(config.genres)) {
+      throw new Error('config.lambda.json: genres must be an array');
+    }
+
+    return config;
   }
 }
