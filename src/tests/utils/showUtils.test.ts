@@ -4,10 +4,9 @@
 import { jest, describe, it, expect } from '@jest/globals';
 
 // Import the functions to test
-import { 
-  groupShowsByNetwork, 
-  sortShowsByTime, 
-  formatTime,
+import {
+  groupShowsByNetwork,
+  sortShowsByTime,
   filterByType,
   filterByNetwork,
   filterByGenre,
@@ -162,33 +161,6 @@ describe('ShowUtils', () => {
       expect(result[0].name).toBe('A Show');
       expect(result[1].name).toBe('B Show');
       expect(result[2].name).toBe('C Show');
-    });
-  });
-  
-  describe('formatTime', () => {
-    it('formats time with AM/PM', () => {
-      // Test various time formats
-      expect(formatTime('08:00')).toBe('8:00 AM');
-      expect(formatTime('12:00')).toBe('12:00 PM');
-      expect(formatTime('13:30')).toBe('1:30 PM');
-      expect(formatTime('00:00')).toBe('12:00 AM');
-      expect(formatTime('23:59')).toBe('11:59 PM');
-    });
-    
-    it('handles null or empty time strings', () => {
-      expect(formatTime(null)).toBe('N/A');
-      expect(formatTime('')).toBe('N/A');
-    });
-    
-    it('handles invalid time formats', () => {
-      expect(formatTime('not a time')).toBe('N/A');
-      // The current implementation doesn't validate hour/minute ranges
-      // so these actually return formatted times
-      const formattedTime25 = formatTime('25:00');
-      expect(formattedTime25).toBe('1:00 PM');
-      
-      const formattedTime12_60 = formatTime('12:60');
-      expect(formattedTime12_60).toBe('12:60 PM');
     });
   });
   

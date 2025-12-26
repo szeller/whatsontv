@@ -1,13 +1,8 @@
 /**
  * Utility functions for working with TV shows
  */
-import type { Show } from '../schemas/domain.js';
+import type { Show, NetworkGroups } from '../schemas/domain.js';
 import { convertTimeToMinutes } from './dateUtils.js';
-
-/**
- * Type for grouping shows by network
- */
-export type NetworkGroups = Record<string, Show[]>;
 
 /**
  * Get the network name from a show with fallback to "Unknown Network"
@@ -104,33 +99,6 @@ export function sortShowsByTime(shows: Show[]): Show[] {
     }
     return a.name.localeCompare(b.name);
   });
-}
-
-/**
- * Format time string to 12-hour format
- * @param time - Time string in HH:MM format
- * @returns Formatted time string
- */
-export function formatTime(time: string | null): string {
-  if (time === null || time === '') {
-    return 'N/A';
-  }
-  
-  // Parse hours and minutes
-  const [hoursStr, minutesStr] = time.split(':');
-  
-  if (hoursStr === undefined || minutesStr === undefined) {
-    return 'N/A';
-  }
-  
-  const hours = parseInt(hoursStr, 10);
-  const minutes = minutesStr;
-  
-  // Convert to 12-hour format
-  const period = hours >= 12 ? 'PM' : 'AM';
-  const hours12 = hours % 12 || 12; // Convert 0 to 12 for 12 AM
-  
-  return `${hours12}:${minutes} ${period}`;
 }
 
 /**

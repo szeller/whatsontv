@@ -99,7 +99,12 @@ export class TextShowFormatterImpl extends BaseShowFormatterImpl<string> {
   }
 
   /**
-   * Format episode range for multiple episodes
+   * Format episode range for multiple episodes (simple first-to-last range)
+   *
+   * Note: This is a simplified version that shows just the first and last episode
+   * (e.g., "S01E01-05"). For more comprehensive formatting that handles gaps
+   * (e.g., "S01E01-03, S01E05"), see formatEpisodeRanges() in showUtils.ts.
+   *
    * @param shows Multiple episodes of the same show
    * @returns Formatted episode range
    */

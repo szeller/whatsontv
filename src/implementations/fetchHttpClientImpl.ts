@@ -17,15 +17,6 @@ import type { LoggerService } from '../interfaces/loggerService.js';
 import { z } from 'zod';
 
 /**
- * Request options for HTTP client
- */
-export interface RequestOptions {
-  headers?: Record<string, string>;
-  timeout?: number;
-  query?: Record<string, string | number | boolean>;
-}
-
-/**
  * Options for configuring the KyHttpClient
  */
 export interface KyHttpClientOptions {

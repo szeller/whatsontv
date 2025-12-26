@@ -12,6 +12,16 @@ import { Construct } from 'constructs';
 import * as fs from 'fs';
 import * as path from 'path';
 
+/**
+ * CDK deployment configuration (read from config.json at deploy time)
+ *
+ * This is intentionally separate from src/types/configTypes.ts AppConfig:
+ * - This type: Minimal config needed for CDK infrastructure deployment
+ * - configTypes.ts: Full runtime application config (filters, timing, etc.)
+ *
+ * The CDK only needs Slack credentials to pass to Lambda environment variables.
+ * Runtime filtering/display options are read directly by the app at runtime.
+ */
 interface AppConfig {
   slack: {
     token: string;
