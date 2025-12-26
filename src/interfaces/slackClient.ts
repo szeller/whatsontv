@@ -99,3 +99,10 @@ export function isSectionBlock(block?: SlackBlock): boolean {
 export function isHeaderBlock(block?: SlackBlock): boolean {
   return block?.type === 'header';
 }
+
+/**
+ * Type guard to check if a block is a context block
+ */
+export function isContextBlock(block?: SlackBlock): boolean {
+  return block?.type === 'context';
+}

@@ -87,33 +87,31 @@ describe('SlackOutputServiceImpl', () => {
       // Arrange
       const mockBlocks = [SlackShowFormatterFixture.createHeaderBlock()];
       mockFormatter.formatNetworkGroups.mockReturnValue(mockBlocks);
-      
+
       // Act
       await outputService.renderOutput(testShows);
-      
+
       // Assert
       expect(mockFormatter.formatNetworkGroups).toHaveBeenCalled();
-      
-      // Should send two messages - header and content
-      expect(mockSlackClient.sendMessage).toHaveBeenCalledTimes(2);
-      
-      // First call should be the header with date
-      expect(mockSlackClient.sendMessage).toHaveBeenNthCalledWith(1, {
+
+      // Should send a single combined message with header and content
+      expect(mockSlackClient.sendMessage).toHaveBeenCalledTimes(1);
+
+      // Message should include both date header block and content blocks
+      expect(mockSlackClient.sendMessage).toHaveBeenCalledWith({
         channel: 'mock-channel',
         text: expect.stringContaining('TV Shows for'),
-        blocks: [expect.objectContaining({
-          type: 'header',
-          text: expect.objectContaining({
-            text: expect.stringContaining('📺 TV Shows for')
-          })
-        })]
-      });
-      
-      // Second call should be the content
-      expect(mockSlackClient.sendMessage).toHaveBeenNthCalledWith(2, {
-        channel: 'mock-channel',
-        text: 'TV Shows by Network',
-        blocks: mockBlocks
+        blocks: [
+          // First block is the date header
+          expect.objectContaining({
+            type: 'header',
+            text: expect.objectContaining({
+              text: expect.stringContaining('TV Shows for')
+            })
+          }),
+          // Remaining blocks are the formatted content
+          ...mockBlocks
+        ]
       });
     });
     
@@ -165,33 +163,31 @@ describe('SlackOutputServiceImpl', () => {
       // Arrange
       const emptyBlocks = [SlackShowFormatterFixture.createHeaderBlock()];
       mockFormatter.formatNetworkGroups.mockReturnValue(emptyBlocks);
-      
+
       // Act
       await outputService.renderOutput([]);
-      
+
       // Assert
       expect(mockFormatter.formatNetworkGroups).toHaveBeenCalledWith({});
-      
-      // Should send two messages - header and content
-      expect(mockSlackClient.sendMessage).toHaveBeenCalledTimes(2);
-      
-      // First call should be the header with date
-      expect(mockSlackClient.sendMessage).toHaveBeenNthCalledWith(1, {
+
+      // Should send a single combined message with header and content
+      expect(mockSlackClient.sendMessage).toHaveBeenCalledTimes(1);
+
+      // Message should include both date header block and content blocks
+      expect(mockSlackClient.sendMessage).toHaveBeenCalledWith({
         channel: 'mock-channel',
         text: expect.stringContaining('TV Shows for'),
-        blocks: [expect.objectContaining({
-          type: 'header',
-          text: expect.objectContaining({
-            text: expect.stringContaining('📺 TV Shows for')
-          })
-        })]
-      });
-      
-      // Second call should be the content
-      expect(mockSlackClient.sendMessage).toHaveBeenNthCalledWith(2, {
-        channel: 'mock-channel',
-        text: 'TV Shows by Network',
-        blocks: emptyBlocks
+        blocks: [
+          // First block is the date header
+          expect.objectContaining({
+            type: 'header',
+            text: expect.objectContaining({
+              text: expect.stringContaining('TV Shows for')
+            })
+          }),
+          // Remaining blocks are the formatted content
+          ...emptyBlocks
+        ]
       });
     });
   });

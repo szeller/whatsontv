@@ -13,32 +13,24 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 /**
- * Runtime configuration for Lambda (read from config.lambda.json at deploy time)
- * This is inlined as an environment variable to avoid file copy during bundling.
+ * Application configuration (read from config.json at deploy time)
  *
- * Note: These fields mirror the filter options in src/types/configTypes.ts AppConfig.
- * The Lambda reads this from the APP_CONFIG env var via LambdaConfigServiceImpl.
+ * Contains both:
+ * - Slack credentials for Lambda environment variables
+ * - Runtime filtering options inlined as APP_CONFIG env var
+ *
+ * The Lambda reads filtering options from APP_CONFIG via LambdaConfigServiceImpl.
  */
-interface LambdaRuntimeConfig {
+interface AppConfig {
+  // Runtime filtering options (passed to Lambda as APP_CONFIG)
   country?: string;
   types?: string[];
   languages?: string[];
   networks?: string[];
   genres?: string[];
+  minAirtime?: string;
   notificationTime?: string;
-}
-
-/**
- * CDK deployment configuration (read from config.json at deploy time)
- *
- * This is intentionally separate from src/types/configTypes.ts AppConfig:
- * - This type: Minimal config needed for CDK infrastructure deployment
- * - configTypes.ts: Full runtime application config (filters, timing, etc.)
- *
- * The CDK only needs Slack credentials to pass to Lambda environment variables.
- * Runtime filtering/display options are read directly by the app at runtime.
- */
-interface AppConfig {
+  // Slack credentials
   slack: {
     token: string;
     channelId: string;
@@ -58,11 +50,18 @@ export class WhatsOnTvStack extends cdk.Stack {
 
     const { stage } = props;
 
-    // Read configuration from config.json (Slack credentials)
+    // Read configuration from config.json
     const config = this.loadConfig();
 
-    // Read runtime config from config.lambda.json and inline as env var
-    const runtimeConfig = this.loadLambdaRuntimeConfig();
+    // Extract runtime config for Lambda (filtering options)
+    const runtimeConfig = {
+      country: config.country,
+      types: config.types,
+      languages: config.languages,
+      networks: config.networks,
+      genres: config.genres,
+      minAirtime: config.minAirtime,
+    };
 
     // Environment variables for Lambda
     const environment = {
@@ -207,33 +206,4 @@ export class WhatsOnTvStack extends cdk.Stack {
     return config;
   }
 
-  private loadLambdaRuntimeConfig(): LambdaRuntimeConfig {
-    const configPath = path.resolve(process.cwd(), 'config.lambda.json');
-    if (!fs.existsSync(configPath)) {
-      throw new Error(
-        'config.lambda.json not found. This file contains runtime filtering options for Lambda.'
-      );
-    }
-    const configContent = fs.readFileSync(configPath, 'utf-8');
-    const config = JSON.parse(configContent) as LambdaRuntimeConfig;
-
-    // Basic type validation - these are the fields Lambda uses for filtering
-    if (config.country !== undefined && typeof config.country !== 'string') {
-      throw new Error('config.lambda.json: country must be a string');
-    }
-    if (config.types !== undefined && !Array.isArray(config.types)) {
-      throw new Error('config.lambda.json: types must be an array');
-    }
-    if (config.languages !== undefined && !Array.isArray(config.languages)) {
-      throw new Error('config.lambda.json: languages must be an array');
-    }
-    if (config.networks !== undefined && !Array.isArray(config.networks)) {
-      throw new Error('config.lambda.json: networks must be an array');
-    }
-    if (config.genres !== undefined && !Array.isArray(config.genres)) {
-      throw new Error('config.lambda.json: genres must be an array');
-    }
-
-    return config;
-  }
 }

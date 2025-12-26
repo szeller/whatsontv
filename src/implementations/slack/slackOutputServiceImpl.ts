@@ -37,52 +37,50 @@ export class SlackOutputServiceImpl extends BaseOutputServiceImpl<SlackBlock> {
 
   /**
    * Render the header section
-   * @param date The date for which shows are being displayed
+   * For Slack, we combine header and content into a single message,
+   * so this method is a no-op. The header is included in renderContent().
+   * @param _date The date for which shows are being displayed (unused here)
    */
-  protected async renderHeader(date: Date): Promise<void> {
-    // Get Slack configuration options
-    const slackOptions = this.configService.getSlackOptions();
-    const channelId = slackOptions.channelId;
-    
-    // Create a header block with the date
-    const dateHeaderBlock: SlackBlock = {
-      type: 'header',
-      text: {
-        type: 'plain_text',
-        text: `📺 TV Shows for ${formatDate(date)}`,
-        emoji: true
-      }
-    };
-    
-    // Send the header to Slack
-    await this.slackClient.sendMessage({
-      channel: channelId,
-      text: `TV Shows for ${formatDate(date)}`,
-      blocks: [dateHeaderBlock]
-    });
+  protected async renderHeader(_date: Date): Promise<void> {
+    // No-op: header is combined with content in renderContent()
+    await safeResolve();
   }
   
   /**
    * Render the main content section
+   * Combines header and content into a single Slack message
    * @param networkGroups Shows grouped by network
-   * @param _date The date for which shows are being displayed (unused)
+   * @param date The date for which shows are being displayed
    */
   protected async renderContent(
-    networkGroups: Record<string, Show[]>, 
-    _date: Date
+    networkGroups: Record<string, Show[]>,
+    date: Date
   ): Promise<void> {
     // Get Slack configuration options
     const slackOptions = this.configService.getSlackOptions();
     const channelId = slackOptions.channelId;
-    
-    // Generate Slack blocks using the formatter
-    const blocks = this.showFormatter.formatNetworkGroups(networkGroups);
-    
-    // Send to Slack
+
+    // Create header block with the date
+    const dateHeaderBlock: SlackBlock = {
+      type: 'header',
+      text: {
+        type: 'plain_text',
+        text: `TV Shows for ${formatDate(date)}`,
+        emoji: true
+      }
+    };
+
+    // Generate content blocks using the formatter
+    const contentBlocks = this.showFormatter.formatNetworkGroups(networkGroups);
+
+    // Combine header and content into single message
+    const allBlocks = [dateHeaderBlock, ...contentBlocks];
+
+    // Send single message to Slack
     await this.slackClient.sendMessage({
       channel: channelId,
-      text: 'TV Shows by Network',
-      blocks
+      text: `TV Shows for ${formatDate(date)}`,
+      blocks: allBlocks
     });
   }
   

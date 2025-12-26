@@ -6,11 +6,13 @@ import { container } from 'tsyringe';
 import { SlackShowFormatterImpl } from '../../../implementations/slack/slackShowFormatterImpl';
 import { ShowBuilder } from '../../fixtures/helpers/showFixtureBuilder';
 import type { Show } from '../../../schemas/domain';
-import { 
+import {
   isSectionBlock,
   isHeaderBlock,
+  isContextBlock,
   type SlackSectionBlock,
-  type SlackHeaderBlock
+  type SlackHeaderBlock,
+  type SlackContextBlock
 } from '../../../interfaces/slackClient';
 
 describe('SlackShowFormatterImpl', () => {
@@ -81,14 +83,15 @@ describe('SlackShowFormatterImpl', () => {
           text: expect.stringContaining('Test Show No Airtime')
         }
       });
-      
-      // Check that the result includes N/A for airtime
+
+      // Check that the result is a section block with show name
+      // In compact format, shows without airtime don't include "(N/A)"
       expect(result.type).toBe('section');
       const isSectionResult = isSectionBlock(result);
       if (isSectionResult === true) {
         const sectionBlock = result as SlackSectionBlock;
         expect(sectionBlock.text.type).toBe('mrkdwn');
-        expect(sectionBlock.text.text).toContain('N/A');
+        expect(sectionBlock.text.text).toContain('Test Show No Airtime');
       }
     });
   });
@@ -229,7 +232,7 @@ describe('SlackShowFormatterImpl', () => {
   });
 
   describe('formatNetwork', () => {
-    it('should format a network header', () => {
+    it('should format an empty network as context block', () => {
       // Arrange
       const networkName = 'Test Network';
       const emptyShows: Show[] = [];
@@ -237,31 +240,34 @@ describe('SlackShowFormatterImpl', () => {
       // Act
       const result = formatter.formatNetwork(networkName, emptyShows);
 
-      // Assert - updated to match new implementation
-      expect(result.length).toBeGreaterThan(0);
-      
-      // First block should be a header
-      const headerBlock = result[0];
-      expect(headerBlock.type).toBe('header');
-      
-      const isHeaderResult = isHeaderBlock(headerBlock);
-      if (isHeaderResult === true) {
-        const headerBlockTyped = headerBlock as SlackHeaderBlock;
-        expect(headerBlockTyped.text.type).toBe('plain_text');
-        expect(headerBlockTyped.text.text).toBe('Test Network');
+      // Assert - compact format returns a single context block
+      expect(result.length).toBe(1);
+
+      // Block should be a context block with network name
+      const contextBlock = result[0];
+      expect(contextBlock.type).toBe('context');
+
+      const isContextResult = isContextBlock(contextBlock);
+      if (isContextResult === true) {
+        const contextBlockTyped = contextBlock as SlackContextBlock;
+        const textElement = contextBlockTyped.elements[0];
+        if ('text' in textElement) {
+          expect(textElement.text).toContain('Test Network');
+          expect(textElement.text).toContain(':tv:');
+        }
       }
     });
-    
-    it('should format a network with shows', () => {
+
+    it('should format a network with shows as single context block', () => {
       // Arrange
       const network = 'Test Network';
       const shows: Show[] = [
-        ShowBuilder.createTestShow({ 
-          name: 'Network Show 1', 
+        ShowBuilder.createTestShow({
+          name: 'Network Show 1',
           network: 'Test Network'
         }),
-        ShowBuilder.createTestShow({ 
-          name: 'Network Show 2', 
+        ShowBuilder.createTestShow({
+          name: 'Network Show 2',
           network: 'Test Network'
         })
       ];
@@ -269,30 +275,24 @@ describe('SlackShowFormatterImpl', () => {
       // Act
       const result = formatter.formatNetwork(network, shows);
 
-      // Assert - base implementation now returns header and show blocks
-      expect(result.length).toBeGreaterThan(1);
+      // Assert - compact format returns a single context block per network
+      expect(result.length).toBe(1);
 
-      // First block should be a header
-      const headerBlock = result[0];
-      expect(headerBlock.type).toBe('header');
-      
-      const isHeaderResult = isHeaderBlock(headerBlock);
-      if (isHeaderResult === true) {
-        const headerBlockTyped = headerBlock as SlackHeaderBlock;
-        expect(headerBlockTyped.text.type).toBe('plain_text');
-        expect(headerBlockTyped.text.text).toBe('Test Network');
+      // Block should be a context block
+      const contextBlock = result[0];
+      expect(contextBlock.type).toBe('context');
+
+      const isContextResult = isContextBlock(contextBlock);
+      if (isContextResult === true) {
+        const contextBlockTyped = contextBlock as SlackContextBlock;
+        const textElement = contextBlockTyped.elements[0];
+        if ('text' in textElement) {
+          expect(textElement.text).toContain('Test Network');
+          expect(textElement.text).toContain('Network Show 1');
+          expect(textElement.text).toContain('Network Show 2');
+          expect(textElement.text).toContain('•'); // Bullet points
+        }
       }
-
-      // Check that show blocks are included
-      const showBlocks = result.filter((block): boolean => {
-        const isSectionResult = isSectionBlock(block);
-        if (isSectionResult !== true) return false;
-        const sectionBlock = block as SlackSectionBlock;
-        const includesShow1 = Boolean(sectionBlock.text.text.includes('Network Show 1'));
-        const includesShow2 = Boolean(sectionBlock.text.text.includes('Network Show 2'));
-        return Boolean(includesShow1 || includesShow2);
-      });
-      expect(showBlocks.length).toBeGreaterThan(0);
     });
   });
 
@@ -301,18 +301,18 @@ describe('SlackShowFormatterImpl', () => {
       // Arrange
       const networkGroups = {
         'Network A': [
-          ShowBuilder.createTestShow({ 
-            name: 'Show 1', 
+          ShowBuilder.createTestShow({
+            name: 'Show 1',
             network: 'Network A'
           }),
-          ShowBuilder.createTestShow({ 
-            name: 'Show 2', 
+          ShowBuilder.createTestShow({
+            name: 'Show 2',
             network: 'Network A'
           })
         ],
         'Network B': [
-          ShowBuilder.createTestShow({ 
-            name: 'Show 3', 
+          ShowBuilder.createTestShow({
+            name: 'Show 3',
             network: 'Network B'
           })
         ]
@@ -323,159 +323,79 @@ describe('SlackShowFormatterImpl', () => {
 
       // Assert
       expect(result.length).toBeGreaterThan(0);
-      
-      // Check for header block
+
+      // No "Shows by Network" header - date header is added by SlackOutputServiceImpl
       const headerBlocks = result.filter(block => isHeaderBlock(block)) as SlackHeaderBlock[];
-      expect(headerBlocks.length).toBeGreaterThan(0);
-      // Updated to match the new header text
-      expect(headerBlocks[0].text.text).toBe('Shows by Network');
-      
-      // Check that both networks are included in section blocks
-      const sectionBlocks = result.filter(block => isSectionBlock(block)) as SlackSectionBlock[];
-      expect(sectionBlocks.length).toBeGreaterThan(0);
-      
-      // Find show blocks
-      const showBlocks = sectionBlocks.filter((block): boolean => {
-        const includesShow1 = Boolean(block.text.text.includes('Show 1'));
-        const includesShow2 = Boolean(block.text.text.includes('Show 2'));
-        const includesShow3 = Boolean(block.text.text.includes('Show 3'));
-        return Boolean(includesShow1 || includesShow2 || includesShow3);
-      });
-      expect(showBlocks.length).toBeGreaterThan(0);
+      expect(headerBlocks.length).toBe(0);
+
+      // Check that networks are in context blocks
+      const contextBlocks = result.filter(block => isContextBlock(block)) as SlackContextBlock[];
+      expect(contextBlocks.length).toBeGreaterThan(0);
+
+      // Find context blocks with shows
+      const allContextText = contextBlocks
+        .map(block => {
+          const textElement = block.elements[0];
+          return 'text' in textElement ? textElement.text : '';
+        })
+        .join('\n');
+
+      expect(allContextText).toContain('Show 1');
+      expect(allContextText).toContain('Show 2');
+      expect(allContextText).toContain('Show 3');
     });
 
     it('should handle empty network groups', () => {
       // Act
       const result = formatter.formatNetworkGroups({});
 
-      // Assert
+      // Assert - should have footer context block only (no header)
       expect(result.length).toBeGreaterThan(0);
-      
-      // Check that it includes a header
+
+      // No header blocks - date header is added by SlackOutputServiceImpl
       const headerBlocks = result.filter(block => isHeaderBlock(block));
-      expect(headerBlocks.length).toBeGreaterThan(0);
+      expect(headerBlocks.length).toBe(0);
+
+      // Should have footer context block
+      const contextBlocks = result.filter(block => isContextBlock(block));
+      expect(contextBlocks.length).toBeGreaterThan(0);
     });
   });
 
-  describe('getTypeEmoji', () => {
-    // Since getTypeEmoji is private, we'll test it indirectly through formatTimedShow
-    // by creating shows with different types and checking the output
-    
-    it('should use different emojis for different show types', () => {
-      // Create shows with different types
-      const scriptedShow = ShowBuilder.createTestShow({
-        name: 'Scripted Show',
+  describe('compact format', () => {
+    // The compact format uses bullet points without type emojis
+
+    it('should format shows with bullet points', () => {
+      const show = ShowBuilder.createTestShow({
+        name: 'Test Show',
         type: 'scripted',
         airtime: '20:00'
       });
-      
-      const realityShow = ShowBuilder.createTestShow({
-        name: 'Reality Show',
-        type: 'reality',
-        airtime: '20:00'
-      });
-      
-      const talkShow = ShowBuilder.createTestShow({
-        name: 'Talk Show',
-        type: 'talk',
-        airtime: '20:00'
-      });
-      
-      const documentaryShow = ShowBuilder.createTestShow({
-        name: 'Documentary',
-        type: 'documentary',
-        airtime: '20:00'
-      });
-      
-      const varietyShow = ShowBuilder.createTestShow({
-        name: 'Variety Show',
-        type: 'variety',
-        airtime: '20:00'
-      });
-      
-      const gameShow = ShowBuilder.createTestShow({
-        name: 'Game Show',
-        type: 'game',
-        airtime: '20:00'
-      });
-      
-      const newsShow = ShowBuilder.createTestShow({
-        name: 'News Show',
-        type: 'news',
-        airtime: '20:00'
-      });
-      
-      const sportsShow = ShowBuilder.createTestShow({
-        name: 'Sports Show',
-        type: 'sports',
-        airtime: '20:00'
-      });
-      
-      const unknownTypeShow = ShowBuilder.createTestShow({
-        name: 'Unknown Type Show',
-        type: 'unknown',
-        airtime: '20:00'
-      });
-      
-      const noTypeShow = ShowBuilder.createTestShow({
-        name: 'No Type Show',
-        type: '',
-        airtime: '20:00'
-      });
-      
-      // Format each show and check for the appropriate emoji
-      const scriptedResult = formatter.formatTimedShow(scriptedShow);
-      expect(scriptedResult.text.text).toContain('📝');
-      
-      const realityResult = formatter.formatTimedShow(realityShow);
-      expect(realityResult.text.text).toContain('👁');
-      
-      const talkResult = formatter.formatTimedShow(talkShow);
-      expect(talkResult.text.text).toContain('🎙');
-      
-      const documentaryResult = formatter.formatTimedShow(documentaryShow);
-      expect(documentaryResult.text.text).toContain('🎬');
-      
-      const varietyResult = formatter.formatTimedShow(varietyShow);
-      expect(varietyResult.text.text).toContain('🎭');
-      
-      const gameResult = formatter.formatTimedShow(gameShow);
-      expect(gameResult.text.text).toContain('🎮');
-      
-      const newsResult = formatter.formatTimedShow(newsShow);
-      expect(newsResult.text.text).toContain('📰');
-      
-      const sportsResult = formatter.formatTimedShow(sportsShow);
-      expect(sportsResult.text.text).toContain('⚽');
-      
-      // Unknown and empty types should use the default emoji
-      const unknownResult = formatter.formatTimedShow(unknownTypeShow);
-      expect(unknownResult.text.text).toContain('📺');
-      
-      const noTypeResult = formatter.formatTimedShow(noTypeShow);
-      expect(noTypeResult.text.text).toContain('📺');
+
+      const result = formatter.formatTimedShow(show);
+      expect(result.text.text).toContain('•');
+      expect(result.text.text).toContain('Test Show');
     });
-    
-    it('should be case insensitive for show types', () => {
-      // Create shows with uppercase types
-      const upperCaseShow = ShowBuilder.createTestShow({
-        name: 'Upper Case Show',
-        type: 'SCRIPTED',
+
+    it('should include airtime for timed shows', () => {
+      const show = ShowBuilder.createTestShow({
+        name: 'Timed Show',
         airtime: '20:00'
       });
-      
-      const mixedCaseShow = ShowBuilder.createTestShow({
-        name: 'Mixed Case Show',
-        type: 'ReAlItY',
-        airtime: '20:00'
+
+      const result = formatter.formatTimedShow(show);
+      expect(result.text.text).toContain('8:00 PM');
+    });
+
+    it('should not include airtime for untimed shows', () => {
+      const show = ShowBuilder.createTestShow({
+        name: 'Untimed Show',
+        airtime: null
       });
-      
-      // Format and check for the appropriate emoji
-      const upperCaseResult = formatter.formatTimedShow(upperCaseShow);
-      expect(upperCaseResult.text.text).toContain('📝');
-      
-      const mixedCaseResult = formatter.formatTimedShow(mixedCaseShow);
-      expect(mixedCaseResult.text.text).toContain('👁');
+
+      const result = formatter.formatUntimedShow(show);
+      expect(result.text.text).not.toContain('N/A');
+      expect(result.text.text).not.toContain('PM');
     });
   });
 
