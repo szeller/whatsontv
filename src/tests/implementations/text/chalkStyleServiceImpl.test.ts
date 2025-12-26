@@ -2,7 +2,7 @@
  * Tests for ChalkStyleServiceImpl
  */
 import { describe, it, expect } from '@jest/globals';
-import { ChalkStyleServiceImpl } from '../../../implementations/console/chalkStyleServiceImpl.js';
+import { ChalkStyleServiceImpl } from '../../../implementations/text/chalkStyleServiceImpl.js';
 import chalk from 'chalk';
 
 describe('ChalkStyleServiceImpl', () => {

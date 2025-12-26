@@ -1,11 +1,11 @@
 /**
- * Tests for the console output implementation
+ * Tests for the process output implementation
  */
 import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
-import { createMockConsole } from '../../testutils/consoleTestHelpers.js';
-import { ConsoleOutputImpl } from '../../../implementations/console/consoleOutputImpl.js';
+import { createMockConsole } from '../testutils/consoleTestHelpers.js';
+import { ProcessOutputImpl } from '../../implementations/processOutputImpl.js';
 
-describe('ConsoleOutputImpl', () => {
+describe('ProcessOutputImpl', () => {
   const originalConsole = {
     log: console.log,
     error: console.error
@@ -25,7 +25,7 @@ describe('ConsoleOutputImpl', () => {
     it('should log messages correctly', () => {
       // Arrange
       const message = 'test message';
-      const consoleOutput = new ConsoleOutputImpl();
+      const consoleOutput = new ProcessOutputImpl();
 
       // Act
       consoleOutput.log(message);
@@ -36,7 +36,7 @@ describe('ConsoleOutputImpl', () => {
 
     it('should handle undefined log messages', () => {
       // Arrange
-      const consoleOutput = new ConsoleOutputImpl();
+      const consoleOutput = new ProcessOutputImpl();
 
       // Act
       consoleOutput.log(undefined);
@@ -49,7 +49,7 @@ describe('ConsoleOutputImpl', () => {
       // Arrange
       const message = 'error message';
       const args = ['arg1', 'arg2'];
-      const consoleOutput = new ConsoleOutputImpl();
+      const consoleOutput = new ProcessOutputImpl();
 
       // Act
       consoleOutput.error(message, ...args);
@@ -61,7 +61,7 @@ describe('ConsoleOutputImpl', () => {
     it('should log with level "log" correctly', () => {
       // Arrange
       const message = 'log level message';
-      const consoleOutput = new ConsoleOutputImpl();
+      const consoleOutput = new ProcessOutputImpl();
 
       // Act
       consoleOutput.logWithLevel('log', message);
@@ -74,7 +74,7 @@ describe('ConsoleOutputImpl', () => {
       // Arrange
       const message = 'error level message';
       const args = ['detail1', 'detail2'];
-      const consoleOutput = new ConsoleOutputImpl();
+      const consoleOutput = new ProcessOutputImpl();
 
       // Act
       consoleOutput.logWithLevel('error', message, ...args);

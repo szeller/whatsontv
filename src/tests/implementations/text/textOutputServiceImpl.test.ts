@@ -1,7 +1,7 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
-import { ConsoleOutputServiceImpl } 
-  from '../../../implementations/console/consoleOutputServiceImpl.js';
-import { ConsoleOutput } from '../../../interfaces/consoleOutput.js';
+import { TextOutputServiceImpl }
+  from '../../../implementations/text/textOutputServiceImpl.js';
+import { ProcessOutput } from '../../../interfaces/processOutput.js';
 import type { Show } from '../../../schemas/domain.js';
 import type { ConfigService } from '../../../interfaces/configService.js';
 import { ShowBuilder } from '../../fixtures/helpers/showFixtureBuilder.js';
@@ -10,9 +10,9 @@ import { createMockFormatter } from '../../mocks/factories/formatterFactory.js';
 import { TextShowFormatter } from '../../../interfaces/showFormatter.js';
 
 // Extend the service to expose protected methods for testing
-class TestConsoleOutputService extends ConsoleOutputServiceImpl {
+class TestTextOutputService extends TextOutputServiceImpl {
   // Expose output for testing
-  getOutput(): ConsoleOutput {
+  getOutput(): ProcessOutput {
     return this.output;
   }
   
@@ -42,9 +42,9 @@ class TestConsoleOutputService extends ConsoleOutputServiceImpl {
   }
 }
 
-describe('ConsoleOutputServiceImpl', () => {
-  let service: TestConsoleOutputService;
-  let mockOutput: ConsoleOutput;
+describe('TextOutputServiceImpl', () => {
+  let service: TestTextOutputService;
+  let mockOutput: ProcessOutput;
   let mockConfigService: ConfigService;
   let sampleShows: Show[];
   let mockFormatter: jest.Mocked<TextShowFormatter>;
@@ -63,7 +63,7 @@ describe('ConsoleOutputServiceImpl', () => {
       error: jest.fn(),
       warn: jest.fn(),
       logWithLevel: jest.fn()
-    } as unknown as ConsoleOutput;
+    } as unknown as ProcessOutput;
     
     // Create sample shows for testing
     sampleShows = [
@@ -112,7 +112,7 @@ describe('ConsoleOutputServiceImpl', () => {
     } as unknown as ConfigService;
     
     // Create service with mocks
-    service = new TestConsoleOutputService(
+    service = new TestTextOutputService(
       mockFormatter,
       mockOutput,
       mockConfigService
@@ -259,7 +259,7 @@ describe('ConsoleOutputServiceImpl', () => {
       // Arrange
       const callOrder: string[] = [];
       
-      class OrderTrackingService extends TestConsoleOutputService {
+      class OrderTrackingService extends TestTextOutputService {
         // Override the protected methods to track call order
         protected async renderHeader(date: Date): Promise<void> {
           callOrder.push('header');

@@ -1,14 +1,14 @@
 /**
  * Barrel file that re-exports all factory functions
  * This allows for simple imports:
- * import { createMockConsoleOutput, createMockHttpClient } from '../mocks/factories';
+ * import { createMockProcessOutput, createMockHttpClient } from '../mocks/factories';
  */
 
 // Re-export types
 export * from './types.js';
 
 // Factory exports
-export * from './consoleOutputFactory.js';
+export * from './processOutputFactory.js';
 export * from './httpClientFactory.js';
 export * from './configServiceFactory.js';
 export * from './formatterFactory.js';

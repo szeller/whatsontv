@@ -6,9 +6,9 @@
  */
 import { createCliAppWithContainer } from '../../../cli/consoleCli.js';
 import type { CliArgs } from '../../../types/cliArgs.js';
-import { container } from '../../../container.js';
+import { container } from '../../../textCliContainer.js';
 import type { TvShowService } from '../../../interfaces/tvShowService.js';
-import { createMockConsoleOutput } from '../../mocks/factories/consoleOutputFactory.js';
+import { createMockProcessOutput } from '../../mocks/factories/processOutputFactory.js';
 import { createMockConfigService } from '../../mocks/factories/configServiceFactory.js';
 import { getTodayDate } from '../../../utils/dateUtils.js';
 import { Fixtures } from '../../fixtures/index.js';
@@ -32,16 +32,16 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
   let exitCode = 0;
 
   // Create a mock console output instance using the factory
-  const mockConsoleOutput = createMockConsoleOutput();
+  const mockProcessOutput = createMockProcessOutput();
 
   // Store original methods to avoid unbound method issues
-  const originalLogFn = mockConsoleOutput.log.bind(mockConsoleOutput);
-  const originalErrorFn = mockConsoleOutput.error.bind(mockConsoleOutput);
-  const originalWarnFn = mockConsoleOutput.warn.bind(mockConsoleOutput);
-  const originalLogWithLevelFn = mockConsoleOutput.logWithLevel.bind(mockConsoleOutput);
+  const originalLogFn = mockProcessOutput.log.bind(mockProcessOutput);
+  const originalErrorFn = mockProcessOutput.error.bind(mockProcessOutput);
+  const originalWarnFn = mockProcessOutput.warn.bind(mockProcessOutput);
+  const originalLogWithLevelFn = mockProcessOutput.logWithLevel.bind(mockProcessOutput);
 
   // Override methods to capture output in our format
-  mockConsoleOutput.log = (message?: string): void => {
+  mockProcessOutput.log = (message?: string): void => {
     if (message !== undefined) {
       stdout.push(message);
     }
@@ -49,7 +49,7 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
     originalLogFn(message);
   };
 
-  mockConsoleOutput.error = (message?: string, ...args: unknown[]): void => {
+  mockProcessOutput.error = (message?: string, ...args: unknown[]): void => {
     if (message !== undefined) {
       stderr.push([message, ...args.map(a => String(a))].join(' '));
       exitCode = 1;
@@ -58,7 +58,7 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
     originalErrorFn(message, ...args);
   };
 
-  mockConsoleOutput.warn = (message?: string, ...args: unknown[]): void => {
+  mockProcessOutput.warn = (message?: string, ...args: unknown[]): void => {
     if (message !== undefined) {
       // Add warnings to stdout with a prefix to distinguish them
       const argsStr = args.map(a => String(a)).join(' ');
@@ -69,7 +69,7 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
     originalWarnFn(message, ...args);
   };
 
-  mockConsoleOutput.logWithLevel = (
+  mockProcessOutput.logWithLevel = (
     level: 'log' | 'error', 
     message?: string, 
     ...args: unknown[]
@@ -108,7 +108,7 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
   });
   
   // Register services in isolated test container
-  testContainer.register('ConsoleOutput', { useValue: mockConsoleOutput });
+  testContainer.register('ProcessOutput', { useValue: mockProcessOutput });
   testContainer.register('ConfigService', { useValue: mockConfigService });
   
   try {

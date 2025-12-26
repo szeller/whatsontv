@@ -25,14 +25,14 @@ import {
 } from '../../utils/fileUtils.js';
 
 @injectable()
-export class ConsoleConfigServiceImpl implements ConfigService {
+export class CliConfigServiceImpl implements ConfigService {
   protected showOptions!: ShowOptions;
   protected cliOptions!: CliOptions;
   protected appConfig!: AppConfig;
   protected cliArgs!: CliArgs;
-  
+
   /**
-   * Create a new ConsoleConfigServiceImpl
+   * Create a new CliConfigServiceImpl
    * @param skipInitialization Optional flag to skip initialization (for testing)
    */
   constructor(skipInitialization = false) {

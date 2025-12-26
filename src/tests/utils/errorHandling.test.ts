@@ -11,7 +11,7 @@ import {
   safeResolve,
   registerGlobalErrorHandler
 } from '../../utils/errorHandling.js';
-import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
+import type { ProcessOutput } from '../../interfaces/processOutput.js';
 import type { Show } from '../../schemas/domain.js';
 
 describe('errorHandling', () => {
@@ -40,18 +40,18 @@ describe('errorHandling', () => {
   });
 
   describe('handleMainError', () => {
-    let mockConsoleOutput: ConsoleOutput;
+    let mockProcessOutput: ProcessOutput;
     let originalExit: typeof process.exit;
     let exitCalled = false;
     let exitCode = 0;
 
     beforeEach(() => {
-      mockConsoleOutput = {
+      mockProcessOutput = {
         log: jest.fn(),
         error: jest.fn(),
         warn: jest.fn(),
         logWithLevel: jest.fn()
-      } as unknown as ConsoleOutput;
+      } as unknown as ProcessOutput;
       
       originalExit = process.exit;
       // Create separate functions to avoid unbound method lint errors
@@ -71,9 +71,9 @@ describe('errorHandling', () => {
 
     it('should log error message', () => {
       const error = new Error('Test error');
-      handleMainError(error, mockConsoleOutput);
+      handleMainError(error, mockProcessOutput);
       
-      expect(mockConsoleOutput.error).toHaveBeenCalledWith(
+      expect(mockProcessOutput.error).toHaveBeenCalledWith(
         'Unhandled error in main: Test error'
       );
       expect(exitCalled).toBe(true);
@@ -82,21 +82,21 @@ describe('errorHandling', () => {
 
     it('should log error stack when available', () => {
       const error = new Error('Test error');
-      handleMainError(error, mockConsoleOutput);
+      handleMainError(error, mockProcessOutput);
       
-      expect(mockConsoleOutput.error).toHaveBeenCalledTimes(2);
-      expect(mockConsoleOutput.error).toHaveBeenCalledWith(
+      expect(mockProcessOutput.error).toHaveBeenCalledTimes(2);
+      expect(mockProcessOutput.error).toHaveBeenCalledWith(
         expect.stringContaining('Stack: Error: Test error')
       );
     });
 
     it('should handle non-Error objects', () => {
-      handleMainError('String error', mockConsoleOutput);
+      handleMainError('String error', mockProcessOutput);
       
-      expect(mockConsoleOutput.error).toHaveBeenCalledWith(
+      expect(mockProcessOutput.error).toHaveBeenCalledWith(
         'Unhandled error in main: String error'
       );
-      expect(mockConsoleOutput.error).toHaveBeenCalledTimes(1);
+      expect(mockProcessOutput.error).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -204,7 +204,7 @@ describe('errorHandling', () => {
   });
 
   describe('registerGlobalErrorHandler', () => {
-    let mockConsoleOutput: ConsoleOutput;
+    let mockProcessOutput: ProcessOutput;
     let originalExit: typeof process.exit;
     let originalProcessOn: typeof process.on;
     let exitCalled = false;
@@ -213,12 +213,12 @@ describe('errorHandling', () => {
     let registeredCallback: ((error: Error) => void) | null = null;
 
     beforeEach(() => {
-      mockConsoleOutput = {
+      mockProcessOutput = {
         log: jest.fn(),
         error: jest.fn(),
         warn: jest.fn(),
         logWithLevel: jest.fn()
-      } as unknown as ConsoleOutput;
+      } as unknown as ProcessOutput;
       
       originalExit = process.exit;
       // Create separate functions to avoid unbound method lint errors
@@ -238,7 +238,7 @@ describe('errorHandling', () => {
       };
       process.on = jest.fn(processOnMock) as unknown as typeof process.on;
       
-      registerGlobalErrorHandler(mockConsoleOutput);
+      registerGlobalErrorHandler(mockProcessOutput);
     });
 
     afterEach(() => {
@@ -260,9 +260,9 @@ describe('errorHandling', () => {
         
         registeredCallback(error);
         
-        expect(mockConsoleOutput.error).toHaveBeenCalledWith('Uncaught Exception:');
-        expect(mockConsoleOutput.error).toHaveBeenCalledWith('Error: Test uncaught exception');
-        expect(mockConsoleOutput.error).toHaveBeenCalledWith('Error stack trace');
+        expect(mockProcessOutput.error).toHaveBeenCalledWith('Uncaught Exception:');
+        expect(mockProcessOutput.error).toHaveBeenCalledWith('Error: Test uncaught exception');
+        expect(mockProcessOutput.error).toHaveBeenCalledWith('Error stack trace');
         expect(exitCalled).toBe(true);
         expect(exitCode).toBe(1);
       }
@@ -275,9 +275,9 @@ describe('errorHandling', () => {
         
         registeredCallback(error);
         
-        expect(mockConsoleOutput.error).toHaveBeenCalledWith('Uncaught Exception:');
-        expect(mockConsoleOutput.error).toHaveBeenCalledWith('Error: Test error without stack');
-        expect(mockConsoleOutput.error).toHaveBeenCalledTimes(2);
+        expect(mockProcessOutput.error).toHaveBeenCalledWith('Uncaught Exception:');
+        expect(mockProcessOutput.error).toHaveBeenCalledWith('Error: Test error without stack');
+        expect(mockProcessOutput.error).toHaveBeenCalledTimes(2);
         expect(exitCalled).toBe(true);
         expect(exitCode).toBe(1);
       }
@@ -287,8 +287,8 @@ describe('errorHandling', () => {
       if (registeredCallback) {
         registeredCallback('String error' as unknown as Error);
         
-        expect(mockConsoleOutput.error).toHaveBeenCalledWith('Uncaught Exception:');
-        expect(mockConsoleOutput.error).toHaveBeenCalledWith('String error');
+        expect(mockProcessOutput.error).toHaveBeenCalledWith('Uncaught Exception:');
+        expect(mockProcessOutput.error).toHaveBeenCalledWith('String error');
         expect(exitCalled).toBe(true);
         expect(exitCode).toBe(1);
       }

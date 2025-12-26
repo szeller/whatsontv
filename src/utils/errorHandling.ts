@@ -1,24 +1,24 @@
 /**
  * Shared error handling utilities
  */
-import type { ConsoleOutput } from '../interfaces/consoleOutput.js';
+import type { ProcessOutput } from '../interfaces/processOutput.js';
 import type { Show } from '../schemas/domain.js';
 import { formatDate } from './dateUtils.js';
 
 /**
  * Register a global uncaught exception handler
- * @param consoleOutput Console output service for logging
+ * @param processOutput Process output service for logging
  */
-export function registerGlobalErrorHandler(consoleOutput: ConsoleOutput): void {
+export function registerGlobalErrorHandler(processOutput: ProcessOutput): void {
   process.on('uncaughtException', (error) => {
-    consoleOutput.error('Uncaught Exception:');
+    processOutput.error('Uncaught Exception:');
     if (error !== null && typeof error === 'object') {
-      consoleOutput.error(`${error.name}: ${error.message}`);
+      processOutput.error(`${error.name}: ${error.message}`);
       if (error.stack !== undefined && error.stack !== null && error.stack !== '') {
-        consoleOutput.error(error.stack);
+        processOutput.error(error.stack);
       }
     } else {
-      consoleOutput.error(String(error));
+      processOutput.error(String(error));
     }
     process.exit(1);
   });
@@ -38,17 +38,17 @@ export function formatError(error: unknown, prefix = ''): string {
 /**
  * Handle an unhandled error in the main function
  * @param error The error to handle
- * @param consoleOutput Console output service for logging
+ * @param processOutput Process output service for logging
  */
-export function handleMainError(error: unknown, consoleOutput: ConsoleOutput): void {
-  consoleOutput.error(`Unhandled error in main: ${formatError(error)}`);
+export function handleMainError(error: unknown, processOutput: ProcessOutput): void {
+  processOutput.error(`Unhandled error in main: ${formatError(error)}`);
   // Check for error stack and ensure it's a non-empty string
-  const hasStack = error instanceof Error && 
-                   typeof error.stack === 'string' && 
+  const hasStack = error instanceof Error &&
+                   typeof error.stack === 'string' &&
                    error.stack.length > 0;
-  
+
   if (hasStack && error instanceof Error) {
-    consoleOutput.error(`Stack: ${error.stack}`);
+    processOutput.error(`Stack: ${error.stack}`);
   }
   process.exit(1);
 }

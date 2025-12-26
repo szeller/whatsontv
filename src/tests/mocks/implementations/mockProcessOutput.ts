@@ -1,17 +1,17 @@
 import 'reflect-metadata';
 import { injectable } from 'tsyringe';
 
-import type { ConsoleOutput } from '../../../interfaces/consoleOutput.js';
+import type { ProcessOutput } from '../../../interfaces/processOutput.js';
 
 /**
- * Mock implementation of ConsoleOutput for testing
+ * Mock implementation of ProcessOutput for testing
  * Captures all output for verification in tests
  */
 @injectable()
-export class MockConsoleOutput implements ConsoleOutput {
+export class MockProcessOutput implements ProcessOutput {
   private output: string[] = [];
   private calls: Array<{ method: string; args: unknown[] }> = [];
-  
+
   /**
    * Log a message to the captured output
    * @param message Message to log
@@ -24,7 +24,7 @@ export class MockConsoleOutput implements ConsoleOutput {
   }
 
   /**
-   * Log an error message to the console
+   * Log an error message to stderr
    * @param message Error message to log
    * @param args Additional arguments
    */
@@ -33,7 +33,7 @@ export class MockConsoleOutput implements ConsoleOutput {
       // Simply store the message as-is, without any formatting
       // This allows tests to check for exact message content
       this.output.push(message);
-      
+
       // If there are additional args, store them as separate entries
       if (args.length > 0) {
         args.forEach(arg => {
@@ -42,7 +42,7 @@ export class MockConsoleOutput implements ConsoleOutput {
           }
         });
       }
-      
+
       this.calls.push({ method: 'error', args: [message, ...args] });
     }
   }
@@ -95,13 +95,13 @@ export class MockConsoleOutput implements ConsoleOutput {
     this.output = [];
     this.calls = [];
   }
-  
+
   /**
    * Debug method to print the current output to the console
    * Only for use in test environments
    * @param prefix Optional prefix to add to each line
    */
-  debugOutput(prefix = 'MockConsoleOutput'): void {
+  debugOutput(prefix = 'MockProcessOutput'): void {
     // Using error since it's allowed by the linting rules
     console.error(`--- ${prefix} captured output ---`);
     this.output.forEach((line, index) => {
@@ -109,7 +109,7 @@ export class MockConsoleOutput implements ConsoleOutput {
     });
     console.error(`--- End of ${prefix} captured output ---`);
   }
-  
+
   /**
    * Check if a method was called with specific arguments
    * @param method Method name to check
@@ -121,27 +121,27 @@ export class MockConsoleOutput implements ConsoleOutput {
       if (call.method !== method) {
         return false;
       }
-      
+
       // For error messages, we want to check if the actual message contains the expected message
       // This is because error messages might have additional information or formatting
       if (
-        args.length === 1 && 
-        typeof args[0] === 'string' && 
-        call.args.length > 0 && 
+        args.length === 1 &&
+        typeof args[0] === 'string' &&
+        call.args.length > 0 &&
         typeof call.args[0] === 'string'
       ) {
         return call.args[0].includes(args[0]);
       }
-      
+
       // For exact matches
       if (args.length === call.args.length) {
         return args.every((arg, index) => arg === call.args[index]);
       }
-      
+
       return false;
     });
   }
-  
+
   /**
    * Get all calls to a specific method
    * @param method Method name to get calls for
@@ -152,7 +152,7 @@ export class MockConsoleOutput implements ConsoleOutput {
       .filter(call => call.method === method)
       .map(call => call.args);
   }
-  
+
   /**
    * Check if arguments match, handling partial matches
    * @param actual Actual arguments
@@ -163,15 +163,15 @@ export class MockConsoleOutput implements ConsoleOutput {
     if (expected.length === 0) {
       return true;
     }
-    
+
     if (expected.length > actual.length) {
       return false;
     }
-    
+
     for (let i = 0; i < expected.length; i++) {
       const expectedArg = expected[i];
       const actualArg = actual[i];
-      
+
       if (typeof expectedArg === 'string' && typeof actualArg === 'string') {
         if (!actualArg.includes(expectedArg)) {
           return false;
@@ -180,7 +180,7 @@ export class MockConsoleOutput implements ConsoleOutput {
         return false;
       }
     }
-    
+
     return true;
   }
 }

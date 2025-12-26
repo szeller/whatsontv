@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import { container } from 'tsyringe';
-import { TextShowFormatterImpl } from '../../../implementations/console/textShowFormatterImpl.js';
+import { TextShowFormatterImpl } from '../../../implementations/text/textShowFormatterImpl.js';
 import type { StyleService } from '../../../interfaces/styleService.js';
 import type { Show } from '../../../schemas/domain.js';
 import type { TvShowService } from '../../../interfaces/tvShowService.js';

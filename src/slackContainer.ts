@@ -7,7 +7,7 @@ import { WebClient } from '@slack/web-api';
 
 // Interface imports
 import type { ConfigService } from './interfaces/configService.js';
-import type { ConsoleOutput } from './interfaces/consoleOutput.js';
+import type { ProcessOutput } from './interfaces/processOutput.js';
 import type { HttpClient } from './interfaces/httpClient.js';
 import type { LoggerService } from './interfaces/loggerService.js';
 import type { OutputService } from './interfaces/outputService.js';
@@ -17,8 +17,8 @@ import type { TvShowService } from './interfaces/tvShowService.js';
 import type { SlackConfig } from './types/configTypes.js';
 
 // Implementation imports
-import { ConsoleConfigServiceImpl } from './implementations/console/consoleConfigServiceImpl.js';
-import { ConsoleOutputImpl } from './implementations/console/consoleOutputImpl.js';
+import { CliConfigServiceImpl } from './implementations/text/cliConfigServiceImpl.js';
+import { ProcessOutputImpl } from './implementations/processOutputImpl.js';
 import { FetchHttpClientImpl } from './implementations/fetchHttpClientImpl.js';
 import { PinoLoggerServiceImpl } from './implementations/pino/pinoLoggerServiceImpl.js';
 import { SlackClientImpl } from './implementations/slack/slackClientImpl.js';
@@ -32,7 +32,7 @@ import { TvMazeServiceImpl } from './implementations/tvMazeServiceImpl.js';
 export function initializeSlackContainer(): void {
   // Register core services
   container.registerSingleton<TvShowService>('TvShowService', TvMazeServiceImpl);
-  container.registerSingleton<ConsoleOutput>('ConsoleOutput', ConsoleOutputImpl);
+  container.registerSingleton<ProcessOutput>('ProcessOutput', ProcessOutputImpl);
   container.registerSingleton<LoggerService>('LoggerService', PinoLoggerServiceImpl);
   
   // Register Slack-specific services
@@ -40,7 +40,7 @@ export function initializeSlackContainer(): void {
   
   // Register ConfigService with factory to handle the optional parameter
   container.register<ConfigService>('ConfigService', {
-    useFactory: () => new ConsoleConfigServiceImpl(false)
+    useFactory: () => new CliConfigServiceImpl(false)
   });
   
   // Register HttpClient

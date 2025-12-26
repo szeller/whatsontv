@@ -6,7 +6,7 @@
  */
 import { describe, expect, test, beforeEach, afterEach, jest } from '@jest/globals';
 import { container } from '../../../slackContainer.js';
-import { createMockConsoleOutput } from '../../mocks/factories/consoleOutputFactory.js';
+import { createMockProcessOutput } from '../../mocks/factories/processOutputFactory.js';
 import { createMockConfigService } from '../../mocks/factories/configServiceFactory.js';
 import { createMockSlackClient } from '../../mocks/factories/slackClientFactory.js';
 import { createSlackAppWithContainer } from '../../../cli/slackCli.js';
@@ -43,7 +43,7 @@ describe('Lambda Handler Logic - Isolated Tests', () => {
       const testContainer = container.createChildContainer();
 
       // Create mock services to prevent any real API calls
-      const mockConsoleOutput = createMockConsoleOutput();
+      const mockProcessOutput = createMockProcessOutput();
       const mockConfigService = createMockConfigService({
         showOptions: {
           date: getTodayDate(),
@@ -63,7 +63,7 @@ describe('Lambda Handler Logic - Isolated Tests', () => {
       const mockSlackClient = createMockSlackClient();
 
       // Register all services in test container to ensure complete isolation
-      testContainer.register('ConsoleOutput', { useValue: mockConsoleOutput });
+      testContainer.register('ProcessOutput', { useValue: mockProcessOutput });
       testContainer.register('ConfigService', { useValue: mockConfigService });
       testContainer.register('SlackClient', { useValue: mockSlackClient });
 
@@ -80,7 +80,7 @@ describe('Lambda Handler Logic - Isolated Tests', () => {
       const testContainer = container.createChildContainer();
 
       // Create mock services
-      const mockConsoleOutput = createMockConsoleOutput();
+      const mockProcessOutput = createMockProcessOutput();
       const mockConfigService = createMockConfigService({
         showOptions: {
           date: getTodayDate(),
@@ -100,7 +100,7 @@ describe('Lambda Handler Logic - Isolated Tests', () => {
       const mockSlackClient = createMockSlackClient();
 
       // Register services to prevent real API calls
-      testContainer.register('ConsoleOutput', { useValue: mockConsoleOutput });
+      testContainer.register('ProcessOutput', { useValue: mockProcessOutput });
       testContainer.register('ConfigService', { useValue: mockConfigService });
       testContainer.register('SlackClient', { useValue: mockSlackClient });
 
@@ -214,7 +214,7 @@ describe('Lambda Handler Logic - Isolated Tests', () => {
       const testContainer = container.createChildContainer();
 
       // Create and register mock services
-      const mockConsoleOutput = createMockConsoleOutput();
+      const mockProcessOutput = createMockProcessOutput();
       const mockConfigService = createMockConfigService({
         showOptions: {
           date: getTodayDate(),
@@ -233,21 +233,21 @@ describe('Lambda Handler Logic - Isolated Tests', () => {
       });
       const mockSlackClient = createMockSlackClient();
 
-      testContainer.register('ConsoleOutput', { useValue: mockConsoleOutput });
+      testContainer.register('ProcessOutput', { useValue: mockProcessOutput });
       testContainer.register('ConfigService', { useValue: mockConfigService });
       testContainer.register('SlackClient', { useValue: mockSlackClient });
 
       // Verify all services can be resolved correctly
-      const resolvedConsoleOutput = testContainer.resolve('ConsoleOutput');
+      const resolvedConsoleOutput = testContainer.resolve('ProcessOutput');
       const resolvedConfigService = testContainer.resolve('ConfigService');
       const resolvedSlackClient = testContainer.resolve('SlackClient');
 
-      expect(resolvedConsoleOutput).toBe(mockConsoleOutput);
+      expect(resolvedConsoleOutput).toBe(mockProcessOutput);
       expect(resolvedConfigService).toBe(mockConfigService);
       expect(resolvedSlackClient).toBe(mockSlackClient);
 
       // Verify services have expected methods (ensuring they're mock objects)
-      expect(typeof mockConsoleOutput.log).toBe('function');
+      expect(typeof mockProcessOutput.log).toBe('function');
       expect(typeof mockSlackClient.sendMessage).toBe('function');
     });
   });

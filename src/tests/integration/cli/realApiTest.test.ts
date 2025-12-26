@@ -5,7 +5,7 @@
  * correctly process actual API responses through the CLI interface.
  * It keeps console output mocked for stability and test isolation.
  */
-import { container } from '../../../container.js';
+import { container } from '../../../textCliContainer.js';
 import { FetchHttpClientImpl } from '../../../implementations/fetchHttpClientImpl.js';
 import { TvMazeServiceImpl } from '../../../implementations/tvMazeServiceImpl.js';
 import type { HttpClient } from '../../../interfaces/httpClient.js';

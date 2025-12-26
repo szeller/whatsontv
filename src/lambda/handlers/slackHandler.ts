@@ -7,7 +7,7 @@ import 'reflect-metadata';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
 import { createSlackApp } from '../../cli/slackCli.js';
 import { container, initializeSlackContainer } from '../../slackContainer.js';
-import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
+import type { ProcessOutput } from '../../interfaces/processOutput.js';
 import type { LoggerService } from '../../interfaces/loggerService.js';
 import { registerGlobalErrorHandler, formatError } from '../../utils/errorHandling.js';
 
@@ -16,11 +16,11 @@ import { registerGlobalErrorHandler, formatError } from '../../utils/errorHandli
 initializeSlackContainer();
 
 // Get services for logging and error handling
-const consoleOutput = container.resolve<ConsoleOutput>('ConsoleOutput');
+const processOutput = container.resolve<ProcessOutput>('ProcessOutput');
 const logger = container.resolve<LoggerService>('LoggerService');
 
 // Register global error handler
-registerGlobalErrorHandler(consoleOutput);
+registerGlobalErrorHandler(processOutput);
 
 /**
  * Lambda handler for scheduled execution
@@ -92,8 +92,8 @@ export const handler = async (
       stack: error instanceof Error ? error.stack : undefined
     }, 'Lambda execution failed');
     
-    // Also log to console for backwards compatibility
-    consoleOutput.error(`Error processing TV shows: ${errorMessage}`);
+    // Also log to stdout for backwards compatibility
+    processOutput.error(`Error processing TV shows: ${errorMessage}`);
     
     // Return error response
     return {
