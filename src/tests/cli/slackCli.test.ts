@@ -43,13 +43,13 @@ describe('Slack CLI Tests', () => {
       // Create a test container with a mock that throws specific error
       const testContainer = container.createChildContainer();
       
-      const mockConsoleOutput = { error: jest.fn() };
-      testContainer.register('ConsoleOutput', { useValue: mockConsoleOutput });
-      
+      const mockProcessOutput = { error: jest.fn() };
+      testContainer.register('ProcessOutput', { useValue: mockProcessOutput });
+
       // Mock resolve to throw error mentioning SlackOutputService
       testContainer.resolve = jest.fn().mockImplementation((serviceName: string) => {
-        if (serviceName === 'ConsoleOutput') {
-          return mockConsoleOutput;
+        if (serviceName === 'ProcessOutput') {
+          return mockProcessOutput;
         }
         throw new Error('SlackOutputService is not registered');
       });
@@ -59,7 +59,7 @@ describe('Slack CLI Tests', () => {
       }).toThrow('SlackOutputService is not registered');
 
       // Verify specific error handling for SlackOutputService (lines 62-64)
-      expect(mockConsoleOutput.error).toHaveBeenCalledWith(
+      expect(mockProcessOutput.error).toHaveBeenCalledWith(
         expect.stringContaining('SlackOutputService')
       );
     });
@@ -67,14 +67,14 @@ describe('Slack CLI Tests', () => {
     test('should handle missing SlackFormatter registration with specific error message', () => {
       // Create a test container with a mock that throws specific error
       const testContainer = container.createChildContainer();
-      
-      const mockConsoleOutput = { error: jest.fn() };
-      testContainer.register('ConsoleOutput', { useValue: mockConsoleOutput });
-      
+
+      const mockProcessOutput = { error: jest.fn() };
+      testContainer.register('ProcessOutput', { useValue: mockProcessOutput });
+
       // Mock resolve to throw error mentioning SlackFormatter
       testContainer.resolve = jest.fn().mockImplementation((serviceName: string) => {
-        if (serviceName === 'ConsoleOutput') {
-          return mockConsoleOutput;
+        if (serviceName === 'ProcessOutput') {
+          return mockProcessOutput;
         }
         throw new Error('SlackFormatter is not registered');
       });
@@ -84,7 +84,7 @@ describe('Slack CLI Tests', () => {
       }).toThrow('SlackFormatter is not registered');
 
       // Verify specific error handling for SlackFormatter (lines 59-61)
-      expect(mockConsoleOutput.error).toHaveBeenCalledWith(
+      expect(mockProcessOutput.error).toHaveBeenCalledWith(
         expect.stringContaining('SlackFormatter')
       );
     });
@@ -92,14 +92,14 @@ describe('Slack CLI Tests', () => {
     test('should handle generic service resolution errors', () => {
       // Create a test container with a mock that throws generic error
       const testContainer = container.createChildContainer();
-      
-      const mockConsoleOutput = { error: jest.fn() };
-      testContainer.register('ConsoleOutput', { useValue: mockConsoleOutput });
-      
+
+      const mockProcessOutput = { error: jest.fn() };
+      testContainer.register('ProcessOutput', { useValue: mockProcessOutput });
+
       // Mock resolve to throw generic error
       testContainer.resolve = jest.fn().mockImplementation((serviceName: string) => {
-        if (serviceName === 'ConsoleOutput') {
-          return mockConsoleOutput;
+        if (serviceName === 'ProcessOutput') {
+          return mockProcessOutput;
         }
         throw new Error('Generic service resolution error');
       });
@@ -109,7 +109,7 @@ describe('Slack CLI Tests', () => {
       }).toThrow('Generic service resolution error');
 
       // Verify general error handling (lines 55-56)
-      expect(mockConsoleOutput.error).toHaveBeenCalledWith(
+      expect(mockProcessOutput.error).toHaveBeenCalledWith(
         expect.stringContaining('Error resolving services')
       );
     });

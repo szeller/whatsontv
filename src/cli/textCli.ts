@@ -1,19 +1,19 @@
 #!/usr/bin/env tsx
 
 import 'reflect-metadata';
-import { container } from '../container.js';
-import type { ConsoleOutput } from '../interfaces/consoleOutput.js';
+import { container } from '../textCliContainer.js';
+import type { ProcessOutput } from '../interfaces/processOutput.js';
 import type { OutputService } from '../interfaces/outputService.js';
 import type { TvShowService } from '../interfaces/tvShowService.js';
 import type { ConfigService } from '../interfaces/configService.js';
 import { BaseCliApplication, runMain } from './cliBase.js';
 import { registerGlobalErrorHandler } from '../utils/errorHandling.js';
 
-// Get ConsoleOutput service for global error handling
-const consoleOutput = container.resolve<ConsoleOutput>('ConsoleOutput');
+// Get ProcessOutput service for global error handling
+const processOutput = container.resolve<ProcessOutput>('ProcessOutput');
 
 // Register global error handler
-registerGlobalErrorHandler(consoleOutput);
+registerGlobalErrorHandler(processOutput);
 
 /**
  * Main function that resolves services from the container and runs the CLI
@@ -30,16 +30,16 @@ export function createCliAppWithContainer(containerInstance: typeof container): 
   const tvShowService = containerInstance.resolve<TvShowService>('TvShowService');
   const configService = containerInstance.resolve<ConfigService>('ConfigService');
   const outputService = containerInstance.resolve<OutputService>('OutputService');
-  const consoleOutputFromContainer = containerInstance.resolve<ConsoleOutput>('ConsoleOutput');
-  
+  const processOutputFromContainer = containerInstance.resolve<ProcessOutput>('ProcessOutput');
+
   // Create the CLI application
   return new BaseCliApplication(
     tvShowService,
     configService,
-    consoleOutputFromContainer,
+    processOutputFromContainer,
     outputService
   );
 }
 
 // Create the CLI app and run it if this file is executed directly
-runMain(() => createCliApp(), consoleOutput);
+runMain(() => createCliApp(), processOutput);

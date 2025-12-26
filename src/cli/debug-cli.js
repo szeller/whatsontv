@@ -34,7 +34,7 @@ process.on('uncaughtException', (error) => {
 });
 
 // Import and run the CLI
-import('./consoleCli.ts')
+import('./textCli.ts')
   .then(({ createCliApp }) => {
     console.log('CLI module loaded successfully, running main function...');
     const app = createCliApp();

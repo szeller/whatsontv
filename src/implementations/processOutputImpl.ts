@@ -1,16 +1,17 @@
 import 'reflect-metadata';
 import { injectable } from 'tsyringe';
 
-import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
+import type { ProcessOutput } from '../interfaces/processOutput.js';
 
 /**
- * Implementation of the ConsoleOutput interface
- * Provides a wrapper around native console functions
+ * Implementation of the ProcessOutput interface
+ * Provides a wrapper around native console functions for stdout/stderr
+ * Used by both CLI and Lambda for process I/O
  */
 @injectable()
-export class ConsoleOutputImpl implements ConsoleOutput {
+export class ProcessOutputImpl implements ProcessOutput {
   /**
-   * Log a message to the console
+   * Log a message to stdout
    * @param message Message to log
    */
   /* eslint-disable no-console */
@@ -19,7 +20,7 @@ export class ConsoleOutputImpl implements ConsoleOutput {
   }
 
   /**
-   * Log an error message to the console
+   * Log an error message to stderr
    * @param message Error message to log
    * @param args Additional arguments
    */
@@ -28,7 +29,7 @@ export class ConsoleOutputImpl implements ConsoleOutput {
   }
 
   /**
-   * Log a warning message to the console
+   * Log a warning message to stderr
    * @param message Warning message to log
    * @param args Additional arguments
    */

@@ -1,16 +1,16 @@
 /**
- * Console test helpers
- * Provides utilities for testing console output
+ * Process output test helpers
+ * Provides utilities for testing process output
  */
 
-import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
+import type { ProcessOutput } from '../../interfaces/processOutput.js';
 
 /**
- * Creates a mock console for testing.
+ * Creates a mock process output for testing.
  * Captures all output for verification in tests.
- * @returns Mock console implementation with getOutput method
+ * @returns Mock process output implementation with getOutput method
  */
-export function createMockConsole(): ConsoleOutput & { getOutput: () => string[] } {
+export function createMockConsole(): ProcessOutput & { getOutput: () => string[] } {
   const output: string[] = [];
   
   return {

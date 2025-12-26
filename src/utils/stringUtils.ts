@@ -34,6 +34,15 @@ export function isEmptyArray<T>(arr: T[] | null | undefined): boolean {
 }
 
 /**
+ * Check if an array has elements (type guard that narrows to T[])
+ * @param arr - The array to check
+ * @returns True if the array has one or more elements
+ */
+export function hasElements<T>(arr: T[] | null | undefined): arr is T[] {
+  return arr !== null && arr !== undefined && arr.length > 0;
+}
+
+/**
  * Get a string value or a default if empty/null/undefined
  * @param value - The string to check
  * @param defaultValue - The default value to use

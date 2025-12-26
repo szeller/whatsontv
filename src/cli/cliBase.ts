@@ -1,7 +1,7 @@
 /**
  * Base CLI application functionality
  */
-import type { ConsoleOutput } from '../interfaces/consoleOutput.js';
+import type { ProcessOutput } from '../interfaces/processOutput.js';
 import type { TvShowService } from '../interfaces/tvShowService.js';
 import type { ConfigService } from '../interfaces/configService.js';
 import type { Show } from '../schemas/domain.js';
@@ -16,12 +16,12 @@ export class BaseCliApplication {
    * Create a new BaseCliApplication
    * @param tvShowService Service for fetching TV shows
    * @param configService Service for configuration
-   * @param consoleOutput Service for console output
+   * @param processOutput Service for process output
    */
   constructor(
     protected readonly tvShowService: TvShowService,
     protected readonly configService: ConfigService,
-    protected readonly consoleOutput: ConsoleOutput,
+    protected readonly processOutput: ProcessOutput,
     protected readonly outputService: OutputService
   ) {}
 
@@ -40,10 +40,10 @@ export class BaseCliApplication {
         // Process the shows
         await this.processShows(shows);
       } catch (err) {
-        this.consoleOutput.error(`Error fetching TV shows: ${formatError(err)}`);
+        this.processOutput.error(`Error fetching TV shows: ${formatError(err)}`);
       }
     } catch (err) {
-      this.consoleOutput.error(`Unexpected error: ${formatError(err)}`);
+      this.processOutput.error(`Unexpected error: ${formatError(err)}`);
     }
   }
   
@@ -60,10 +60,10 @@ export class BaseCliApplication {
 /**
  * Run the main function if this file is executed directly
  * @param appFactory Factory function to create a CLI application instance
- * @param consoleOutput Console output service for logging
+ * @param processOutput Process output service for logging
  */
-export function runMain(appFactory: () => BaseCliApplication, consoleOutput: ConsoleOutput): void {
+export function runMain(appFactory: () => BaseCliApplication, processOutput: ProcessOutput): void {
   if (isDirectExecution()) {
-    appFactory().run().catch((error) => handleMainError(error, consoleOutput));
+    appFactory().run().catch((error) => handleMainError(error, processOutput));
   }
 }

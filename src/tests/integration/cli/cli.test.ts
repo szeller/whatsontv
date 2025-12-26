@@ -4,7 +4,7 @@
  * These tests verify that the CLI works correctly with different arguments
  * and produces the expected output.
  */
-import { container } from '../../../container.js';
+import { container } from '../../../textCliContainer.js';
 import { runCli } from './cliTestRunner.js';
 import { createMockHttpClient } from '../../mocks/factories/httpClientFactory.js';
 import type { HttpClient } from '../../../interfaces/httpClient.js';

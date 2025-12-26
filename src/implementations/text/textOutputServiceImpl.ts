@@ -4,30 +4,30 @@ import { inject, injectable } from 'tsyringe';
 import type { ConfigService } from '../../interfaces/configService.js';
 import type { TextShowFormatter } from '../../interfaces/showFormatter.js';
 import type { Show } from '../../schemas/domain.js';
-import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
+import type { ProcessOutput } from '../../interfaces/processOutput.js';
 import { BaseOutputServiceImpl } from '../baseOutputServiceImpl.js';
 import { createSeparator } from '../../utils/stringUtils.js';
 import { formatDate } from '../../utils/dateUtils.js';
 import { formatError, safeResolve } from '../../utils/errorHandling.js';
 
 /**
- * Console output service for displaying TV show information
+ * Text output service for displaying TV show information
  * Extends the BaseOutputServiceImpl abstract class
  */
 @injectable()
-export class ConsoleOutputServiceImpl extends BaseOutputServiceImpl<string> {
-  protected readonly output: ConsoleOutput;
+export class TextOutputServiceImpl extends BaseOutputServiceImpl<string> {
+  protected readonly output: ProcessOutput;
   private readonly version = '1.0.0'; // Could be imported from package.json
-  
+
   /**
-   * Create a new ConsoleOutputService
+   * Create a new TextOutputService
    * @param formatter Formatter for TV show output
-   * @param output Console output utility
+   * @param output Process output utility
    * @param configService Configuration service
    */
   constructor(
     @inject('TextShowFormatter') formatter: TextShowFormatter,
-    @inject('ConsoleOutput') output: ConsoleOutput,
+    @inject('ProcessOutput') output: ProcessOutput,
     @inject('ConfigService') configService: ConfigService
   ) {
     super(formatter, configService);

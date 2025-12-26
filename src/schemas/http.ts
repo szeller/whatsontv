@@ -40,10 +40,3 @@ export type RequestOptionsSchema = z.infer<typeof requestOptionsSchema>;
  * Note: Use HttpResponse<T> from httpClient.ts for application code
  */
 export type HttpResponseSchema = z.infer<typeof httpResponseSchema>;
-
-// Deprecated type aliases for backwards compatibility
-// TODO: Remove these in a future version
-/** @deprecated Use RequestOptionsSchema instead, or RequestOptions from httpClient.ts */
-export type RequestOptions = RequestOptionsSchema;
-/** @deprecated Use HttpResponseSchema instead, or HttpResponse<T> from httpClient.ts */
-export type HttpResponse = HttpResponseSchema;

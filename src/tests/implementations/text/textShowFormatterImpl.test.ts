@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import { container } from 'tsyringe';
-import { TextShowFormatterImpl } from '../../../implementations/console/textShowFormatterImpl.js';
+import { TextShowFormatterImpl } from '../../../implementations/text/textShowFormatterImpl.js';
 import type { StyleService } from '../../../interfaces/styleService.js';
 import type { Show } from '../../../schemas/domain.js';
 import type { TvShowService } from '../../../interfaces/tvShowService.js';
@@ -109,12 +109,12 @@ describe('TextShowFormatterImpl', () => {
         ShowFixtures.createTestShow({ season: 1, number: 10 }),
         ShowFixtures.createTestShow({ season: 2, number: 1 })
       ];
-      
+
       const result = formatter.formatMultipleEpisodes(episodes);
-      
-      // Should format as range using full episode codes: S01E10-S02E01
+
+      // Should format as separate episodes since they're in different seasons
       expect(result).toHaveLength(1);
-      expect(result[0]).toContain('S01E10-S02E01');
+      expect(result[0]).toContain('S01E10, S02E01');
     });
     
     it('should handle episodes with missing season/number correctly', () => {

@@ -5,6 +5,7 @@ import {
   isEmptyString,
   hasContent,
   isEmptyArray,
+  hasElements,
   getStringOrDefault,
   getStringValue,
   padString,
@@ -99,6 +100,37 @@ describe('stringUtils', () => {
     it('should work with different types', () => {
       expect(isEmptyArray([{ key: 'value' }])).toBe(false);
       expect(isEmptyArray([null])).toBe(false); // Array with null element is not empty
+    });
+  });
+
+  describe('hasElements', () => {
+    it('should return false for null', () => {
+      expect(hasElements(null)).toBe(false);
+    });
+
+    it('should return false for undefined', () => {
+      expect(hasElements(undefined)).toBe(false);
+    });
+
+    it('should return false for empty array', () => {
+      expect(hasElements([])).toBe(false);
+    });
+
+    it('should return true for array with elements', () => {
+      expect(hasElements([1, 2, 3])).toBe(true);
+    });
+
+    it('should return true for array with single element', () => {
+      expect(hasElements(['test'])).toBe(true);
+    });
+
+    it('should narrow type correctly', () => {
+      const arr: string[] | null = ['test'];
+      if (hasElements(arr)) {
+        // TypeScript should know arr is string[] here
+        expect(arr.length).toBe(1);
+        expect(arr[0].toUpperCase()).toBe('TEST');
+      }
     });
   });
 

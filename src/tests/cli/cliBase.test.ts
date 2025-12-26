@@ -10,7 +10,7 @@ import {
 import type { OutputService } from '../../interfaces/outputService.js';
 import type { TvShowService } from '../../interfaces/tvShowService.js';
 import type { ConfigService } from '../../interfaces/configService.js';
-import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
+import type { ProcessOutput } from '../../interfaces/processOutput.js';
 import type { Show } from '../../schemas/domain.js';
 import type { CliOptions, AppConfig } from '../../types/configTypes.js';
 import type { ShowOptions } from '../../types/tvShowOptions.js';
@@ -77,7 +77,7 @@ describe('CLI', () => {
     getHelpText: jest.fn<() => string>().mockReturnValue('Help Text')
   };
 
-  const mockConsoleOutput = {
+  const mockProcessOutput = {
     log: jest.fn<(message: string) => void>(),
     error: jest.fn<(message: string) => void>()
   };
@@ -93,7 +93,7 @@ describe('CLI', () => {
     cliApp = new BaseCliApplication(
       mockTvShowService as unknown as TvShowService,
       mockConfigService as unknown as ConfigService,
-      mockConsoleOutput as unknown as ConsoleOutput,
+      mockProcessOutput as unknown as ProcessOutput,
       mockOutputService as unknown as OutputService
     );
   });
@@ -160,7 +160,7 @@ describe('CLI', () => {
     await cliApp.run();
 
     // Assert
-    expect(mockConsoleOutput.error).toHaveBeenCalledWith('Error fetching TV shows: Test error');
+    expect(mockProcessOutput.error).toHaveBeenCalledWith('Error fetching TV shows: Test error');
   });
 
   it('should handle unexpected errors', async () => {
@@ -174,6 +174,6 @@ describe('CLI', () => {
     await cliApp.run();
 
     // Assert
-    expect(mockConsoleOutput.error).toHaveBeenCalledWith('Unexpected error: Unexpected test error');
+    expect(mockProcessOutput.error).toHaveBeenCalledWith('Unexpected error: Unexpected test error');
   });
 });

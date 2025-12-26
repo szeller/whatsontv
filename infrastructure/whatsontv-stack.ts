@@ -70,13 +70,8 @@ export class WhatsOnTvStack extends cdk.Stack {
         sourceMap: true,
         target: 'node22',
         format: lambdaNodejs.OutputFormat.ESM,
-        banner:
-          'import { createRequire as _createRequire } from "module";' +
-          'import { fileURLToPath as _fileURLToPath } from "url";' +
-          'import { dirname as _dirname } from "path";' +
-          'const require = _createRequire(import.meta.url);' +
-          'const __filename = _fileURLToPath(import.meta.url);' +
-          'const __dirname = _dirname(__filename);',
+        // No banner needed - Lambda uses LambdaConfigServiceImpl which doesn't depend on yargs
+        // (yargs was the only dependency that required CJS shim with require())
         commandHooks: {
           beforeBundling(): string[] {
             return [];

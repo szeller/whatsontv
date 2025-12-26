@@ -10,12 +10,12 @@ import { createMockFormatter } from '../mocks/factories/formatterFactory.js';
 import { createMockTvShowService } from '../mocks/factories/tvShowServiceFactory.js';
 import { createMockStyleService } from '../mocks/factories/styleServiceFactory.js';
 import { createMockOutputService } from '../mocks/factories/outputServiceFactory.js';
-import { createMockConsoleOutput } from '../mocks/factories/consoleOutputFactory.js';
+import { createMockProcessOutput } from '../mocks/factories/processOutputFactory.js';
 
 // Type imports
 import type { HttpClient } from '../../interfaces/httpClient.js';
 import type { ConfigService } from '../../interfaces/configService.js';
-import type { ConsoleOutput } from '../../interfaces/consoleOutput.js';
+import type { ProcessOutput } from '../../interfaces/processOutput.js';
 import type { TextShowFormatter } from '../../interfaces/showFormatter.js';
 import type { StyleService } from '../../interfaces/styleService.js';
 import type { TvShowService } from '../../interfaces/tvShowService.js';
@@ -32,7 +32,7 @@ export function createTestContainer(): DependencyContainer {
   // Register mock dependencies using factory functions
   testContainer.registerInstance<HttpClient>('HttpClient', createMockHttpClient());
   testContainer.registerInstance<ConfigService>('ConfigService', createMockConfigService());
-  testContainer.registerInstance<ConsoleOutput>('ConsoleOutput', createMockConsoleOutput());
+  testContainer.registerInstance<ProcessOutput>('ProcessOutput', createMockProcessOutput());
   testContainer.registerInstance<TextShowFormatter>('TextShowFormatter', createMockFormatter());
   testContainer.registerInstance<TvShowService>('TvShowService', createMockTvShowService());
   testContainer.registerInstance<StyleService>('StyleService', createMockStyleService());
@@ -51,7 +51,7 @@ export function resetContainer(): void {
   // Register the mock services in the global container using factory functions
   container.registerInstance<HttpClient>('HttpClient', createMockHttpClient());
   container.registerInstance<ConfigService>('ConfigService', createMockConfigService());
-  container.registerInstance<ConsoleOutput>('ConsoleOutput', createMockConsoleOutput());
+  container.registerInstance<ProcessOutput>('ProcessOutput', createMockProcessOutput());
   container.registerInstance<TextShowFormatter>('TextShowFormatter', createMockFormatter());
   container.registerInstance<TvShowService>('TvShowService', createMockTvShowService());
   container.registerInstance<StyleService>('StyleService', createMockStyleService());

@@ -5,8 +5,8 @@
 import { describe, expect, test } from '@jest/globals';
 import { container } from 'tsyringe';
 import type { Show } from '../../../schemas/domain.js';
-import { TextShowFormatterImpl } from '../../../implementations/console/textShowFormatterImpl.js';
-import { ChalkStyleServiceImpl } from '../../../implementations/console/chalkStyleServiceImpl.js';
+import { TextShowFormatterImpl } from '../../../implementations/text/textShowFormatterImpl.js';
+import { ChalkStyleServiceImpl } from '../../../implementations/text/chalkStyleServiceImpl.js';
 import { ShowBuilder } from '../../fixtures/helpers/showFixtureBuilder.js';
 
 describe('TextShowFormatter Integration', () => {

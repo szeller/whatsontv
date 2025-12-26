@@ -4,20 +4,20 @@
  * This test verifies that the ConsoleOutputService correctly formats and displays
  * TV show information using the complete formatting pipeline with real components.
  */
-import { container } from '../../../container.js';
-import { 
-  ConsoleOutputServiceImpl
-} from '../../../implementations/console/consoleOutputServiceImpl.js';
+import { container } from '../../../textCliContainer.js';
+import {
+  TextOutputServiceImpl
+} from '../../../implementations/text/textOutputServiceImpl.js';
 import type { ConfigService } from '../../../interfaces/configService.js';
 import type { OutputService } from '../../../interfaces/outputService.js';
 import type { TextShowFormatter } from '../../../interfaces/showFormatter.js';
 import type { Show } from '../../../schemas/domain.js';
 import { ShowBuilder } from '../../fixtures/helpers/showFixtureBuilder.js';
-import { 
-  createMockConsoleOutput,
+import {
+  createMockProcessOutput,
   createMockConfigService
 } from '../../mocks/factories/index.js';
-import { MockConsoleOutput } from '../../mocks/implementations/mockConsoleOutput.js';
+import { MockProcessOutput } from '../../mocks/implementations/mockProcessOutput.js';
 import { describe, expect, test, beforeEach, afterEach } from '@jest/globals';
 
 describe('Console Output Integration Tests', () => {
@@ -25,7 +25,7 @@ describe('Console Output Integration Tests', () => {
   let originalTextShowFormatter: TextShowFormatter | null = null;
   
   // Test services
-  let mockConsoleOutput: MockConsoleOutput;
+  let mockProcessOutput: MockProcessOutput;
   let outputService: OutputService;
   let configService: ConfigService;
   
@@ -86,9 +86,9 @@ describe('Console Output Integration Tests', () => {
   beforeEach(() => {
     originalTextShowFormatter = container.resolve<TextShowFormatter>('TextShowFormatter');
 
-    // Create mock console output with spies
-    mockConsoleOutput = createMockConsoleOutput();
-    
+    // Create mock process output with spies
+    mockProcessOutput = createMockProcessOutput();
+
     // Create mock config service with test settings
     configService = createMockConfigService({
       showOptions: {
@@ -104,15 +104,15 @@ describe('Console Output Integration Tests', () => {
       },
       enhanceWithJestMocks: true
     });
-    
+
     // Register services in the container
-    container.register('ConsoleOutput', { useValue: mockConsoleOutput });
+    container.register('ProcessOutput', { useValue: mockProcessOutput });
     container.register('ConfigService', { useValue: configService });
-    
+
     // Create the output service directly
-    outputService = new ConsoleOutputServiceImpl(
+    outputService = new TextOutputServiceImpl(
       originalTextShowFormatter,
-      mockConsoleOutput,
+      mockProcessOutput,
       configService
     );
   });
@@ -127,7 +127,7 @@ describe('Console Output Integration Tests', () => {
     await outputService.renderOutput(testShows);
     
     // Assert - verify the output contains expected content
-    const outputLines = mockConsoleOutput.getOutput();
+    const outputLines = mockProcessOutput.getOutput();
     
     // Debug output is commented out to avoid cluttering test output
     // console.error('CAPTURED OUTPUT:');
@@ -168,7 +168,7 @@ describe('Console Output Integration Tests', () => {
   
   test('should format multiple episodes with consistent styling', async () => {
     // Clear previous output
-    mockConsoleOutput.clearOutput();
+    mockProcessOutput.clearOutput();
     
     // Get the Breaking Bad episodes
     const breakingBadEpisodes = testShows.filter((show: Show) => show.name === 'Breaking Bad');
@@ -177,7 +177,7 @@ describe('Console Output Integration Tests', () => {
     await outputService.renderOutput(breakingBadEpisodes);
     
     // Assert - verify the output contains expected content
-    const outputLines = mockConsoleOutput.getOutput();
+    const outputLines = mockProcessOutput.getOutput();
     
     // Debug output is commented out to avoid cluttering test output
     // console.error('BREAKING BAD TEST OUTPUT:');
@@ -214,7 +214,7 @@ describe('Console Output Integration Tests', () => {
   
   test('should format untimed shows with N/A for airtime', async () => {
     // Clear previous output
-    mockConsoleOutput.clearOutput();
+    mockProcessOutput.clearOutput();
     
     // Filter just the Stranger Things episode (untimed)
     const untimedShows = testShows.filter((show: Show) => show.name === 'Stranger Things');
@@ -223,7 +223,7 @@ describe('Console Output Integration Tests', () => {
     await outputService.renderOutput(untimedShows);
     
     // Assert - verify the output contains expected content
-    const outputLines = mockConsoleOutput.getOutput();
+    const outputLines = mockProcessOutput.getOutput();
     
     // Debug output is commented out to avoid cluttering test output
     // console.error('STRANGER THINGS TEST OUTPUT:');

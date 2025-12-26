@@ -1,5 +1,6 @@
 /**
- * Slack dependency injection container setup
+ * Lambda-specific dependency injection container setup
+ * Does not import yargs - uses LambdaConfigServiceImpl for configuration
  */
 import 'reflect-metadata';
 import { container } from 'tsyringe';
@@ -16,8 +17,8 @@ import type { SlackShowFormatter } from './interfaces/showFormatter.js';
 import type { TvShowService } from './interfaces/tvShowService.js';
 import type { SlackConfig } from './types/configTypes.js';
 
-// Implementation imports
-import { CliConfigServiceImpl } from './implementations/text/cliConfigServiceImpl.js';
+// Implementation imports - NO yargs dependency
+import { LambdaConfigServiceImpl } from './implementations/lambda/lambdaConfigServiceImpl.js';
 import { ProcessOutputImpl } from './implementations/processOutputImpl.js';
 import { FetchHttpClientImpl } from './implementations/fetchHttpClientImpl.js';
 import { PinoLoggerServiceImpl } from './implementations/pino/pinoLoggerServiceImpl.js';
@@ -27,27 +28,26 @@ import { SlackShowFormatterImpl } from './implementations/slack/slackShowFormatt
 import { TvMazeServiceImpl } from './implementations/tvMazeServiceImpl.js';
 
 /**
- * Initialize the Slack container with all required dependencies
+ * Initialize the Lambda container with all required dependencies
+ * Uses LambdaConfigServiceImpl which doesn't depend on yargs
  */
-export function initializeSlackContainer(): void {
+export function initializeLambdaContainer(): void {
   // Register core services
   container.registerSingleton<TvShowService>('TvShowService', TvMazeServiceImpl);
   container.registerSingleton<ProcessOutput>('ProcessOutput', ProcessOutputImpl);
   container.registerSingleton<LoggerService>('LoggerService', PinoLoggerServiceImpl);
-  
+
   // Register Slack-specific services
   container.registerSingleton<SlackShowFormatter>('SlackFormatter', SlackShowFormatterImpl);
-  
-  // Register ConfigService with factory to handle the optional parameter
-  container.register<ConfigService>('ConfigService', {
-    useFactory: () => new CliConfigServiceImpl(false)
-  });
-  
+
+  // Register ConfigService - Lambda-specific, no yargs
+  container.registerSingleton<ConfigService>('ConfigService', LambdaConfigServiceImpl);
+
   // Register HttpClient
   container.register<HttpClient>('HttpClient', {
     useFactory: () => new FetchHttpClientImpl()
   });
-  
+
   // Register WebClientFactory for creating Slack WebClient instances
   container.register('WebClientFactory', {
     useFactory: () => {
@@ -55,10 +55,10 @@ export function initializeSlackContainer(): void {
       return (config: SlackConfig) => new WebClient(config.token);
     }
   });
-  
+
   // Register real SlackClient implementation
   container.registerSingleton<SlackClient>('SlackClient', SlackClientImpl);
-  
+
   // Register SlackOutputService with factory to properly inject dependencies
   container.register<OutputService>('SlackOutputService', {
     useFactory: (dependencyContainer) => {
@@ -69,9 +69,9 @@ export function initializeSlackContainer(): void {
       return new SlackOutputServiceImpl(formatter, slackClient, configService, logger);
     }
   });
-  
+
   // Register platform type
-  container.register('PlatformType', { useValue: 'slack' });
+  container.register('PlatformType', { useValue: 'lambda' });
 }
 
 // Export the container

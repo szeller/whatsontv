@@ -1,7 +1,7 @@
 /**
- * Tests for ConsoleConfigServiceImpl
+ * Tests for CliConfigServiceImpl
  */
-import { 
+import {
   describe,
   it,
   expect,
@@ -9,16 +9,16 @@ import {
   beforeEach,
   afterEach
 } from '@jest/globals';
-import { 
-  ConsoleConfigServiceImpl 
-} from '../../../implementations/console/consoleConfigServiceImpl.js';
+import {
+  CliConfigServiceImpl
+} from '../../../implementations/text/cliConfigServiceImpl.js';
 import type { CliArgs } from '../../../types/cliArgs.js';
 import type { AppConfig, SlackConfig } from '../../../types/configTypes.js';
 import type { ShowOptions } from '../../../types/tvShowOptions.js';
 import { getTodayDate } from '../../../utils/dateUtils.js';
 
 // Create a test subclass that extends the implementation
-class TestConsoleConfigService extends ConsoleConfigServiceImpl {
+class TestCliConfigService extends CliConfigServiceImpl {
   // Mock data for tests
   private mockCliArgs: Partial<CliArgs> = {
     date: getTodayDate(),
@@ -336,7 +336,7 @@ class TestConsoleConfigService extends ConsoleConfigServiceImpl {
   }
 }
 
-describe('ConsoleConfigServiceImpl', () => {
+describe('CliConfigServiceImpl', () => {
   // Mock console methods to suppress output
   let originalConsoleWarn: typeof console.warn;
   let originalConsoleError: typeof console.error;
@@ -367,7 +367,7 @@ describe('ConsoleConfigServiceImpl', () => {
   
   it('should initialize with default values', () => {
     // Arrange & Act
-    const configService = new TestConsoleConfigService();
+    const configService = new TestCliConfigService();
     
     // Assert
     expect(configService.getShowOption('country')).toBe('US');
@@ -391,7 +391,7 @@ describe('ConsoleConfigServiceImpl', () => {
     };
     
     // Act
-    const configService = new TestConsoleConfigService({
+    const configService = new TestCliConfigService({
       cliArgs
     });
     
@@ -417,7 +417,7 @@ describe('ConsoleConfigServiceImpl', () => {
     };
     
     // Act
-    const configService = new TestConsoleConfigService({
+    const configService = new TestCliConfigService({
       fileExists: true,
       mockConfig
     });
@@ -445,7 +445,7 @@ describe('ConsoleConfigServiceImpl', () => {
     };
     
     // Act
-    const configService = new TestConsoleConfigService({
+    const configService = new TestCliConfigService({
       cliArgs,
       fileExists: true,
       mockConfig
@@ -462,7 +462,7 @@ describe('ConsoleConfigServiceImpl', () => {
   
   it('should handle command line arguments correctly', () => {
     // Arrange & Act
-    const configService = new TestConsoleConfigService({
+    const configService = new TestCliConfigService({
       mockArgs: [
         '--country', 'DE',
         '--types', 'Scripted,Reality',
@@ -480,7 +480,7 @@ describe('ConsoleConfigServiceImpl', () => {
   
   it('should handle invalid date format gracefully', () => {
     // Arrange
-    const configService = new TestConsoleConfigService();
+    const configService = new TestCliConfigService();
     configService.setMockCliArgs({
       date: 'invalid-date'
     });
@@ -502,7 +502,7 @@ describe('ConsoleConfigServiceImpl', () => {
     };
     
     // Act
-    const configService = new TestConsoleConfigService({
+    const configService = new TestCliConfigService({
       fileExists: true,
       mockConfig
     });
@@ -513,7 +513,7 @@ describe('ConsoleConfigServiceImpl', () => {
   
   it('should handle missing config options gracefully', () => {
     // Arrange
-    const configService = new TestConsoleConfigService({
+    const configService = new TestCliConfigService({
       fileExists: true,
       mockConfig: {}
     });
@@ -528,7 +528,7 @@ describe('ConsoleConfigServiceImpl', () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     
     // Act
-    const configService = new TestConsoleConfigService({
+    const configService = new TestCliConfigService({
       fileExists: true,
       readFileError: new Error('ENOENT: no such file or directory')
     });
@@ -547,7 +547,7 @@ describe('ConsoleConfigServiceImpl', () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     
     // Act
-    const configService = new TestConsoleConfigService({
+    const configService = new TestCliConfigService({
       fileExists: true,
       readFileError: 'Not an Error object'
     });
@@ -575,7 +575,7 @@ describe('ConsoleConfigServiceImpl', () => {
     };
     
     // Act
-    const configService = new TestConsoleConfigService({
+    const configService = new TestCliConfigService({
       fileExists: true,
       mockConfig
     });
@@ -597,7 +597,7 @@ describe('ConsoleConfigServiceImpl', () => {
     };
     
     // Act
-    const configService = new TestConsoleConfigService({
+    const configService = new TestCliConfigService({
       cliArgs
     });
     
@@ -617,7 +617,7 @@ describe('ConsoleConfigServiceImpl', () => {
     };
     
     // Act
-    const configService = new TestConsoleConfigService({
+    const configService = new TestCliConfigService({
       cliArgs
     });
     
@@ -631,7 +631,7 @@ describe('ConsoleConfigServiceImpl', () => {
   it('should parse date correctly', () => {
     // Arrange
     const validDate = '2023-05-15';
-    const configService = new TestConsoleConfigService({
+    const configService = new TestCliConfigService({
       cliArgs: {
         date: validDate
       }
@@ -650,7 +650,7 @@ describe('ConsoleConfigServiceImpl', () => {
   it('should return today for invalid date', () => {
     // Arrange
     const invalidDate = 'not-a-date';
-    const configService = new TestConsoleConfigService({
+    const configService = new TestCliConfigService({
       cliArgs: {
         date: invalidDate
       }
@@ -669,7 +669,7 @@ describe('ConsoleConfigServiceImpl', () => {
   
   it('should handle environment variables in slack options', () => {
     // Arrange - create a special test class that overrides getSlackOptions directly
-    class EnvTestConfigService extends ConsoleConfigServiceImpl {
+    class EnvTestConfigService extends CliConfigServiceImpl {
       constructor() {
         super(true);
         this.initialize();
@@ -708,7 +708,7 @@ describe('ConsoleConfigServiceImpl', () => {
       } as SlackConfig
     };
     
-    const configService = new TestConsoleConfigService({
+    const configService = new TestCliConfigService({
       fileExists: true,
       mockConfig
     });
@@ -730,7 +730,7 @@ describe('ConsoleConfigServiceImpl', () => {
       slack: null
     };
     
-    const configService = new TestConsoleConfigService({
+    const configService = new TestCliConfigService({
       fileExists: true,
       mockConfig: mockConfig as unknown as Partial<AppConfig>
     });
@@ -745,7 +745,7 @@ describe('ConsoleConfigServiceImpl', () => {
   
   it('should handle all coerce functions in createYargsInstance', () => {
     // Arrange
-    const configService = new TestConsoleConfigService();
+    const configService = new TestCliConfigService();
     
     // Act - we don't need to store the result since we're testing through configService2
     configService.exposeCreateYargsInstance([
@@ -757,7 +757,7 @@ describe('ConsoleConfigServiceImpl', () => {
     
     // Assert - we can't directly access argv here due to TypeScript constraints
     // Instead, we'll verify the behavior through the parseArgs method
-    const configService2 = new TestConsoleConfigService({
+    const configService2 = new TestCliConfigService({
       mockArgs: [
         '--types', 'Scripted,Reality',
         '--networks', 'HBO,Netflix',
@@ -774,7 +774,7 @@ describe('ConsoleConfigServiceImpl', () => {
   
   it('should handle empty config file gracefully', () => {
     // Arrange
-    const configService = new TestConsoleConfigService({
+    const configService = new TestCliConfigService({
       fileExists: true,
       mockConfig: {}
     });
@@ -792,7 +792,7 @@ describe('ConsoleConfigServiceImpl', () => {
 
   it('should correctly determine debug mode from CLI options', () => {
     // Arrange
-    const configService = new TestConsoleConfigService({
+    const configService = new TestCliConfigService({
       cliArgs: {
         debug: true
       }
@@ -807,7 +807,7 @@ describe('ConsoleConfigServiceImpl', () => {
 
   it('should return false for debug mode when not specified', () => {
     // Arrange
-    const configService = new TestConsoleConfigService({
+    const configService = new TestCliConfigService({
       cliArgs: {
         debug: false
       }
@@ -823,7 +823,7 @@ describe('ConsoleConfigServiceImpl', () => {
   it('should handle JSON parse errors in loadConfig', () => {
     // Arrange
     const mockError = new SyntaxError('Unexpected token in JSON');
-    const configService = new TestConsoleConfigService({
+    const configService = new TestCliConfigService({
       fileExists: true,
       readFileError: mockError
     });
@@ -841,7 +841,7 @@ describe('ConsoleConfigServiceImpl', () => {
   it('should handle file not found errors in loadConfig', () => {
     // Arrange
     const mockError = new Error('File not found');
-    const configService = new TestConsoleConfigService({
+    const configService = new TestCliConfigService({
       fileExists: true,
       readFileError: mockError
     });
@@ -859,7 +859,7 @@ describe('ConsoleConfigServiceImpl', () => {
   it('should parse a specific date correctly', () => {
     // Arrange
     const testDate = '2025-04-14';
-    const configService = new TestConsoleConfigService({
+    const configService = new TestCliConfigService({
       cliArgs: {
         date: testDate
       }
@@ -878,7 +878,7 @@ describe('ConsoleConfigServiceImpl', () => {
   it('should handle invalid date format gracefully', () => {
     // Arrange
     const invalidDate = 'not-a-date';
-    const configService = new TestConsoleConfigService({
+    const configService = new TestCliConfigService({
       cliArgs: {
         date: invalidDate
       }
@@ -898,7 +898,7 @@ describe('ConsoleConfigServiceImpl', () => {
 
   it('should correctly merge CLI arguments with config file options', () => {
     // Arrange
-    const configService = new TestConsoleConfigService({
+    const configService = new TestCliConfigService({
       fileExists: true,
       mockConfig: {
         country: 'CA',
@@ -924,7 +924,7 @@ describe('ConsoleConfigServiceImpl', () => {
 
   it('should handle complex CLI argument parsing with all options', () => {
     // Arrange
-    const configService = new TestConsoleConfigService({
+    const configService = new TestCliConfigService({
       mockArgs: [
         '--date', '2025-05-01',
         '--country', 'FR',
@@ -956,7 +956,7 @@ describe('ConsoleConfigServiceImpl', () => {
 
   it('should handle partial CLI arguments with defaults', () => {
     // Arrange
-    const configService = new TestConsoleConfigService({
+    const configService = new TestCliConfigService({
       mockArgs: [
         '--country', 'DE'
         // Other args not specified
@@ -982,7 +982,7 @@ describe('ConsoleConfigServiceImpl', () => {
     const errorSpy = jest.spyOn(console, 'error');
     
     // Create a custom test class that directly calls handleConfigError with a non-Error
-    class UnknownErrorConfigService extends TestConsoleConfigService {
+    class UnknownErrorConfigService extends TestCliConfigService {
       constructor() {
         super();
         // Directly call handleConfigError with a non-Error object
@@ -1002,7 +1002,7 @@ describe('ConsoleConfigServiceImpl', () => {
   describe('getSlackOptions', () => {
     it('should return default slack options when no slack config exists', () => {
       // Arrange
-      class SlackConfigTestService extends TestConsoleConfigService {
+      class SlackConfigTestService extends TestCliConfigService {
         constructor() {
           super();
           // Access protected property directly in subclass
@@ -1027,7 +1027,7 @@ describe('ConsoleConfigServiceImpl', () => {
 
     it('should merge slack options from config with defaults', () => {
       // Arrange
-      class SlackConfigTestService extends TestConsoleConfigService {
+      class SlackConfigTestService extends TestCliConfigService {
         constructor() {
           super();
           // Access protected property directly in subclass
@@ -1061,7 +1061,7 @@ describe('ConsoleConfigServiceImpl', () => {
       process.env.SLACK_CHANNEL = 'env-channel';
       process.env.SLACK_USERNAME = 'EnvBot';
       
-      class SlackConfigTestService extends TestConsoleConfigService {
+      class SlackConfigTestService extends TestCliConfigService {
         constructor() {
           super();
           // Access protected property directly in subclass
@@ -1095,7 +1095,7 @@ describe('ConsoleConfigServiceImpl', () => {
       process.env.SLACK_CHANNEL = 'env-channel';
       process.env.SLACK_USERNAME = 'EnvBot';
       
-      class SlackConfigTestService extends TestConsoleConfigService {
+      class SlackConfigTestService extends TestCliConfigService {
         constructor() {
           super();
           // Access protected property directly in subclass
@@ -1130,7 +1130,7 @@ describe('ConsoleConfigServiceImpl', () => {
   describe('loadConfig with different branch scenarios', () => {
     it('should handle null slack config in user config', () => {
       // Arrange - Create a custom test class that overrides fileExists and readFile
-      class NullSlackConfigService extends TestConsoleConfigService {
+      class NullSlackConfigService extends TestCliConfigService {
         protected fileExists(_path: string): boolean {
           return true;
         }
@@ -1155,7 +1155,7 @@ describe('ConsoleConfigServiceImpl', () => {
 
     it('should handle empty slack config in user config', () => {
       // Arrange - Create a custom test class that overrides fileExists and readFile
-      class EmptySlackConfigService extends TestConsoleConfigService {
+      class EmptySlackConfigService extends TestCliConfigService {
         protected fileExists(_path: string): boolean {
           return true;
         }

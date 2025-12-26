@@ -2,6 +2,8 @@ import { injectable, inject } from 'tsyringe';
 import type { StyleService } from '../../interfaces/styleService.js';
 import type { Show } from '../../schemas/domain.js';
 import { formatNetworkHeader } from '../../utils/formatUtils.js';
+import { formatEpisodeRanges } from '../../utils/showUtils.js';
+import { hasContent } from '../../utils/stringUtils.js';
 import { BaseShowFormatterImpl } from '../baseShowFormatterImpl.js';
 
 /**
@@ -53,11 +55,8 @@ export class TextShowFormatterImpl extends BaseShowFormatterImpl<string> {
     const paddedTime = timeValue.padEnd(8);
     const paddedShowName = components.showName.padEnd(20);
     
-    // Handle custom episode info with explicit null/empty checks
-    const hasCustomEpisodeInfo = customEpisodeInfo !== undefined && 
-      customEpisodeInfo !== null && 
-      customEpisodeInfo !== '';
-    const episodeInfo = hasCustomEpisodeInfo ? customEpisodeInfo : components.episodeInfo;
+    // Handle custom episode info with hasContent check
+    const episodeInfo = hasContent(customEpisodeInfo) ? customEpisodeInfo : components.episodeInfo;
     const paddedEpisodeInfo = episodeInfo.padEnd(10);
     
     // Apply styling to padded components
@@ -81,67 +80,21 @@ export class TextShowFormatterImpl extends BaseShowFormatterImpl<string> {
     if (!Array.isArray(shows) || shows.length === 0) {
       return [];
     }
-    
+
     // Sort episodes by season and episode number
     const sortedEpisodes = this.sortEpisodesByNumber(shows);
-    
+
     // Get the first show for basic information
     const firstShow = sortedEpisodes[0];
-    
-    // Format episode ranges
-    const episodeRange = this.formatEpisodeRange(sortedEpisodes);
-    
+
+    // Format episode ranges using the shared utility (handles gaps correctly)
+    const episodeRange = formatEpisodeRanges(sortedEpisodes);
+
     // Use the existing formatShow method with custom episode range
     const formattedShow = this.formatShow(firstShow, true, episodeRange);
-    
+
     // Return as array with a single string
     return [formattedShow];
-  }
-
-  /**
-   * Format episode range for multiple episodes (simple first-to-last range)
-   *
-   * Note: This is a simplified version that shows just the first and last episode
-   * (e.g., "S01E01-05"). For more comprehensive formatting that handles gaps
-   * (e.g., "S01E01-03, S01E05"), see formatEpisodeRanges() in showUtils.ts.
-   *
-   * @param shows Multiple episodes of the same show
-   * @returns Formatted episode range
-   */
-  private formatEpisodeRange(shows: Show[]): string {
-    if (!Array.isArray(shows)) {
-      return '';
-    }
-    
-    if (shows.length === 0) {
-      return '';
-    }
-    
-    if (shows.length === 1) {
-      return this.formatEpisodeInfo(shows[0]);
-    }
-    
-    const firstEpisode = shows[0];
-    const lastEpisode = shows[shows.length - 1];
-    
-    const firstInfo = this.formatEpisodeInfo(firstEpisode);
-    const lastInfo = this.formatEpisodeInfo(lastEpisode);
-    
-    // If same season, just show a range of episode numbers
-    if (firstEpisode.season === lastEpisode.season) {
-      if (!firstEpisode.number || !lastEpisode.number) {
-        return firstInfo;
-      }
-      
-      const season = `S${String(firstEpisode.season).padStart(2, '0')}`;
-      const firstEp = String(firstEpisode.number).padStart(2, '0');
-      const lastEp = String(lastEpisode.number).padStart(2, '0');
-      
-      return `${season}E${firstEp}-${lastEp}`;
-    }
-    
-    // Different seasons, show full range
-    return `${firstInfo}-${lastInfo}`;
   }
   
   /**

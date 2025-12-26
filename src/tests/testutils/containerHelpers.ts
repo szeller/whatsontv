@@ -1,7 +1,7 @@
 /**
  * Utilities for working with the dependency injection container in tests
  */
-import { container } from '../../container.js';
+import { container } from '../../textCliContainer.js';
 import type { DependencyContainer } from 'tsyringe';
 
 /**
