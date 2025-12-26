@@ -143,10 +143,3 @@ export const networkScheduleToShowSchema = networkScheduleItemSchema.transform((
 }));
 ```
 
-## Future Improvements
-
-See [GitHub Issue #66](https://github.com/szeller/whatsontv/issues/66) for planned improvements to the schema system, including:
-
-- Refactoring type transformations to use Zod's transform capabilities
-- Eliminating manual type conversions
-- Adding schema validation for configuration types

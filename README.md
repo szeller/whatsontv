@@ -279,8 +279,6 @@ The project follows a comprehensive testing strategy with a focus on high code c
 
 Recent improvements include achieving 100% test coverage for the `fileUtils.ts` module by implementing focused tests for pure functions and edge cases.
 
-For detailed test coverage information, see the [test coverage documentation](./docs/archive/testCoverage.md).
-
 ### Linting
 
 ```bash

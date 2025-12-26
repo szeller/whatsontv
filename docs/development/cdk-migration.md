@@ -275,25 +275,9 @@ The Lambda runs automatically at 12:00 UTC daily via CloudWatch Events rule.
    - Review CloudWatch logs
    - Wait for scheduled execution (noon UTC)
 
-### Phase 4: CI/CD & Monitoring (Future PR)
-1. Add GitHub Actions workflow for automated deployment
-2. Set up CloudWatch Dashboard with key metrics
-3. Add custom business metrics (shows processed, API response times)
-4. Integrate Lambda bundle test into CI pipeline
-5. Add CDK snapshot tests
-6. Document actual deployment experience and lessons learned
+### Future Improvements
 
-### Phase 5: Optimization (Future PR)
-1. Evaluate Lambda bundle size and add layers if needed
-2. Consider AWS Secrets Manager vs environment variables
-3. Add DynamoDB table for show tracking/history
-4. Cost analysis and optimization
-
-### Phase 6: Advanced Features (Future PRs)
-1. Integrate AWS Bedrock for AI-powered show summaries
-2. Add API Gateway for manual trigger endpoint
-3. Multi-region deployment for redundancy
-4. Advanced monitoring and alerting rules
+See [GitHub Issue #264](https://github.com/szeller/whatsontv/issues/264) for planned CI/CD and monitoring improvements.
 
 ---
 
