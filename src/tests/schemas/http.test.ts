@@ -3,7 +3,7 @@
  */
 import { describe, it, expect } from '@jest/globals';
 import { requestOptionsSchema, httpResponseSchema } from '../../schemas/http';
-import type { RequestOptions } from '../../schemas/http';
+import type { RequestOptionsSchema } from '../../schemas/http';
 
 describe('HTTP Schemas', () => {
   describe('requestOptionsSchema', () => {
@@ -167,11 +167,11 @@ describe('HTTP Schemas', () => {
     });
   });
 
-  describe('RequestOptions type', () => {
+  describe('RequestOptionsSchema type', () => {
     it('should be correctly inferred from the schema', () => {
       // This is a type-level test
-      // We're creating a valid RequestOptions object to ensure the type is correctly inferred
-      const options: RequestOptions = {
+      // We're creating a valid RequestOptionsSchema object to ensure the type is correctly inferred
+      const options: RequestOptionsSchema = {
         headers: {
           'Authorization': 'Bearer token'
         },

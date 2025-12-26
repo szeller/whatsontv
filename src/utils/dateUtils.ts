@@ -1,6 +1,7 @@
 /**
  * Date utility functions for the application
  */
+import { hasContent } from './stringUtils.js';
 
 /**
  * Get today's date in YYYY-MM-DD format
@@ -95,10 +96,10 @@ export function convertTimeToMinutes(timeStr: string): number {
  * @returns Formatted time string (e.g., "8:30 PM")
  */
 export function formatTimeWithPeriod(time: string | null | undefined): string {
-  if (time === null || time === undefined || time === '') {
+  if (!hasContent(time)) {
     return 'N/A';
   }
-  
+
   const parsedTime = parseTimeString(time);
   if (parsedTime === null) {
     return 'N/A';
@@ -119,10 +120,10 @@ export function formatTimeWithPeriod(time: string | null | undefined): string {
  * @returns True if the time is valid, false otherwise
  */
 export function isValidTime(time: string | null | undefined): boolean {
-  if (time === null || time === undefined || time === '') {
+  if (!hasContent(time)) {
     return false;
   }
-  
+
   return parseTimeString(time) !== null;
 }
 
@@ -133,7 +134,7 @@ export function isValidTime(time: string | null | undefined): boolean {
  * @returns Date object for the parsed date, or current date if invalid
  */
 export function parseDateString(dateStr: string | null | undefined): Date {
-  if (dateStr !== undefined && dateStr !== null && dateStr !== '') {
+  if (hasContent(dateStr)) {
     // Parse the date string in a reliable way that preserves the local timezone
     const [year, month, day] = dateStr.split('-').map(Number);
     if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {

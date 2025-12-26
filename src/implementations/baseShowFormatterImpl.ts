@@ -2,15 +2,16 @@ import 'reflect-metadata';
 
 import type { ShowFormatter } from '../interfaces/showFormatter.js';
 import type { Show, NetworkGroups } from '../schemas/domain.js';
-import { 
-  groupShowsByShowId, 
-  hasAirtime, 
+import {
+  groupShowsByShowId,
+  hasAirtime,
   allShowsHaveNoAirtime,
   formatEpisodeInfo,
   formatNetworkName,
   formatShowType
 } from '../utils/formatUtils.js';
 import { sortShowsByTime, sortEpisodesByNumber } from '../utils/showUtils.js';
+import { hasContent } from '../utils/stringUtils.js';
 
 /**
  * Base abstract implementation of ShowFormatter with common functionality
@@ -218,13 +219,11 @@ export abstract class BaseShowFormatterImpl<TOutput> implements ShowFormatter<TO
     network: string;
     type: string;
   } {
-    // Handle airtime with explicit null/undefined checks
-    const time = show.airtime !== null && show.airtime !== undefined ? 
-      show.airtime : this.NO_AIRTIME;
-    
-    // Handle show name with explicit null/undefined checks
-    const showName = show.name !== null && show.name !== undefined ? 
-      show.name : this.UNKNOWN_SHOW;
+    // Handle airtime with hasContent check
+    const time = hasContent(show.airtime) ? show.airtime : this.NO_AIRTIME;
+
+    // Handle show name with hasContent check
+    const showName = hasContent(show.name) ? show.name : this.UNKNOWN_SHOW;
     
     // Format episode info (e.g., S01E01)
     const episodeInfo = this.formatEpisodeInfo(show);

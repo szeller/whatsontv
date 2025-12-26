@@ -3,6 +3,7 @@
  */
 import type { Show, NetworkGroups } from '../schemas/domain.js';
 import { convertTimeToMinutes } from './dateUtils.js';
+import { isEmptyArray, hasContent } from './stringUtils.js';
 
 /**
  * Get the network name from a show with fallback to "Unknown Network"
@@ -246,7 +247,7 @@ export function sortEpisodesByNumber(shows: Show[]): Show[] {
  * @returns Filtered shows
  */
 export function filterByType(shows: Show[], types: string[]): Show[] {
-  if (types === undefined || types === null || types.length === 0) {
+  if (isEmptyArray(types)) {
     return shows;
   }
   
@@ -263,7 +264,7 @@ export function filterByType(shows: Show[], types: string[]): Show[] {
  * @returns Filtered shows
  */
 export function filterByNetwork(shows: Show[], networks: string[]): Show[] {
-  if (networks === undefined || networks === null || networks.length === 0) {
+  if (isEmptyArray(networks)) {
     return shows;
   }
   
@@ -291,7 +292,7 @@ export function filterByNetwork(shows: Show[], networks: string[]): Show[] {
  * @returns Filtered shows
  */
 export function filterByGenre(shows: Show[], genres: string[]): Show[] {
-  if (genres === undefined || genres === null || genres.length === 0) {
+  if (isEmptyArray(genres)) {
     return shows;
   }
   
@@ -316,7 +317,7 @@ export function filterByGenre(shows: Show[], genres: string[]): Show[] {
  */
 export function filterByLanguage(shows: Show[], languages: string[]): Show[] {
   // If no languages are specified, return all shows
-  if (languages === undefined || languages === null || languages.length === 0) {
+  if (isEmptyArray(languages)) {
     return shows;
   }
   
@@ -325,10 +326,10 @@ export function filterByLanguage(shows: Show[], languages: string[]): Show[] {
   
   return shows.filter(show => {
     // If show has no language, skip it
-    if (show.language === null || show.language === undefined || show.language === '') {
+    if (!hasContent(show.language)) {
       return false;
     }
-    
+
     // Check if the show's language is in the list of languages to include
     return lowercaseLanguages.includes(show.language.toLowerCase());
   });

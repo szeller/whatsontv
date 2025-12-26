@@ -153,12 +153,12 @@ export function prepareShowComponents(
  */
 export function groupShowsByShowId(shows: Show[] | null | undefined): Record<string, Show[]> {
   const groups: Record<string, Show[]> = {};
-  
+
   // Check if shows is an array before processing
   if (shows === null || shows === undefined || shows.length === 0) {
     return groups;
   }
-  
+
   shows.forEach(show => {
     // Use optional chaining and nullish coalescing for safe property access
     const showId = show?.id?.toString() ?? '';
