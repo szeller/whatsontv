@@ -24,6 +24,7 @@ import * as path from 'path';
 interface AppConfig {
   // Runtime filtering options (passed to Lambda as APP_CONFIG)
   country?: string;
+  timezone?: string;
   types?: string[];
   languages?: string[];
   networks?: string[];
@@ -56,6 +57,7 @@ export class WhatsOnTvStack extends cdk.Stack {
     // Extract runtime config for Lambda (filtering options)
     const runtimeConfig = {
       country: config.country,
+      timezone: config.timezone,
       types: config.types,
       languages: config.languages,
       networks: config.networks,

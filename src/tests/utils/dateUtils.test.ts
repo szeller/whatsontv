@@ -27,12 +27,34 @@ describe('DateUtils', () => {
 
       // Test the function
       const result = getTodayDate();
-      
+
       // Restore original Date
       global.Date = originalDate;
-      
+
       // Assert the result
       expect(result).toBe('2025-03-20');
+    });
+
+    it('returns date in YYYY-MM-DD format with timezone', () => {
+      // Test with a specific timezone - this tests the Intl.DateTimeFormat path
+      const result = getTodayDate('America/Los_Angeles');
+
+      // Should return a valid date format
+      expect(result).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    });
+
+    it('handles empty/null timezone gracefully', () => {
+      // Empty string should fall back to local date
+      const result1 = getTodayDate('');
+      expect(result1).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+
+      // Undefined should fall back to local date
+      const result2 = getTodayDate(undefined);
+      expect(result2).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+
+      // Whitespace should fall back to local date
+      const result3 = getTodayDate('   ');
+      expect(result3).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     });
   });
 

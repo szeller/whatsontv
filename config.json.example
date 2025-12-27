@@ -1,5 +1,6 @@
 {
     "country": "US",
+    "timezone": "America/Los_Angeles",
     "types": ["Reality", "Scripted"],
     "languages": ["English"],
     "networks": ["Discovery", "CBS", "Netflix", "Paramount+"],
