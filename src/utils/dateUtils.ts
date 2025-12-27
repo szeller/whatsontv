@@ -5,11 +5,25 @@ import { hasContent } from './stringUtils.js';
 
 /**
  * Get today's date in YYYY-MM-DD format
+ * @param timezone - Optional IANA timezone (e.g., 'America/Los_Angeles')
  * @returns Today's date in YYYY-MM-DD format
  */
-export function getTodayDate(): string {
-  const today = new Date();
-  return formatDate(today);
+export function getTodayDate(timezone?: string): string {
+  const now = new Date();
+
+  if (timezone !== undefined && timezone !== null && timezone.trim() !== '') {
+    // Use Intl.DateTimeFormat to get the date in the specified timezone
+    // en-CA locale uses YYYY-MM-DD format natively
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+    return formatter.format(now);
+  }
+
+  return formatDate(now);
 }
 
 /**

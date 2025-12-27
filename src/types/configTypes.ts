@@ -25,6 +25,7 @@ export interface SlackConfig {
  */
 export interface AppConfig {
   country: string;
+  timezone?: string;
   types: string[];
   networks: string[];
   genres: string[];

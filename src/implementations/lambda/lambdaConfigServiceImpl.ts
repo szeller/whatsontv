@@ -28,8 +28,9 @@ export class LambdaConfigServiceImpl extends BaseConfigServiceImpl {
     // Load configuration from APP_CONFIG env var (inlined by CDK at deploy time)
     this.appConfig = this.loadAppConfig();
 
-    // Get date from environment variable or use today
-    this.dateString = this.getOptionalEnv('DATE', getTodayDate());
+    // Get date from environment variable or use today (in configured timezone)
+    const timezone = this.appConfig.timezone;
+    this.dateString = this.getOptionalEnv('DATE', getTodayDate(timezone));
 
     // Initialize CLI options from environment or defaults
     this.cliOptions = {

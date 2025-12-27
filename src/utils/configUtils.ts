@@ -102,6 +102,7 @@ export function coerceFetchSource(value: unknown): 'web' | 'network' | 'all' {
 export function getDefaultConfig(): AppConfig {
   return {
     country: 'US',
+    timezone: 'America/Los_Angeles', // IANA timezone for date calculations
     types: [], // e.g., ['Reality', 'Scripted']
     networks: [], // e.g., ['Discovery', 'CBS']
     genres: [], // e.g., ['Drama', 'Comedy']
@@ -139,8 +140,8 @@ export function mergeShowOptions(
     String(cliArgs.minAirtime) : '';
   
   // Safely handle base options
-  const baseDate = typeof base.date !== 'undefined' && base.date !== null ? 
-    base.date : getTodayDate();
+  const baseDate = typeof base.date !== 'undefined' && base.date !== null ?
+    base.date : getTodayDate(appConfig.timezone);
   const baseCountry = typeof base.country !== 'undefined' && base.country !== null ? 
     base.country : appConfig.country;
   const baseFetchSource = typeof base.fetchSource !== 'undefined' && base.fetchSource !== null ? 
