@@ -33,20 +33,20 @@ describe('ConfigServiceFactory', () => {
         date: '2025-04-01',
         country: 'CA',
         languages: ['French'],
-        fetchSource: 'web' as const
+        excludeShowNames: ['Test Show']
       };
-      
+
       // Act
       const configService = createMockConfigService({
         showOptions: customShowOptions
       });
-      
+
       // Assert
       expect(configService.getShowOption('date')).toBe('2025-04-01');
       expect(configService.getShowOption('country')).toBe('CA');
       expect(configService.getShowOption('languages')).toEqual(['French']);
-      expect(configService.getShowOption('fetchSource')).toBe('web');
-      
+      expect(configService.getShowOption('excludeShowNames')).toEqual(['Test Show']);
+
       // Other options should have default values
       expect(configService.getShowOption('types')).toEqual([]);
     });

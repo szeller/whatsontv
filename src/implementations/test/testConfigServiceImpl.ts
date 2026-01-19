@@ -34,8 +34,8 @@ export class TestConfigServiceImpl implements ConfigService {
       networks: showOptions.networks ?? [],
       genres: showOptions.genres ?? [],
       languages: showOptions.languages ?? ['English'],
-      fetchSource: showOptions.fetchSource ?? 'all',
-      minAirtime: showOptions.minAirtime ?? '18:00'
+      minAirtime: showOptions.minAirtime ?? '18:00',
+      excludeShowNames: showOptions.excludeShowNames ?? []
     };
     
     // Initialize CLI options with defaults

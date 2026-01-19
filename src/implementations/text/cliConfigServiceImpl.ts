@@ -10,7 +10,6 @@ import { getTodayDate } from '../../utils/dateUtils.js';
 import { getStringValue } from '../../utils/stringUtils.js';
 import {
   toStringArray,
-  coerceFetchSource,
   mergeShowOptions
 } from '../../utils/configUtils.js';
 import { BaseConfigServiceImpl } from '../baseConfigServiceImpl.js';
@@ -79,7 +78,6 @@ export class CliConfigServiceImpl extends BaseConfigServiceImpl {
       languages: toStringArray(parsedArgs.languages as string | string[] | undefined),
       minAirtime: getStringValue(String(parsedArgs.minAirtime ?? ''), '18:00'),
       debug: Boolean(parsedArgs.debug),
-      fetch: coerceFetchSource(parsedArgs.fetch),
       groupByNetwork: true // Default to true, not configurable via CLI yet
     };
   }
@@ -139,12 +137,6 @@ export class CliConfigServiceImpl extends BaseConfigServiceImpl {
           describe: 'Enable debug mode',
           type: 'boolean',
           default: false
-        },
-        fetch: {
-          alias: 'f',
-          describe: 'Fetch source (e.g., all, web, tv)',
-          type: 'string',
-          default: 'all'
         }
       })
       .help()

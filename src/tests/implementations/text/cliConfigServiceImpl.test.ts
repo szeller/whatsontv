@@ -933,15 +933,14 @@ describe('CliConfigServiceImpl', () => {
         '--genres', 'History,Science',
         '--languages', 'French',
         '--minAirtime', '20:00',
-        '--debug',
-        '--fetch', 'web'
+        '--debug'
       ]
     });
-    
+
     // Act
     const showOptions = configService.getShowOptions();
     const cliOptions = configService.getCliOptions();
-    
+
     // Assert
     expect(showOptions.date).toBe('2025-05-01');
     expect(showOptions.country).toBe('FR');
@@ -950,7 +949,6 @@ describe('CliConfigServiceImpl', () => {
     expect(showOptions.genres).toEqual(['History', 'Science']);
     expect(showOptions.languages).toEqual(['French']);
     expect(showOptions.minAirtime).toBe('20:00');
-    expect(configService.getShowOption('fetchSource')).toBe('web');
     expect(cliOptions.debug).toBe(true);
   });
 
@@ -962,10 +960,10 @@ describe('CliConfigServiceImpl', () => {
         // Other args not specified
       ]
     });
-    
+
     // Act
     const showOptions = configService.getShowOptions();
-    
+
     // Assert
     expect(showOptions.country).toBe('DE');
     expect(showOptions.date).toBe(getTodayDate());
@@ -974,7 +972,6 @@ describe('CliConfigServiceImpl', () => {
     expect(showOptions.genres).toEqual([]);
     expect(showOptions.languages).toContainEqual('English');
     expect(showOptions.minAirtime).toBe('18:00');
-    expect(configService.getShowOption('fetchSource')).toBe('all');
   });
 
   it('should handle unknown errors when loading config', () => {

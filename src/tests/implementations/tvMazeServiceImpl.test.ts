@@ -188,9 +188,7 @@ describe('TvMazeServiceImpl', () => {
       });
 
       // Call the method under test
-      const shows = await tvMazeService.fetchShows({
-        fetchSource: 'web'
-      });
+      const shows = await tvMazeService.fetchShows();
 
       // Verify the result
       expect(shows.length).toBe(3);
@@ -233,9 +231,7 @@ describe('TvMazeServiceImpl', () => {
         });
       
       // Call the method under test
-      const shows = await tvMazeService.fetchShows({
-        fetchSource: 'all'
-      });
+      const shows = await tvMazeService.fetchShows();
       
       // Verify the result
       expect(shows.length).toBe(4);
@@ -394,7 +390,6 @@ describe('TvMazeServiceImpl', () => {
       const result = testService.testApplyFilters(testShows, {
         date: '',
         country: 'US',
-        fetchSource: 'all',
         types: [],
         genres: [],
         languages: [],
@@ -411,7 +406,6 @@ describe('TvMazeServiceImpl', () => {
       const result = testService.testApplyFilters(testShows, {
         date: '',
         country: 'US',
-        fetchSource: 'all',
         types: ['Scripted'],
         genres: [],
         languages: [],
@@ -428,7 +422,6 @@ describe('TvMazeServiceImpl', () => {
       const result = testService.testApplyFilters(testShows, {
         date: '',
         country: 'US',
-        fetchSource: 'all',
         types: [],
         genres: [],
         languages: [],
@@ -447,7 +440,6 @@ describe('TvMazeServiceImpl', () => {
       const result = testService.testApplyFilters(testShows, {
         date: '',
         country: 'US',
-        fetchSource: 'all',
         types: [],
         genres: ['Comedy'],
         languages: [],
@@ -463,7 +455,6 @@ describe('TvMazeServiceImpl', () => {
       const result = testService.testApplyFilters(testShows, {
         date: '',
         country: 'US',
-        fetchSource: 'all',
         types: [],
         genres: [],
         languages: ['English'],
@@ -492,7 +483,6 @@ describe('TvMazeServiceImpl', () => {
       const result = testService.testApplyFilters(showsWithAirtimes, {
         date: '',
         country: 'US',
-        fetchSource: 'all',
         types: [],
         genres: [],
         languages: [],
@@ -522,7 +512,6 @@ describe('TvMazeServiceImpl', () => {
       const result = testService.testApplyFilters(showsWithMissingAirtimes, {
         date: '',
         country: 'US',
-        fetchSource: 'all',
         types: [],
         genres: [],
         languages: [],
@@ -541,7 +530,6 @@ describe('TvMazeServiceImpl', () => {
       const result = testService.testApplyFilters(testShows, {
         date: '',
         country: 'US',
-        fetchSource: 'all',
         types: [],
         genres: [],
         languages: ['english'], // lowercase
@@ -560,7 +548,6 @@ describe('TvMazeServiceImpl', () => {
       const result = testService.testApplyFilters(testShows, {
         date: '',
         country: 'US',
-        fetchSource: 'all',
         types: [],
         genres: [],
         languages: ['english', 'spanish'], // multiple languages
@@ -588,7 +575,6 @@ describe('TvMazeServiceImpl', () => {
       const result = testService.testApplyFilters(showsWithNullLanguage, {
         date: '',
         country: 'US',
-        fetchSource: 'all',
         types: [],
         genres: [],
         languages: ['english'],
@@ -606,7 +592,6 @@ describe('TvMazeServiceImpl', () => {
       const result = testService.testApplyFilters(testShows, {
         date: '',
         country: 'US',
-        fetchSource: 'all',
         types: ['Scripted'],
         genres: ['Drama'],
         languages: ['English'],
@@ -625,7 +610,6 @@ describe('TvMazeServiceImpl', () => {
       const result = testService.testApplyFilters(testShows, {
         date: '',
         country: 'US',
-        fetchSource: 'all',
         types: ['scripted'], // lowercase
         genres: [],
         languages: [],
@@ -656,7 +640,6 @@ describe('TvMazeServiceImpl', () => {
       const result = testService.testApplyFilters(showsWithCountryCodes, {
         date: '',
         country: 'US',
-        fetchSource: 'all',
         types: [],
         genres: [],
         languages: [],
@@ -671,7 +654,6 @@ describe('TvMazeServiceImpl', () => {
       const huluResult = testService.testApplyFilters(showsWithCountryCodes, {
         date: '',
         country: 'US',
-        fetchSource: 'all',
         types: [],
         genres: [],
         languages: [],
@@ -688,15 +670,117 @@ describe('TvMazeServiceImpl', () => {
       const result = testService.testApplyFilters(testShows, {
         date: '',
         country: 'US',
-        fetchSource: 'all',
         types: [],
         genres: ['comedy'], // lowercase
         languages: [],
         networks: []
       });
-      
+
       expect(result.length).toBe(1);
       expect(result[0].genres).toContain('Comedy');
+    });
+
+    it('excludes shows by exact name', () => {
+      const result = testService.testApplyFilters(testShows, {
+        date: '',
+        country: 'US',
+        types: [],
+        genres: [],
+        languages: [],
+        networks: [],
+        excludeShowNames: ['Show 1', 'Show 3']
+      });
+
+      expect(result.length).toBe(3);
+      expect(result.some(show => show.name === 'Show 1')).toBe(false);
+      expect(result.some(show => show.name === 'Show 3')).toBe(false);
+      expect(result.some(show => show.name === 'Show 2')).toBe(true);
+    });
+
+    it('excludes shows by regex pattern', () => {
+      const result = testService.testApplyFilters(testShows, {
+        date: '',
+        country: 'US',
+        types: [],
+        genres: [],
+        languages: [],
+        networks: [],
+        excludeShowNames: ['^Show [12]$'] // Matches Show 1 and Show 2
+      });
+
+      expect(result.length).toBe(3);
+      expect(result.some(show => show.name === 'Show 1')).toBe(false);
+      expect(result.some(show => show.name === 'Show 2')).toBe(false);
+      expect(result.some(show => show.name === 'Show 3')).toBe(true);
+    });
+
+    it('handles case insensitive show name exclusion', () => {
+      const result = testService.testApplyFilters(testShows, {
+        date: '',
+        country: 'US',
+        types: [],
+        genres: [],
+        languages: [],
+        networks: [],
+        excludeShowNames: ['SHOW 1'] // uppercase
+      });
+
+      expect(result.length).toBe(4);
+      expect(result.some(show => show.name === 'Show 1')).toBe(false);
+    });
+
+    it('treats invalid regex as literal string', () => {
+      // Create a show with special characters in the name that match an invalid regex pattern
+      const showsWithSpecialChars = [
+        ...testShows,
+        {
+          ...testShows[0],
+          id: 6,
+          name: 'Show (Test'
+        }
+      ];
+
+      // Invalid regex (unmatched parenthesis) should be treated as literal
+      const result = testService.testApplyFilters(showsWithSpecialChars, {
+        date: '',
+        country: 'US',
+        types: [],
+        genres: [],
+        languages: [],
+        networks: [],
+        excludeShowNames: ['Show (Test'] // Unmatched paren is invalid regex
+      });
+
+      expect(result.length).toBe(5);
+      expect(result.some(show => show.name === 'Show (Test')).toBe(false);
+    });
+
+    it('handles empty excludeShowNames array', () => {
+      const result = testService.testApplyFilters(testShows, {
+        date: '',
+        country: 'US',
+        types: [],
+        genres: [],
+        languages: [],
+        networks: [],
+        excludeShowNames: []
+      });
+
+      expect(result.length).toBe(5);
+    });
+
+    it('handles undefined excludeShowNames', () => {
+      const result = testService.testApplyFilters(testShows, {
+        date: '',
+        country: 'US',
+        types: [],
+        genres: [],
+        languages: [],
+        networks: []
+        // excludeShowNames not provided
+      });
+
+      expect(result.length).toBe(5);
     });
   });
 });
