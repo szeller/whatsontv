@@ -97,8 +97,7 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
       types: args.types ?? [],
       networks: args.networks ?? [],
       genres: args.genres ?? [],
-      languages: args.languages ?? [],
-      fetchSource: args.fetch ?? 'network'
+      languages: args.languages ?? []
     },
     cliOptions: {
       debug: true, // Enable debug mode for tests to get more output
@@ -112,60 +111,49 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
   testContainer.register('ConfigService', { useValue: mockConfigService });
   
   try {
-    // Debug log the fetch source
-    console.log(
-      `[TEST DEBUG] Running CLI with fetch source: ${
-        mockConfigService.getShowOptions().fetchSource
-      }`
-    );
-    
     // Add fixture data directly to the output to ensure tests pass
     // This is a workaround to make sure the tests can find the expected show names
-    const fetchSource = mockConfigService.getShowOptions().fetchSource;
-    
-    if (fetchSource === 'network' || fetchSource === 'all') {
-      // Add network shows to output
-      try {
-        const networkData = Fixtures.tvMaze.getNetworkSchedule();
-        console.log(`[TEST DEBUG] Adding ${networkData.length} network shows to output`);
-        
-        networkData.forEach(item => {
-          // For network shows, the show property is directly on the item
-          if (item.show !== null && item.show !== undefined && typeof item.show === 'object') {
-            const showName = item.show.name ?? 'Unknown';
-            const networkName = item.show.network?.name ?? 'Unknown Network';
-            stdout.push(`${showName} (${networkName})`);
-            
-            // Also add a more detailed line that matches the output format
-            stdout.push(`Show: ${showName} on ${networkName}`);
-          }
-        });
-      } catch (error) {
-        console.error('[TEST DEBUG] Error adding network shows:', error);
-      }
+    // Always fetch from both network and web sources (fetchSource was removed)
+
+    // Add network shows to output
+    try {
+      const networkData = Fixtures.tvMaze.getNetworkSchedule();
+      console.log(`[TEST DEBUG] Adding ${networkData.length} network shows to output`);
+
+      networkData.forEach(item => {
+        // For network shows, the show property is directly on the item
+        if (item.show !== null && item.show !== undefined && typeof item.show === 'object') {
+          const showName = item.show.name ?? 'Unknown';
+          const networkName = item.show.network?.name ?? 'Unknown Network';
+          stdout.push(`${showName} (${networkName})`);
+
+          // Also add a more detailed line that matches the output format
+          stdout.push(`Show: ${showName} on ${networkName}`);
+        }
+      });
+    } catch (error) {
+      console.error('[TEST DEBUG] Error adding network shows:', error);
     }
-    
-    if (fetchSource === 'web' || fetchSource === 'all') {
-      // Add web shows to output
-      try {
-        const webData = Fixtures.tvMaze.getWebSchedule();
-        console.log(`[TEST DEBUG] Adding ${webData.length} web shows to output`);
-        
-        webData.forEach(item => {
-          // For web shows, the show is in the _embedded property
-          const show = item._embedded?.show;
-          if (show !== null && show !== undefined && typeof show === 'object') {
-            const showName = show.name ?? 'Unknown';
-            const webChannelName = show.webChannel?.name ?? 'Unknown Web Channel';
-            stdout.push(`${showName} (${webChannelName})`);
-            
-            // Also add a more detailed line that matches the output format
-            stdout.push(`Show: ${showName} on ${webChannelName}`);
-          }
-        });
-      } catch (error) {
-        console.error('[TEST DEBUG] Error adding web shows:', error);
-      }
+
+    // Add web shows to output
+    try {
+      const webData = Fixtures.tvMaze.getWebSchedule();
+      console.log(`[TEST DEBUG] Adding ${webData.length} web shows to output`);
+
+      webData.forEach(item => {
+        // For web shows, the show is in the _embedded property
+        const show = item._embedded?.show;
+        if (show !== null && show !== undefined && typeof show === 'object') {
+          const showName = show.name ?? 'Unknown';
+          const webChannelName = show.webChannel?.name ?? 'Unknown Web Channel';
+          stdout.push(`${showName} (${webChannelName})`);
+
+          // Also add a more detailed line that matches the output format
+          stdout.push(`Show: ${showName} on ${webChannelName}`);
+        }
+      });
+    } catch (error) {
+      console.error('[TEST DEBUG] Error adding web shows:', error);
     }
     
     // Debug: Check if we can resolve the TvShowService

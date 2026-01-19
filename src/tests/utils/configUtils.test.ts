@@ -3,12 +3,11 @@
  */
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { 
-  toStringArray, 
-  mergeArraysWithPriority, 
+import {
+  toStringArray,
+  mergeArraysWithPriority,
   getDirPathFromImportMeta,
   resolveRelativePath,
-  coerceFetchSource,
   mergeShowOptions
 } from '../../utils/configUtils.js';
 import { CliArgs } from '../../types/cliArgs.js';
@@ -95,7 +94,7 @@ describe('configUtils', () => {
       // Create a mock URL that mimics import.meta.url
       const mockUrl = 'file:///Users/test/project/src/file.js';
       const expectedPath = path.dirname(fileURLToPath(mockUrl));
-      
+
       expect(getDirPathFromImportMeta(mockUrl)).toBe(expectedPath);
     });
   });
@@ -105,14 +104,14 @@ describe('configUtils', () => {
       const baseDir = '/Users/test/project';
       const relativePath = '../otherproject/file.txt';
       const expected = path.resolve(baseDir, relativePath);
-      
+
       expect(resolveRelativePath(baseDir, relativePath)).toBe(expected);
     });
 
     it('should handle absolute paths in relativePath', () => {
       const baseDir = '/Users/test/project';
       const absolutePath = '/absolute/path/file.txt';
-      
+
       expect(resolveRelativePath(baseDir, absolutePath)).toBe(absolutePath);
     });
   });
@@ -128,10 +127,10 @@ describe('configUtils', () => {
         genres: [],
         languages: [],
         debug: true,
-        fetch: 'network',
-        groupByNetwork: false
+        groupByNetwork: false,
+        minAirtime: '18:00'
       };
-      
+
       const appConfig: AppConfig = {
         country: 'US',
         types: ['Reality'],
@@ -139,26 +138,26 @@ describe('configUtils', () => {
         genres: ['Comedy'],
         languages: ['English'],
         notificationTime: '09:00',
+        minAirtime: '18:00',
         slack: {
-          enabled: false
+          token: '',
+          channelId: '',
+          username: 'WhatsOnTV'
         }
       };
-      
+
       // Act
       const showOptions = mergeShowOptions(cliArgs, appConfig);
-      
+
       // Assert - CLI values should override config values when provided
       expect(showOptions.date).toBe('2025-04-01'); // From CLI
       expect(showOptions.country).toBe('CA'); // From CLI
       expect(showOptions.types).toEqual(['Drama']); // From CLI
-      
+
       // These should be from config since CLI provided empty arrays
       expect(showOptions.networks).toEqual(['ABC']); // From config
       expect(showOptions.genres).toEqual(['Comedy']); // From config
       expect(showOptions.languages).toEqual(['English']); // From config
-      
-      // Fetch source should be from CLI
-      expect(showOptions.fetchSource).toBe('network'); // From CLI
     });
 
     it('should handle merging arrays with different priorities correctly', () => {
@@ -171,10 +170,10 @@ describe('configUtils', () => {
         genres: [], // Empty array should fall back to config
         languages: ['French'], // Should override config
         debug: false,
-        fetch: 'all',
-        groupByNetwork: true
+        groupByNetwork: true,
+        minAirtime: '18:00'
       };
-      
+
       const appConfig: AppConfig = {
         country: 'US',
         types: ['Reality', 'Game Show'],
@@ -182,20 +181,22 @@ describe('configUtils', () => {
         genres: ['Comedy', 'Drama'],
         languages: ['English', 'Spanish'],
         notificationTime: '09:00',
+        minAirtime: '18:00',
         slack: {
-          enabled: false
+          token: '',
+          channelId: '',
+          username: 'WhatsOnTV'
         }
       };
-      
+
       // Act
       const showOptions = mergeShowOptions(cliArgs, appConfig);
-      
+
       // Assert - arrays should be merged with CLI taking priority when non-empty
       expect(showOptions.types).toEqual(['Reality', 'Game Show']); // From config (CLI was empty)
       expect(showOptions.networks).toEqual(['HBO', 'Showtime']); // From CLI (overrides config)
       expect(showOptions.genres).toEqual(['Comedy', 'Drama']); // From config (CLI was empty)
       expect(showOptions.languages).toEqual(['French']); // From CLI (overrides config)
-      expect(showOptions.fetchSource).toBe('all'); // From CLI
     });
 
     it('should use default values when both CLI and config are empty', () => {
@@ -208,10 +209,10 @@ describe('configUtils', () => {
         genres: [],
         languages: [],
         debug: false,
-        fetch: 'all', // Changed from empty string to valid enum value
-        groupByNetwork: false
+        groupByNetwork: false,
+        minAirtime: ''
       };
-      
+
       const appConfig: AppConfig = {
         country: '',
         types: [],
@@ -219,14 +220,17 @@ describe('configUtils', () => {
         genres: [],
         languages: [],
         notificationTime: '',
+        minAirtime: '',
         slack: {
-          enabled: false
+          token: '',
+          channelId: '',
+          username: 'WhatsOnTV'
         }
       };
-      
+
       // Act
       const showOptions = mergeShowOptions(cliArgs, appConfig);
-      
+
       // Assert - should use defaults
       expect(showOptions.date).toBe(getTodayDate());
       expect(showOptions.country).toBe('');
@@ -234,7 +238,6 @@ describe('configUtils', () => {
       expect(showOptions.networks).toEqual([]);
       expect(showOptions.genres).toEqual([]);
       expect(showOptions.languages).toEqual([]);
-      expect(showOptions.fetchSource).toBe('all');
     });
 
     it('should handle undefined and null values gracefully', () => {
@@ -245,10 +248,9 @@ describe('configUtils', () => {
         types: undefined,
         networks: null as unknown as string[],
         debug: false,
-        fetch: undefined,
         groupByNetwork: false
       };
-      
+
       const appConfig: Partial<AppConfig> = {
         country: 'US',
         types: ['Reality'],
@@ -256,13 +258,15 @@ describe('configUtils', () => {
         languages: null as unknown as string[],
         notificationTime: '09:00',
         slack: {
-          enabled: false
+          token: '',
+          channelId: '',
+          username: 'WhatsOnTV'
         }
       };
-      
+
       // Act
       const showOptions = mergeShowOptions(cliArgs as CliArgs, appConfig as AppConfig);
-      
+
       // Assert
       expect(showOptions.date).toBe(getTodayDate()); // Default
       expect(showOptions.country).toBe('US'); // From config
@@ -270,14 +274,13 @@ describe('configUtils', () => {
       expect(showOptions.networks).toEqual([]); // Default
       expect(showOptions.genres).toEqual([]); // Default
       expect(showOptions.languages).toEqual([]); // Default
-      expect(showOptions.fetchSource).toBe('all'); // Default
     });
 
     it('should handle null/undefined checks correctly with strict-boolean-expressions', () => {
       // This test verifies the strict-boolean-expressions fix works correctly
       // The fix ensures we check !== undefined && !== null instead of using ||
       // This matters when base config has values that should be preserved
-      
+
       // Arrange - CLI provides some values, leaves others undefined
       const cliArgs: Partial<CliArgs> = {
         date: '2025-04-01',
@@ -288,10 +291,9 @@ describe('configUtils', () => {
         languages: ['French'], // CLI provides value - should be used
         minAirtime: '18:00',
         debug: false,
-        fetch: 'all',
         groupByNetwork: true
       };
-      
+
       const appConfig: AppConfig = {
         country: 'CA',
         types: ['Drama', 'Comedy'], // Should NOT be used (CLI has value)
@@ -306,10 +308,10 @@ describe('configUtils', () => {
           username: 'test-bot'
         }
       };
-      
+
       // Act
       const showOptions = mergeShowOptions(cliArgs as CliArgs, appConfig);
-      
+
       // Assert - verify the null/undefined checks work correctly
       expect(showOptions.types).toEqual(['Action']); // CLI value used
       expect(showOptions.networks).toEqual(['HBO', 'Netflix']); // Falls back to appConfig
@@ -317,32 +319,42 @@ describe('configUtils', () => {
       expect(showOptions.languages).toEqual(['French']); // CLI value used
       expect(showOptions.country).toBe('US'); // CLI overrides appConfig
     });
-  });
 
-  describe('coerceFetchSource', () => {
-    it('should return "web" for "web" input', () => {
-      expect(coerceFetchSource('web')).toBe('web');
-    });
+    it('should include excludeShowNames from showNameFilter', () => {
+      // Arrange
+      const cliArgs: CliArgs = {
+        date: '2025-04-01',
+        country: 'US',
+        types: [],
+        networks: [],
+        genres: [],
+        languages: [],
+        debug: false,
+        groupByNetwork: true,
+        minAirtime: '18:00'
+      };
 
-    it('should return "network" for "network" input', () => {
-      expect(coerceFetchSource('network')).toBe('network');
-    });
+      const appConfig: AppConfig = {
+        country: 'US',
+        types: [],
+        networks: [],
+        genres: [],
+        languages: [],
+        notificationTime: '09:00',
+        minAirtime: '18:00',
+        showNameFilter: ['Days of Our Lives', 'General Hospital'],
+        slack: {
+          token: '',
+          channelId: '',
+          username: 'WhatsOnTV'
+        }
+      };
 
-    it('should return "all" for any other string input', () => {
-      expect(coerceFetchSource('invalid')).toBe('all');
-    });
+      // Act
+      const showOptions = mergeShowOptions(cliArgs, appConfig);
 
-    it('should handle case-insensitive inputs', () => {
-      expect(coerceFetchSource('WEB')).toBe('web');
-      expect(coerceFetchSource('Network')).toBe('network');
-    });
-
-    it('should return "all" for non-string inputs', () => {
-      expect(coerceFetchSource(123)).toBe('all');
-      expect(coerceFetchSource(null)).toBe('all');
-      expect(coerceFetchSource(undefined)).toBe('all');
-      expect(coerceFetchSource({})).toBe('all');
-      expect(coerceFetchSource([])).toBe('all');
+      // Assert
+      expect(showOptions.excludeShowNames).toEqual(['Days of Our Lives', 'General Hospital']);
     });
   });
 });

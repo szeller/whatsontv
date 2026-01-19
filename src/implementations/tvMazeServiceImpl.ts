@@ -7,10 +7,10 @@ import type { LoggerService } from '../interfaces/loggerService.js';
 import type { TvShowService } from '../interfaces/tvShowService.js';
 import type { Show } from '../schemas/domain.js';
 import type { ShowOptions } from '../types/tvShowOptions.js';
-import { 
-  getNetworkScheduleUrl, 
-  getWebScheduleUrl, 
-  transformSchedule 
+import {
+  getNetworkScheduleUrl,
+  getWebScheduleUrl,
+  transformSchedule
 } from '../utils/tvMazeUtils.js';
 import { convertTimeToMinutes, getTodayDate } from '../utils/dateUtils.js';
 import { getStringOrDefault } from '../utils/stringUtils.js';
@@ -45,14 +45,14 @@ export class TvMazeServiceImpl implements TvShowService {
    */
   private async getSchedule(url: string): Promise<Record<string, unknown>[]> {
     const startTime = Date.now();
-    
+
     // Debug: Log the API request details
     this.logger.debug({
       operation: 'getSchedule',
       url,
       timestamp: new Date().toISOString()
     }, 'Making TVMaze API request');
-    
+
     try {
       const response = await this._apiClient.get<unknown[]>(url);
       if (Array.isArray(response.data)) {
@@ -71,7 +71,7 @@ export class TvMazeServiceImpl implements TvShowService {
           },
           duration: Date.now() - startTime
         }, 'Raw TVMaze API response captured');
-        
+
         // Log successful API call (info level)
         this.logger.info({
           url,
@@ -79,10 +79,10 @@ export class TvMazeServiceImpl implements TvShowService {
           duration: Date.now() - startTime,
           statusCode: response.status
         }, 'Successfully fetched schedule from TVMaze API');
-        
+
         return response.data as Record<string, unknown>[];
       }
-      
+
       // Debug: Log empty or invalid response
       this.logger.debug({
         operation: 'getSchedule',
@@ -91,7 +91,7 @@ export class TvMazeServiceImpl implements TvShowService {
         isArray: Array.isArray(response.data),
         statusCode: response.status
       }, 'TVMaze API returned non-array response');
-      
+
       return [];
     } catch (error) {
       // Log errors with structured logging for better observability
@@ -115,7 +115,6 @@ export class TvMazeServiceImpl implements TvShowService {
     const defaultOptions: ShowOptions = {
       date: '',
       country: 'US',
-      fetchSource: 'all',
       types: [],
       genres: [],
       languages: [],
@@ -131,36 +130,29 @@ export class TvMazeServiceImpl implements TvShowService {
     // Get date string, default to today if not provided
     const dateStr = getStringOrDefault(mergedOptions.date, getTodayDate());
     const countryStr = getStringOrDefault(mergedOptions.country, 'US');
-    
-    // URLs to fetch based on options
-    const urlsToFetch: string[] = [];
-    
+
+    // Always fetch from both network and web sources
+    const urlsToFetch: string[] = [
+      getNetworkScheduleUrl(dateStr, countryStr),
+      getWebScheduleUrl(dateStr)
+    ];
+
     try {
-
-      // Determine which sources to fetch based on fetchSource
-      if (mergedOptions.fetchSource === 'all' || mergedOptions.fetchSource === 'network') {
-        urlsToFetch.push(getNetworkScheduleUrl(dateStr, countryStr));
-      }
-
-      if (mergedOptions.fetchSource === 'all' || mergedOptions.fetchSource === 'web') {
-        urlsToFetch.push(getWebScheduleUrl(dateStr));
-      }
-
       // Fetch all schedules in parallel
       const schedulePromises = urlsToFetch.map(url => this.getSchedule(url));
       const scheduleResults = await Promise.all(schedulePromises);
-      
+
       // Transform and combine all schedule results using a functional approach
       let shows = scheduleResults
         .map(scheduleResult => transformSchedule(scheduleResult))
         .flat();
-      
+
       // Deduplicate shows based on unique combination of show ID and episode
       shows = this.deduplicateShows(shows);
-      
+
       // Always apply filters - the applyFilters method will handle empty filter arrays
       shows = this.applyFilters(shows, mergedOptions);
-      
+
       return shows;
     } catch (error) {
       // Log errors with structured logging for better observability
@@ -173,6 +165,16 @@ export class TvMazeServiceImpl implements TvShowService {
       }, 'Failed to fetch TV shows');
       return [];
     }
+  }
+
+  /**
+   * Escape special regex characters in a string for literal matching
+   * @param str String to escape
+   * @returns Escaped string safe for regex use
+   * @private
+   */
+  private escapeRegex(str: string): string {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
   /**
@@ -198,8 +200,8 @@ export class TvMazeServiceImpl implements TvShowService {
     const typeValues = options.types;
     if (Array.isArray(typeValues) && typeValues.length > 0) {
       filteredShows = filteredShows.filter((show: Show) => {
-        return typeof show.type === 'string' && 
-               typeValues.some((type: string) => 
+        return typeof show.type === 'string' &&
+               typeValues.some((type: string) =>
                  show.type.toLowerCase() === type.toLowerCase()
                );
       });
@@ -212,11 +214,11 @@ export class TvMazeServiceImpl implements TvShowService {
         if (typeof show.network !== 'string') {
           return false;
         }
-        
+
         // Remove country codes for exact matching
         const showNetwork = show.network.replace(/\s+\([A-Z]{2}\)$/, '').toLowerCase();
-        
-        return networkValues.some((network: string) => 
+
+        return networkValues.some((network: string) =>
           showNetwork === network.toLowerCase()
         );
       });
@@ -226,9 +228,9 @@ export class TvMazeServiceImpl implements TvShowService {
     const genreValues = options.genres;
     if (Array.isArray(genreValues) && genreValues.length > 0) {
       filteredShows = filteredShows.filter((show: Show) => {
-        return Array.isArray(show.genres) && 
-               genreValues.some((genre: string) => 
-                 show.genres.some((showGenre: string) => 
+        return Array.isArray(show.genres) &&
+               genreValues.some((genre: string) =>
+                 show.genres.some((showGenre: string) =>
                    showGenre.toLowerCase() === genre.toLowerCase()
                  )
                );
@@ -243,34 +245,51 @@ export class TvMazeServiceImpl implements TvShowService {
         if (typeof show.language !== 'string' || show.language === null) {
           return false;
         }
-        
+
         // Case-insensitive language matching
         const showLanguage = show.language;
-        return languageValues.some((language: string) => 
+        return languageValues.some((language: string) =>
           showLanguage.toLowerCase() === language.toLowerCase()
         );
       });
     }
-    
+
     // Apply minimum airtime filter
     const minAirtime = options.minAirtime;
     if (minAirtime !== undefined && minAirtime !== null && minAirtime !== '') {
       // Convert minAirtime to minutes for comparison
       const minTimeInMinutes = convertTimeToMinutes(minAirtime);
-      
+
       if (minTimeInMinutes >= 0) {
         filteredShows = filteredShows.filter((show: Show) => {
           // Skip shows with no airtime (streaming shows often have no airtime)
-          if (show.airtime === undefined || 
-              show.airtime === null || 
+          if (show.airtime === undefined ||
+              show.airtime === null ||
               show.airtime.trim() === '') {
             return true;
           }
-          
+
           const showTimeInMinutes = convertTimeToMinutes(show.airtime);
           return showTimeInMinutes >= minTimeInMinutes;
         });
       }
+    }
+
+    // Apply show name exclusion filter
+    const excludePatterns = options.excludeShowNames;
+    if (Array.isArray(excludePatterns) && excludePatterns.length > 0) {
+      const compiledPatterns = excludePatterns.map(pattern => {
+        try {
+          return new RegExp(pattern, 'i');
+        } catch {
+          // Invalid regex - treat as literal string
+          return new RegExp(this.escapeRegex(pattern), 'i');
+        }
+      });
+
+      filteredShows = filteredShows.filter(show =>
+        !compiledPatterns.some(regex => regex.test(show.name))
+      );
     }
 
     return filteredShows;

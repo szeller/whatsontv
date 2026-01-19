@@ -30,7 +30,6 @@ describe('ConfigService Integration Tests', () => {
       expect(options).toHaveProperty('networks');
       expect(options).toHaveProperty('genres');
       expect(options).toHaveProperty('languages');
-      expect(options).toHaveProperty('fetchSource');
 
       // Verify types are correct
       expect(typeof options.date).toBe('string');

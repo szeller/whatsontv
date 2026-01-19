@@ -1,42 +1,17 @@
 /**
  * Configuration type definitions
+ * Re-exports types from Zod schemas and defines CLI-only types
  */
 
-/**
- * Slack integration configuration
- */
-export interface SlackConfig {
-  token: string;
-  channelId: string;
-  username: string;
-  icon_emoji?: string;
-  dateFormat?: string;
-}
+// Re-export schema-derived types
+export type {
+  SlackConfig,
+  AppConfig,
+  ShowNameFilter
+} from '../schemas/config.js';
 
 /**
- * Application runtime configuration structure
- *
- * This is intentionally separate from infrastructure/whatsontv-stack.ts AppConfig:
- * - This type: Full runtime config with filters, timing, display options
- * - whatsontv-stack.ts: Minimal CDK deployment config (just Slack credentials)
- *
- * For CLI: Read from config.json at runtime
- * For Lambda: Read from APP_CONFIG env var (populated from config.json at deploy time)
- */
-export interface AppConfig {
-  country: string;
-  timezone?: string;
-  types: string[];
-  networks: string[];
-  genres: string[];
-  languages: string[];
-  minAirtime: string;
-  notificationTime: string;
-  slack: SlackConfig;
-}
-
-/**
- * CLI-specific options
+ * CLI-specific options (not serialized to Lambda)
  */
 export interface CliOptions {
   debug: boolean;

@@ -24,19 +24,20 @@ describe('TestConfigServiceImpl', () => {
       networks: ['BBC'],
       genres: ['Drama'],
       languages: ['English'],
-      fetchSource: 'web' as 'web' | 'network' | 'all',
-      minAirtime: '20:00'
+      minAirtime: '20:00',
+      excludeShowNames: ['Test Show']
     };
-    
+
     // Act
     const configService = new TestConfigServiceImpl(showOptions);
-    
+
     // Assert
     expect(configService.getShowOptions()).toEqual(showOptions);
     expect(configService.getShowOption('date')).toBe('2025-04-01');
     expect(configService.getShowOption('country')).toBe('UK');
     expect(configService.getShowOption('types')).toEqual(['Scripted']);
     expect(configService.getShowOption('minAirtime')).toBe('20:00');
+    expect(configService.getShowOption('excludeShowNames')).toEqual(['Test Show']);
   });
 
   it('should use provided CLI options', () => {

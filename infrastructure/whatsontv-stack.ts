@@ -31,6 +31,8 @@ interface AppConfig {
   genres?: string[];
   minAirtime?: string;
   notificationTime?: string;
+  // Show name filter - array of patterns to exclude (regex or literal)
+  showNameFilter?: string[];
   // Slack credentials
   slack: {
     token: string;
@@ -55,6 +57,7 @@ export class WhatsOnTvStack extends cdk.Stack {
     const config = this.loadConfig();
 
     // Extract runtime config for Lambda (filtering options)
+    // Matches ShowOptions structure expected by LambdaConfigServiceImpl
     const runtimeConfig = {
       country: config.country,
       timezone: config.timezone,
@@ -63,6 +66,7 @@ export class WhatsOnTvStack extends cdk.Stack {
       networks: config.networks,
       genres: config.genres,
       minAirtime: config.minAirtime,
+      showNameFilter: config.showNameFilter,
     };
 
     // Environment variables for Lambda
