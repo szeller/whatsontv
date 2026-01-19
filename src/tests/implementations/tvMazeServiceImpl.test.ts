@@ -188,9 +188,7 @@ describe('TvMazeServiceImpl', () => {
       });
 
       // Call the method under test
-      const shows = await tvMazeService.fetchShows({
-        fetchSource: 'web'
-      });
+      const shows = await tvMazeService.fetchShows();
 
       // Verify the result
       expect(shows.length).toBe(3);
@@ -233,9 +231,7 @@ describe('TvMazeServiceImpl', () => {
         });
       
       // Call the method under test
-      const shows = await tvMazeService.fetchShows({
-        fetchSource: 'all'
-      });
+      const shows = await tvMazeService.fetchShows();
       
       // Verify the result
       expect(shows.length).toBe(4);
