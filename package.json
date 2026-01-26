@@ -63,7 +63,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^25.0.2",
     "@types/yargs": "^17.0.34",
-    "@typescript-eslint/eslint-plugin": "^8.46.3",
+    "@typescript-eslint/eslint-plugin": "^8.53.1",
     "@typescript-eslint/parser": "^8.46.3",
     "aws-cdk-lib": "^2.222.0",
     "constructs": "^10.4.3",
