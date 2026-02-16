@@ -68,7 +68,7 @@ export class MockSlackClient implements SlackClient {
       logMessages.push('--- End of MockSlackClient Message ---');
       
       if (this.debugMode === 'console') {
-        logMessages.forEach(msg => console.log(msg));
+        logMessages.forEach(msg => { console.log(msg); });
       } else if (this.debugMode === 'store') {
         this.debugLogs.push(...logMessages);
       }
@@ -213,7 +213,7 @@ export class MockSlackClient implements SlackClient {
     summary.push('--- End of MockSlackClient stored messages ---');
     
     if (toConsole) {
-      summary.forEach(line => console.log(line));
+      summary.forEach(line => { console.log(line); });
     }
     
     if (this.debugMode === 'store') {

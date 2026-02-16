@@ -20,7 +20,7 @@ import { getStringOrDefault } from '../utils/stringUtils.js';
  */
 @injectable()
 export class TvMazeServiceImpl implements TvShowService {
-  private _apiClient: HttpClient;
+  private readonly _apiClient: HttpClient;
   private readonly logger: LoggerService;
 
   constructor(
@@ -139,7 +139,7 @@ export class TvMazeServiceImpl implements TvShowService {
 
     try {
       // Fetch all schedules in parallel
-      const schedulePromises = urlsToFetch.map(url => this.getSchedule(url));
+      const schedulePromises = urlsToFetch.map(async url => this.getSchedule(url));
       const scheduleResults = await Promise.all(schedulePromises);
 
       // Transform and combine all schedule results using a functional approach

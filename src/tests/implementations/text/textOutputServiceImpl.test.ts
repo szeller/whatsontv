@@ -17,21 +17,21 @@ class TestTextOutputService extends TextOutputServiceImpl {
   }
   
   // Expose protected methods for testing
-  testRenderHeader(date: Date): Promise<void> {
+  async testRenderHeader(date: Date): Promise<void> {
     return this.renderHeader(date);
   }
   
-  testRenderContent(networkGroups: Record<string, Show[]>, date: Date): Promise<void> {
+  async testRenderContent(networkGroups: Record<string, Show[]>, date: Date): Promise<void> {
     return this.renderContent(networkGroups, date);
   }
   
-  testRenderFooter(): Promise<void> {
+  async testRenderFooter(): Promise<void> {
     return this.renderFooter();
   }
   
   // Debug functionality moved to structured logging - no longer need test method
   
-  testHandleError(error: unknown): Promise<void> {
+  async testHandleError(error: unknown): Promise<void> {
     return this.handleError(error);
   }
   

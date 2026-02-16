@@ -322,7 +322,7 @@ describe('TvMazeServiceImpl', () => {
     class TestTvMazeService extends TvMazeServiceImpl {
       public testApplyFilters(shows: Show[], options: ShowOptions): Show[] {
         // Access the protected method using type assertion
-        return this['applyFilters'](shows, options);
+        return this.applyFilters(shows, options);
       }
     }
     

@@ -207,7 +207,7 @@ describe('Validation Utilities', () => {
     it('should throw error for non-array input', () => {
       const testData = { value: 1 }; // Not an array
       
-      expect(() => validateArray(itemSchema, testData as unknown as Array<unknown>))
+      expect(() => validateArray(itemSchema, testData as unknown as unknown[]))
         .toThrow(/Array validation error/);
     });
   });

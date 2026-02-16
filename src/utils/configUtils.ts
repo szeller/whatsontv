@@ -17,7 +17,7 @@ import { getStringValue } from './stringUtils.js';
  */
 export function toStringArray(
   value: string | string[] | undefined | null,
-  separator: string = ','
+  separator = ','
 ): string[] {
   // Handle undefined/null
   if (value === undefined || value === null) {

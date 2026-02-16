@@ -27,15 +27,15 @@ class TestCliConfigService extends CliConfigServiceImpl {
     types: [],
     networks: []
   };
-  private mockArgs: string[] = [];
+  private readonly mockArgs: string[] = [];
   
   // Mock implementation flags
-  private mockFileExists = false;
-  private mockConfigContent: Partial<AppConfig> = {};
-  private mockReadFileError: Error | string | null = null;
-  private mockShowOptions: Record<string, unknown> = {};
+  private readonly mockFileExists: boolean = false;
+  private readonly mockConfigContent: Partial<AppConfig> = {};
+  private readonly mockReadFileError: Error | string | null = null;
+  private readonly mockShowOptions: Record<string, unknown> = {};
   private errorHandlerCalled = false;
-  private mockEnvVars: Record<string, string | undefined> = {};
+  private readonly mockEnvVars: Record<string, string | undefined> = {};
 
   constructor(options: {
     cliArgs?: Partial<CliArgs>;

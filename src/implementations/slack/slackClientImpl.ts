@@ -11,8 +11,8 @@ import type { SlackConfig } from '../../types/configTypes.js';
  */
 @injectable()
 export class SlackClientImpl implements SlackClient {
-  private _client: WebClient;
-  private _options: SlackConfig;
+  private readonly _client: WebClient;
+  private readonly _options: SlackConfig;
   private readonly logger: LoggerService;
 
   /**

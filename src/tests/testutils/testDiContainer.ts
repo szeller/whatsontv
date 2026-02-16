@@ -23,7 +23,7 @@ import type { HttpClient, HttpResponse } from '../../interfaces/httpClient.js';
 export function createMockHttpClient(): HttpClient {
   // Create a simple mock object that matches the HttpClient interface
   const mockClient = {
-    get: function<T>(
+    get: async function<T>(
       _url: string, 
       _params?: Record<string, string> | { searchParams: Record<string, string> }
     ): Promise<HttpResponse<T>> {
@@ -33,7 +33,7 @@ export function createMockHttpClient(): HttpClient {
         headers: {}
       });
     },
-    post: function<T, D = unknown>(
+    post: async function<T, D = unknown>(
       _url: string, 
       _data?: D, 
       _params?: Record<string, string>

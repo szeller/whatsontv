@@ -32,7 +32,7 @@ describe('lambdaContainer', () => {
     // Dynamic import to avoid side effects at module load time
     const { initializeLambdaContainer } = await import('../lambdaContainer.js');
 
-    expect(() => initializeLambdaContainer()).not.toThrow();
+    expect(() => { initializeLambdaContainer(); }).not.toThrow();
   });
 
   it('registers TvShowService', async () => {

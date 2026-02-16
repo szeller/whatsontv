@@ -200,7 +200,7 @@ describe('CLI Integration Tests', () => {
       
       // Set up a malformed response for the network schedule endpoint
       const networkUrl = getNetworkScheduleUrl(today);
-      jest.spyOn(mockHttpClient, 'get').mockImplementation((url) => {
+      jest.spyOn(mockHttpClient, 'get').mockImplementation(async (url) => {
         if (url === networkUrl) {
           return Promise.resolve({
             status: 200,

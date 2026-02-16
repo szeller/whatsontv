@@ -28,7 +28,7 @@ const baseShow: Show = {
  * Show builder for creating customized show instances
  */
 export class ShowBuilder {
-  private show: Show;
+  private readonly show: Show;
 
   /**
    * Create a new show builder

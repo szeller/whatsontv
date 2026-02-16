@@ -194,7 +194,7 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
     console.log(`[TEST DEBUG] Captured ${stdout.length} stdout lines`);
     if (stdout.length > 0) {
       console.log('[TEST DEBUG] First few lines of output:');
-      stdout.slice(0, 5).forEach((line, i) => console.log(`[TEST DEBUG] ${i}: ${line}`));
+      stdout.slice(0, 5).forEach((line, i) => { console.log(`[TEST DEBUG] ${i}: ${line}`); });
     }
   } catch (error) {
     // Capture any errors

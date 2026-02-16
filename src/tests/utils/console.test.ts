@@ -40,7 +40,7 @@ describe('Console Test Helpers', () => {
       const messages = ['message 1', 'message 2', 'message 3'];
       
       // Act
-      messages.forEach(msg => mockConsole.log(msg));
+      messages.forEach(msg => { mockConsole.log(msg); });
       
       // Assert
       const output = mockConsole.getOutput();

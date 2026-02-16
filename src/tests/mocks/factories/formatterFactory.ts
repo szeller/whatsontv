@@ -37,7 +37,7 @@ export function createMockFormatter(
   const mockFormatter: jest.Mocked<TextShowFormatter> = {
     formatTimedShow: jest.fn((show: Show) => {
       // If we have a custom formatter for this show ID, use it
-      if (options.showFormatters && options.showFormatters[show.id]) {
+      if (options.showFormatters?.[show.id]) {
         return options.showFormatters[show.id];
       }
       
@@ -50,7 +50,7 @@ export function createMockFormatter(
     
     formatUntimedShow: jest.fn((show: Show) => {
       // If we have a custom formatter for this show ID, use it
-      if (options.showFormatters && options.showFormatters[show.id]) {
+      if (options.showFormatters?.[show.id]) {
         return options.showFormatters[show.id];
       }
       

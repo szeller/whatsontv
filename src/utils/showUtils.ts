@@ -154,7 +154,7 @@ function formatRange(
  */
 export function formatEpisodeRanges(
   episodes: Show[], 
-  padEpisodeNumbers: boolean = true
+  padEpisodeNumbers = true
 ): string {
   if (!Array.isArray(episodes) || episodes.length === 0) {
     return '';

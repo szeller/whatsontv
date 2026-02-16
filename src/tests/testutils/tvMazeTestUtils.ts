@@ -102,7 +102,7 @@ export function setupTvMazeMocks(
     const webData = Fixtures.tvMaze.getSchedule('web-schedule') as WebScheduleItem[];
     
     // Set up mock implementation for the get method
-    jest.spyOn(mockHttpClient, 'get').mockImplementation((_url: string) => {
+    jest.spyOn(mockHttpClient, 'get').mockImplementation(async (_url: string) => {
       // Network schedule endpoint
       if (_url === networkEndpoint) {
         return Promise.resolve({
@@ -123,7 +123,7 @@ export function setupTvMazeMocks(
       
       // Individual show endpoints
       if (_url.startsWith(`${TVMAZE_API.BASE_URL}${TVMAZE_API.SHOW_ENDPOINT}/`)) {
-        const showIdMatch = _url.match(/\/shows\/(\d+)$/);
+        const showIdMatch = /\/shows\/(\d+)$/.exec(_url);
         if (showIdMatch) {
           const showId = parseInt(showIdMatch[1], 10);
           
@@ -166,7 +166,7 @@ export function setupTvMazeMocks(
     console.error('Error setting up TVMaze mocks:', error);
     
     // Provide fallback empty responses if fixtures can't be loaded
-    jest.spyOn(mockHttpClient, 'get').mockImplementation((_url: string) => {
+    jest.spyOn(mockHttpClient, 'get').mockImplementation(async (_url: string) => {
       return Promise.resolve({
         status: 200,
         headers: {},

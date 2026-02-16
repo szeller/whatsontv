@@ -132,27 +132,27 @@ describe('Lambda Handler Logic - Isolated Tests', () => {
       };
 
       // Test missing token
-      expect(() => validateEnvVars(undefined, '#test')).toThrow(
+      expect(() => { validateEnvVars(undefined, '#test'); }).toThrow(
         'SLACK_TOKEN environment variable is required but not set'
       );
       
       // Test empty token
-      expect(() => validateEnvVars('', '#test')).toThrow(
+      expect(() => { validateEnvVars('', '#test'); }).toThrow(
         'SLACK_TOKEN environment variable is required but not set'
       );
       
       // Test missing channel
-      expect(() => validateEnvVars('test-token', undefined)).toThrow(
+      expect(() => { validateEnvVars('test-token', undefined); }).toThrow(
         'SLACK_CHANNEL environment variable is required but not set'
       );
       
       // Test empty channel
-      expect(() => validateEnvVars('test-token', '')).toThrow(
+      expect(() => { validateEnvVars('test-token', ''); }).toThrow(
         'SLACK_CHANNEL environment variable is required but not set'
       );
       
       // Test valid values
-      expect(() => validateEnvVars('test-token', '#test-channel')).not.toThrow();
+      expect(() => { validateEnvVars('test-token', '#test-channel'); }).not.toThrow();
     });
   });
 

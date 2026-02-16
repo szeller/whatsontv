@@ -50,7 +50,7 @@ describe('SlackOutputServiceImpl', () => {
     mockFormatter = SlackShowFormatterFixture.createMockFormatter();
     
     mockSlackClient = {
-      sendMessage: jest.fn().mockImplementation(() => Promise.resolve())
+      sendMessage: jest.fn().mockImplementation(async () => Promise.resolve())
     } as jest.Mocked<SlackClient>;
     
     mockConfigService = {

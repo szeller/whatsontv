@@ -25,9 +25,9 @@ interface ShowWithId {
 describe('TVMaze Utils', () => {
   // Load test fixtures using the utility class and add type assertions
   const networkSchedule = Fixtures.tvMaze.getSchedule('network-schedule') as 
-    Array<NetworkScheduleItem & { show: ShowWithId }>;
+    (NetworkScheduleItem & { show: ShowWithId })[];
   const webSchedule = Fixtures.tvMaze.getSchedule('web-schedule') as 
-    Array<WebScheduleItem & { _embedded: { show: ShowWithId } }>;
+    (WebScheduleItem & { _embedded: { show: ShowWithId } })[];
 
   describe('URL Generation', () => {
     it('should generate network schedule URL with date and country', () => {

@@ -5,7 +5,7 @@
  */
 
 // Re-export types
-export * from './types.js';
+export type * from './types.js';
 
 // Factory exports
 export * from './processOutputFactory.js';
