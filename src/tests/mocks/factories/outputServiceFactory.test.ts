@@ -46,7 +46,7 @@ describe('OutputServiceFactory', () => {
     
     it('should execute onRenderOutput callback when provided', async () => {
       // Arrange
-      const onRenderOutput = jest.fn();
+      const onRenderOutput = jest.fn<(shows: Show[]) => void>();
       const service = createMockOutputService({ onRenderOutput });
       
       // Act

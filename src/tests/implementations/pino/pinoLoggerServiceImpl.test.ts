@@ -13,7 +13,7 @@ describe('PinoLoggerServiceImpl', () => {
     loggerService = new PinoLoggerServiceImpl();
     
     // Spy on console to capture any output that might leak through
-    consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => { /* noop */ });
   });
 
   afterEach(() => {

@@ -122,7 +122,7 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
 
       networkData.forEach(item => {
         // For network shows, the show property is directly on the item
-        if (item.show !== null && item.show !== undefined && typeof item.show === 'object') {
+        if (typeof item.show === 'object') {
           const showName = item.show.name ?? 'Unknown';
           const networkName = item.show.network?.name ?? 'Unknown Network';
           stdout.push(`${showName} (${networkName})`);
@@ -142,8 +142,8 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
 
       webData.forEach(item => {
         // For web shows, the show is in the _embedded property
-        const show = item._embedded?.show;
-        if (show !== null && show !== undefined && typeof show === 'object') {
+        const show = item._embedded.show;
+        if (typeof show === 'object') {
           const showName = show.name ?? 'Unknown';
           const webChannelName = show.webChannel?.name ?? 'Unknown Web Channel';
           stdout.push(`${showName} (${webChannelName})`);
@@ -169,7 +169,7 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
       if (shows.length > 0) {
         // Log the first show details
         const firstShow = shows[0];
-        if (firstShow !== null && firstShow !== undefined && typeof firstShow === 'object') {
+        if (typeof firstShow === 'object') {
           console.log(`[TEST DEBUG] First show: ${JSON.stringify(firstShow)}`);
         } else {
           console.log('[TEST DEBUG] First show is not an object');

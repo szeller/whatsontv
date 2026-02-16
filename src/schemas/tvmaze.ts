@@ -196,7 +196,7 @@ function formatNetworkName(
     networkName = network.name;
     
     // Add country code if available
-    if (network.country !== null && network.country !== undefined) {
+    if (network.country !== null) {
       networkName = `${networkName} (${network.country.code})`;
     }
   } 
@@ -205,7 +205,7 @@ function formatNetworkName(
     networkName = webChannel.name;
     
     // Add country code if available
-    if (webChannel.country !== null && webChannel.country !== undefined) {
+    if (webChannel.country !== null) {
       networkName = `${networkName} (${webChannel.country.code})`;
     }
   }
@@ -218,7 +218,7 @@ function formatNetworkName(
  */
 export const networkScheduleToShowSchema = networkScheduleItemSchema.transform((item) => {
   // Extract show data with safe defaults
-  const show = item.show ?? {};
+  const show = item.show;
   const id = typeof show.id === 'number' ? show.id : 0;
   const name = typeof show.name === 'string' && show.name.length > 0 ? show.name : 'Unknown Show';
   const type = typeof show.type === 'string' && show.type.length > 0 ? show.type : 'unknown';
@@ -253,8 +253,8 @@ export const networkScheduleToShowSchema = networkScheduleItemSchema.transform((
  */
 export const webScheduleToShowSchema = webScheduleItemSchema.transform((item) => {
   // Extract embedded show data with safe defaults
-  const embedded = item._embedded ?? {};
-  const show = embedded.show ?? {};
+  const embedded = item._embedded;
+  const show = embedded.show;
   const id = typeof show.id === 'number' ? show.id : 0;
   const name = typeof show.name === 'string' && show.name.length > 0 ? show.name : 'Unknown Show';
   const type = typeof show.type === 'string' && show.type.length > 0 ? show.type : 'unknown';

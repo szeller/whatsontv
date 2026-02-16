@@ -127,9 +127,9 @@ export function prepareShowComponents(
   const typeLabel = options.typeUnknownLabel ?? 'Unknown Type';
   
   // Use nullish coalescing to handle null/undefined values
-  const name = getStringValue(show?.name ?? '', 'Untitled Show');
-  const network = formatNetworkName(show?.network ?? '', networkLabel);
-  const type = formatShowType(show?.type ?? '', typeLabel);
+  const name = getStringValue(show.name, 'Untitled Show');
+  const network = formatNetworkName(show.network, networkLabel);
+  const type = formatShowType(show.type, typeLabel);
   const episode = formatEpisodeInfo(show);
   
   let airtime = 'No airtime';
@@ -161,11 +161,9 @@ export function groupShowsByShowId(shows: Show[] | null | undefined): Record<str
 
   shows.forEach(show => {
     // Use optional chaining and nullish coalescing for safe property access
-    const showId = show?.id?.toString() ?? '';
+    const showId = show.id.toString();
     if (showId !== '') {
-      if (groups[showId] === undefined) {
-        groups[showId] = [];
-      }
+      groups[showId] ??= [];
       groups[showId].push(show);
     }
   });

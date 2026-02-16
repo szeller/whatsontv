@@ -8,23 +8,14 @@ import { container } from '../../slackContainer.js';
 import { createSlackApp, createSlackAppWithContainer } from '../../cli/slackCli.js';
 
 describe('Slack CLI Tests', () => {
-  let originalConsoleLog: typeof console.log;
-  let originalConsoleError: typeof console.error;
-
   beforeEach(() => {
-    // Save original console methods
-    originalConsoleLog = console.log;
-    originalConsoleError = console.error;
-    
     // Mock console methods to suppress output during tests
-    console.log = jest.fn();
-    console.error = jest.fn();
+    jest.spyOn(console, 'log').mockImplementation(() => { /* noop */ });
+    jest.spyOn(console, 'error').mockImplementation(() => { /* noop */ });
   });
 
   afterEach(() => {
-    // Restore original console methods
-    console.log = originalConsoleLog;
-    console.error = originalConsoleError;
+    jest.restoreAllMocks();
   });
 
   describe('createSlackApp', () => {

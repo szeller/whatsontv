@@ -200,7 +200,7 @@ describe('Console Output Integration Tests', () => {
       (line.includes('S05') || line.includes('E07') || line.includes('E08'))
     );
     
-    if (breakingBadLine !== undefined && breakingBadLine !== null) {
+    if (breakingBadLine !== undefined) {
       // The line should have airtime info in parentheses
       expect(breakingBadLine.includes('(')).toBe(true);
       
@@ -241,7 +241,7 @@ describe('Console Output Integration Tests', () => {
       (line.includes('S04') || line.includes('E09'))
     );
     
-    if (strangerThingsLine !== null && strangerThingsLine !== undefined) {
+    if (strangerThingsLine !== undefined) {
       // Should have airtime info in parentheses
       expect(strangerThingsLine.includes('(')).toBe(true);
       

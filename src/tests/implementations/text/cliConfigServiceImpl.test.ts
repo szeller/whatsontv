@@ -64,7 +64,7 @@ class TestCliConfigService extends CliConfigServiceImpl {
       this.mockArgs = [...options.mockArgs];
     }
     
-    if (options.readFileError !== undefined && options.readFileError !== null) {
+    if (options.readFileError !== undefined) {
       this.mockReadFileError = options.readFileError;
     }
     
@@ -131,10 +131,9 @@ class TestCliConfigService extends CliConfigServiceImpl {
     }
     
     // Otherwise return the mockCliArgs
-    const hasDate = this.mockCliArgs.date !== undefined && this.mockCliArgs.date !== null;
-    const hasCountry = this.mockCliArgs.country !== undefined && this.mockCliArgs.country !== null;
-    const hasMinAirtime = this.mockCliArgs.minAirtime !== undefined && 
-      this.mockCliArgs.minAirtime !== null;
+    const hasDate = this.mockCliArgs.date !== undefined;
+    const hasCountry = this.mockCliArgs.country !== undefined;
+    const hasMinAirtime = this.mockCliArgs.minAirtime !== undefined;
     const hasFetch = this.mockCliArgs.fetch !== undefined && this.mockCliArgs.fetch !== null;
     
     return {
@@ -192,10 +191,7 @@ class TestCliConfigService extends CliConfigServiceImpl {
         // Ensure slack config is properly merged
         slack: {
           ...defaultConfig.slack,
-          ...(this.mockConfigContent.slack !== undefined && 
-              this.mockConfigContent.slack !== null 
-            ? this.mockConfigContent.slack 
-            : {})
+          ...(this.mockConfigContent.slack ?? {})
         }
       };
       
@@ -334,24 +330,14 @@ class TestCliConfigService extends CliConfigServiceImpl {
 }
 
 describe('CliConfigServiceImpl', () => {
-  // Mock console methods to suppress output
-  let originalConsoleWarn: typeof console.warn;
-  let originalConsoleError: typeof console.error;
-  
   beforeAll(() => {
-    // Save original console methods
-    originalConsoleWarn = console.warn;
-    originalConsoleError = console.error;
-    
     // Mock console methods to suppress output
-    console.warn = jest.fn();
-    console.error = jest.fn();
+    jest.spyOn(console, 'warn').mockImplementation(() => { /* noop */ });
+    jest.spyOn(console, 'error').mockImplementation(() => { /* noop */ });
   });
-  
+
   afterAll(() => {
-    // Restore original console methods
-    console.warn = originalConsoleWarn;
-    console.error = originalConsoleError;
+    jest.restoreAllMocks();
   });
   
   beforeEach(() => {
@@ -522,7 +508,7 @@ describe('CliConfigServiceImpl', () => {
   
   it('should handle file read errors gracefully', () => {
     // Arrange
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => { /* noop */ });
     
     // Act
     const configService = new TestCliConfigService({
@@ -541,7 +527,7 @@ describe('CliConfigServiceImpl', () => {
   
   it('should handle unknown error types in handleConfigError', () => {
     // Arrange
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => { /* noop */ });
     
     // Act
     const configService = new TestCliConfigService({

@@ -62,7 +62,7 @@ export class CliConfigServiceImpl extends BaseConfigServiceImpl {
   protected parseArgs(args?: string[]): CliArgs {
     // Create a yargs instance with our options
     const yargsInstance = this.createYargsInstance(
-      args !== undefined && args !== null ? args : process.argv.slice(2)
+      args ?? process.argv.slice(2)
     );
 
     // Parse the arguments - use parseSync to ensure we get a synchronous result

@@ -18,9 +18,9 @@ import { Fixtures } from '../helpers/fixtureHelper.js';
 import { BaseCliApplication } from '../../cli/cliBase.js';
 
 // Mock the console implementation to avoid actual console output during tests
-jest.spyOn(console, 'log').mockImplementation(() => {});
-jest.spyOn(console, 'error').mockImplementation(() => {});
-jest.spyOn(console, 'warn').mockImplementation(() => {});
+jest.spyOn(console, 'log').mockImplementation(() => { /* noop */ });
+jest.spyOn(console, 'error').mockImplementation(() => { /* noop */ });
+jest.spyOn(console, 'warn').mockImplementation(() => { /* noop */ });
 
 describe('CLI', () => {
   // Create mock services with proper typing

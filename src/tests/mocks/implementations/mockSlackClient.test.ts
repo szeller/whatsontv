@@ -4,20 +4,16 @@ import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals
 
 describe('MockSlackClient', () => {
   let mockSlackClient: MockSlackClient;
-  let originalConsoleLog: typeof console.log;
-  
+
   beforeEach(() => {
-    // Save original console.log
-    originalConsoleLog = console.log;
     // Mock console.log to suppress output
-    console.log = jest.fn();
-    
+    jest.spyOn(console, 'log').mockImplementation(() => { /* noop */ });
+
     mockSlackClient = new MockSlackClient();
   });
-  
+
   afterEach(() => {
-    // Restore original console.log
-    console.log = originalConsoleLog;
+    jest.restoreAllMocks();
   });
   
   it('should store sent messages', async () => {

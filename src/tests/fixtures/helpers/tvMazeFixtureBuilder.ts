@@ -150,7 +150,7 @@ export class TvMazeShowBuilder {
   withRuntime(runtime: number | null): TvMazeShowBuilder {
     this.runtime = runtime;
     // Always set averageRuntime to a number (0 if runtime is null)
-    this.averageRuntime = runtime !== null ? runtime : 0;
+    this.averageRuntime = runtime ?? 0;
     return this;
   }
 
@@ -190,7 +190,7 @@ export class TvMazeShowBuilder {
    * Set the show rating
    */
   withRating(average: number | null): TvMazeShowBuilder {
-    this.rating = { average: average !== null ? average : 0 };
+    this.rating = { average: average ?? 0 };
     return this;
   }
 
@@ -323,10 +323,8 @@ export class TvMazeShowBuilder {
    * @returns A TVMaze show with network
    */
   static createNetworkShow(options: Partial<TvMazeShow> = {}): TvMazeShow {
-    const network = options.network !== undefined && options.network !== null 
-      ? options.network 
-      : new NetworkBuilder().build();
-    
+    const network = options.network ?? new NetworkBuilder().build();
+
     return TvMazeShowBuilder.createShow({
       ...options,
       network,
@@ -340,10 +338,9 @@ export class TvMazeShowBuilder {
    * @returns A TVMaze show with webChannel
    */
   static createWebShow(options: Partial<TvMazeShow> = {}): TvMazeShow {
-    const webChannel = options.webChannel !== undefined && options.webChannel !== null 
-      ? options.webChannel 
-      : new NetworkBuilder().withName('Web Channel').asWebChannel().build();
-    
+    const webChannel = options.webChannel
+      ?? new NetworkBuilder().withName('Web Channel').asWebChannel().build();
+
     return TvMazeShowBuilder.createShow({
       ...options,
       network: null,
@@ -463,7 +460,7 @@ export class TvMazeScheduleItemBuilder {
    * Set the episode rating
    */
   withRating(average: number | null): TvMazeScheduleItemBuilder {
-    this.rating = { average: average !== null ? average : 0 };
+    this.rating = { average: average ?? 0 };
     return this;
   }
 
@@ -503,34 +500,20 @@ export class TvMazeScheduleItemBuilder {
     showName?: string;
     network?: Network;
   } = {}): TvMazeScheduleItem {
-    const network = options.network !== undefined && options.network !== null 
-      ? options.network 
-      : new NetworkBuilder().build();
+    const network = options.network ?? new NetworkBuilder().build();
     const show = new TvMazeShowBuilder()
-      .withId(options.showId !== undefined ? options.showId : 100)
-      .withName(
-        options.showName !== undefined && options.showName !== null 
-          ? options.showName 
-          : 'Test Show'
-      )
+      .withId(options.showId ?? 100)
+      .withName(options.showName ?? 'Test Show')
       .withNetwork(network)
       .build();
 
     return new TvMazeScheduleItemBuilder()
-      .withId(options.id !== undefined ? options.id : 1000)
-      .withName(
-        options.name !== undefined && options.name !== null 
-          ? options.name 
-          : 'Test Episode'
-      )
-      .withSeason(options.season !== undefined ? options.season : 1)
-      .withNumber(options.number !== undefined ? options.number : 1)
-      .withAirdate(
-        options.airdate !== undefined && options.airdate !== null 
-          ? options.airdate 
-          : '2020-01-01'
-      )
-      .withAirtime(options.airtime !== undefined ? options.airtime : '20:00')
+      .withId(options.id ?? 1000)
+      .withName(options.name ?? 'Test Episode')
+      .withSeason(options.season ?? 1)
+      .withNumber(options.number ?? 1)
+      .withAirdate(options.airdate ?? '2020-01-01')
+      .withAirtime(options.airtime ?? '20:00')
       .withShow(show)
       .build();
   }
@@ -549,35 +532,22 @@ export class TvMazeScheduleItemBuilder {
     showName?: string;
     webChannel?: Network;
   } = {}): TvMazeScheduleItem {
-    const webChannel = options.webChannel !== undefined && options.webChannel !== null 
-      ? options.webChannel 
-      : new NetworkBuilder().asWebChannel().build();
+    const webChannel = options.webChannel
+      ?? new NetworkBuilder().asWebChannel().build();
     const show = new TvMazeShowBuilder()
-      .withId(options.showId !== undefined ? options.showId : 200)
-      .withName(
-        options.showName !== undefined && options.showName !== null 
-          ? options.showName 
-          : 'Test Web Show'
-      )
+      .withId(options.showId ?? 200)
+      .withName(options.showName ?? 'Test Web Show')
       .withNetwork(null)
       .withWebChannel(webChannel)
       .build();
 
     return new TvMazeScheduleItemBuilder()
-      .withId(options.id !== undefined ? options.id : 2000)
-      .withName(
-        options.name !== undefined && options.name !== null 
-          ? options.name 
-          : 'Test Web Episode'
-      )
-      .withSeason(options.season !== undefined ? options.season : 1)
-      .withNumber(options.number !== undefined ? options.number : 1)
-      .withAirdate(
-        options.airdate !== undefined && options.airdate !== null 
-          ? options.airdate 
-          : '2020-01-01'
-      )
-      .withAirtime(options.airtime !== undefined ? options.airtime : '20:00')
+      .withId(options.id ?? 2000)
+      .withName(options.name ?? 'Test Web Episode')
+      .withSeason(options.season ?? 1)
+      .withNumber(options.number ?? 1)
+      .withAirdate(options.airdate ?? '2020-01-01')
+      .withAirtime(options.airtime ?? '20:00')
       .withShow(show)
       .build();
   }
@@ -592,10 +562,10 @@ export class TvMazeScheduleItemBuilder {
     airdate?: string;
   } = {}): TvMazeScheduleItem[] {
     const items: TvMazeScheduleItem[] = [];
-    const baseShowId = baseOptions.showId !== undefined ? baseOptions.showId : 100;
-    
+    const baseShowId = baseOptions.showId ?? 100;
+
     for (let i = 0; i < count; i++) {
-      const showName = baseOptions.showName !== undefined && baseOptions.showName !== null
+      const showName = baseOptions.showName !== undefined
         ? `${baseOptions.showName} ${i + 1}`
         : `Test Show ${i + 1}`;
         
@@ -624,10 +594,10 @@ export class TvMazeScheduleItemBuilder {
     airdate?: string;
   } = {}): TvMazeScheduleItem[] {
     const items: TvMazeScheduleItem[] = [];
-    const baseShowId = baseOptions.showId !== undefined ? baseOptions.showId : 200;
-    
+    const baseShowId = baseOptions.showId ?? 200;
+
     for (let i = 0; i < count; i++) {
-      const showName = baseOptions.showName !== undefined && baseOptions.showName !== null
+      const showName = baseOptions.showName !== undefined
         ? `${baseOptions.showName} ${i + 1}`
         : `Test Web Show ${i + 1}`;
         

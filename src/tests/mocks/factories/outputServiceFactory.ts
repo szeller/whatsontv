@@ -56,7 +56,6 @@ export function createMockOutputService(
         if (options.verbose === true && shows.length > 0) {
           shows.forEach(show => {
             const hasAirtime = show.airtime !== null &&
-              show.airtime !== undefined &&
               show.airtime !== '';
             
             const airtime = hasAirtime ? show.airtime : 'No airtime';

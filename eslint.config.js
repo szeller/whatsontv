@@ -136,6 +136,10 @@ const strictTypeRules = {
 };
 
 export default [
+  // Global ignores
+  {
+    ignores: ['dist/**', 'cdk.out/**', 'node_modules/**', 'coverage/**']
+  },
   eslint.configs.recommended,
   // Main source files configuration
   {

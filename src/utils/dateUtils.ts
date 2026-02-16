@@ -11,7 +11,7 @@ import { hasContent } from './stringUtils.js';
 export function getTodayDate(timezone?: string): string {
   const now = new Date();
 
-  if (timezone !== undefined && timezone !== null && timezone.trim() !== '') {
+  if (timezone !== undefined && timezone.trim() !== '') {
     // Use Intl.DateTimeFormat to get the date in the specified timezone
     // en-CA locale uses YYYY-MM-DD format natively
     const formatter = new Intl.DateTimeFormat('en-CA', {

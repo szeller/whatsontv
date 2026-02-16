@@ -56,9 +56,9 @@ export abstract class BaseShowFormatterImpl<TOutput> implements ShowFormatter<TO
     if (!Array.isArray(shows) || shows.length === 0) {
       return this.formatEmptyNetwork(network);
     }
-    
+
     const output: TOutput[] = [];
-    
+
     // Add the network header
     const networkHeader = this.formatNetworkHeader(network);
     for (const headerItem of networkHeader) {
@@ -81,10 +81,11 @@ export abstract class BaseShowFormatterImpl<TOutput> implements ShowFormatter<TO
       }
       
       const showGroup = showGroups[showId];
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (showGroup === undefined) {
         continue;
       }
-      
+
       processedShowIds.add(showId);
       
       // Format based on number of episodes
@@ -122,10 +123,11 @@ export abstract class BaseShowFormatterImpl<TOutput> implements ShowFormatter<TO
    * @returns Formatted output for the network groups
    */
   public formatNetworkGroups(networkGroups: NetworkGroups): TOutput[] {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (networkGroups === null || networkGroups === undefined) {
       return [];
     }
-    
+
     const output: TOutput[] = [];
     
     // Add header content

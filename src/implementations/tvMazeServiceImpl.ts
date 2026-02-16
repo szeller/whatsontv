@@ -29,10 +29,10 @@ export class TvMazeServiceImpl implements TvShowService {
   ) {
     this._apiClient = apiClient;
     this.logger = logger?.child({ module: 'TvMazeService' }) ?? {
-      error: () => {},
-      warn: () => {},
-      info: () => {},
-      debug: () => {},
+      error: () => { /* noop */ },
+      warn: () => { /* noop */ },
+      info: () => { /* noop */ },
+      debug: () => { /* noop */ },
       child: () => this.logger
     } as LoggerService;
   }
@@ -66,8 +66,8 @@ export class TvMazeServiceImpl implements TvShowService {
           totalItems: response.data.length,
           statusCode: response.status,
           headers: {
-            contentType: response.headers?.['content-type'],
-            contentLength: response.headers?.['content-length']
+            contentType: response.headers['content-type'],
+            contentLength: response.headers['content-length']
           },
           duration: Date.now() - startTime
         }, 'Raw TVMaze API response captured');
@@ -242,7 +242,7 @@ export class TvMazeServiceImpl implements TvShowService {
     if (Array.isArray(languageValues) && languageValues.length > 0) {
       filteredShows = filteredShows.filter((show: Show) => {
         // Skip shows with no language
-        if (typeof show.language !== 'string' || show.language === null) {
+        if (typeof show.language !== 'string') {
           return false;
         }
 
@@ -256,15 +256,14 @@ export class TvMazeServiceImpl implements TvShowService {
 
     // Apply minimum airtime filter
     const minAirtime = options.minAirtime;
-    if (minAirtime !== undefined && minAirtime !== null && minAirtime !== '') {
+    if (minAirtime !== undefined && minAirtime !== '') {
       // Convert minAirtime to minutes for comparison
       const minTimeInMinutes = convertTimeToMinutes(minAirtime);
 
       if (minTimeInMinutes >= 0) {
         filteredShows = filteredShows.filter((show: Show) => {
           // Skip shows with no airtime (streaming shows often have no airtime)
-          if (show.airtime === undefined ||
-              show.airtime === null ||
+          if (show.airtime === null ||
               show.airtime.trim() === '') {
             return true;
           }

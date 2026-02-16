@@ -13,28 +13,15 @@ import { createSlackAppWithContainer } from '../../../cli/slackCli.js';
 import { getTodayDate } from '../../../utils/dateUtils.js';
 
 describe('Lambda Handler Logic - Isolated Tests', () => {
-  // Mock console methods to suppress output during tests
-  let originalConsoleLog: typeof console.log;
-  let originalConsoleError: typeof console.error;
-  let originalConsoleWarn: typeof console.warn;
-
   beforeEach(() => {
-    // Save original console methods
-    originalConsoleLog = console.log;
-    originalConsoleError = console.error;
-    originalConsoleWarn = console.warn;
-    
-    // Mock console methods to suppress output
-    console.log = jest.fn();
-    console.error = jest.fn();
-    console.warn = jest.fn();
+    // Mock console methods to suppress output during tests
+    jest.spyOn(console, 'log').mockImplementation(() => { /* noop */ });
+    jest.spyOn(console, 'error').mockImplementation(() => { /* noop */ });
+    jest.spyOn(console, 'warn').mockImplementation(() => { /* noop */ });
   });
 
   afterEach(() => {
-    // Restore original console methods
-    console.log = originalConsoleLog;
-    console.error = originalConsoleError;
-    console.warn = originalConsoleWarn;
+    jest.restoreAllMocks();
   });
 
   describe('Slack App Creation with Test Container', () => {
@@ -119,12 +106,12 @@ describe('Lambda Handler Logic - Isolated Tests', () => {
     test('should validate required environment variables', () => {
       // Test the same validation logic that the Lambda handler uses
       const validateEnvVars = (slackToken?: string, slackChannel?: string): void => {
-        if (slackToken === undefined || slackToken === null || slackToken.trim() === '') {
+        if (slackToken === undefined || slackToken.trim() === '') {
           throw new Error(
             'SLACK_TOKEN environment variable is required but not set'
           );
         }
-        if (slackChannel === undefined || slackChannel === null || slackChannel.trim() === '') {
+        if (slackChannel === undefined || slackChannel.trim() === '') {
           throw new Error(
             'SLACK_CHANNEL environment variable is required but not set'
           );

@@ -303,7 +303,7 @@ describe('TvMazeServiceImpl', () => {
       process.env.NODE_ENV = 'production';
       
       // Spy on console.error
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => { /* noop */ });
       
       // Call the method under test
       const shows = await tvMazeService.fetchShows({ date: '2023-01-01' });

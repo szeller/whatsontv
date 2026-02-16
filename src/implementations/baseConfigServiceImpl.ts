@@ -69,7 +69,7 @@ export abstract class BaseConfigServiceImpl implements ConfigService {
    */
   protected getOptionalEnv(key: string, defaultValue: string): string {
     const value = process.env[key];
-    return (value !== undefined && value !== null && value.trim() !== '') ? value : defaultValue;
+    return (value !== undefined && value.trim() !== '') ? value : defaultValue;
   }
 
   /**
@@ -88,11 +88,14 @@ export abstract class BaseConfigServiceImpl implements ConfigService {
 
     // If slack is configured in appConfig, merge non-empty values
     // Priority: non-empty appConfig values override env vars; empty appConfig values are ignored
-    if (this.appConfig.slack !== undefined && this.appConfig.slack !== null) {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (this.appConfig.slack !== undefined) {
       const appSlack = this.appConfig.slack as Partial<SlackConfig>;
       const hasToken = appSlack.token !== undefined && appSlack.token.trim() !== '';
-      const hasChannel = appSlack.channelId !== undefined && appSlack.channelId.trim() !== '';
-      const hasUsername = appSlack.username !== undefined && appSlack.username.trim() !== '';
+      const hasChannel = appSlack.channelId !== undefined
+        && appSlack.channelId.trim() !== '';
+      const hasUsername = appSlack.username !== undefined
+        && appSlack.username.trim() !== '';
       const hasEmoji = appSlack.icon_emoji !== undefined;
       const hasDateFormat = appSlack.dateFormat !== undefined;
 
@@ -143,11 +146,11 @@ export abstract class BaseConfigServiceImpl implements ConfigService {
       // Compute config path: base class is at src/implementations/baseConfigServiceImpl.ts
       // So we go up 2 levels to reach project root where config.json lives
       let configPath: string;
-      if (configFilePath !== undefined && configFilePath !== null && configFilePath.trim() !== '') {
+      if (configFilePath !== undefined && configFilePath.trim() !== '') {
         configPath = configFilePath;
       } else {
         const envConfigFile = process.env.CONFIG_FILE;
-        if (envConfigFile !== undefined && envConfigFile !== null && envConfigFile.trim() !== '') {
+        if (envConfigFile !== undefined && envConfigFile.trim() !== '') {
           configPath = envConfigFile;
         } else {
           const currentDir = dirname(fileURLToPath(import.meta.url));
@@ -170,9 +173,7 @@ export abstract class BaseConfigServiceImpl implements ConfigService {
       // Ensure slack config is properly merged
       slack: {
         ...defaultConfig.slack,
-        ...(userConfig.slack !== undefined && userConfig.slack !== null
-          ? userConfig.slack
-          : {})
+        ...(userConfig.slack ?? {})
       }
     };
 

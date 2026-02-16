@@ -58,6 +58,7 @@ export class SlackShowFormatterImpl extends BaseShowFormatterImpl<SlackBlock>
    * @returns Formatted show representations as Slack blocks
    */
   public formatMultipleEpisodes(shows: Show[]): SlackBlock[] {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!shows?.length) {
       return [{
         type: 'section',
@@ -79,7 +80,7 @@ export class SlackShowFormatterImpl extends BaseShowFormatterImpl<SlackBlock>
    * @returns Single context block with network and all shows
    */
   public override formatNetwork(network: string, shows: Show[]): SlackBlock[] {
-    if (!Array.isArray(shows) || shows.length === 0) {
+    if (shows.length === 0) {
       return this.formatEmptyNetwork(network);
     }
 
@@ -117,10 +118,6 @@ export class SlackShowFormatterImpl extends BaseShowFormatterImpl<SlackBlock>
       }
 
       const showGroup = showGroups[showId];
-      if (showGroup === undefined) {
-        continue;
-      }
-
       processedShowIds.add(showId);
 
       if (showGroup.length === 1) {
@@ -160,7 +157,7 @@ export class SlackShowFormatterImpl extends BaseShowFormatterImpl<SlackBlock>
    * @returns Bullet point string
    */
   private formatMultipleEpisodesAsBullet(shows: Show[]): string {
-    if (!shows?.length) {
+    if (shows.length === 0) {
       return '• No episodes found';
     }
 

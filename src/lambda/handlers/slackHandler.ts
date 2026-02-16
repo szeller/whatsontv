@@ -73,8 +73,7 @@ export const handler = async (
     event: {
       httpMethod: event.httpMethod,
       path: event.path,
-      headers: event.headers !== null && event.headers !== undefined ?
-        Object.keys(event.headers).length : 0
+      headers: Object.keys(event.headers).length
     }
   }, 'Lambda execution started');
 

@@ -57,7 +57,7 @@ describe('errorHandling', () => {
       // Create separate functions to avoid unbound method lint errors
       const exitMock = (code?: number  ): never => {
         exitCalled = true;
-        exitCode = code !== undefined ? code : 0;
+        exitCode = code ?? 0;
         return undefined as never;
       };
       process.exit = exitMock;
@@ -224,7 +224,7 @@ describe('errorHandling', () => {
       // Create separate functions to avoid unbound method lint errors
       const exitMock = (code?: number  ): never => {
         exitCalled = true;
-        exitCode = code !== undefined ? code : 0;
+        exitCode = code ?? 0;
         return undefined as never;
       };
       process.exit = exitMock;
