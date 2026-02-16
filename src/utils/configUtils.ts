@@ -26,7 +26,7 @@ export function toStringArray(
 
   // Handle already an array
   if (Array.isArray(value)) {
-    return value.map(item => String(item));
+    return [...value];
   }
 
   // Handle string
@@ -113,13 +113,9 @@ export function mergeShowOptions(
   // Start with base options or empty object
   const base: ShowOptions = {};
 
-  // Safely handle potentially null/undefined values
-  const cliDate = typeof cliArgs.date !== 'undefined' && cliArgs.date !== null ?
-    String(cliArgs.date) : '';
-  const cliCountry = typeof cliArgs.country !== 'undefined' && cliArgs.country !== null ?
-    String(cliArgs.country) : '';
-  const cliMinAirtime = typeof cliArgs.minAirtime !== 'undefined' && cliArgs.minAirtime !== null ?
-    String(cliArgs.minAirtime) : '';
+  const cliDate = cliArgs.date;
+  const cliCountry = cliArgs.country;
+  const cliMinAirtime = cliArgs.minAirtime;
 
   // Safely handle base options
   const baseDate = typeof base.date !== 'undefined' && base.date !== null ?

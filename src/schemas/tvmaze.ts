@@ -131,7 +131,7 @@ export interface TvMazeShow {
   weight: number;
   network: Network | null;
   webChannel: Network | null;
-  dvdCountry: unknown | null;
+  dvdCountry: unknown;
   externals: {
     tvrage: number | null;
     thetvdb: number | null;
@@ -165,7 +165,7 @@ export interface TvMazeScheduleItem {
   airstamp: string;
   runtime: number | null;
   rating: { average: number | null };
-  image: unknown | null;
+  image: unknown;
   summary: string | null;
   show?: TvMazeShow;
   _embedded?: { show: TvMazeShow };

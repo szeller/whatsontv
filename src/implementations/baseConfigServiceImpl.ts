@@ -124,7 +124,7 @@ export abstract class BaseConfigServiceImpl implements ConfigService {
    * @returns True if debug mode is enabled
    */
   isDebugMode(): boolean {
-    return Boolean(this.cliOptions.debug);
+    return this.cliOptions.debug;
   }
 
   /**

@@ -13,7 +13,7 @@ export const numberFromMixed = z.union([
     const parsed = parseInt(val, 10);
     if (isNaN(parsed)) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: `Could not parse "${val}" as a number`
       });
       return z.NEVER;

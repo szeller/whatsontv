@@ -38,7 +38,7 @@ export class MockProcessOutput implements ProcessOutput {
       if (args.length > 0) {
         args.forEach(arg => {
           if (arg !== undefined && arg !== null) {
-            this.output.push(String(arg));
+            this.output.push(typeof arg === 'string' ? arg : JSON.stringify(arg));
           }
         });
       }

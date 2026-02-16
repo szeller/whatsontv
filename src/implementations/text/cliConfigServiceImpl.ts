@@ -45,8 +45,8 @@ export class CliConfigServiceImpl extends BaseConfigServiceImpl {
 
     // Initialize CLI options from parsed arguments
     this.cliOptions = {
-      debug: Boolean(this.cliArgs.debug),
-      groupByNetwork: Boolean(this.cliArgs.groupByNetwork)
+      debug: this.cliArgs.debug,
+      groupByNetwork: this.cliArgs.groupByNetwork
     };
 
     // Set initial show options from config
@@ -70,14 +70,20 @@ export class CliConfigServiceImpl extends BaseConfigServiceImpl {
 
     // Convert to our CliArgs type with proper type handling
     return {
-      date: getStringValue(String(parsedArgs.date ?? ''), getTodayDate()),
-      country: getStringValue(String(parsedArgs.country ?? ''), 'US'),
+      date: getStringValue(
+        (parsedArgs.date as string | undefined) ?? '', getTodayDate()
+      ),
+      country: getStringValue(
+        (parsedArgs.country as string | undefined) ?? '', 'US'
+      ),
       types: toStringArray(parsedArgs.types as string | string[] | undefined),
       networks: toStringArray(parsedArgs.networks as string | string[] | undefined),
       genres: toStringArray(parsedArgs.genres as string | string[] | undefined),
       languages: toStringArray(parsedArgs.languages as string | string[] | undefined),
-      minAirtime: getStringValue(String(parsedArgs.minAirtime ?? ''), '18:00'),
-      debug: Boolean(parsedArgs.debug),
+      minAirtime: getStringValue(
+        (parsedArgs.minAirtime as string | undefined) ?? '', '18:00'
+      ),
+      debug: parsedArgs.debug as boolean,
       groupByNetwork: true // Default to true, not configurable via CLI yet
     };
   }

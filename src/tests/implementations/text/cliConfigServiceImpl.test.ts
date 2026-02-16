@@ -125,11 +125,8 @@ class TestCliConfigService extends CliConfigServiceImpl {
         languages: Array.isArray(argv.languages) ? argv.languages : 
           typeof argv.languages === 'string' ? argv.languages.split(',') : [],
         minAirtime: typeof argv.minAirtime === 'string' ? argv.minAirtime : '18:00',
-        debug: Boolean(argv.debug),
-        fetch: typeof argv.fetch === 'string' ? 
-          (argv.fetch === 'network' || argv.fetch === 'web' || argv.fetch === 'all' ? 
-            argv.fetch : 'all') : 'all',
-        groupByNetwork: Boolean(argv.groupByNetwork)
+        debug: argv.debug === true,
+        groupByNetwork: argv.groupByNetwork === true
       };
     }
     

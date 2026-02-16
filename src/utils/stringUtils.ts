@@ -82,7 +82,7 @@ export function padString(
   length: number, 
   padChar = ' '
 ): string {
-  const value = str !== null && str !== undefined ? String(str) : '';
+  const value = str ?? '';
   return value.padEnd(length, padChar);
 }
 
@@ -98,7 +98,7 @@ export function truncateString(
   maxLength: number, 
   suffix = '...'
 ): string {
-  const value = str !== null && str !== undefined ? String(str) : '';
+  const value = str ?? '';
   
   if (value.length <= maxLength) {
     return value;

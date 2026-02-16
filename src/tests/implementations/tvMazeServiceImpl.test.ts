@@ -494,7 +494,7 @@ describe('TvMazeServiceImpl', () => {
       expect(result.length).toBe(3);
       
       // Verify the correct shows were included
-      const airtimes = result.map(show => show.airtime).sort();
+      const airtimes = result.map(show => show.airtime).sort((a, b) => a.localeCompare(b));
       expect(airtimes).toEqual(['', '19:00', '20:00']);
     });
     
@@ -557,7 +557,9 @@ describe('TvMazeServiceImpl', () => {
       expect(result.length).toBe(3); // Should match shows with English or Spanish
       
       // Verify that all shows have either English or Spanish language
-      const languages = result.map(show => show.language?.toLowerCase()).sort();
+      const languages = result.map(show => show.language?.toLowerCase()).sort(
+        (a, b) => (a ?? '').localeCompare(b ?? '')
+      );
       expect(languages).toEqual(['english', 'english', 'spanish']);
     });
     
