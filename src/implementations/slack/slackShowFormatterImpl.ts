@@ -118,6 +118,10 @@ export class SlackShowFormatterImpl extends BaseShowFormatterImpl<SlackBlock>
       }
 
       const showGroup = showGroups[showId];
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      if (showGroup === undefined) {
+        continue;
+      }
       processedShowIds.add(showId);
 
       if (showGroup.length === 1) {

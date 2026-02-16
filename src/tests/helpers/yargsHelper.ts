@@ -129,6 +129,10 @@ export function createMockYargs(): MockYargsInstance {
       if (arg.startsWith('--')) {
         const key: string = arg.slice(2);
         const option = currentOptions[key];
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (option === undefined) {
+          continue;
+        }
         if (option.type === 'boolean') {
           parsedArgs[key] = true;
           if (option.alias !== undefined && option.alias !== '') {
