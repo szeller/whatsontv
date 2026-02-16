@@ -51,7 +51,7 @@ export class LambdaConfigServiceImpl extends BaseConfigServiceImpl {
     const defaultConfig = getDefaultConfig();
     const appConfigEnv = process.env.APP_CONFIG;
 
-    if (appConfigEnv === undefined || appConfigEnv === null || appConfigEnv.trim() === '') {
+    if (appConfigEnv === undefined || appConfigEnv.trim() === '') {
       // No APP_CONFIG set, use defaults
       return defaultConfig;
     }
@@ -78,16 +78,14 @@ export class LambdaConfigServiceImpl extends BaseConfigServiceImpl {
    * @private
    */
   private buildShowOptions(): ShowOptions {
-    const defaultConfig = getDefaultConfig();
-
     return {
       date: this.dateString,
-      country: this.appConfig.country ?? defaultConfig.country ?? 'US',
-      types: this.appConfig.types ?? defaultConfig.types ?? [],
-      networks: this.appConfig.networks ?? defaultConfig.networks ?? [],
-      genres: this.appConfig.genres ?? defaultConfig.genres ?? [],
-      languages: this.appConfig.languages ?? defaultConfig.languages ?? [],
-      minAirtime: this.appConfig.minAirtime ?? defaultConfig.minAirtime ?? '',
+      country: this.appConfig.country,
+      types: this.appConfig.types,
+      networks: this.appConfig.networks,
+      genres: this.appConfig.genres,
+      languages: this.appConfig.languages,
+      minAirtime: this.appConfig.minAirtime,
       excludeShowNames: this.appConfig.showNameFilter ?? []
     };
   }

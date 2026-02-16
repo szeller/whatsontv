@@ -69,7 +69,7 @@ export class PinoLoggerServiceImpl implements LoggerService {
     const level = process.env.LOG_LEVEL?.toLowerCase();
     const validLevels = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'];
     
-    if (level !== null && level !== undefined && validLevels.includes(level)) {
+    if (level !== undefined && validLevels.includes(level)) {
       return level;
     }
 
@@ -80,6 +80,7 @@ export class PinoLoggerServiceImpl implements LoggerService {
     case 'test':
       return 'silent';
     case 'development':
+    case undefined:
     default:
       return 'warn';
     }

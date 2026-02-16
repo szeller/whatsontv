@@ -14,7 +14,7 @@ describe('Validation Utilities', () => {
 
   // Mock console.error to avoid polluting test output
   beforeEach(() => {
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => { /* noop */ });
   });
 
   afterEach(() => {
@@ -196,7 +196,7 @@ describe('Validation Utilities', () => {
       ];
       
       expect(() => validateArray(itemSchema, testData, 'Array validation error', true))
-        .toThrow(/Array validation error[\s\S]*1[\s\S]*value[\s\S]*number/);
+        .toThrow(/Array validation error[\s\S]*value[\s\S]*number/);
     });
 
     it('should validate an empty array', () => {
@@ -207,7 +207,7 @@ describe('Validation Utilities', () => {
     it('should throw error for non-array input', () => {
       const testData = { value: 1 }; // Not an array
       
-      expect(() => validateArray(itemSchema, testData as unknown as Array<unknown>))
+      expect(() => validateArray(itemSchema, testData as unknown as unknown[]))
         .toThrow(/Array validation error/);
     });
   });

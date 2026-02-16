@@ -5,7 +5,7 @@
  */
 import { existsSync } from 'fs';
 import { resolve } from 'path';
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { CliConfigServiceImpl } from '../../implementations/text/cliConfigServiceImpl.js';
 import { LambdaConfigServiceImpl } from '../../implementations/lambda/lambdaConfigServiceImpl.js';
 
@@ -78,9 +78,12 @@ describe('ConfigService Integration Tests', () => {
       // Save original env vars
       originalAppConfig = process.env.APP_CONFIG;
       originalDebug = process.env.DEBUG;
+      // Suppress console output during tests
+      jest.spyOn(console, 'error').mockImplementation(() => { /* noop */ });
     });
 
     afterEach(() => {
+      jest.restoreAllMocks();
       // Restore original env vars
       if (originalAppConfig === undefined) {
         delete process.env.APP_CONFIG;

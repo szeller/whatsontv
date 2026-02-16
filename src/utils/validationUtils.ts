@@ -37,8 +37,7 @@ export function validateData<T extends z.ZodType>(
     }
     
     if (includeDetails) {
-      // Zod v4 format() method returns a formatted object with error messages
-      const formattedError = JSON.stringify(result.error.format(), null, 2);
+      const formattedError = JSON.stringify(z.treeifyError(result.error), null, 2);
       throw new Error(`${errorMessage}\n${formattedError}`);
     } else {
       throw new Error(errorMessage);

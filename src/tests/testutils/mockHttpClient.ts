@@ -13,10 +13,10 @@ const fixturesDir = path.join(__dirname, '../fixtures/tvmaze');
  * Allows setting up mock responses and errors for specific URLs
  */
 export class MockHttpClient implements HttpClient {
-  private mockResponses = new Map<string, HttpResponse<unknown>>();
-  private mockErrors = new Map<string, Error>();
+  private readonly mockResponses = new Map<string, HttpResponse<unknown>>();
+  private readonly mockErrors = new Map<string, Error>();
   private requests: string[] = [];
-  private requestCounts = new Map<string, number>();
+  private readonly requestCounts = new Map<string, number>();
   
   /**
    * Jest mock functions for direct control in tests

@@ -57,12 +57,9 @@ function groupShowsByNetwork(shows: Show[]): Record<string, Show[]> {
   const groups: Record<string, Show[]> = {};
   
   shows.forEach(show => {
-    const networkName = show.network ?? 'Unknown';
+    const networkName = show.network;
     
-    if (groups[networkName] === undefined) {
-      groups[networkName] = [];
-    }
-    
+    groups[networkName] ??= [];
     groups[networkName].push(show);
   });
   
@@ -163,7 +160,7 @@ export function generateRichBlockFormat(): SlackMessagePayload {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `*${show.name}* ${episodeInfo}\n${airtime} | ${show.type ?? 'Unknown'}`
+          text: `*${show.name}* ${episodeInfo}\n${airtime} | ${show.type}`
         }
       });
     });
@@ -238,7 +235,7 @@ export function generateCompactFormat(): SlackMessagePayload {
     const showLines = shows.map(show => {
       const airtime = show.airtime ?? 'N/A';
       const episodeInfo = formatEpisodeInfo(show);
-      const typeEmoji = getTypeEmoji(show.type ?? '');
+      const typeEmoji = getTypeEmoji(show.type);
       
       return `${typeEmoji} *${show.name}* ${episodeInfo} (${airtime})`;
     });
@@ -357,7 +354,7 @@ export function generateInteractiveFormat(): SlackMessagePayload {
     shows.forEach(show => {
       const airtime = show.airtime ?? 'N/A';
       const episodeInfo = formatEpisodeInfo(show);
-      const typeEmoji = getTypeEmoji(show.type ?? '');
+      const typeEmoji = getTypeEmoji(show.type);
       
       blocks.push({
         type: 'section',
@@ -365,7 +362,7 @@ export function generateInteractiveFormat(): SlackMessagePayload {
           type: 'mrkdwn',
           text: 
             `${typeEmoji} *${show.name}* ${episodeInfo}\n` +
-            `  ${airtime} | ${show.type ?? 'Unknown'}`
+            `  ${airtime} | ${show.type}`
         },
         accessory: {
           type: 'button',
@@ -406,7 +403,7 @@ export function generateInteractiveFormat(): SlackMessagePayload {
 
 // Helper function to get emoji for show type
 function getTypeEmoji(type: string): string {
-  if (type === undefined || type === null || type === '') {
+  if (type === '') {
     return '📺';
   }
   

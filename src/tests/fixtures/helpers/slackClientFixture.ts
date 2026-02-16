@@ -14,7 +14,7 @@ export class SlackClientFixture {
    */
   static createMockClient(): jest.Mocked<SlackClient> {
     return {
-      sendMessage: jest.fn().mockImplementation(() => Promise.resolve())
+      sendMessage: jest.fn().mockImplementation(async () => Promise.resolve())
     } as jest.Mocked<SlackClient>;
   }
 

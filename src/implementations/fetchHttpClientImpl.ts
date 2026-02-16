@@ -45,19 +45,19 @@ export class FetchHttpClientImpl implements HttpClient {
     options: KyHttpClientOptions = {},
     @inject('LoggerService') logger?: LoggerService
   ) {
-    const prefixUrl = options.baseUrl !== undefined ? options.baseUrl : '';
-    const timeout = options.timeout !== undefined ? options.timeout : 30000;
-    const headers = options.headers !== undefined ? options.headers : {};
+    const prefixUrl = options.baseUrl ?? '';
+    const timeout = options.timeout ?? 30000;
+    const headers = options.headers ?? {};
     
     this.isTestEnvironment = process.env.NODE_ENV === 'test' || 
                              process.env.JEST_WORKER_ID !== undefined;
     
     this.baseUrl = prefixUrl;
     this.logger = logger?.child({ module: 'HttpClient' }) ?? {
-      error: () => {},
-      warn: () => {},
-      info: () => {},
-      debug: () => {},
+      error: () => { /* noop */ },
+      warn: () => { /* noop */ },
+      info: () => { /* noop */ },
+      debug: () => { /* noop */ },
       child: () => this.logger
     } as LoggerService;
     
@@ -71,10 +71,7 @@ export class FetchHttpClientImpl implements HttpClient {
       hooks: {
         beforeRequest: [
           // No longer logging request URLs
-          ...(options.hooks?.beforeRequest !== undefined && 
-              options.hooks?.beforeRequest !== null 
-            ? options.hooks.beforeRequest 
-            : [])
+          ...(options.hooks?.beforeRequest ?? [])
         ],
         afterResponse: [
           (_request, _options, response) => {
@@ -97,16 +94,10 @@ export class FetchHttpClientImpl implements HttpClient {
             }
             return response;
           },
-          ...(options.hooks?.afterResponse !== undefined && 
-              options.hooks?.afterResponse !== null 
-            ? options.hooks.afterResponse 
-            : [])
+          ...(options.hooks?.afterResponse ?? [])
         ],
         beforeError: [
-          ...(options.hooks?.beforeError !== undefined && 
-              options.hooks?.beforeError !== null 
-            ? options.hooks.beforeError 
-            : [])
+          ...(options.hooks?.beforeError ?? [])
         ]
       }
     });

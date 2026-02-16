@@ -39,7 +39,7 @@ export class MockSlackClient implements SlackClient {
     this.messages.push({ ...payload });
     
     // Simulate network latency
-    await new Promise(resolve => global.setTimeout(resolve, 0));
+    await new Promise<void>(resolve => { global.setTimeout(resolve, 0); });
     
     // Handle debug output based on mode
     if (this.debugMode !== 'none') {
@@ -50,16 +50,14 @@ export class MockSlackClient implements SlackClient {
       ];
       
       // Check for blocks
-      const hasBlocks = payload.blocks !== undefined && 
-                        payload.blocks !== null && 
+      const hasBlocks = payload.blocks !== undefined &&
                         payload.blocks.length > 0;
       if (hasBlocks) {
         logMessages.push(`Blocks: ${JSON.stringify(payload.blocks, null, 2)}`);
       }
       
       // Check for username
-      const hasUsername = payload.username !== undefined && 
-                          payload.username !== null && 
+      const hasUsername = payload.username !== undefined &&
                           payload.username !== '';
       if (hasUsername) {
         logMessages.push(`Username: ${payload.username}`);
@@ -68,12 +66,12 @@ export class MockSlackClient implements SlackClient {
       logMessages.push('--- End of MockSlackClient Message ---');
       
       if (this.debugMode === 'console') {
-        logMessages.forEach(msg => console.log(msg));
-      } else if (this.debugMode === 'store') {
+        logMessages.forEach(msg => { console.log(msg); });
+      } else {
         this.debugLogs.push(...logMessages);
       }
     }
-    
+
     // Simulate async behavior
     return Promise.resolve();
   }
@@ -201,9 +199,8 @@ export class MockSlackClient implements SlackClient {
     this.messages.forEach((msg, index) => {
       summary.push(`[${index}] Channel: ${msg.channel}, Text: ${msg.text}`);
       
-      const hasBlocks = includeBlocks && 
-                        msg.blocks !== undefined && 
-                        msg.blocks !== null && 
+      const hasBlocks = includeBlocks &&
+                        msg.blocks !== undefined &&
                         msg.blocks.length > 0;
       if (hasBlocks) {
         summary.push(`    Blocks: ${JSON.stringify(msg.blocks, null, 2)}`);
@@ -213,7 +210,7 @@ export class MockSlackClient implements SlackClient {
     summary.push('--- End of MockSlackClient stored messages ---');
     
     if (toConsole) {
-      summary.forEach(line => console.log(line));
+      summary.forEach(line => { console.log(line); });
     }
     
     if (this.debugMode === 'store') {

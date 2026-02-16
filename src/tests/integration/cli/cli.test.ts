@@ -42,11 +42,6 @@ interface TvMazeWebScheduleItem {
 }
 
 describe('CLI Integration Tests', () => {
-  // Mock console.log, console.error, and console.warn to suppress output during tests
-  let originalConsoleLog: typeof console.log;
-  let originalConsoleError: typeof console.error;
-  let originalConsoleWarn: typeof console.warn;
-
   // Mock HTTP client
   let mockHttpClient: HttpClient;
   
@@ -62,16 +57,11 @@ describe('CLI Integration Tests', () => {
   const _webEndpoint = getWebScheduleUrl(today);
   
   beforeEach(() => {
-    // Save original console methods
-    originalConsoleLog = console.log;
-    originalConsoleError = console.error;
-    originalConsoleWarn = console.warn;
-    
     // Mock console methods to suppress output
-    console.log = jest.fn();
-    console.error = jest.fn();
-    console.warn = jest.fn();
-    
+    jest.spyOn(console, 'log').mockImplementation(() => { /* noop */ });
+    jest.spyOn(console, 'error').mockImplementation(() => { /* noop */ });
+    jest.spyOn(console, 'warn').mockImplementation(() => { /* noop */ });
+
     // Save original services
     originalHttpClient = container.resolve<HttpClient>('HttpClient');
     originalStyleService = container.resolve<StyleService>('StyleService');
@@ -86,11 +76,9 @@ describe('CLI Integration Tests', () => {
   });
   
   afterEach(() => {
-    // Restore original console methods
-    console.log = originalConsoleLog;
-    console.error = originalConsoleError;
-    console.warn = originalConsoleWarn;
-    
+    // Restore mocked console methods
+    jest.restoreAllMocks();
+
     // Restore original services
     container.register('HttpClient', { useValue: originalHttpClient });
     container.register('StyleService', { useValue: originalStyleService });
@@ -116,7 +104,7 @@ describe('CLI Integration Tests', () => {
       // Get all show names from the fixture
       const showNames = networkData
         .map(item => item.show?.name)
-        .filter((name): name is string => name !== undefined && name !== null);
+        .filter((name): name is string => name !== undefined);
       
       // Verify that at least one show from the fixture appears in the output
       const foundShow = showNames.some(name => 
@@ -137,12 +125,12 @@ describe('CLI Integration Tests', () => {
       // Get all show names from the fixture
       const showNames = webData
         .map(item => item._embedded?.show?.name)
-        .filter((name): name is string => name !== undefined && name !== null);
+        .filter((name): name is string => name !== undefined);
       
       // Get all network/webChannel names from the fixture
       const networkNames = webData
         .map(item => item._embedded?.show?.webChannel?.name)
-        .filter((name): name is string => name !== undefined && name !== null);
+        .filter((name): name is string => name !== undefined);
       
       // Verify the output contains at least one streaming service name
       expect(
@@ -172,12 +160,12 @@ describe('CLI Integration Tests', () => {
       // Check for network shows
       const networkShowNames = networkData
         .map(show => show.show?.name)
-        .filter((name): name is string => name !== undefined && name !== null);
+        .filter((name): name is string => name !== undefined);
       
       // Check for web shows
       const webShowNames = webData
         .map(show => show._embedded?.show?.name)
-        .filter((name): name is string => name !== undefined && name !== null);
+        .filter((name): name is string => name !== undefined);
       
       // Verify that at least one show from each source appears in the output
       const foundNetworkShow = networkShowNames.some(name => 
@@ -200,7 +188,7 @@ describe('CLI Integration Tests', () => {
       
       // Set up a malformed response for the network schedule endpoint
       const networkUrl = getNetworkScheduleUrl(today);
-      jest.spyOn(mockHttpClient, 'get').mockImplementation((url) => {
+      jest.spyOn(mockHttpClient, 'get').mockImplementation(async (url) => {
         if (url === networkUrl) {
           return Promise.resolve({
             status: 200,

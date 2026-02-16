@@ -65,7 +65,7 @@ export function getStringOrDefault(value: string | null | undefined, defaultValu
  */
 export function getStringValue(
   value: string | null | undefined,
-  defaultValue: string = ''
+  defaultValue = ''
 ): string {
   return hasContent(value) ? value : defaultValue;
 }
@@ -80,9 +80,9 @@ export function getStringValue(
 export function padString(
   str: string | null | undefined, 
   length: number, 
-  padChar: string = ' '
+  padChar = ' '
 ): string {
-  const value = str !== null && str !== undefined ? String(str) : '';
+  const value = str ?? '';
   return value.padEnd(length, padChar);
 }
 
@@ -96,9 +96,9 @@ export function padString(
 export function truncateString(
   str: string | null | undefined, 
   maxLength: number, 
-  suffix: string = '...'
+  suffix = '...'
 ): string {
-  const value = str !== null && str !== undefined ? String(str) : '';
+  const value = str ?? '';
   
   if (value.length <= maxLength) {
     return value;
@@ -119,7 +119,7 @@ export function truncateString(
  * @param separator - Separator to use (default: ', ')
  * @returns Formatted string
  */
-export function formatListWithSeparator(items: string[], separator: string = ', '): string {
+export function formatListWithSeparator(items: string[], separator = ', '): string {
   if (isEmptyArray(items)) {
     return '';
   }

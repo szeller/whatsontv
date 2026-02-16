@@ -128,28 +128,30 @@ export function createMockYargs(): MockYargsInstance {
       const arg: string = args[i];
       if (arg.startsWith('--')) {
         const key: string = arg.slice(2);
-        const option: YargsOptions | undefined = currentOptions[key];
-        if (option !== undefined && option !== null) {
-          if (option.type === 'boolean') {
-            parsedArgs[key] = true;
+        const option = currentOptions[key];
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (option === undefined) {
+          continue;
+        }
+        if (option.type === 'boolean') {
+          parsedArgs[key] = true;
+          if (option.alias !== undefined && option.alias !== '') {
+            parsedArgs[option.alias] = true;
+          }
+        } else {
+          const value: string = args[i + 1];
+          if (option.type === 'array' && value !== '') {
+            parsedArgs[key] = [value];
             if (option.alias !== undefined && option.alias !== '') {
-              parsedArgs[option.alias] = true;
+              parsedArgs[option.alias] = [value];
             }
-          } else {
-            const value: string | undefined = args[i + 1];
-            if (option.type === 'array' && value !== undefined && value !== '') {
-              parsedArgs[key] = [value];
-              if (option.alias !== undefined && option.alias !== '') {
-                parsedArgs[option.alias] = [value];
-              }
-              i++;
-            } else if (value !== undefined && value !== '' && !value.startsWith('--')) {
-              parsedArgs[key] = value;
-              if (option.alias !== undefined && option.alias !== '') {
-                parsedArgs[option.alias] = value;
-              }
-              i++;
+            i++;
+          } else if (value !== '' && !value.startsWith('--')) {
+            parsedArgs[key] = value;
+            if (option.alias !== undefined && option.alias !== '') {
+              parsedArgs[option.alias] = value;
             }
+            i++;
           }
         }
       }

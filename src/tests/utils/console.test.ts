@@ -6,19 +6,13 @@ import { createMockConsole } from '../testutils/consoleTestHelpers.js';
 
 describe('Console Test Helpers', () => {
   describe('createMockConsole', () => {
-    const originalConsole = {
-      log: console.log,
-      error: console.error
-    };
-
     beforeEach(() => {
-      console.log = jest.fn();
-      console.error = jest.fn();
+      jest.spyOn(console, 'log').mockImplementation(() => { /* noop */ });
+      jest.spyOn(console, 'error').mockImplementation(() => { /* noop */ });
     });
 
     afterEach(() => {
-      console.log = originalConsole.log;
-      console.error = originalConsole.error;
+      jest.restoreAllMocks();
     });
 
     it('should capture log messages', () => {
@@ -40,7 +34,7 @@ describe('Console Test Helpers', () => {
       const messages = ['message 1', 'message 2', 'message 3'];
       
       // Act
-      messages.forEach(msg => mockConsole.log(msg));
+      messages.forEach(msg => { mockConsole.log(msg); });
       
       // Assert
       const output = mockConsole.getOutput();

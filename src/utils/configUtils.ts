@@ -17,16 +17,16 @@ import { getStringValue } from './stringUtils.js';
  */
 export function toStringArray(
   value: string | string[] | undefined | null,
-  separator: string = ','
+  separator = ','
 ): string[] {
   // Handle undefined/null
   if (value === undefined || value === null) {
     return [];
   }
 
-  // Handle already an array
+  // Handle already an array - convert items to strings
   if (Array.isArray(value)) {
-    return value.map(item => String(item));
+    return value.map((item) => typeof item === 'string' ? item : String(item));
   }
 
   // Handle string
@@ -113,20 +113,16 @@ export function mergeShowOptions(
   // Start with base options or empty object
   const base: ShowOptions = {};
 
-  // Safely handle potentially null/undefined values
-  const cliDate = typeof cliArgs.date !== 'undefined' && cliArgs.date !== null ?
-    String(cliArgs.date) : '';
-  const cliCountry = typeof cliArgs.country !== 'undefined' && cliArgs.country !== null ?
-    String(cliArgs.country) : '';
-  const cliMinAirtime = typeof cliArgs.minAirtime !== 'undefined' && cliArgs.minAirtime !== null ?
-    String(cliArgs.minAirtime) : '';
+  const cliDate = cliArgs.date;
+  const cliCountry = cliArgs.country;
+  const cliMinAirtime = cliArgs.minAirtime;
 
   // Safely handle base options
-  const baseDate = typeof base.date !== 'undefined' && base.date !== null ?
+  const baseDate = typeof base.date !== 'undefined' ?
     base.date : getTodayDate(appConfig.timezone);
-  const baseCountry = typeof base.country !== 'undefined' && base.country !== null ?
+  const baseCountry = typeof base.country !== 'undefined' ?
     base.country : appConfig.country;
-  const baseMinAirtime = typeof base.minAirtime !== 'undefined' && base.minAirtime !== null ?
+  const baseMinAirtime = typeof base.minAirtime !== 'undefined' ?
     base.minAirtime : appConfig.minAirtime;
 
   return {
@@ -142,27 +138,19 @@ export function mergeShowOptions(
     // Use utility functions for array handling
     types: mergeArraysWithPriority(
       toStringArray(cliArgs.types),
-      base.types !== undefined && base.types !== null
-        ? base.types
-        : toStringArray(appConfig.types)
+      base.types ?? toStringArray(appConfig.types)
     ),
     networks: mergeArraysWithPriority(
       toStringArray(cliArgs.networks),
-      base.networks !== undefined && base.networks !== null
-        ? base.networks
-        : toStringArray(appConfig.networks)
+      base.networks ?? toStringArray(appConfig.networks)
     ),
     genres: mergeArraysWithPriority(
       toStringArray(cliArgs.genres),
-      base.genres !== undefined && base.genres !== null
-        ? base.genres
-        : toStringArray(appConfig.genres)
+      base.genres ?? toStringArray(appConfig.genres)
     ),
     languages: mergeArraysWithPriority(
       toStringArray(cliArgs.languages),
-      base.languages !== undefined && base.languages !== null
-        ? base.languages
-        : toStringArray(appConfig.languages)
+      base.languages ?? toStringArray(appConfig.languages)
     ),
     // Handle minimum airtime
     minAirtime: getStringValue(

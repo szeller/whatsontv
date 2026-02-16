@@ -72,7 +72,7 @@ export function getFilePath(importMetaUrl: string): string {
  */
 export function getConfigFilePath(
   importMetaUrl: string,
-  configFileName: string = 'config.json'
+  configFileName = 'config.json'
 ): string {
   // Check for CONFIG_FILE env var first (used in Lambda)
   const envConfigFile = process.env.CONFIG_FILE;

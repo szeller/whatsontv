@@ -61,7 +61,7 @@ describe('fileUtils', () => {
     it('should handle Error objects', () => {
       // Arrange
       const mockError = new Error('File not found');
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => { /* noop */ });
       
       // Act
       handleConfigError(mockError);
@@ -78,7 +78,7 @@ describe('fileUtils', () => {
     it('should handle non-Error objects', () => {
       // Arrange
       const mockError = 'String error message';
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => { /* noop */ });
       
       // Act
       handleConfigError(mockError);

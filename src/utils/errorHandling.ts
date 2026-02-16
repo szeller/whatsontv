@@ -12,9 +12,9 @@ import { formatDate } from './dateUtils.js';
 export function registerGlobalErrorHandler(processOutput: ProcessOutput): void {
   process.on('uncaughtException', (error) => {
     processOutput.error('Uncaught Exception:');
-    if (error !== null && typeof error === 'object') {
+    if (typeof error === 'object') {
       processOutput.error(`${error.name}: ${error.message}`);
-      if (error.stack !== undefined && error.stack !== null && error.stack !== '') {
+      if (error.stack !== undefined && error.stack !== '') {
         processOutput.error(error.stack);
       }
     } else {

@@ -6,19 +6,13 @@ import { createMockConsole } from '../testutils/consoleTestHelpers.js';
 import { ProcessOutputImpl } from '../../implementations/processOutputImpl.js';
 
 describe('ProcessOutputImpl', () => {
-  const originalConsole = {
-    log: console.log,
-    error: console.error
-  };
-
   beforeEach(() => {
-    console.log = jest.fn();
-    console.error = jest.fn();
+    jest.spyOn(console, 'log').mockImplementation(() => { /* noop */ });
+    jest.spyOn(console, 'error').mockImplementation(() => { /* noop */ });
   });
 
   afterEach(() => {
-    console.log = originalConsole.log;
-    console.error = originalConsole.error;
+    jest.restoreAllMocks();
   });
 
   describe('consoleOutput', () => {
@@ -104,7 +98,7 @@ describe('ProcessOutputImpl', () => {
       const messages = ['message 1', 'message 2', 'message 3'];
       
       // Act
-      messages.forEach(msg => mockConsole.log(msg));
+      messages.forEach(msg => { mockConsole.log(msg); });
       
       // Assert
       const output = mockConsole.getOutput();

@@ -27,10 +27,10 @@ export class SlackOutputServiceImpl extends BaseOutputServiceImpl<SlackBlock> {
     super(formatter, configService);
     this.slackClient = slackClient;
     this.logger = logger?.child({ module: 'SlackOutputService' }) ?? {
-      error: () => {},
-      warn: () => {},
-      info: () => {},
-      debug: () => {},
+      error: () => { /* noop */ },
+      warn: () => { /* noop */ },
+      info: () => { /* noop */ },
+      debug: () => { /* noop */ },
       child: () => this.logger
     } as LoggerService;
   }

@@ -37,21 +37,23 @@ export function createMockFormatter(
   const mockFormatter: jest.Mocked<TextShowFormatter> = {
     formatTimedShow: jest.fn((show: Show) => {
       // If we have a custom formatter for this show ID, use it
-      if (options.showFormatters && options.showFormatters[show.id]) {
-        return options.showFormatters[show.id];
+      const custom = options.showFormatters?.[show.id];
+      if (custom !== undefined && custom !== '') {
+        return custom;
       }
-      
+
       // Get the airtime or use a fallback
       const airtime = show.airtime ?? 'unknown time';
-      
+
       // Otherwise use the default or a generic string
       return options.defaultFormattedTimedShow ?? `Timed Show: ${show.name} at ${airtime}`;
     }),
-    
+
     formatUntimedShow: jest.fn((show: Show) => {
       // If we have a custom formatter for this show ID, use it
-      if (options.showFormatters && options.showFormatters[show.id]) {
-        return options.showFormatters[show.id];
+      const custom = options.showFormatters?.[show.id];
+      if (custom !== undefined && custom !== '') {
+        return custom;
       }
       
       // Otherwise use the default or a generic string

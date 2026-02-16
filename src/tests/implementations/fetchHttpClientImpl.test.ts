@@ -152,7 +152,7 @@ describe('FetchHttpClientImpl', () => {
       
       // First, let's spy on the kyInstance.get method to intercept the call
       // @ts-expect-error - accessing private property for testing
-      const getSpy = jest.spyOn(client['kyInstance'], 'get').mockImplementation(() => {
+      const getSpy = jest.spyOn(client.kyInstance, 'get').mockImplementation(async () => {
         // Return a response with a modified json method that throws an error
         const mockResponse = new Response('{ "broken": "json"', {
           status: 200,
@@ -261,7 +261,7 @@ describe('FetchHttpClientImpl', () => {
       
       // First, let's spy on the kyInstance.post method to intercept the call
       // @ts-expect-error - accessing private property for testing
-      const postSpy = jest.spyOn(client['kyInstance'], 'post').mockImplementation(() => {
+      const postSpy = jest.spyOn(client.kyInstance, 'post').mockImplementation(async () => {
         // Return a response with a modified json method that throws an error
         const mockResponse = new Response('{ "status": "incomplete', {
           status: 201,

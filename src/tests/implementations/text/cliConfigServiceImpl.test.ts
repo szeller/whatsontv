@@ -27,15 +27,15 @@ class TestCliConfigService extends CliConfigServiceImpl {
     types: [],
     networks: []
   };
-  private mockArgs: string[] = [];
+  private readonly mockArgs: string[] = [];
   
   // Mock implementation flags
-  private mockFileExists = false;
-  private mockConfigContent: Partial<AppConfig> = {};
-  private mockReadFileError: Error | string | null = null;
-  private mockShowOptions: Record<string, unknown> = {};
+  private readonly mockFileExists: boolean = false;
+  private readonly mockConfigContent: Partial<AppConfig> = {};
+  private readonly mockReadFileError: Error | string | null = null;
+  private readonly mockShowOptions: Record<string, unknown> = {};
   private errorHandlerCalled = false;
-  private mockEnvVars: Record<string, string | undefined> = {};
+  private readonly mockEnvVars: Record<string, string | undefined> = {};
 
   constructor(options: {
     cliArgs?: Partial<CliArgs>;
@@ -64,7 +64,7 @@ class TestCliConfigService extends CliConfigServiceImpl {
       this.mockArgs = [...options.mockArgs];
     }
     
-    if (options.readFileError !== undefined && options.readFileError !== null) {
+    if (options.readFileError !== undefined) {
       this.mockReadFileError = options.readFileError;
     }
     
@@ -125,19 +125,15 @@ class TestCliConfigService extends CliConfigServiceImpl {
         languages: Array.isArray(argv.languages) ? argv.languages : 
           typeof argv.languages === 'string' ? argv.languages.split(',') : [],
         minAirtime: typeof argv.minAirtime === 'string' ? argv.minAirtime : '18:00',
-        debug: Boolean(argv.debug),
-        fetch: typeof argv.fetch === 'string' ? 
-          (argv.fetch === 'network' || argv.fetch === 'web' || argv.fetch === 'all' ? 
-            argv.fetch : 'all') : 'all',
-        groupByNetwork: Boolean(argv.groupByNetwork)
+        debug: argv.debug === true,
+        groupByNetwork: argv.groupByNetwork === true
       };
     }
     
     // Otherwise return the mockCliArgs
-    const hasDate = this.mockCliArgs.date !== undefined && this.mockCliArgs.date !== null;
-    const hasCountry = this.mockCliArgs.country !== undefined && this.mockCliArgs.country !== null;
-    const hasMinAirtime = this.mockCliArgs.minAirtime !== undefined && 
-      this.mockCliArgs.minAirtime !== null;
+    const hasDate = this.mockCliArgs.date !== undefined;
+    const hasCountry = this.mockCliArgs.country !== undefined;
+    const hasMinAirtime = this.mockCliArgs.minAirtime !== undefined;
     const hasFetch = this.mockCliArgs.fetch !== undefined && this.mockCliArgs.fetch !== null;
     
     return {
@@ -195,10 +191,7 @@ class TestCliConfigService extends CliConfigServiceImpl {
         // Ensure slack config is properly merged
         slack: {
           ...defaultConfig.slack,
-          ...(this.mockConfigContent.slack !== undefined && 
-              this.mockConfigContent.slack !== null 
-            ? this.mockConfigContent.slack 
-            : {})
+          ...(this.mockConfigContent.slack ?? {})
         }
       };
       
@@ -337,30 +330,12 @@ class TestCliConfigService extends CliConfigServiceImpl {
 }
 
 describe('CliConfigServiceImpl', () => {
-  // Mock console methods to suppress output
-  let originalConsoleWarn: typeof console.warn;
-  let originalConsoleError: typeof console.error;
-  
-  beforeAll(() => {
-    // Save original console methods
-    originalConsoleWarn = console.warn;
-    originalConsoleError = console.error;
-    
-    // Mock console methods to suppress output
-    console.warn = jest.fn();
-    console.error = jest.fn();
-  });
-  
-  afterAll(() => {
-    // Restore original console methods
-    console.warn = originalConsoleWarn;
-    console.error = originalConsoleError;
-  });
-  
   beforeEach(() => {
-    jest.clearAllMocks();
+    // Mock console methods to suppress output during tests
+    jest.spyOn(console, 'warn').mockImplementation(() => { /* noop */ });
+    jest.spyOn(console, 'error').mockImplementation(() => { /* noop */ });
   });
-  
+
   afterEach(() => {
     jest.restoreAllMocks();
   });
@@ -525,7 +500,7 @@ describe('CliConfigServiceImpl', () => {
   
   it('should handle file read errors gracefully', () => {
     // Arrange
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => { /* noop */ });
     
     // Act
     const configService = new TestCliConfigService({
@@ -544,7 +519,7 @@ describe('CliConfigServiceImpl', () => {
   
   it('should handle unknown error types in handleConfigError', () => {
     // Arrange
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => { /* noop */ });
     
     // Act
     const configService = new TestCliConfigService({
@@ -976,7 +951,8 @@ describe('CliConfigServiceImpl', () => {
 
   it('should handle unknown errors when loading config', () => {
     // Create a spy on console.error to verify it's called with the right message
-    const errorSpy = jest.spyOn(console, 'error');
+    const errorSpy = jest.spyOn(console, 'error')
+      .mockImplementation(() => { /* noop */ });
     
     // Create a custom test class that directly calls handleConfigError with a non-Error
     class UnknownErrorConfigService extends TestCliConfigService {

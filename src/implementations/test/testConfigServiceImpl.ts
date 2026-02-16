@@ -161,7 +161,7 @@ export class TestConfigServiceImpl implements ConfigService {
       ...config,
       slack: {
         ...this.appConfig.slack,
-        ...(config.slack !== undefined && config.slack !== null ? config.slack : {})
+        ...(config.slack ?? {})
       }
     };
   }

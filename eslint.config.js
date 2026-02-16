@@ -82,9 +82,64 @@ const strictTypeRules = {
   '@typescript-eslint/no-unnecessary-type-arguments': 'error',
   '@typescript-eslint/restrict-plus-operands': 'error',
   '@typescript-eslint/restrict-template-expressions': 'error',
+
+  // Correctness & safety
+  '@typescript-eslint/await-thenable': 'error',
+  '@typescript-eslint/no-for-in-array': 'error',
+  '@typescript-eslint/no-implied-eval': 'error',
+  '@typescript-eslint/no-array-delete': 'error',
+  '@typescript-eslint/no-base-to-string': 'error',
+  '@typescript-eslint/no-misused-spread': 'error',
+  '@typescript-eslint/no-deprecated': 'error',
+  '@typescript-eslint/consistent-return': 'error',
+  '@typescript-eslint/return-await': 'error',
+  '@typescript-eslint/switch-exhaustiveness-check': 'error',
+  '@typescript-eslint/require-array-sort-compare': 'error',
+  '@typescript-eslint/use-unknown-in-catch-callback-variable': 'error',
+  '@typescript-eslint/prefer-promise-reject-errors': 'error',
+  '@typescript-eslint/no-unsafe-unary-minus': 'error',
+  '@typescript-eslint/strict-void-return': 'error',
+
+  // Code quality
+  '@typescript-eslint/no-unnecessary-condition': 'error',
+  '@typescript-eslint/no-unnecessary-template-expression': 'error',
+  '@typescript-eslint/no-unnecessary-type-conversion': 'error',
+  '@typescript-eslint/no-duplicate-type-constituents': 'error',
+  '@typescript-eslint/no-redundant-type-constituents': 'error',
+  '@typescript-eslint/no-useless-constructor': 'error',
+  '@typescript-eslint/no-useless-default-assignment': 'error',
+  '@typescript-eslint/no-confusing-void-expression': 'error',
+  '@typescript-eslint/no-dynamic-delete': 'error',
+  '@typescript-eslint/no-invalid-void-type': 'error',
+  '@typescript-eslint/no-extraneous-class': ['error', { allowStaticOnly: true }],
+  '@typescript-eslint/no-non-null-asserted-nullish-coalescing': 'error',
+  '@typescript-eslint/dot-notation': 'error',
+  '@typescript-eslint/prefer-includes': 'error',
+  '@typescript-eslint/prefer-find': 'error',
+  '@typescript-eslint/prefer-optional-chain': 'error',
+  '@typescript-eslint/prefer-nullish-coalescing': 'error',
+  '@typescript-eslint/prefer-string-starts-ends-with': 'error',
+  '@typescript-eslint/prefer-readonly': 'error',
+  '@typescript-eslint/prefer-regexp-exec': 'error',
+  '@typescript-eslint/prefer-reduce-type-parameter': 'error',
+  '@typescript-eslint/consistent-type-exports': 'error',
+  '@typescript-eslint/promise-function-async': 'error',
+  '@typescript-eslint/unified-signatures': 'error',
+
+  // Stylistic
+  '@typescript-eslint/array-type': 'error',
+  '@typescript-eslint/consistent-type-definitions': 'error',
+  '@typescript-eslint/prefer-for-of': 'error',
+  '@typescript-eslint/no-inferrable-types': 'error',
+  '@typescript-eslint/no-empty-function': 'error',
+  '@typescript-eslint/prefer-literal-enum-member': 'error',
 };
 
 export default [
+  // Global ignores
+  {
+    ignores: ['dist/**', 'cdk.out/**', 'node_modules/**', 'coverage/**']
+  },
   eslint.configs.recommended,
   // Main source files configuration
   {

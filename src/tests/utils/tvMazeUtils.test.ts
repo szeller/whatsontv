@@ -25,9 +25,9 @@ interface ShowWithId {
 describe('TVMaze Utils', () => {
   // Load test fixtures using the utility class and add type assertions
   const networkSchedule = Fixtures.tvMaze.getSchedule('network-schedule') as 
-    Array<NetworkScheduleItem & { show: ShowWithId }>;
+    (NetworkScheduleItem & { show: ShowWithId })[];
   const webSchedule = Fixtures.tvMaze.getSchedule('web-schedule') as 
-    Array<WebScheduleItem & { _embedded: { show: ShowWithId } }>;
+    (WebScheduleItem & { _embedded: { show: ShowWithId } })[];
 
   describe('URL Generation', () => {
     it('should generate network schedule URL with date and country', () => {
@@ -157,7 +157,7 @@ describe('TVMaze Utils', () => {
       const invalidItem = { invalid: 'data' };
       
       // Mock console.error to prevent test output pollution
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => { /* noop */ });
       
       try {
         // Act
@@ -240,9 +240,8 @@ describe('TVMaze Utils', () => {
   describe('Error Handling', () => {
     it('handles errors in transformScheduleItem gracefully', () => {
       // Arrange
-      const originalConsoleError = console.error;
-      const consoleErrorMock = jest.fn();
-      console.error = consoleErrorMock;
+      const consoleErrorMock = jest.spyOn(console, 'error')
+        .mockImplementation(() => { /* noop */ });
       
       try {
         // Create a malformed item that will cause an error during transformation
@@ -270,7 +269,7 @@ describe('TVMaze Utils', () => {
         process.env.NODE_ENV = originalNodeEnv;
       } finally {
         // Restore the original console.error
-        console.error = originalConsoleError;
+        consoleErrorMock.mockRestore();
       }
     });
   });

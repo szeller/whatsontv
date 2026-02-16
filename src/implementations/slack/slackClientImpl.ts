@@ -11,8 +11,8 @@ import type { SlackConfig } from '../../types/configTypes.js';
  */
 @injectable()
 export class SlackClientImpl implements SlackClient {
-  private _client: WebClient;
-  private _options: SlackConfig;
+  private readonly _client: WebClient;
+  private readonly _options: SlackConfig;
   private readonly logger: LoggerService;
 
   /**
@@ -29,10 +29,10 @@ export class SlackClientImpl implements SlackClient {
   ) {
     this._options = this.configService.getSlackOptions();
     this.logger = logger?.child({ module: 'SlackClient' }) ?? {
-      error: () => {},
-      warn: () => {},
-      info: () => {},
-      debug: () => {},
+      error: () => { /* noop */ },
+      warn: () => { /* noop */ },
+      info: () => { /* noop */ },
+      debug: () => { /* noop */ },
       child: () => this.logger
     } as LoggerService;
     
@@ -53,19 +53,17 @@ export class SlackClientImpl implements SlackClient {
     const startTime = Date.now();
     try {
       // Ensure channel is set
-      if (payload.channel === undefined || payload.channel === null || payload.channel === '') {
+      if (!payload.channel || payload.channel === '') {
         payload.channel = this._options.channelId;
       }
 
       // Add default username if set in options
       const completePayload = {
         ...payload,
-        username: payload.username !== undefined && payload.username !== null 
-          && payload.username !== ''
+        username: payload.username !== undefined && payload.username !== ''
           ? payload.username
           : this._options.username,
-        icon_emoji: payload.icon_emoji !== undefined && payload.icon_emoji !== null 
-          && payload.icon_emoji !== ''
+        icon_emoji: payload.icon_emoji !== undefined && payload.icon_emoji !== ''
           ? payload.icon_emoji
           : this._options.icon_emoji
       };
@@ -80,7 +78,7 @@ export class SlackClientImpl implements SlackClient {
       // Log successful message sending
       this.logger.info({
         channel: payload.channel,
-        messageLength: payload.text?.length ?? 0,
+        messageLength: payload.text.length,
         hasBlocks: payload.blocks !== undefined,
         blocksCount: payload.blocks?.length ?? 0,
         duration: Date.now() - startTime,
@@ -90,7 +88,7 @@ export class SlackClientImpl implements SlackClient {
       this.logger.error({
         error: String(error),
         channel: payload.channel,
-        messageLength: payload.text?.length ?? 0,
+        messageLength: payload.text.length,
         hasBlocks: payload.blocks !== undefined,
         blocksCount: payload.blocks?.length ?? 0,
         duration: Date.now() - startTime,

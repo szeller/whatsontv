@@ -73,8 +73,9 @@ export const handler = async (
     event: {
       httpMethod: event.httpMethod,
       path: event.path,
-      headers: event.headers !== null && event.headers !== undefined ?
-        Object.keys(event.headers).length : 0
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      headers: event.headers !== undefined && event.headers !== null
+        ? Object.keys(event.headers).length : 0
     }
   }, 'Lambda execution started');
 

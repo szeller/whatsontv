@@ -154,7 +154,7 @@ function formatRange(
  */
 export function formatEpisodeRanges(
   episodes: Show[], 
-  padEpisodeNumbers: boolean = true
+  padEpisodeNumbers = true
 ): string {
   if (!Array.isArray(episodes) || episodes.length === 0) {
     return '';
@@ -270,7 +270,7 @@ export function filterByNetwork(shows: Show[], networks: string[]): Show[] {
   
   return shows.filter(show => {
     // In our new model, network is a string
-    const networkName = show.network !== null ? show.network : '';
+    const networkName = show.network;
     
     // If network name is empty, this show won't match any network filter
     if (networkName === '') {
@@ -297,9 +297,7 @@ export function filterByGenre(shows: Show[], genres: string[]): Show[] {
   }
   
   return shows.filter(show => {
-    const showGenres = show.genres !== undefined && show.genres !== null 
-      ? show.genres 
-      : [];
+    const showGenres = show.genres;
     
     return genres.some(genre => 
       showGenres.some(showGenre => 

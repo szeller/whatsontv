@@ -55,7 +55,7 @@ export class MockLoggerServiceImpl implements LoggerService {
    */
   hasContext(context: Record<string, unknown>): boolean {
     return this.calls.some(call => {
-      if (call.context === null || call.context === undefined) {
+      if (call.context === undefined) {
         return false;
       }
       return Object.keys(context).every(key => call.context?.[key] === context[key]);
