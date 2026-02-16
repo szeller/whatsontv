@@ -330,20 +330,12 @@ class TestCliConfigService extends CliConfigServiceImpl {
 }
 
 describe('CliConfigServiceImpl', () => {
-  beforeAll(() => {
-    // Mock console methods to suppress output
+  beforeEach(() => {
+    // Mock console methods to suppress output during tests
     jest.spyOn(console, 'warn').mockImplementation(() => { /* noop */ });
     jest.spyOn(console, 'error').mockImplementation(() => { /* noop */ });
   });
 
-  afterAll(() => {
-    jest.restoreAllMocks();
-  });
-  
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-  
   afterEach(() => {
     jest.restoreAllMocks();
   });
@@ -959,7 +951,8 @@ describe('CliConfigServiceImpl', () => {
 
   it('should handle unknown errors when loading config', () => {
     // Create a spy on console.error to verify it's called with the right message
-    const errorSpy = jest.spyOn(console, 'error');
+    const errorSpy = jest.spyOn(console, 'error')
+      .mockImplementation(() => { /* noop */ });
     
     // Create a custom test class that directly calls handleConfigError with a non-Error
     class UnknownErrorConfigService extends TestCliConfigService {
