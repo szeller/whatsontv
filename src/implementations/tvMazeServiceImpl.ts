@@ -278,9 +278,11 @@ export class TvMazeServiceImpl implements TvShowService {
     if (Array.isArray(excludePatterns) && excludePatterns.length > 0) {
       const compiledPatterns = excludePatterns.map(pattern => {
         try {
+          // eslint-disable-next-line security/detect-non-literal-regexp
           return new RegExp(pattern, 'i');
         } catch {
-          // Invalid regex - treat as literal string
+          // Invalid regex - treat as literal string (input is escaped)
+          // eslint-disable-next-line security/detect-non-literal-regexp
           return new RegExp(this.escapeRegex(pattern), 'i');
         }
       });
