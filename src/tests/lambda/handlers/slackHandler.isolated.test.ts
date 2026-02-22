@@ -129,6 +129,7 @@ describe('Lambda Handler Logic - Isolated Tests', () => {
       );
       
       // Test missing channel
+      // eslint-disable-next-line sonarjs/no-undefined-argument
       expect(() => { validateEnvVars('test-token', undefined); }).toThrow(
         'SLACK_CHANNEL environment variable is required but not set'
       );

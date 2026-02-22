@@ -39,11 +39,11 @@ export class BaseCliApplication {
         
         // Process the shows
         await this.processShows(shows);
-      } catch (err) {
-        this.processOutput.error(`Error fetching TV shows: ${formatError(err)}`);
+      } catch (error) {
+        this.processOutput.error(`Error fetching TV shows: ${formatError(error)}`);
       }
-    } catch (err) {
-      this.processOutput.error(`Unexpected error: ${formatError(err)}`);
+    } catch (error) {
+      this.processOutput.error(`Unexpected error: ${formatError(error)}`);
     }
   }
   

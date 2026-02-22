@@ -118,9 +118,9 @@ describe('PinoLoggerServiceImpl', () => {
       delete process.env.LOG_LEVEL;
       
       expect(() => {
-        new PinoLoggerServiceImpl();
+        const _instance = new PinoLoggerServiceImpl();
       }).not.toThrow();
-      
+
       process.env.NODE_ENV = originalEnv;
     });
 
@@ -128,27 +128,27 @@ describe('PinoLoggerServiceImpl', () => {
       const originalEnv = process.env.NODE_ENV;
       process.env.NODE_ENV = 'development';
       delete process.env.LOG_LEVEL;
-      
+
       expect(() => {
-        new PinoLoggerServiceImpl();
+        const _instance = new PinoLoggerServiceImpl();
       }).not.toThrow();
-      
+
       process.env.NODE_ENV = originalEnv;
     });
 
     it('should handle custom log level', () => {
       process.env.LOG_LEVEL = 'info';
-      
+
       expect(() => {
-        new PinoLoggerServiceImpl();
+        const _instance = new PinoLoggerServiceImpl();
       }).not.toThrow();
     });
 
     it('should handle invalid log level gracefully', () => {
       process.env.LOG_LEVEL = 'invalid';
-      
+
       expect(() => {
-        new PinoLoggerServiceImpl();
+        const _instance = new PinoLoggerServiceImpl();
       }).not.toThrow();
     });
   });
@@ -157,9 +157,9 @@ describe('PinoLoggerServiceImpl', () => {
     it('should handle AWS Lambda environment', () => {
       const originalLambdaName = process.env.AWS_LAMBDA_FUNCTION_NAME;
       process.env.AWS_LAMBDA_FUNCTION_NAME = 'test-lambda';
-      
+
       expect(() => {
-        new PinoLoggerServiceImpl();
+        const _instance = new PinoLoggerServiceImpl();
       }).not.toThrow();
       
       if (originalLambdaName !== undefined) {

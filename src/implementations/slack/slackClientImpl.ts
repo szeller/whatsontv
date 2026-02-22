@@ -37,11 +37,9 @@ export class SlackClientImpl implements SlackClient {
     } as LoggerService;
     
     // Use the factory if provided, otherwise create a new WebClient directly
-    if (this.webClientFactory) {
-      this._client = this.webClientFactory(this._options);
-    } else {
-      this._client = new WebClient(this._options.token);
-    }
+    this._client = this.webClientFactory
+      ? this.webClientFactory(this._options)
+      : new WebClient(this._options.token);
   }
 
   /**

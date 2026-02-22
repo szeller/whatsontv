@@ -106,7 +106,7 @@ export class Fixtures {
   /**
    * TVMaze API test fixtures
    */
-  static tvMaze = {
+  static readonly tvMaze = {
     /**
      * Get schedule fixture data as a parsed JSON object
      * @param name Base name of the fixture file (without .json extension)
@@ -160,7 +160,7 @@ export class Fixtures {
   /**
    * Domain model test fixtures
    */
-  static domain = {
+  static readonly domain = {
     /**
      * Get sample network shows for testing
      * @returns Array of network shows in domain model format

@@ -182,29 +182,91 @@ export default [
       '@typescript-eslint/require-await': 'error',
       '@typescript-eslint/only-throw-error': 'error',
       
-      // Security rules (selected subset)
+      // Security rules
       'security/detect-eval-with-expression': 'error',
       'security/detect-buffer-noassert': 'error',
       'security/detect-unsafe-regex': 'error',
       'security/detect-new-buffer': 'error',
-      
-      // SonarJS rules (selected subset)
-      'sonarjs/no-identical-expressions': 'error',
-      'sonarjs/no-identical-conditions': 'error',
-      'sonarjs/no-use-of-empty-return-value': 'error',
-      'sonarjs/no-gratuitous-expressions': 'error',
-      
-      // Promise handling rules (selected subset)
+
+      // SonarJS recommended (all 203 rules)
+      ...sonarjsPlugin.configs.recommended.rules,
+      // Disable sonarjs rules that overlap with typescript-eslint or eslint
+      'sonarjs/no-array-delete': 'off',           // @typescript-eslint/no-array-delete
+      'sonarjs/deprecation': 'off',               // @typescript-eslint/no-deprecated
+      'sonarjs/no-unused-vars': 'off',            // @typescript-eslint/no-unused-vars
+      'sonarjs/prefer-regexp-exec': 'off',        // @typescript-eslint/prefer-regexp-exec
+      'sonarjs/no-alphabetical-sort': 'off',      // @typescript-eslint/require-array-sort-compare
+      'sonarjs/no-useless-catch': 'off',          // eslint no-useless-catch
+      'sonarjs/no-fallthrough': 'off',            // eslint no-fallthrough
+      'sonarjs/different-types-comparison': 'off', // eqeqeq
+      'sonarjs/unused-import': 'off',             // @typescript-eslint/no-unused-vars
+      'sonarjs/no-delete-var': 'off',             // eslint no-delete-var
+      'sonarjs/no-control-regex': 'off',          // eslint no-control-regex
+      'sonarjs/no-empty-character-class': 'off',  // eslint no-empty-character-class
+      'sonarjs/no-invalid-regexp': 'off',         // eslint no-invalid-regexp
+      'sonarjs/no-regex-spaces': 'off',           // eslint no-regex-spaces
+      // Disable sonarjs rules covered by TypeScript compiler
+      'sonarjs/no-extra-arguments': 'off',
+      'sonarjs/argument-type': 'off',
+      'sonarjs/in-operator-type-error': 'off',
+      'sonarjs/no-literal-call': 'off',
+      // Deferred: violations need manual refactoring
+      'sonarjs/cognitive-complexity': 'off',
+      'sonarjs/no-identical-functions': 'off',
+      'sonarjs/no-ignored-exceptions': 'off',
+      'sonarjs/use-type-alias': 'off',
+      // Deferred: project conventions
+      'sonarjs/no-nested-conditional': 'off',
+      'sonarjs/todo-tag': 'off',
+      'sonarjs/fixme-tag': 'off',
+
+      // Promise handling rules
       'promise/catch-or-return': 'error',
       'promise/no-return-wrap': 'error',
       'promise/param-names': 'error',
       'promise/no-new-statics': 'error',
-      
-      // Unicorn rules (selected subset)
+      'promise/always-return': 'error',
+      'promise/no-return-in-finally': 'error',
+      'promise/no-nesting': 'error',
+      'promise/no-promise-in-callback': 'error',
+      'promise/no-callback-in-promise': 'error',
+      'promise/valid-params': 'error',
+
+      // Unicorn rules
       'unicorn/error-message': 'error',
-      'unicorn/no-null': 'off', // Conflicts with TypeScript patterns
+      'unicorn/throw-new-error': 'error',
+      'unicorn/no-useless-undefined': 'error',
+      'unicorn/no-nested-ternary': 'error',
+      'unicorn/no-lonely-if': 'error',
+      'unicorn/no-for-loop': 'error',
+      'unicorn/no-unnecessary-await': 'error',
+      'unicorn/no-zero-fractions': 'error',
+      'unicorn/no-useless-promise-resolve-reject': 'error',
+      'unicorn/no-useless-length-check': 'error',
+      'unicorn/no-useless-spread': 'error',
+      'unicorn/no-object-as-default-parameter': 'error',
+      'unicorn/no-array-push-push': 'error',
+      'unicorn/prefer-array-find': 'error',
+      'unicorn/prefer-date-now': 'error',
+      'unicorn/prefer-type-error': 'error',
+      'unicorn/prefer-regexp-test': 'error',
+      'unicorn/prefer-negative-index': 'error',
+      'unicorn/prefer-node-protocol': 'error',
+      'unicorn/prefer-number-properties': 'error',
+      'unicorn/prefer-string-slice': 'error',
+      'unicorn/catch-error-name': 'error',
+      'unicorn/no-typeof-undefined': 'error',
+      'unicorn/prefer-ternary': 'error',
+      'unicorn/prefer-string-replace-all': 'error',
+      'unicorn/prefer-optional-catch-binding': 'error',
+      'unicorn/prefer-at': 'error',
+      'unicorn/better-regex': 'error',
+      'unicorn/prefer-spread': 'error',
+      'unicorn/prefer-array-flat-map': 'error',
+      'unicorn/prefer-set-has': 'error',
+      'unicorn/no-null': 'off',              // Conflicts with Zod nullable() patterns
       'unicorn/prevent-abbreviations': 'off', // Too aggressive for our codebase
-      
+
       // Console rules
       'no-console': ['error', { allow: ['warn', 'error'] }]
     },
@@ -241,16 +303,49 @@ export default [
     plugins: {
       '@typescript-eslint': tseslint,
       'import': importPlugin,
-      'jest': jestPlugin
+      'jest': jestPlugin,
+      'sonarjs': sonarjsPlugin
     },
     rules: {
       ...commonTsRules,
       ...strictTypeRules,
-      
+
       // Disable TypeScript's unbound-method rule in favor of Jest's version
       '@typescript-eslint/unbound-method': 'off',
       'jest/unbound-method': 'error',
-      
+
+      // SonarJS recommended for tests
+      ...sonarjsPlugin.configs.recommended.rules,
+      // Same overlaps/deferred as source files
+      'sonarjs/no-array-delete': 'off',
+      'sonarjs/deprecation': 'off',
+      'sonarjs/no-unused-vars': 'off',
+      'sonarjs/prefer-regexp-exec': 'off',
+      'sonarjs/no-alphabetical-sort': 'off',
+      'sonarjs/no-useless-catch': 'off',
+      'sonarjs/no-fallthrough': 'off',
+      'sonarjs/different-types-comparison': 'off',
+      'sonarjs/unused-import': 'off',
+      'sonarjs/no-delete-var': 'off',
+      'sonarjs/no-control-regex': 'off',
+      'sonarjs/no-empty-character-class': 'off',
+      'sonarjs/no-invalid-regexp': 'off',
+      'sonarjs/no-regex-spaces': 'off',
+      'sonarjs/no-extra-arguments': 'off',
+      'sonarjs/argument-type': 'off',
+      'sonarjs/in-operator-type-error': 'off',
+      'sonarjs/no-literal-call': 'off',
+      'sonarjs/cognitive-complexity': 'off',
+      'sonarjs/no-identical-functions': 'off',
+      'sonarjs/no-ignored-exceptions': 'off',
+      'sonarjs/use-type-alias': 'off',
+      'sonarjs/no-nested-conditional': 'off',
+      'sonarjs/todo-tag': 'off',
+      'sonarjs/fixme-tag': 'off',
+      // Test-specific sonarjs rules
+      'sonarjs/no-exclusive-tests': 'error',
+      'sonarjs/no-skipped-tests': 'warn',
+
       // Only relax these specific rules for tests
       'no-console': 'off',
       'no-unused-expressions': 'off' // Allow unused expressions in tests (for chai etc.)

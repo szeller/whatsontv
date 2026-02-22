@@ -56,22 +56,23 @@ export function parseTimeString(timeStr: string): { hours: number; minutes: numb
   if (timeStr.includes(':')) {
     // Format: "HH:MM" or "H:MM" with optional AM/PM
     const timeParts = timeStr.split(':');
-    if (timeParts.length !== 2 || isNaN(parseInt(timeParts[0], 10))) {
+    if (timeParts.length !== 2 || Number.isNaN(Number.parseInt(timeParts[0], 10))) {
       return null;
     }
     
-    hours = parseInt(timeParts[0], 10);
+    hours = Number.parseInt(timeParts[0], 10);
     
     // Extract minutes, removing any AM/PM suffix
-    const minutesPart = timeParts[1].replace(/\s*[APap][Mm].*$/, '');
-    if (isNaN(parseInt(minutesPart, 10))) {
+    const minutesPart = timeParts[1].replace(/[APap][Mm].*$/, '').trim();
+    if (Number.isNaN(Number.parseInt(minutesPart, 10))) {
       return null;
     }
-    minutes = parseInt(minutesPart, 10);
+    minutes = Number.parseInt(minutesPart, 10);
     
     // Handle AM/PM if present
-    const isPM = /\s*[Pp][Mm]/.test(timeStr);
-    const isAM = /\s*[Aa][Mm]/.test(timeStr);
+    const upperTime = timeStr.toUpperCase();
+    const isPM = upperTime.includes('PM');
+    const isAM = upperTime.includes('AM');
     
     if (isPM && hours < 12) {
       hours += 12;
@@ -80,10 +81,10 @@ export function parseTimeString(timeStr: string): { hours: number; minutes: numb
     }
   } else {
     // Format without colon, assume it's just hours
-    if (isNaN(parseInt(timeStr, 10))) {
+    if (Number.isNaN(Number.parseInt(timeStr, 10))) {
       return null;
     }
-    hours = parseInt(timeStr, 10);
+    hours = Number.parseInt(timeStr, 10);
   }
   
   return { hours, minutes };
@@ -151,7 +152,7 @@ export function parseDateString(dateStr: string | null | undefined): Date {
   if (hasContent(dateStr)) {
     // Parse the date string in a reliable way that preserves the local timezone
     const [year, month, day] = dateStr.split('-').map(Number);
-    if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+    if (!Number.isNaN(year) && !Number.isNaN(month) && !Number.isNaN(day)) {
       // Month is 0-indexed in JavaScript Date
       return new Date(year, month - 1, day);
     }

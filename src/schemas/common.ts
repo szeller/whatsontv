@@ -10,8 +10,8 @@ import { z } from 'zod';
 export const numberFromMixed = z.union([
   z.number(),
   z.string().transform((val, ctx) => {
-    const parsed = parseInt(val, 10);
-    if (isNaN(parsed)) {
+    const parsed = Number.parseInt(val, 10);
+    if (Number.isNaN(parsed)) {
       ctx.addIssue({
         code: 'custom',
         message: `Could not parse "${val}" as a number`

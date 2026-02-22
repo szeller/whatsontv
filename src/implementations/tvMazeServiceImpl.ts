@@ -144,8 +144,7 @@ export class TvMazeServiceImpl implements TvShowService {
 
       // Transform and combine all schedule results using a functional approach
       let shows = scheduleResults
-        .map(scheduleResult => transformSchedule(scheduleResult))
-        .flat();
+        .flatMap(scheduleResult => transformSchedule(scheduleResult));
 
       // Deduplicate shows based on unique combination of show ID and episode
       shows = this.deduplicateShows(shows);
@@ -174,7 +173,7 @@ export class TvMazeServiceImpl implements TvShowService {
    * @private
    */
   private escapeRegex(str: string): string {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return str.replaceAll(/[$()*+.?[\\\]^{|}]/g, '\\$&');
   }
 
   /**
@@ -216,7 +215,7 @@ export class TvMazeServiceImpl implements TvShowService {
         }
 
         // Remove country codes for exact matching
-        const showNetwork = show.network.replace(/\s+\([A-Z]{2}\)$/, '').toLowerCase();
+        const showNetwork = show.network.replace(/ \([A-Z]{2}\)$/, '').toLowerCase();
 
         return networkValues.some((network: string) =>
           showNetwork === network.toLowerCase()
@@ -315,6 +314,6 @@ export class TvMazeServiceImpl implements TvShowService {
       }
     });
 
-    return Array.from(showMap.values());
+    return [...showMap.values()];
   }
 }

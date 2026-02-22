@@ -33,6 +33,7 @@ describe('ProcessOutputImpl', () => {
       const consoleOutput = new ProcessOutputImpl();
 
       // Act
+      // eslint-disable-next-line sonarjs/no-undefined-argument
       consoleOutput.log(undefined);
 
       // Assert

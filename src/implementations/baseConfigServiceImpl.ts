@@ -2,8 +2,8 @@
  * Base implementation of ConfigService with shared logic
  * Subclasses implement their own initialization strategies
  */
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import type { ConfigService } from '../interfaces/configService.js';
 import type { ShowOptions } from '../types/tvShowOptions.js';

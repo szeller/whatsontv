@@ -5,9 +5,9 @@
  * to visualize how TV show data would appear in Slack.
  */
 import type { Show } from '../schemas/domain.js';
-import { readFileSync } from 'fs';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { readFileSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // Get current directory for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -345,7 +345,7 @@ export function generateInteractiveFormat(): SlackMessagePayload {
           text: 'Expand/Collapse',
           emoji: true
         },
-        value: `toggle_${network.toLowerCase().replace(/\s+/g, '_')}`,
+        value: `toggle_${network.toLowerCase().replaceAll(/\s+/g, '_')}`,
         action_id: 'toggle_network'
       }
     });

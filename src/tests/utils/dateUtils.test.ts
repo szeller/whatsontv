@@ -49,6 +49,7 @@ describe('DateUtils', () => {
       expect(result1).toMatch(/^\d{4}-\d{2}-\d{2}$/);
 
       // Undefined should fall back to local date
+      // eslint-disable-next-line sonarjs/no-undefined-argument
       const result2 = getTodayDate(undefined);
       expect(result2).toMatch(/^\d{4}-\d{2}-\d{2}$/);
 

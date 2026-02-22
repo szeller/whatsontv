@@ -107,10 +107,10 @@ export function truncateString(
   // Ensure there's room for the suffix
   const truncatedLength = maxLength - suffix.length;
   if (truncatedLength <= 0) {
-    return suffix.substring(0, maxLength);
+    return suffix.slice(0, Math.max(0, maxLength));
   }
   
-  return value.substring(0, truncatedLength) + suffix;
+  return value.slice(0, Math.max(0, truncatedLength)) + suffix;
 }
 
 /**
@@ -162,9 +162,9 @@ export function wrapText(text: string, maxWidth: number): string[] {
       if (word.length > maxWidth) {
         let remainingWord = word;
         while (remainingWord.length > 0) {
-          const chunk = remainingWord.substring(0, maxWidth);
+          const chunk = remainingWord.slice(0, Math.max(0, maxWidth));
           lines.push(chunk);
-          remainingWord = remainingWord.substring(maxWidth);
+          remainingWord = remainingWord.slice(Math.max(0, maxWidth));
         }
       } else {
         currentLine = word;

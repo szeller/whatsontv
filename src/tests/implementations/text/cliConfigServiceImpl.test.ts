@@ -91,11 +91,7 @@ class TestCliConfigService extends CliConfigServiceImpl {
   protected readFile(_filePath: string): string {
     if (this.mockReadFileError !== null) {
       this.errorHandlerCalled = true;
-      if (typeof this.mockReadFileError === 'string') {
-        throw this.mockReadFileError;
-      } else {
-        throw this.mockReadFileError;
-      }
+      throw this.mockReadFileError;
     }
     return JSON.stringify(this.mockConfigContent);
   }
@@ -964,7 +960,7 @@ describe('CliConfigServiceImpl', () => {
     }
     
     // Act - just creating the instance will trigger the error handling
-    new UnknownErrorConfigService();
+    const _service = new UnknownErrorConfigService();
     
     // Assert - verify console.error was called with the expected message
     expect(errorSpy).toHaveBeenCalledWith(

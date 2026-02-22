@@ -35,9 +35,9 @@ export function containsFormattedShowLine(output: string): boolean {
   const showTypes = '(Scripted|Reality|Documentary|Variety|Game Show|Talk Show|News|Sports)';
   
   // Find lines that start with a time pattern (HH:MM) or N/A followed by spaces
-  const timePattern = /^\s*((?:\d{2}:\d{2})|(?:N\/A))\s+/m;
+  const timePattern = /^ *((?:\d{2}:\d{2})|(?:N\/A)) +/m;
   const typePattern = new RegExp(`\\s+${showTypes}\\s+`, 'm');
-  const seasonPattern = /\s+S\d+E\d+\s+/m;
+  const seasonPattern = / S\d+E\d+ /m;
   
   return (
     timePattern.test(cleanOutput) && 

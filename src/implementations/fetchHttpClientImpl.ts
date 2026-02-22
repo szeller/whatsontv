@@ -165,7 +165,7 @@ export class FetchHttpClientImpl implements HttpClient {
   private normalizeUrl(url: string): string {
     // If we have a baseUrl and the url starts with a slash, remove the slash
     if (this.baseUrl && url.startsWith('/')) {
-      return url.substring(1);
+      return url.slice(1);
     }
     return url;
   }
@@ -212,7 +212,7 @@ export class FetchHttpClientImpl implements HttpClient {
       if (isJsonContent) {
         try {
           responseData = await response.json();
-        } catch (_e) {
+        } catch {
           // If JSON parsing fails, fall back to text
           responseData = await response.text();
         }
@@ -227,12 +227,7 @@ export class FetchHttpClientImpl implements HttpClient {
       });
       
       // Validate with schema if provided
-      let data: T;
-      if (schema) {
-        data = schema.parse(responseData) as T;
-      } else {
-        data = responseData as T;
-      }
+      const data: T = schema ? schema.parse(responseData) as T : responseData as T;
       
       // Return in the format expected by HttpClient interface
       return {
@@ -324,7 +319,7 @@ export class FetchHttpClientImpl implements HttpClient {
       if (isJsonContent) {
         try {
           responseData = await response.json();
-        } catch (_e) {
+        } catch {
           // If JSON parsing fails, fall back to text
           responseData = await response.text();
         }
@@ -339,12 +334,7 @@ export class FetchHttpClientImpl implements HttpClient {
       });
       
       // Validate with schema if provided
-      let parsedData: T;
-      if (schema) {
-        parsedData = schema.parse(responseData) as T;
-      } else {
-        parsedData = responseData as T;
-      }
+      const parsedData: T = schema ? schema.parse(responseData) as T : responseData as T;
       
       // Return in the format expected by HttpClient interface
       return {

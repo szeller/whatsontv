@@ -1,8 +1,8 @@
 /**
  * Utility functions for configuration handling
  */
-import path from 'path';
-import { fileURLToPath } from 'url';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { CliArgs } from '../types/cliArgs.js';
 import { AppConfig } from '../types/configTypes.js';
 import { ShowOptions } from '../types/tvShowOptions.js';
@@ -118,12 +118,9 @@ export function mergeShowOptions(
   const cliMinAirtime = cliArgs.minAirtime;
 
   // Safely handle base options
-  const baseDate = typeof base.date !== 'undefined' ?
-    base.date : getTodayDate(appConfig.timezone);
-  const baseCountry = typeof base.country !== 'undefined' ?
-    base.country : appConfig.country;
-  const baseMinAirtime = typeof base.minAirtime !== 'undefined' ?
-    base.minAirtime : appConfig.minAirtime;
+  const baseDate = base.date ?? getTodayDate(appConfig.timezone);
+  const baseCountry = base.country ?? appConfig.country;
+  const baseMinAirtime = base.minAirtime ?? appConfig.minAirtime;
 
   return {
     // Use base options as fallback if provided

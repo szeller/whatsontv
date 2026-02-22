@@ -16,7 +16,7 @@ export function getNetworkName(show: Show): string {
   
   if (show.network) {
     // Remove country codes in parentheses, e.g., "Hulu (JP)" -> "Hulu"
-    networkName = show.network.replace(/\s+\([A-Z]{2}\)$/, '');
+    networkName = show.network.replace(/ \([A-Z]{2}\)$/, '');
   }
   
   return networkName;
@@ -320,7 +320,7 @@ export function filterByLanguage(shows: Show[], languages: string[]): Show[] {
   }
   
   // Convert languages to lowercase for case-insensitive comparison
-  const lowercaseLanguages = languages.map(lang => lang.toLowerCase());
+  const lowercaseLanguages = new Set(languages.map(lang => lang.toLowerCase()));
   
   return shows.filter(show => {
     // If show has no language, skip it
@@ -329,7 +329,7 @@ export function filterByLanguage(shows: Show[], languages: string[]): Show[] {
     }
 
     // Check if the show's language is in the list of languages to include
-    return lowercaseLanguages.includes(show.language.toLowerCase());
+    return lowercaseLanguages.has(show.language.toLowerCase());
   });
 }
 
