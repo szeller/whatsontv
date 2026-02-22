@@ -126,7 +126,7 @@ export class TestConfigServiceImpl implements ConfigService {
    * @returns True if debug mode is enabled
    */
   isDebugMode(): boolean {
-    return this.cliOptions.debug === true;
+    return this.cliOptions.debug;
   }
   
   /**

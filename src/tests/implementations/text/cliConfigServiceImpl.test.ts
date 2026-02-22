@@ -91,6 +91,7 @@ class TestCliConfigService extends CliConfigServiceImpl {
   protected readFile(_filePath: string): string {
     if (this.mockReadFileError !== null) {
       this.errorHandlerCalled = true;
+      // eslint-disable-next-line @typescript-eslint/only-throw-error
       throw this.mockReadFileError;
     }
     return JSON.stringify(this.mockConfigContent);

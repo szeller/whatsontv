@@ -76,7 +76,7 @@ export function createMockConfigService(options: ConfigServiceOptions = {}): Tes
   // By default, enhance with Jest mocks unless explicitly disabled
   const shouldEnhanceWithJestMocks = options.enhanceWithJestMocks !== false;
   
-  if (shouldEnhanceWithJestMocks === true) {
+  if (shouldEnhanceWithJestMocks) {
     // Get the original values before mocking
     const originalShowOptions = configService.getShowOptions();
     const originalCliOptions = configService.getCliOptions();

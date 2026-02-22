@@ -39,6 +39,7 @@ export function createMockTvShowService(
   options: TvShowServiceOptions = {}
 ): jest.Mocked<TvShowService> {
   const mockTvShowService: jest.Mocked<TvShowService> = {
+    // eslint-disable-next-line @typescript-eslint/require-await
     fetchShows: jest.fn(async (showOptions: ShowOptions): Promise<Show[]> => {
       // If we should throw an error, do so
       if (options.fetchError) {

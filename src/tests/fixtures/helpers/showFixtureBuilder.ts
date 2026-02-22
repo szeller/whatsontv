@@ -42,7 +42,7 @@ export class ShowBuilder {
    * Set the show ID
    * @param id Show ID
    */
-  withId(id: number): ShowBuilder {
+  withId(id: number): this {
     this.show.id = id;
     return this;
   }
@@ -51,7 +51,7 @@ export class ShowBuilder {
    * Set the show name
    * @param name Show name
    */
-  withName(name: string): ShowBuilder {
+  withName(name: string): this {
     this.show.name = name;
     return this;
   }
@@ -60,7 +60,7 @@ export class ShowBuilder {
    * Set the show type
    * @param type Show type
    */
-  withType(type: string): ShowBuilder {
+  withType(type: string): this {
     this.show.type = type;
     return this;
   }
@@ -69,7 +69,7 @@ export class ShowBuilder {
    * Set the show language
    * @param language Show language
    */
-  withLanguage(language: string | null): ShowBuilder {
+  withLanguage(language: string | null): this {
     this.show.language = language;
     return this;
   }
@@ -78,7 +78,7 @@ export class ShowBuilder {
    * Set the show genres
    * @param genres Show genres
    */
-  withGenres(genres: string[]): ShowBuilder {
+  withGenres(genres: string[]): this {
     this.show.genres = genres;
     return this;
   }
@@ -87,7 +87,7 @@ export class ShowBuilder {
    * Set the show network
    * @param network Show network
    */
-  withNetwork(network: string): ShowBuilder {
+  withNetwork(network: string): this {
     this.show.network = network;
     return this;
   }
@@ -96,7 +96,7 @@ export class ShowBuilder {
    * Set the show summary
    * @param summary Show summary
    */
-  withSummary(summary: string | null): ShowBuilder {
+  withSummary(summary: string | null): this {
     this.show.summary = summary;
     return this;
   }
@@ -105,7 +105,7 @@ export class ShowBuilder {
    * Set the show airtime
    * @param airtime Show airtime
    */
-  withAirtime(airtime: string | null): ShowBuilder {
+  withAirtime(airtime: string | null): this {
     this.show.airtime = airtime;
     return this;
   }
@@ -115,7 +115,7 @@ export class ShowBuilder {
    * @param season Season number
    * @param number Episode number
    */
-  withEpisode(season: number, number: number): ShowBuilder {
+  withEpisode(season: number, number: number): this {
     this.show.season = season;
     this.show.number = number;
     return this;

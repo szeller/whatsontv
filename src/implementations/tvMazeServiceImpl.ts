@@ -304,7 +304,7 @@ export class TvMazeServiceImpl implements TvShowService {
       return [];
     }
 
-    const showMap: Map<string, Show> = new Map();
+    const showMap = new Map<string, Show>();
 
     shows.forEach((show: Show) => {
       // Create a unique key using show ID, season, and episode number
