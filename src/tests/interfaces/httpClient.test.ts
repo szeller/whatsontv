@@ -90,7 +90,7 @@ describe('HttpClient Interface', () => {
       
       // Verify the error is thrown correctly
       await expect(client.get<unknown>('/test')).rejects.toThrow(
-        'Request Error: HTTP Error 404: Not Found'
+        'Request failed with status code 404'
       );
     });
 
@@ -156,7 +156,7 @@ describe('HttpClient Interface', () => {
       // Verify the error is thrown correctly
       await expect(client.post<unknown, Record<string, unknown>>('/create', requestBody))
         .rejects.toThrow(
-          'Request Error: HTTP Error 400: Request failed'
+          'Request failed with status code 400'
         );
     });
 
