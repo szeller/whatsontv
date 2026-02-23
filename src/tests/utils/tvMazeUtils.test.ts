@@ -84,9 +84,9 @@ describe('TVMaze Utils', () => {
       ];
       
       // Act & Assert
-      invalidItems.forEach(item => {
+      for (const item of invalidItems) {
         expect(isWebScheduleItem(item)).toBe(false);
-      });
+      }
     });
   });
   
@@ -181,7 +181,7 @@ describe('TVMaze Utils', () => {
     
     it('should handle undefined input gracefully', () => {
       // Act
-      const result = transformScheduleItem(undefined);
+      const result = transformScheduleItem();
       
       // Assert
       expect(result).toBeNull();

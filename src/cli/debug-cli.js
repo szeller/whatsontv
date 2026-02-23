@@ -4,8 +4,7 @@
  * Debug wrapper for the CLI to catch and handle errors
  */
 
-/* eslint-disable no-console, no-undef */
-/* eslint-env node */
+/* global process, console */
 
 // Set up global error handlers
 process.on('uncaughtException', (error) => {

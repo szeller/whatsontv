@@ -12,6 +12,19 @@ import { createMockSlackClient } from '../../mocks/factories/slackClientFactory.
 import { createSlackAppWithContainer } from '../../../cli/slackCli.js';
 import { getTodayDate } from '../../../utils/dateUtils.js';
 
+function validateEnvVars(slackToken?: string, slackChannel?: string): void {
+  if (slackToken === undefined || slackToken.trim() === '') {
+    throw new Error(
+      'SLACK_TOKEN environment variable is required but not set'
+    );
+  }
+  if (slackChannel === undefined || slackChannel.trim() === '') {
+    throw new Error(
+      'SLACK_CHANNEL environment variable is required but not set'
+    );
+  }
+}
+
 describe('Lambda Handler Logic - Isolated Tests', () => {
   beforeEach(() => {
     // Mock console methods to suppress output during tests
@@ -104,20 +117,6 @@ describe('Lambda Handler Logic - Isolated Tests', () => {
 
   describe('Environment Variable Validation', () => {
     test('should validate required environment variables', () => {
-      // Test the same validation logic that the Lambda handler uses
-      const validateEnvVars = (slackToken?: string, slackChannel?: string): void => {
-        if (slackToken === undefined || slackToken.trim() === '') {
-          throw new Error(
-            'SLACK_TOKEN environment variable is required but not set'
-          );
-        }
-        if (slackChannel === undefined || slackChannel.trim() === '') {
-          throw new Error(
-            'SLACK_CHANNEL environment variable is required but not set'
-          );
-        }
-      };
-
       // Test missing token
       expect(() => { validateEnvVars(undefined, '#test'); }).toThrow(
         'SLACK_TOKEN environment variable is required but not set'
@@ -129,7 +128,8 @@ describe('Lambda Handler Logic - Isolated Tests', () => {
       );
       
       // Test missing channel
-      expect(() => { validateEnvVars('test-token', undefined); }).toThrow(
+       
+      expect(() => { validateEnvVars('test-token'); }).toThrow(
         'SLACK_CHANNEL environment variable is required but not set'
       );
       

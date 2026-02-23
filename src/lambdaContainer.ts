@@ -17,6 +17,10 @@ import type { SlackShowFormatter } from './interfaces/showFormatter.js';
 import type { TvShowService } from './interfaces/tvShowService.js';
 import type { SlackConfig } from './types/configTypes.js';
 
+/** Factory function that creates WebClient instances from Slack config */
+const createWebClient = (config: SlackConfig): WebClient =>
+  new WebClient(config.token);
+
 // Implementation imports - NO yargs dependency
 import { LambdaConfigServiceImpl } from './implementations/lambda/lambdaConfigServiceImpl.js';
 import { ProcessOutputImpl } from './implementations/processOutputImpl.js';
@@ -50,10 +54,7 @@ export function initializeLambdaContainer(): void {
 
   // Register WebClientFactory for creating Slack WebClient instances
   container.register('WebClientFactory', {
-    useFactory: () => {
-      // Return a factory function that creates WebClient instances
-      return (config: SlackConfig) => new WebClient(config.token);
-    }
+    useFactory: () => createWebClient
   });
 
   // Register real SlackClient implementation
@@ -74,5 +75,4 @@ export function initializeLambdaContainer(): void {
   container.register('PlatformType', { useValue: 'lambda' });
 }
 
-// Export the container
-export { container };
+export { container } from 'tsyringe';

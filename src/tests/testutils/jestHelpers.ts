@@ -29,15 +29,12 @@ export function createTypedSpy<T extends object, K extends keyof T>(
 export function createMockImplementation<T extends object>(
   implementation: Partial<Record<keyof T, unknown>> = {}
 ): jest.Mocked<T> {
-  const mockedMethods = Object.entries(implementation).reduce(
-    (acc, [key, value]) => {
-      acc[key as keyof T] = typeof value === 'function' 
-        ? jest.fn(value as (...args: unknown[]) => unknown) 
-        : jest.fn(() => value);
-      return acc;
-    },
-    {} as Record<keyof T, jest.Mock>
-  );
-  
+  const mockedMethods = {} as Record<keyof T, jest.Mock>;
+  for (const [key, value] of Object.entries(implementation)) {
+    mockedMethods[key as keyof T] = typeof value === 'function'
+      ? jest.fn(value as (...args: unknown[]) => unknown)
+      : jest.fn(() => value);
+  }
+
   return mockedMethods as unknown as jest.Mocked<T>;
 }

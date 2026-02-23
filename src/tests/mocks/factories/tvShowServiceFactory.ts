@@ -39,6 +39,7 @@ export function createMockTvShowService(
   options: TvShowServiceOptions = {}
 ): jest.Mocked<TvShowService> {
   const mockTvShowService: jest.Mocked<TvShowService> = {
+    // eslint-disable-next-line @typescript-eslint/require-await
     fetchShows: jest.fn(async (showOptions: ShowOptions): Promise<Show[]> => {
       // If we should throw an error, do so
       if (options.fetchError) {
@@ -127,11 +128,11 @@ export function createMockTvShowService(
   
   // Apply any custom implementations
   if (options.implementation) {
-    Object.entries(options.implementation).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(options.implementation)) {
       // We need to cast here because we're dynamically setting properties
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (mockTvShowService as any)[key] = value;
-    });
+    }
   }
   
   return mockTvShowService;

@@ -57,7 +57,7 @@ describe('Validation Utilities', () => {
       
       try {
         validateData(testSchema, testData);
-      } catch (_error) {
+      } catch {
         // Expected to throw
       }
       
@@ -72,7 +72,7 @@ describe('Validation Utilities', () => {
       
       try {
         validateData(testSchema, testData);
-      } catch (_error) {
+      } catch {
         // Expected to throw
       }
       
@@ -87,7 +87,7 @@ describe('Validation Utilities', () => {
       
       try {
         validateData(testSchema, testData);
-      } catch (_error) {
+      } catch {
         // Expected to throw
       }
       
@@ -103,7 +103,7 @@ describe('Validation Utilities', () => {
       
       try {
         validateData(testSchema, testData);
-      } catch (_error) {
+      } catch {
         // Expected to throw
       }
       

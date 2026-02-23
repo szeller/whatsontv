@@ -163,7 +163,7 @@ describe('Console Output Integration Tests', () => {
     expect(outputLines.some(line => line.toLowerCase().includes('tvmaze'))).toBe(true);
     
     // Verify that ANSI color codes are present in the output (chalk styling)
-    expect(outputLines.some(line => line.includes('\u001b['))).toBe(true);
+    expect(outputLines.some(line => line.includes('\u001B['))).toBe(true);
   });
   
   test('should format multiple episodes with consistent styling', async () => {
@@ -200,15 +200,15 @@ describe('Console Output Integration Tests', () => {
       (line.includes('S05') || line.includes('E07') || line.includes('E08'))
     );
     
-    if (breakingBadLine !== undefined) {
-      // The line should have airtime info in parentheses
-      expect(breakingBadLine.includes('(')).toBe(true);
-      
-      // Verify that ANSI color codes are present (chalk styling)
-      expect(breakingBadLine.includes('\u001b[')).toBe(true);
-    } else {
+    if (breakingBadLine === undefined) {
       // If we can't find the exact line, at least verify parentheses appear somewhere
       expect(outputLines.some(line => line.includes('('))).toBe(true);
+    } else {
+      // The line should have airtime info in parentheses
+      expect(breakingBadLine).toContain('(');
+      
+      // Verify that ANSI color codes are present (chalk styling)
+      expect(breakingBadLine).toContain('\u001B[');
     }
   });
   
@@ -241,15 +241,15 @@ describe('Console Output Integration Tests', () => {
       (line.includes('S04') || line.includes('E09'))
     );
     
-    if (strangerThingsLine !== undefined) {
-      // Should have airtime info in parentheses
-      expect(strangerThingsLine.includes('(')).toBe(true);
-      
-      // Verify that ANSI color codes are present (chalk styling)
-      expect(strangerThingsLine.includes('\u001b[')).toBe(true);
-    } else {
+    if (strangerThingsLine === undefined) {
       // If we can't find the exact line, at least verify parentheses appear somewhere
       expect(outputLines.some(line => line.includes('('))).toBe(true);
+    } else {
+      // Should have airtime info in parentheses
+      expect(strangerThingsLine).toContain('(');
+      
+      // Verify that ANSI color codes are present (chalk styling)
+      expect(strangerThingsLine).toContain('\u001B[');
     }
   });
 });

@@ -144,8 +144,7 @@ export class TvMazeServiceImpl implements TvShowService {
 
       // Transform and combine all schedule results using a functional approach
       let shows = scheduleResults
-        .map(scheduleResult => transformSchedule(scheduleResult))
-        .flat();
+        .flatMap(scheduleResult => transformSchedule(scheduleResult));
 
       // Deduplicate shows based on unique combination of show ID and episode
       shows = this.deduplicateShows(shows);
@@ -174,7 +173,7 @@ export class TvMazeServiceImpl implements TvShowService {
    * @private
    */
   private escapeRegex(str: string): string {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return str.replaceAll(/[$()*+.?[\\\]^{|}]/g, String.raw`\$&`);
   }
 
   /**
@@ -216,7 +215,7 @@ export class TvMazeServiceImpl implements TvShowService {
         }
 
         // Remove country codes for exact matching
-        const showNetwork = show.network.replace(/\s+\([A-Z]{2}\)$/, '').toLowerCase();
+        const showNetwork = show.network.replace(/ \([A-Z]{2}\)$/, '').toLowerCase();
 
         return networkValues.some((network: string) =>
           showNetwork === network.toLowerCase()
@@ -279,9 +278,11 @@ export class TvMazeServiceImpl implements TvShowService {
     if (Array.isArray(excludePatterns) && excludePatterns.length > 0) {
       const compiledPatterns = excludePatterns.map(pattern => {
         try {
+          // eslint-disable-next-line security/detect-non-literal-regexp
           return new RegExp(pattern, 'i');
         } catch {
-          // Invalid regex - treat as literal string
+          // Invalid regex - treat as literal string (input is escaped)
+          // eslint-disable-next-line security/detect-non-literal-regexp
           return new RegExp(this.escapeRegex(pattern), 'i');
         }
       });
@@ -305,16 +306,16 @@ export class TvMazeServiceImpl implements TvShowService {
       return [];
     }
 
-    const showMap: Map<string, Show> = new Map();
+    const showMap = new Map<string, Show>();
 
-    shows.forEach((show: Show) => {
+    for (const show of shows) {
       // Create a unique key using show ID, season, and episode number
       const key = `${show.id}-${show.season}-${show.number}`;
       if (!showMap.has(key)) {
         showMap.set(key, show);
       }
-    });
+    }
 
-    return Array.from(showMap.values());
+    return [...showMap.values()];
   }
 }

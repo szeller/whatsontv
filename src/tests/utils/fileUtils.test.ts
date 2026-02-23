@@ -103,10 +103,10 @@ describe('fileUtils', () => {
 
     afterEach(() => {
       // Restore original value
-      if (originalEnv !== undefined) {
-        process.env.CONFIG_FILE = originalEnv;
-      } else {
+      if (originalEnv === undefined) {
         delete process.env.CONFIG_FILE;
+      } else {
+        process.env.CONFIG_FILE = originalEnv;
       }
     });
 

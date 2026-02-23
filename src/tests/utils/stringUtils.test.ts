@@ -22,7 +22,7 @@ describe('stringUtils', () => {
     });
 
     it('should return true for undefined', () => {
-      expect(isEmptyString(undefined)).toBe(true);
+      expect(isEmptyString()).toBe(true);
     });
 
     it('should return true for empty string', () => {
@@ -52,7 +52,7 @@ describe('stringUtils', () => {
     });
 
     it('should return false for undefined', () => {
-      expect(hasContent(undefined)).toBe(false);
+      expect(hasContent()).toBe(false);
     });
 
     it('should return false for empty string', () => {
@@ -82,7 +82,7 @@ describe('stringUtils', () => {
     });
 
     it('should return true for undefined', () => {
-      expect(isEmptyArray(undefined)).toBe(true);
+      expect(isEmptyArray()).toBe(true);
     });
 
     it('should return true for empty array', () => {
@@ -109,7 +109,7 @@ describe('stringUtils', () => {
     });
 
     it('should return false for undefined', () => {
-      expect(hasElements(undefined)).toBe(false);
+      expect(hasElements()).toBe(false);
     });
 
     it('should return false for empty array', () => {
@@ -128,7 +128,7 @@ describe('stringUtils', () => {
       const arr: string[] | null = ['test'];
       if (hasElements(arr)) {
         // TypeScript should know arr is string[] here
-        expect(arr.length).toBe(1);
+        expect(arr).toHaveLength(1);
         expect(arr[0].toUpperCase()).toBe('TEST');
       }
     });

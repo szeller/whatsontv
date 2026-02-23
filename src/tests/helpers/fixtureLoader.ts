@@ -3,9 +3,9 @@
  * 
  * Core utilities for loading test fixtures from the filesystem
  */
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // Get the directory name in ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -30,7 +30,7 @@ export function getFixturePath(relativePath: string): string {
  */
 export function loadFixture<T>(relativePath: string): T {
   const fullPath = getFixturePath(relativePath);
-  const fileContent = fs.readFileSync(fullPath, 'utf-8');
+  const fileContent = fs.readFileSync(fullPath, 'utf8');
   return JSON.parse(fileContent) as T;
 }
 
@@ -41,5 +41,5 @@ export function loadFixture<T>(relativePath: string): T {
  */
 export function loadFixtureString(relativePath: string): string {
   const fullPath = getFixturePath(relativePath);
-  return fs.readFileSync(fullPath, 'utf-8');
+  return fs.readFileSync(fullPath, 'utf8');
 }

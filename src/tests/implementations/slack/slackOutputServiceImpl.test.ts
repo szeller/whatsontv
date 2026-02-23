@@ -50,7 +50,7 @@ describe('SlackOutputServiceImpl', () => {
     mockFormatter = SlackShowFormatterFixture.createMockFormatter();
     
     mockSlackClient = {
-      sendMessage: jest.fn().mockImplementation(async () => Promise.resolve())
+      sendMessage: jest.fn<() => Promise<void>>().mockResolvedValue()
     } as jest.Mocked<SlackClient>;
     
     mockConfigService = {
@@ -138,11 +138,12 @@ describe('SlackOutputServiceImpl', () => {
       // Arrange
       const error = new Error('Slack API error');
       mockSlackClient.sendMessage.mockRejectedValue(error);
-      
-      // Act
-      await outputService.renderOutput(testShows);
+
+      // Act & Assert — verifies no unhandled rejection
+      await expect(outputService.renderOutput(testShows))
+        .resolves.toBeUndefined();
     });
-    
+
     it('should handle errors when sending error message to Slack', async () => {
       // Arrange
       // First call throws an error, second call also throws (when trying to send error message)
@@ -155,10 +156,11 @@ describe('SlackOutputServiceImpl', () => {
       
       mockSlackClient.sendMessage.mockRejectedValue(secondError);
       
-      // Act
-      await outputService.renderOutput(testShows);
+      // Act & Assert — verifies no unhandled rejection
+      await expect(outputService.renderOutput(testShows))
+        .resolves.toBeUndefined();
     });
-    
+
     it('should handle empty shows array', async () => {
       // Arrange
       const emptyBlocks = [SlackShowFormatterFixture.createHeaderBlock()];

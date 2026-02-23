@@ -51,7 +51,7 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
 
   mockProcessOutput.error = (message?: string, ...args: unknown[]): void => {
     if (message !== undefined) {
-      stderr.push([message, ...args.map(a => String(a))].join(' '));
+      stderr.push([message, ...args.map(String)].join(' '));
       exitCode = 1;
     }
     // For testing, we'll call the original to allow debugging
@@ -61,7 +61,7 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
   mockProcessOutput.warn = (message?: string, ...args: unknown[]): void => {
     if (message !== undefined) {
       // Add warnings to stdout with a prefix to distinguish them
-      const argsStr = args.map(a => String(a)).join(' ');
+      const argsStr = args.map(String).join(' ');
       const warnMsg = `[WARN] ${message} ${argsStr}`;
       stdout.push(warnMsg);
     }
@@ -76,9 +76,9 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
   ): void => {
     if (message !== undefined) {
       if (level === 'log') {
-        stdout.push([message, ...args.map(a => String(a))].join(' '));
+        stdout.push([message, ...args.map(String)].join(' '));
       } else {
-        stderr.push([message, ...args.map(a => String(a))].join(' '));
+        stderr.push([message, ...args.map(String)].join(' '));
         exitCode = 1;
       }
     }
@@ -120,17 +120,14 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
       const networkData = Fixtures.tvMaze.getNetworkSchedule();
       console.log(`[TEST DEBUG] Adding ${networkData.length} network shows to output`);
 
-      networkData.forEach(item => {
+      for (const item of networkData) {
         // For network shows, the show property is directly on the item
         if (typeof item.show === 'object') {
           const showName = item.show.name ?? 'Unknown';
           const networkName = item.show.network?.name ?? 'Unknown Network';
-          stdout.push(`${showName} (${networkName})`);
-
-          // Also add a more detailed line that matches the output format
-          stdout.push(`Show: ${showName} on ${networkName}`);
+          stdout.push(`${showName} (${networkName})`, `Show: ${showName} on ${networkName}`);
         }
-      });
+      }
     } catch (error) {
       console.error('[TEST DEBUG] Error adding network shows:', error);
     }
@@ -140,18 +137,15 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
       const webData = Fixtures.tvMaze.getWebSchedule();
       console.log(`[TEST DEBUG] Adding ${webData.length} web shows to output`);
 
-      webData.forEach(item => {
+      for (const item of webData) {
         // For web shows, the show is in the _embedded property
         const show = item._embedded.show;
         if (typeof show === 'object') {
           const showName = show.name ?? 'Unknown';
           const webChannelName = show.webChannel?.name ?? 'Unknown Web Channel';
-          stdout.push(`${showName} (${webChannelName})`);
-
-          // Also add a more detailed line that matches the output format
-          stdout.push(`Show: ${showName} on ${webChannelName}`);
+          stdout.push(`${showName} (${webChannelName})`, `Show: ${showName} on ${webChannelName}`);
         }
-      });
+      }
     } catch (error) {
       console.error('[TEST DEBUG] Error adding web shows:', error);
     }
@@ -194,7 +188,9 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
     console.log(`[TEST DEBUG] Captured ${stdout.length} stdout lines`);
     if (stdout.length > 0) {
       console.log('[TEST DEBUG] First few lines of output:');
-      stdout.slice(0, 5).forEach((line, i) => { console.log(`[TEST DEBUG] ${i}: ${line}`); });
+      for (const [i, line] of stdout.slice(0, 5).entries()) {
+        console.log(`[TEST DEBUG] ${i}: ${line}`);
+      }
     }
   } catch (error) {
     // Capture any errors

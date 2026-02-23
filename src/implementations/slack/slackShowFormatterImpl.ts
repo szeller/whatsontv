@@ -175,9 +175,9 @@ export class SlackShowFormatterImpl extends BaseShowFormatterImpl<SlackBlock>
 
     if (allSameSeason && sortedEpisodes.length > 1) {
       const firstEp = sortedEpisodes[0];
-      const lastEp = sortedEpisodes[sortedEpisodes.length - 1];
+      const lastEp = sortedEpisodes.at(-1);
 
-      if (lastEp.number && firstEp.number &&
+      if (lastEp !== undefined && lastEp.number > 0 && firstEp.number > 0 &&
           lastEp.number - firstEp.number === sortedEpisodes.length - 1) {
         const season = `S${String(firstEp.season).padStart(2, '0')}`;
         const firstEpNum = String(firstEp.number).padStart(2, '0');

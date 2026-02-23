@@ -46,7 +46,11 @@ export const Fixtures = {
 };
 
 // Export individual modules for direct imports
-export { domainShows, domainNetworks, tvmazeModels };
+
 
 // Export types for convenience
 export type { Show, NetworkGroups } from '../../schemas/domain.js';
+
+export * as domainShows from './domain/shows.js';
+export * as domainNetworks from './domain/networks.js';
+export * as tvmazeModels from './tvmaze/models.js';

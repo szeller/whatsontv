@@ -24,7 +24,7 @@ export class NetworkBuilder {
   /**
    * Set the network ID
    */
-  withId(id: number): NetworkBuilder {
+  withId(id: number): this {
     this.id = id;
     return this;
   }
@@ -32,7 +32,7 @@ export class NetworkBuilder {
   /**
    * Set the network name
    */
-  withName(name: string): NetworkBuilder {
+  withName(name: string): this {
     this.name = name;
     return this;
   }
@@ -40,7 +40,7 @@ export class NetworkBuilder {
   /**
    * Set the network country
    */
-  withCountry(country: Network['country']): NetworkBuilder {
+  withCountry(country: Network['country']): this {
     this.country = country;
     return this;
   }
@@ -48,7 +48,7 @@ export class NetworkBuilder {
   /**
    * Create a web channel (no country)
    */
-  asWebChannel(): NetworkBuilder {
+  asWebChannel(): this {
     this.country = null;
     return this;
   }
@@ -91,7 +91,7 @@ export class TvMazeShowBuilder {
   private webChannel: Network | null = null;
   private readonly image: { medium: string; original: string } | null = null;
   private summary: string | null = '<p>Test show summary</p>';
-  private readonly updated = 1609459200; // 2021-01-01
+  private readonly updated = 1_609_459_200; // 2021-01-01
   private readonly _links = {
     self: { href: 'https://api.tvmaze.com/shows/100' }
   };
@@ -99,7 +99,7 @@ export class TvMazeShowBuilder {
   /**
    * Set the show ID
    */
-  withId(id: number): TvMazeShowBuilder {
+  withId(id: number): this {
     this.id = id;
     return this;
   }
@@ -107,7 +107,7 @@ export class TvMazeShowBuilder {
   /**
    * Set the show name
    */
-  withName(name: string): TvMazeShowBuilder {
+  withName(name: string): this {
     this.name = name;
     return this;
   }
@@ -115,7 +115,7 @@ export class TvMazeShowBuilder {
   /**
    * Set the show type
    */
-  withType(type: string): TvMazeShowBuilder {
+  withType(type: string): this {
     this.type = type;
     return this;
   }
@@ -123,7 +123,7 @@ export class TvMazeShowBuilder {
   /**
    * Set the show language
    */
-  withLanguage(language: string | null): TvMazeShowBuilder {
+  withLanguage(language: string | null): this {
     this.language = language;
     return this;
   }
@@ -131,7 +131,7 @@ export class TvMazeShowBuilder {
   /**
    * Set the show genres
    */
-  withGenres(genres: string[]): TvMazeShowBuilder {
+  withGenres(genres: string[]): this {
     this.genres = genres;
     return this;
   }
@@ -139,7 +139,7 @@ export class TvMazeShowBuilder {
   /**
    * Set the show status
    */
-  withStatus(status: string): TvMazeShowBuilder {
+  withStatus(status: string): this {
     this.status = status;
     return this;
   }
@@ -147,7 +147,7 @@ export class TvMazeShowBuilder {
   /**
    * Set the show runtime and average runtime
    */
-  withRuntime(runtime: number | null): TvMazeShowBuilder {
+  withRuntime(runtime: number | null): this {
     this.runtime = runtime;
     // Always set averageRuntime to a number (0 if runtime is null)
     this.averageRuntime = runtime ?? 0;
@@ -157,7 +157,7 @@ export class TvMazeShowBuilder {
   /**
    * Set the show average runtime directly
    */
-  withAverageRuntime(averageRuntime: number): TvMazeShowBuilder {
+  withAverageRuntime(averageRuntime: number): this {
     this.averageRuntime = averageRuntime;
     return this;
   }
@@ -165,7 +165,7 @@ export class TvMazeShowBuilder {
   /**
    * Set the show premiere date
    */
-  withPremiered(premiered: string | null): TvMazeShowBuilder {
+  withPremiered(premiered: string | null): this {
     this.premiered = premiered;
     return this;
   }
@@ -173,7 +173,7 @@ export class TvMazeShowBuilder {
   /**
    * Set the show end date
    */
-  withEnded(ended: string | null): TvMazeShowBuilder {
+  withEnded(ended: string | null): this {
     this.ended = ended;
     return this;
   }
@@ -181,7 +181,7 @@ export class TvMazeShowBuilder {
   /**
    * Set the show schedule
    */
-  withSchedule(time: string, days: string[]): TvMazeShowBuilder {
+  withSchedule(time: string, days: string[]): this {
     this.schedule = { time, days };
     return this;
   }
@@ -189,7 +189,7 @@ export class TvMazeShowBuilder {
   /**
    * Set the show rating
    */
-  withRating(average: number | null): TvMazeShowBuilder {
+  withRating(average: number | null): this {
     this.rating = { average: average ?? 0 };
     return this;
   }
@@ -197,7 +197,7 @@ export class TvMazeShowBuilder {
   /**
    * Set the show network
    */
-  withNetwork(network: Network | null): TvMazeShowBuilder {
+  withNetwork(network: Network | null): this {
     this.network = network;
     return this;
   }
@@ -205,7 +205,7 @@ export class TvMazeShowBuilder {
   /**
    * Set the show web channel
    */
-  withWebChannel(webChannel: Network | null): TvMazeShowBuilder {
+  withWebChannel(webChannel: Network | null): this {
     this.webChannel = webChannel;
     return this;
   }
@@ -213,7 +213,7 @@ export class TvMazeShowBuilder {
   /**
    * Set the show summary
    */
-  withSummary(summary: string | null): TvMazeShowBuilder {
+  withSummary(summary: string | null): this {
     this.summary = summary;
     return this;
   }
@@ -304,10 +304,10 @@ export class TvMazeShowBuilder {
    */
   static createShows(count: number, baseOptions: Partial<TvMazeShow> = {}): TvMazeShow[] {
     return Array.from({ length: count }, (_, index) => {
-      const id = baseOptions.id !== undefined ? baseOptions.id + index : 100 + index;
-      const name = baseOptions.name !== undefined 
-        ? `${baseOptions.name} ${index + 1}` 
-        : `Test Show ${index + 1}`;
+      const id = baseOptions.id === undefined ? 100 + index : baseOptions.id + index;
+      const name = baseOptions.name === undefined 
+        ? `Test Show ${index + 1}` 
+        : `${baseOptions.name} ${index + 1}`;
       
       return TvMazeShowBuilder.createShow({
         ...baseOptions,
@@ -371,7 +371,7 @@ export class TvMazeScheduleItemBuilder {
   /**
    * Set the episode ID
    */
-  withId(id: number): TvMazeScheduleItemBuilder {
+  withId(id: number): this {
     this.id = id;
     return this;
   }
@@ -379,7 +379,7 @@ export class TvMazeScheduleItemBuilder {
   /**
    * Set the episode name
    */
-  withName(name: string): TvMazeScheduleItemBuilder {
+  withName(name: string): this {
     this.name = name;
     return this;
   }
@@ -387,7 +387,7 @@ export class TvMazeScheduleItemBuilder {
   /**
    * Set the episode season
    */
-  withSeason(season: number): TvMazeScheduleItemBuilder {
+  withSeason(season: number): this {
     this.season = season;
     return this;
   }
@@ -395,7 +395,7 @@ export class TvMazeScheduleItemBuilder {
   /**
    * Set the episode number
    */
-  withNumber(number: number): TvMazeScheduleItemBuilder {
+  withNumber(number: number): this {
     this.number = number;
     return this;
   }
@@ -403,7 +403,7 @@ export class TvMazeScheduleItemBuilder {
   /**
    * Set the episode type
    */
-  withType(type: string): TvMazeScheduleItemBuilder {
+  withType(type: string): this {
     this.type = type;
     return this;
   }
@@ -411,7 +411,7 @@ export class TvMazeScheduleItemBuilder {
   /**
    * Set the episode air date
    */
-  withAirdate(airdate: string): TvMazeScheduleItemBuilder {
+  withAirdate(airdate: string): this {
     this.airdate = airdate;
     return this;
   }
@@ -419,7 +419,7 @@ export class TvMazeScheduleItemBuilder {
   /**
    * Set the episode air time
    */
-  withAirtime(airtime: string | null): TvMazeScheduleItemBuilder {
+  withAirtime(airtime: string | null): this {
     this.airtime = airtime;
     return this;
   }
@@ -427,7 +427,7 @@ export class TvMazeScheduleItemBuilder {
   /**
    * Set the episode air timestamp
    */
-  withAirstamp(airstamp: string): TvMazeScheduleItemBuilder {
+  withAirstamp(airstamp: string): this {
     this.airstamp = airstamp;
     return this;
   }
@@ -435,7 +435,7 @@ export class TvMazeScheduleItemBuilder {
   /**
    * Set the episode runtime
    */
-  withRuntime(runtime: number | null): TvMazeScheduleItemBuilder {
+  withRuntime(runtime: number | null): this {
     this.runtime = runtime;
     return this;
   }
@@ -443,7 +443,7 @@ export class TvMazeScheduleItemBuilder {
   /**
    * Set the episode summary
    */
-  withSummary(summary: string | null): TvMazeScheduleItemBuilder {
+  withSummary(summary: string | null): this {
     this.summary = summary;
     return this;
   }
@@ -451,7 +451,7 @@ export class TvMazeScheduleItemBuilder {
   /**
    * Set the associated show
    */
-  withShow(show: TvMazeShow): TvMazeScheduleItemBuilder {
+  withShow(show: TvMazeShow): this {
     this.show = show;
     return this;
   }
@@ -459,7 +459,7 @@ export class TvMazeScheduleItemBuilder {
   /**
    * Set the episode rating
    */
-  withRating(average: number | null): TvMazeScheduleItemBuilder {
+  withRating(average: number | null): this {
     this.rating = { average: average ?? 0 };
     return this;
   }
@@ -565,9 +565,9 @@ export class TvMazeScheduleItemBuilder {
     const baseShowId = baseOptions.showId ?? 100;
 
     for (let i = 0; i < count; i++) {
-      const showName = baseOptions.showName !== undefined
-        ? `${baseOptions.showName} ${i + 1}`
-        : `Test Show ${i + 1}`;
+      const showName = baseOptions.showName === undefined
+        ? `Test Show ${i + 1}`
+        : `${baseOptions.showName} ${i + 1}`;
         
       items.push(TvMazeScheduleItemBuilder.createNetworkScheduleItem({
         id: 1000 + i,
@@ -597,9 +597,9 @@ export class TvMazeScheduleItemBuilder {
     const baseShowId = baseOptions.showId ?? 200;
 
     for (let i = 0; i < count; i++) {
-      const showName = baseOptions.showName !== undefined
-        ? `${baseOptions.showName} ${i + 1}`
-        : `Test Web Show ${i + 1}`;
+      const showName = baseOptions.showName === undefined
+        ? `Test Web Show ${i + 1}`
+        : `${baseOptions.showName} ${i + 1}`;
         
       items.push(TvMazeScheduleItemBuilder.createWebScheduleItem({
         id: 2000 + i,

@@ -3,14 +3,14 @@
  * These tests verify that config files are actually loaded correctly,
  * unlike the unit tests which mock file operations.
  */
-import { existsSync } from 'fs';
-import { resolve } from 'path';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { CliConfigServiceImpl } from '../../implementations/text/cliConfigServiceImpl.js';
 import { LambdaConfigServiceImpl } from '../../implementations/lambda/lambdaConfigServiceImpl.js';
 
 // Check if config.json exists (it's gitignored, so won't exist in CI)
-const configJsonExists = existsSync(resolve(process.cwd(), 'config.json'));
+const configJsonExists = existsSync(path.resolve(process.cwd(), 'config.json'));
 
 describe('ConfigService Integration Tests', () => {
   // Only run CliConfigServiceImpl tests if config.json exists

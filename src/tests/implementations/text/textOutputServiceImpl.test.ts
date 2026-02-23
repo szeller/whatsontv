@@ -281,7 +281,7 @@ describe('TextOutputServiceImpl', () => {
         
         protected async renderDebugInfo(shows: Show[], date: Date): Promise<void> {
           callOrder.push('debug');
-          return super.renderDebugInfo(shows, date);
+          await super.renderDebugInfo(shows, date);
         }
       }
       

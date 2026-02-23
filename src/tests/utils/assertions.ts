@@ -134,10 +134,10 @@ expect.extend({
         const networkGroups = received as NetworkGroups;
         
         // Check each network entry
-        Object.entries(networkGroups).forEach(([network, shows]) => {
+        for (const [network, shows] of Object.entries(networkGroups)) {
           if (typeof network !== 'string' || !Array.isArray(shows)) {
             isValid = false;
-            return;
+            continue;
           }
           
           // Check shows if any exist
@@ -147,8 +147,8 @@ expect.extend({
               isValid = false;
             }
           }
-        });
-      } catch (_) {
+        }
+      } catch {
         // If any error occurs during validation, the object is not valid
         isValid = false;
       }
@@ -192,14 +192,14 @@ export function expectValidNetworkGroups(networkGroups: NetworkGroups): void {
   expect(networkGroups).toBeValidNetworkGroups();
   
   // Additional validation
-  Object.entries(networkGroups).forEach(([network, shows]) => {
+  for (const [network, shows] of Object.entries(networkGroups)) {
     expect(typeof network).toBe('string');
     expect(Array.isArray(shows)).toBe(true);
     
     if (shows.length > 0) {
       expectValidShow(shows[0]);
     }
-  });
+  }
 }
 
 /**

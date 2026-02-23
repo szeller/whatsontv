@@ -19,17 +19,17 @@ describe('DateUtils', () => {
     it('returns date in YYYY-MM-DD format', () => {
       // Mock Date to return a fixed date
       const mockDate = new Date(2025, 2, 20); // March 20, 2025
-      const originalDate = global.Date;
-      global.Date = jest.fn(() => mockDate) as unknown as DateConstructor;
-      global.Date.UTC = originalDate.UTC;
-      global.Date.parse = originalDate.parse;
-      global.Date.now = originalDate.now;
+      const originalDate = globalThis.Date;
+      globalThis.Date = jest.fn(() => mockDate) as unknown as DateConstructor;
+      globalThis.Date.UTC = originalDate.UTC;
+      globalThis.Date.parse = originalDate.parse;
+      globalThis.Date.now = originalDate.now;
 
       // Test the function
       const result = getTodayDate();
 
       // Restore original Date
-      global.Date = originalDate;
+      globalThis.Date = originalDate;
 
       // Assert the result
       expect(result).toBe('2025-03-20');
@@ -49,7 +49,8 @@ describe('DateUtils', () => {
       expect(result1).toMatch(/^\d{4}-\d{2}-\d{2}$/);
 
       // Undefined should fall back to local date
-      const result2 = getTodayDate(undefined);
+       
+      const result2 = getTodayDate();
       expect(result2).toMatch(/^\d{4}-\d{2}-\d{2}$/);
 
       // Whitespace should fall back to local date
@@ -133,7 +134,7 @@ describe('DateUtils', () => {
     it('handles edge cases and invalid inputs', () => {
       expect(formatTimeWithPeriod('')).toBe('N/A');
       expect(formatTimeWithPeriod(null)).toBe('N/A');
-      expect(formatTimeWithPeriod(undefined)).toBe('N/A');
+      expect(formatTimeWithPeriod()).toBe('N/A');
       expect(formatTimeWithPeriod('invalid')).toBe('N/A');
     });
 
@@ -159,7 +160,7 @@ describe('DateUtils', () => {
     it('handles invalid inputs', () => {
       expect(isValidTime('')).toBe(false);
       expect(isValidTime(null)).toBe(false);
-      expect(isValidTime(undefined)).toBe(false);
+      expect(isValidTime()).toBe(false);
       expect(isValidTime('invalid')).toBe(false);
       expect(isValidTime('abc:def')).toBe(false);
     });
@@ -190,7 +191,7 @@ describe('DateUtils', () => {
       const result1 = parseDateString('invalid');
       const result2 = parseDateString('');
       const result3 = parseDateString(null);
-      const result4 = parseDateString(undefined);
+      const result4 = parseDateString();
 
       // We can't test exact equality since the current date might change during test execution
       // So we check if the dates are close (within 1 second)

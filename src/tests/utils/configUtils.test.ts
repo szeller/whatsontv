@@ -1,8 +1,8 @@
 /**
  * Tests for configuration utility functions
  */
-import path from 'path';
-import { fileURLToPath } from 'url';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   toStringArray,
   mergeArraysWithPriority,
@@ -17,7 +17,7 @@ import { getTodayDate } from '../../utils/dateUtils.js';
 describe('configUtils', () => {
   describe('toStringArray', () => {
     it('should handle undefined values', () => {
-      expect(toStringArray(undefined)).toEqual([]);
+      expect(toStringArray()).toEqual([]);
     });
 
     it('should handle null values', () => {
@@ -77,11 +77,11 @@ describe('configUtils', () => {
     });
 
     it('should handle undefined fallback array', () => {
-      expect(mergeArraysWithPriority(['a', 'b'], undefined)).toEqual(['a', 'b']);
+      expect(mergeArraysWithPriority(['a', 'b'])).toEqual(['a', 'b']);
     });
 
     it('should handle both arrays undefined', () => {
-      expect(mergeArraysWithPriority(undefined, undefined)).toEqual([]);
+      expect(mergeArraysWithPriority()).toEqual([]);
     });
 
     it('should handle null primary array', () => {

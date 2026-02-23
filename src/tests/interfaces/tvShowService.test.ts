@@ -175,7 +175,7 @@ describe('TvShowService Interface', () => {
       
       // Verify the result
       expect(result).toBeDefined();
-      expect(result.length).toBe(1);
+      expect(result).toHaveLength(1);
       
       // All returned shows should be from CBS
       expect(result[0].network).toBe('CBS');
@@ -206,7 +206,7 @@ describe('TvShowService Interface', () => {
       
       // Verify the result
       expect(result).toBeDefined();
-      expect(result.length).toBe(1);
+      expect(result).toHaveLength(1);
       expect(result[0].language).toBe('English');
     });
   });

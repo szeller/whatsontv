@@ -11,8 +11,8 @@
 export function stripAnsiCodes(str: string): string {
   // This regex matches all ANSI escape sequences
   // Using a string-based approach to avoid lint errors with control characters
-  const pattern = String.fromCharCode(27) + '\\[[0-9;]*[A-Za-z]';
-  return str.replace(new RegExp(pattern, 'g'), '');
+  const pattern = String.fromCodePoint(27) + String.raw`\[[0-9;]*[A-Za-z]`;
+  return str.replaceAll(new RegExp(pattern, 'g'), '');
 }
 
 /**
@@ -35,9 +35,9 @@ export function containsFormattedShowLine(output: string): boolean {
   const showTypes = '(Scripted|Reality|Documentary|Variety|Game Show|Talk Show|News|Sports)';
   
   // Find lines that start with a time pattern (HH:MM) or N/A followed by spaces
-  const timePattern = /^\s*((?:\d{2}:\d{2})|(?:N\/A))\s+/m;
-  const typePattern = new RegExp(`\\s+${showTypes}\\s+`, 'm');
-  const seasonPattern = /\s+S\d+E\d+\s+/m;
+  const timePattern = /^ *((?:\d{2}:\d{2})|(?:N\/A)) +/m;
+  const typePattern = new RegExp(String.raw`\s+${showTypes}\s+`, 'm');
+  const seasonPattern = / S\d+E\d+ /m;
   
   return (
     timePattern.test(cleanOutput) && 

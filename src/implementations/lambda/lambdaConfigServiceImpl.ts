@@ -63,7 +63,7 @@ export class LambdaConfigServiceImpl extends BaseConfigServiceImpl {
         ...parsed,
         slack: {
           ...defaultConfig.slack,
-          ...(parsed.slack ?? {})
+          ...parsed.slack
         }
       };
     } catch {

@@ -87,9 +87,9 @@ export function createMockFormatter(
       
       for (const [network, shows] of Object.entries(networkGroups)) {
         result.push(`Network: ${network} (${shows.length} shows)`);
-        shows.forEach(show => {
+        for (const show of shows) {
           result.push(`  Show: ${show.name}`);
-        });
+        }
       }
       
       return result;
@@ -98,11 +98,11 @@ export function createMockFormatter(
   
   // Apply any custom implementations
   if (options.implementation) {
-    Object.entries(options.implementation).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(options.implementation)) {
       // We need to cast here because we're dynamically setting properties
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (mockFormatter as any)[key] = value;
-    });
+    }
   }
   
   return mockFormatter;

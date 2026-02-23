@@ -1,6 +1,6 @@
 import { injectable } from 'tsyringe';
 import pino, { Logger } from 'pino';
-import { hostname } from 'os';
+import { hostname } from 'node:os';
 import { LoggerService } from '../../interfaces/loggerService.js';
 
 /**
@@ -75,14 +75,19 @@ export class PinoLoggerServiceImpl implements LoggerService {
 
     // Default log levels by environment
     switch (process.env.NODE_ENV) {
-    case 'production':
+    case 'production': {
       return 'info';
-    case 'test':
+    }
+    case 'test': {
       return 'silent';
+    }
     case 'development':
-    case undefined:
-    default:
+    case undefined: {
       return 'warn';
+    }
+    default: {
+      return 'warn';
+    }
     }
   }
 }

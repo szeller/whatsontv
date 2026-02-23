@@ -1,9 +1,9 @@
 /**
  * Utility functions for file operations
  */
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { AppConfig } from '../types/configTypes.js';
 
 /**
@@ -12,6 +12,7 @@ import type { AppConfig } from '../types/configTypes.js';
  * @returns True if the file exists
  */
 export function fileExists(filePath: string): boolean {
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   return fs.existsSync(filePath);
 }
 
@@ -21,6 +22,7 @@ export function fileExists(filePath: string): boolean {
  * @returns File contents as string
  */
 export function readFile(filePath: string): string {
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   return fs.readFileSync(filePath, 'utf8');
 }
 

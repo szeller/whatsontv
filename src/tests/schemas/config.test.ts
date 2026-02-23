@@ -21,7 +21,7 @@ describe('config schemas', () => {
     });
 
     it('should provide default empty array', () => {
-      const result = showNameFilterSchema.parse(undefined);
+      const result = showNameFilterSchema.parse();
       expect(result).toEqual([]);
     });
 

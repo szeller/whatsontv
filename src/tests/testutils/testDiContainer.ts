@@ -22,29 +22,31 @@ import type { HttpClient, HttpResponse } from '../../interfaces/httpClient.js';
  */
 export function createMockHttpClient(): HttpClient {
   // Create a simple mock object that matches the HttpClient interface
+  /* eslint-disable @typescript-eslint/require-await -- mock returns Promise */
   const mockClient = {
     get: async function<T>(
-      _url: string, 
+      _url: string,
       _params?: Record<string, string> | { searchParams: Record<string, string> }
     ): Promise<HttpResponse<T>> {
-      return Promise.resolve({
+      return {
         data: [] as unknown as T,
         status: 200,
         headers: {}
-      });
+      };
     },
     post: async function<T, D = unknown>(
-      _url: string, 
-      _data?: D, 
+      _url: string,
+      _data?: D,
       _params?: Record<string, string>
     ): Promise<HttpResponse<T>> {
-      return Promise.resolve({
+      return {
         data: {} as T,
         status: 200,
         headers: {}
-      });
+      };
     }
   };
+  /* eslint-enable @typescript-eslint/require-await */
   
   // Spy on the methods to allow test verification
   jest.spyOn(mockClient, 'get');

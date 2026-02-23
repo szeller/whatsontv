@@ -29,7 +29,7 @@
     "cdk:diff": "npm run build:lambda && cdk diff",
     "cdk:synth": "npm run build:lambda && cdk synth",
     "prepublishOnly": "npm run build",
-    "postinstall": "echo 'Note: Using TypeScript v5.8.3, ESLint v9, and TypeScript ESLint v8'"
+    "postinstall": "echo 'Note: Using TypeScript v5.9, ESLint v9, and TypeScript ESLint v8'"
   },
   "keywords": [
     "tv",
@@ -72,8 +72,8 @@
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jest": "^29.0.1",
     "eslint-plugin-promise": "^7.2.1",
-    "eslint-plugin-security": "^3.0.1",
-    "eslint-plugin-sonarjs": "^3.0.5",
+    "eslint-plugin-security": "^4.0.0",
+    "eslint-plugin-sonarjs": "^4.0.0",
     "eslint-plugin-unicorn": "63.0.0",
     "husky": "^9.1.7",
     "jest": "^30.2.0",

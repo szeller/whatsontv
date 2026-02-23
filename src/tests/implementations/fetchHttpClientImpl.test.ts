@@ -20,7 +20,7 @@ describe('FetchHttpClientImpl', () => {
     // Create a mock function that can be used as a hook
     mockBeforeRequestHook = jest.fn().mockImplementation((_request: unknown) => {
       // Default implementation returns a successful response
-      return new Response(JSON.stringify(mockResponseData), {
+      return Response.json(mockResponseData, {
         status: 200,
         headers: { 'Content-Type': 'application/json' }
       });
@@ -38,7 +38,7 @@ describe('FetchHttpClientImpl', () => {
     it('should make a GET request and return the response', async () => {
       // Override the default implementation for this test
       mockBeforeRequestHook.mockImplementation(() => {
-        return new Response(JSON.stringify(mockResponseData), {
+        return Response.json(mockResponseData, {
           status: 200,
           headers: { 'Content-Type': 'application/json' }
         });
@@ -58,7 +58,7 @@ describe('FetchHttpClientImpl', () => {
         // Safe to cast here since we know the hook receives a Request object
         const req = request as Request;
         capturedUrl = new URL(req.url);
-        return new Response(JSON.stringify(mockResponseData), {
+        return Response.json(mockResponseData, {
           status: 200,
           headers: { 'Content-Type': 'application/json' }
         });
@@ -83,7 +83,7 @@ describe('FetchHttpClientImpl', () => {
         // Safe to cast here since we know the hook receives a Request object
         const req = request as Request;
         capturedHeaders = req.headers;
-        return new Response(JSON.stringify(mockResponseData), {
+        return Response.json(mockResponseData, {
           status: 200,
           headers: { 'Content-Type': 'application/json' }
         });
@@ -152,6 +152,7 @@ describe('FetchHttpClientImpl', () => {
       
       // First, let's spy on the kyInstance.get method to intercept the call
       // @ts-expect-error - accessing private property for testing
+      // eslint-disable-next-line @typescript-eslint/require-await -- mock returns Promise
       const getSpy = jest.spyOn(client.kyInstance, 'get').mockImplementation(async () => {
         // Return a response with a modified json method that throws an error
         const mockResponse = new Response('{ "broken": "json"', {
@@ -167,7 +168,7 @@ describe('FetchHttpClientImpl', () => {
           throw new Error('Invalid JSON');
         });
         
-        return Promise.resolve(responseClone);
+        return responseClone;
       });
       
       const result = await client.get<unknown>('shows/with-invalid-json');
@@ -191,7 +192,7 @@ describe('FetchHttpClientImpl', () => {
         capturedRequest = req.clone();
         capturedBody = await req.clone().text();
         
-        return new Response(JSON.stringify(mockResponseData), {
+        return Response.json(mockResponseData, {
           status: 200,
           headers: { 'Content-Type': 'application/json' }
         });
@@ -221,7 +222,7 @@ describe('FetchHttpClientImpl', () => {
         // Safe to cast here since we know the hook receives a Request object
         const req = request as Request;
         capturedHeaders = req.headers;
-        return new Response(JSON.stringify(mockResponseData), {
+        return Response.json(mockResponseData, {
           status: 200,
           headers: { 'Content-Type': 'application/json' }
         });
@@ -261,6 +262,7 @@ describe('FetchHttpClientImpl', () => {
       
       // First, let's spy on the kyInstance.post method to intercept the call
       // @ts-expect-error - accessing private property for testing
+      // eslint-disable-next-line @typescript-eslint/require-await -- mock returns Promise
       const postSpy = jest.spyOn(client.kyInstance, 'post').mockImplementation(async () => {
         // Return a response with a modified json method that throws an error
         const mockResponse = new Response('{ "status": "incomplete', {
@@ -276,7 +278,7 @@ describe('FetchHttpClientImpl', () => {
           throw new Error('Invalid JSON');
         });
         
-        return Promise.resolve(responseClone);
+        return responseClone;
       });
       
       const result = await client.post<unknown, { title: string }>('shows', { title: 'Test Show' });

@@ -102,40 +102,41 @@ export function setupTvMazeMocks(
     const webData = Fixtures.tvMaze.getSchedule('web-schedule') as WebScheduleItem[];
     
     // Set up mock implementation for the get method
+    // eslint-disable-next-line @typescript-eslint/require-await -- mock returns Promise
     jest.spyOn(mockHttpClient, 'get').mockImplementation(async (_url: string) => {
       // Network schedule endpoint
       if (_url === networkEndpoint) {
-        return Promise.resolve({
+        return {
           status: 200,
           headers: {},
           data: networkData
-        });
+        };
       }
       
       // Web schedule endpoint
       if (_url === webEndpoint) {
-        return Promise.resolve({
+        return {
           status: 200,
           headers: {},
           data: webData
-        });
+        };
       }
       
       // Individual show endpoints
       if (_url.startsWith(`${TVMAZE_API.BASE_URL}${TVMAZE_API.SHOW_ENDPOINT}/`)) {
         const showIdMatch = /\/shows\/(\d+)$/.exec(_url);
         if (showIdMatch) {
-          const showId = parseInt(showIdMatch[1], 10);
+          const showId = Number.parseInt(showIdMatch[1], 10);
           
           // Look for the show in network data
           if (Array.isArray(networkData)) {
             for (const item of networkData) {
               if (item.show?.id === showId) {
-                return Promise.resolve({
+                return {
                   status: 200,
                   headers: {},
                   data: item.show
-                });
+                };
               }
             }
           }
@@ -144,11 +145,11 @@ export function setupTvMazeMocks(
           if (Array.isArray(webData)) {
             for (const item of webData) {
               if (item._embedded?.show?.id === showId) {
-                return Promise.resolve({
+                return {
                   status: 200,
                   headers: {},
                   data: item._embedded.show
-                });
+                };
               }
             }
           }
@@ -156,22 +157,23 @@ export function setupTvMazeMocks(
       }
       
       // Default fallback for any other URLs
-      return Promise.resolve({
+      return {
         status: 404,
         headers: {},
         data: null
-      });
+      };
     });
   } catch (error) {
     console.error('Error setting up TVMaze mocks:', error);
     
     // Provide fallback empty responses if fixtures can't be loaded
+    // eslint-disable-next-line @typescript-eslint/require-await -- mock returns Promise
     jest.spyOn(mockHttpClient, 'get').mockImplementation(async (_url: string) => {
-      return Promise.resolve({
+      return {
         status: 200,
         headers: {},
         data: []
-      });
+      };
     });
   }
 }

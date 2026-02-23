@@ -22,7 +22,7 @@ describe('formatUtils', () => {
     });
 
     it('should return the default unknown label when network is undefined', () => {
-      expect(formatNetworkName(undefined)).toBe('Unknown Network');
+      expect(formatNetworkName()).toBe('Unknown Network');
     });
 
     it('should return the custom unknown label when provided', () => {
@@ -40,7 +40,7 @@ describe('formatUtils', () => {
     });
 
     it('should return the default unknown label when type is undefined', () => {
-      expect(formatShowType(undefined)).toBe('Unknown Type');
+      expect(formatShowType()).toBe('Unknown Type');
     });
 
     it('should return the custom unknown label when provided', () => {
@@ -72,7 +72,7 @@ describe('formatUtils', () => {
     });
 
     it('should return empty string for undefined show', () => {
-      expect(formatEpisodeInfo(undefined)).toBe('');
+      expect(formatEpisodeInfo()).toBe('');
     });
 
     it('should return episode number if season is missing', () => {
@@ -298,9 +298,9 @@ describe('formatUtils', () => {
       
       const result = groupShowsByShowId(shows);
       
-      expect(Object.keys(result).length).toBe(2);
-      expect(result['1'].length).toBe(2);
-      expect(result['2'].length).toBe(1);
+      expect(Object.keys(result)).toHaveLength(2);
+      expect(result['1']).toHaveLength(2);
+      expect(result['2']).toHaveLength(1);
       expect(result['1'][0].name).toBe('Show 1, Ep 1');
       expect(result['1'][1].name).toBe('Show 1, Ep 2');
       expect(result['2'][0].name).toBe('Show 2, Ep 1');
@@ -309,13 +309,13 @@ describe('formatUtils', () => {
     it('should return empty object for empty array', () => {
       const result = groupShowsByShowId([]);
       
-      expect(Object.keys(result).length).toBe(0);
+      expect(Object.keys(result)).toHaveLength(0);
     });
 
     it('should return empty object for null input', () => {
       const result = groupShowsByShowId(null);
       
-      expect(Object.keys(result).length).toBe(0);
+      expect(Object.keys(result)).toHaveLength(0);
     });
   });
 
@@ -339,7 +339,7 @@ describe('formatUtils', () => {
     });
 
     it('should handle undefined network', () => {
-      const [header, separator] = formatNetworkHeader(undefined);
+      const [header, separator] = formatNetworkHeader();
       expect(header).toBe('Unknown Network:');
       expect(separator).toBe('----------------');
     });

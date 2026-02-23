@@ -8,12 +8,12 @@ import type { SlackBlock } from '../../../interfaces/slackClient.js';
 /**
  * Creates a mock SlackShowFormatter with default implementations
  */
-export class SlackShowFormatterFixture {
+export const SlackShowFormatterFixture = {
   /**
    * Create a mock SlackShowFormatter with default implementations
    * @returns A jest mocked SlackShowFormatter
    */
-  static createMockFormatter(): jest.Mocked<SlackShowFormatter> {
+  createMockFormatter(): jest.Mocked<SlackShowFormatter> {
     return {
       formatTimedShow: jest.fn().mockReturnValue({ 
         type: 'section', 
@@ -38,43 +38,43 @@ export class SlackShowFormatterFixture {
         }
       ])
     } as jest.Mocked<SlackShowFormatter>;
-  }
+  },
 
   /**
    * Create a mock SlackShowFormatter with custom implementations
    * @param overrides Custom implementations to override defaults
    * @returns A jest mocked SlackShowFormatter with custom implementations
    */
-  static createCustomMockFormatter(
+  createCustomMockFormatter(
     overrides: Partial<jest.Mocked<SlackShowFormatter>>
   ): jest.Mocked<SlackShowFormatter> {
     return {
       ...this.createMockFormatter(),
       ...overrides
     };
-  }
+  },
 
   /**
    * Create a mock header block
    * @param text The text to display in the header
    * @returns A SlackBlock with header type
    */
-  static createHeaderBlock(text = 'TV Shows'): SlackBlock {
+  createHeaderBlock(text = 'TV Shows'): SlackBlock {
     return {
       type: 'header',
       text: { type: 'plain_text', text, emoji: true }
     };
-  }
+  },
 
   /**
    * Create a mock section block
    * @param text The text to display in the section
    * @returns A SlackBlock with section type
    */
-  static createSectionBlock(text: string): SlackBlock {
+  createSectionBlock(text: string): SlackBlock {
     return {
       type: 'section',
       text: { type: 'mrkdwn', text }
     };
   }
-}
+};

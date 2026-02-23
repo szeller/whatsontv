@@ -46,7 +46,7 @@ export class FetchHttpClientImpl implements HttpClient {
     @inject('LoggerService') logger?: LoggerService
   ) {
     const prefixUrl = options.baseUrl ?? '';
-    const timeout = options.timeout ?? 30000;
+    const timeout = options.timeout ?? 30_000;
     const headers = options.headers ?? {};
     
     this.isTestEnvironment = process.env.NODE_ENV === 'test' || 
@@ -130,11 +130,11 @@ export class FetchHttpClientImpl implements HttpClient {
       const searchParams = new URLSearchParams();
       
       // Add each query parameter to the searchParams
-      Object.entries(options.query).forEach(([key, value]) => {
+      for (const [key, value] of Object.entries(options.query)) {
         if (value !== null && value !== undefined) {
           searchParams.append(key, String(value));
         }
-      });
+      }
       
       kyOptions.searchParams = searchParams;
     } else if (typeof options.param === 'string' || 
@@ -165,7 +165,7 @@ export class FetchHttpClientImpl implements HttpClient {
   private normalizeUrl(url: string): string {
     // If we have a baseUrl and the url starts with a slash, remove the slash
     if (this.baseUrl && url.startsWith('/')) {
-      return url.substring(1);
+      return url.slice(1);
     }
     return url;
   }
@@ -212,7 +212,7 @@ export class FetchHttpClientImpl implements HttpClient {
       if (isJsonContent) {
         try {
           responseData = await response.json();
-        } catch (_e) {
+        } catch {
           // If JSON parsing fails, fall back to text
           responseData = await response.text();
         }
@@ -222,17 +222,12 @@ export class FetchHttpClientImpl implements HttpClient {
       
       // Extract headers into a plain object
       const headers: Record<string, string> = {};
-      response.headers.forEach((value, key) => {
+      for (const [key, value] of response.headers.entries()) {
         headers[key] = value;
-      });
+      }
       
       // Validate with schema if provided
-      let data: T;
-      if (schema) {
-        data = schema.parse(responseData) as T;
-      } else {
-        data = responseData as T;
-      }
+      const data: T = schema ? schema.parse(responseData) as T : responseData as T;
       
       // Return in the format expected by HttpClient interface
       return {
@@ -324,7 +319,7 @@ export class FetchHttpClientImpl implements HttpClient {
       if (isJsonContent) {
         try {
           responseData = await response.json();
-        } catch (_e) {
+        } catch {
           // If JSON parsing fails, fall back to text
           responseData = await response.text();
         }
@@ -334,17 +329,12 @@ export class FetchHttpClientImpl implements HttpClient {
       
       // Extract headers into a plain object
       const headers: Record<string, string> = {};
-      response.headers.forEach((value, key) => {
+      for (const [key, value] of response.headers.entries()) {
         headers[key] = value;
-      });
+      }
       
       // Validate with schema if provided
-      let parsedData: T;
-      if (schema) {
-        parsedData = schema.parse(responseData) as T;
-      } else {
-        parsedData = responseData as T;
-      }
+      const parsedData: T = schema ? schema.parse(responseData) as T : responseData as T;
       
       // Return in the format expected by HttpClient interface
       return {
