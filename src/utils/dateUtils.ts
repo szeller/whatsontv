@@ -49,7 +49,7 @@ export function parseTimeString(timeStr: string): { hours: number; minutes: numb
     return null;
   }
 
-  let hours = 0;
+  let hours: number;
   let minutes = 0;
   
   // Handle various time formats

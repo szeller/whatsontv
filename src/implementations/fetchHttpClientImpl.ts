@@ -250,8 +250,8 @@ export class FetchHttpClientImpl implements HttpClient {
       if (error instanceof Error && error.message.includes('HTTP Error')) {
         throw error;
       }
-      
-      throw new Error('Request Error: HTTP Error 404: Not Found');
+
+      throw new Error('Request Error: HTTP Error 404: Not Found', { cause: error });
     }
   }
 
@@ -358,8 +358,8 @@ export class FetchHttpClientImpl implements HttpClient {
       if (error instanceof Error && error.message.includes('HTTP Error')) {
         throw error;
       }
-      
-      throw new Error('Request Error: HTTP Error 400: Request failed');
+
+      throw new Error('Request Error: HTTP Error 400: Request failed', { cause: error });
     }
   }
 }
