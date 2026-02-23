@@ -54,6 +54,4 @@ container.register<HttpClient>('HttpClient', {
 // Register named implementations for specific platforms
 container.register('PlatformType', { useValue: 'console' });
 
-
-
 export { container } from 'tsyringe';

@@ -75,7 +75,4 @@ export function initializeSlackContainer(): void {
   container.register('PlatformType', { useValue: 'slack' });
 }
 
-// Export the container
-
-
 export { container } from 'tsyringe';

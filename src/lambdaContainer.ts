@@ -75,7 +75,4 @@ export function initializeLambdaContainer(): void {
   container.register('PlatformType', { useValue: 'lambda' });
 }
 
-// Export the container
-
-
 export { container } from 'tsyringe';
