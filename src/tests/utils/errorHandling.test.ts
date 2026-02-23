@@ -54,7 +54,7 @@ describe('errorHandling', () => {
       } as unknown as ProcessOutput;
       
       originalExit = process.exit;
-      // Create separate functions to avoid unbound method lint errors
+      // eslint-disable-next-line unicorn/consistent-function-scoping -- captures closure vars
       const exitMock = (code?: number): never => {
         exitCalled = true;
         exitCode = code ?? 0;
@@ -113,10 +113,10 @@ describe('errorHandling', () => {
 
     afterEach(() => {
       process.env.NODE_ENV = originalNodeEnv;
-      if (originalLambdaFunctionName !== undefined) {
-        process.env.AWS_LAMBDA_FUNCTION_NAME = originalLambdaFunctionName;
-      } else {
+      if (originalLambdaFunctionName === undefined) {
         delete process.env.AWS_LAMBDA_FUNCTION_NAME;
+      } else {
+        process.env.AWS_LAMBDA_FUNCTION_NAME = originalLambdaFunctionName;
       }
     });
 
@@ -221,14 +221,14 @@ describe('errorHandling', () => {
       } as unknown as ProcessOutput;
       
       originalExit = process.exit;
-      // Create separate functions to avoid unbound method lint errors
+      // eslint-disable-next-line unicorn/consistent-function-scoping -- captures closure vars
       const exitMock = (code?: number): never => {
         exitCalled = true;
         exitCode = code ?? 0;
         return undefined as never;
       };
       process.exit = exitMock;
-      
+
       originalProcessOn = process.on;
       // Mock process.on to capture the event and callback
       const processOnMock = (event: string, callback: (error: Error) => void): typeof process => {

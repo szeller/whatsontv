@@ -190,7 +190,7 @@ describe('TextShowFormatterImpl', () => {
       // Network 1: header + separator + show = 3 lines
       // Blank line = 1 line
       // Network 2: header + separator + show = 3 lines
-      expect(result.length).toBe(7); 
+      expect(result).toHaveLength(7); 
       expect(result.some(line => line.includes('Test Network'))).toBe(true);
       expect(result.some(line => line.includes('Another Network'))).toBe(true);
       expect(result.some(line => line.includes('Test Show'))).toBe(true);
@@ -228,7 +228,7 @@ describe('TextShowFormatterImpl', () => {
       const result = formatter.formatNetworkGroups(networkGroups);
       
       // Should only include the valid network
-      expect(result.length).toBe(3); // header + separator + show
+      expect(result).toHaveLength(3); // header + separator + show
       expect(result.some(line => line.includes('Valid Network'))).toBe(true);
       expect(result.some(line => line.includes('Test Show'))).toBe(true);
     });

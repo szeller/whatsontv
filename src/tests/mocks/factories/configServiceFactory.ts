@@ -46,7 +46,7 @@ export function createMockConfigService(options: ConfigServiceOptions = {}): Tes
     ...appConfig,
     slack: {
       ...defaultSlackConfig,
-      ...(appConfig.slack ?? {})
+      ...appConfig.slack
     } as SlackConfig
   };
   
@@ -69,7 +69,7 @@ export function createMockConfigService(options: ConfigServiceOptions = {}): Tes
     // Ensure slackOptions has all required properties
     {
       ...defaultSlackConfig,
-      ...(options.slackConfig ?? {})
+      ...options.slackConfig
     } as SlackConfig
   );
   
@@ -98,11 +98,11 @@ export function createMockConfigService(options: ConfigServiceOptions = {}): Tes
     
     // Apply any custom implementations
     if (options.implementation) {
-      Object.entries(options.implementation).forEach(([key, value]) => {
+      for (const [key, value] of Object.entries(options.implementation)) {
         // We need to cast here because we're dynamically setting properties
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (configService as any)[key] = value;
-      });
+      }
     }
   }
   

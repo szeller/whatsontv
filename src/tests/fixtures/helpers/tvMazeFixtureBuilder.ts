@@ -91,7 +91,7 @@ export class TvMazeShowBuilder {
   private webChannel: Network | null = null;
   private readonly image: { medium: string; original: string } | null = null;
   private summary: string | null = '<p>Test show summary</p>';
-  private readonly updated = 1609459200; // 2021-01-01
+  private readonly updated = 1_609_459_200; // 2021-01-01
   private readonly _links = {
     self: { href: 'https://api.tvmaze.com/shows/100' }
   };
@@ -304,10 +304,10 @@ export class TvMazeShowBuilder {
    */
   static createShows(count: number, baseOptions: Partial<TvMazeShow> = {}): TvMazeShow[] {
     return Array.from({ length: count }, (_, index) => {
-      const id = baseOptions.id !== undefined ? baseOptions.id + index : 100 + index;
-      const name = baseOptions.name !== undefined 
-        ? `${baseOptions.name} ${index + 1}` 
-        : `Test Show ${index + 1}`;
+      const id = baseOptions.id === undefined ? 100 + index : baseOptions.id + index;
+      const name = baseOptions.name === undefined 
+        ? `Test Show ${index + 1}` 
+        : `${baseOptions.name} ${index + 1}`;
       
       return TvMazeShowBuilder.createShow({
         ...baseOptions,
@@ -565,9 +565,9 @@ export class TvMazeScheduleItemBuilder {
     const baseShowId = baseOptions.showId ?? 100;
 
     for (let i = 0; i < count; i++) {
-      const showName = baseOptions.showName !== undefined
-        ? `${baseOptions.showName} ${i + 1}`
-        : `Test Show ${i + 1}`;
+      const showName = baseOptions.showName === undefined
+        ? `Test Show ${i + 1}`
+        : `${baseOptions.showName} ${i + 1}`;
         
       items.push(TvMazeScheduleItemBuilder.createNetworkScheduleItem({
         id: 1000 + i,
@@ -597,9 +597,9 @@ export class TvMazeScheduleItemBuilder {
     const baseShowId = baseOptions.showId ?? 200;
 
     for (let i = 0; i < count; i++) {
-      const showName = baseOptions.showName !== undefined
-        ? `${baseOptions.showName} ${i + 1}`
-        : `Test Web Show ${i + 1}`;
+      const showName = baseOptions.showName === undefined
+        ? `Test Web Show ${i + 1}`
+        : `${baseOptions.showName} ${i + 1}`;
         
       items.push(TvMazeScheduleItemBuilder.createWebScheduleItem({
         id: 2000 + i,

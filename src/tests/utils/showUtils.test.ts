@@ -20,17 +20,17 @@ describe('ShowUtils', () => {
     it('returns date in YYYY-MM-DD format', () => {
       // Mock Date to return a fixed date
       const mockDate = new Date(2025, 2, 20); // March 20, 2025
-      const originalDate = global.Date;
-      global.Date = jest.fn(() => mockDate) as unknown as DateConstructor;
-      global.Date.UTC = originalDate.UTC;
-      global.Date.parse = originalDate.parse;
-      global.Date.now = originalDate.now;
+      const originalDate = globalThis.Date;
+      globalThis.Date = jest.fn(() => mockDate) as unknown as DateConstructor;
+      globalThis.Date.UTC = originalDate.UTC;
+      globalThis.Date.parse = originalDate.parse;
+      globalThis.Date.now = originalDate.now;
 
       // Test the function
       const result = getTodayDate();
       
       // Restore original Date
-      global.Date = originalDate;
+      globalThis.Date = originalDate;
       
       // Assert the result
       expect(result).toBe('2025-03-20');
@@ -52,10 +52,10 @@ describe('ShowUtils', () => {
       const result = groupShowsByNetwork(shows);
       
       // Assert the result
-      expect(Object.keys(result).length).toBe(3);
-      expect(result.NBC.length).toBe(2);
-      expect(result.ABC.length).toBe(1);
-      expect(result.CBS.length).toBe(1);
+      expect(Object.keys(result)).toHaveLength(3);
+      expect(result.NBC).toHaveLength(2);
+      expect(result.ABC).toHaveLength(1);
+      expect(result.CBS).toHaveLength(1);
       
       // Check that the shows are in the right groups
       expect(result.NBC[0].name).toBe('Show 1');
@@ -76,10 +76,10 @@ describe('ShowUtils', () => {
       const result = groupShowsByNetwork(shows);
       
       // Assert the result
-      expect(Object.keys(result).length).toBe(2);
-      expect(result.NBC.length).toBe(1);
+      expect(Object.keys(result)).toHaveLength(2);
+      expect(result.NBC).toHaveLength(1);
       // Both null and empty string are now 'Unknown Network'
-      expect(result['Unknown Network'].length).toBe(2);
+      expect(result['Unknown Network']).toHaveLength(2);
       
       // Check that the shows are in the right groups
       expect(result.NBC[0].name).toBe('Show 1');
@@ -101,9 +101,9 @@ describe('ShowUtils', () => {
       const result = groupShowsByNetwork(shows);
       
       // Assert the result - country codes should be removed, so we expect 2 groups
-      expect(Object.keys(result).length).toBe(2);
-      expect(result.Hulu.length).toBe(2); // Both Hulu and Hulu (JP) should be in this group
-      expect(result.Netflix.length).toBe(1);
+      expect(Object.keys(result)).toHaveLength(2);
+      expect(result.Hulu).toHaveLength(2); // Both Hulu and Hulu (JP) should be in this group
+      expect(result.Netflix).toHaveLength(1);
       
       // Check that the shows are in the right groups
       const huluShows = result.Hulu.map(show => show.name).sort();
@@ -150,9 +150,9 @@ describe('ShowUtils', () => {
       const shows = ShowBuilder.withDifferentNames(['C Show', 'A Show', 'B Show']);
       
       // Set the same airtime for all shows
-      shows.forEach(show => {
+      for (const show of shows) {
         show.airtime = '20:00';
-      });
+      }
       
       // Call the function
       const result = sortShowsByTime(shows);
@@ -171,18 +171,18 @@ describe('ShowUtils', () => {
       
       // Test filtering by a single type
       const dramaShows = filterByType(shows, ['Drama']);
-      expect(dramaShows.length).toBe(1);
+      expect(dramaShows).toHaveLength(1);
       expect(dramaShows[0].type).toBe('Drama');
       
       // Test filtering by multiple types
       const comedyAndRealityShows = filterByType(shows, ['Comedy', 'Reality']);
-      expect(comedyAndRealityShows.length).toBe(2);
+      expect(comedyAndRealityShows).toHaveLength(2);
       expect(comedyAndRealityShows.map(show => show.type)).toContain('Comedy');
       expect(comedyAndRealityShows.map(show => show.type)).toContain('Reality');
       
       // Test with empty filter (should return all shows)
       const allShows = filterByType(shows, []);
-      expect(allShows.length).toBe(shows.length);
+      expect(allShows).toHaveLength(shows.length);
     });
   });
   
@@ -193,18 +193,18 @@ describe('ShowUtils', () => {
       
       // Test filtering by a single network
       const abcShows = filterByNetwork(shows, ['ABC']);
-      expect(abcShows.length).toBe(1);
+      expect(abcShows).toHaveLength(1);
       expect(abcShows[0].network).toBe('ABC');
       
       // Test filtering by multiple networks
       const abcAndNbcShows = filterByNetwork(shows, ['ABC', 'NBC']);
-      expect(abcAndNbcShows.length).toBe(2);
+      expect(abcAndNbcShows).toHaveLength(2);
       expect(abcAndNbcShows.map(show => show.network)).toContain('ABC');
       expect(abcAndNbcShows.map(show => show.network)).toContain('NBC');
       
       // Test with empty filter (should return all shows)
       const allShows = filterByNetwork(shows, []);
-      expect(allShows.length).toBe(shows.length);
+      expect(allShows).toHaveLength(shows.length);
     });
   });
   
@@ -220,17 +220,17 @@ describe('ShowUtils', () => {
       
       // Test filtering by a single genre
       const dramaShows = filterByGenre(shows, ['Drama']);
-      expect(dramaShows.length).toBe(2);
+      expect(dramaShows).toHaveLength(2);
       expect(dramaShows[0].genres).toContain('Drama');
       expect(dramaShows[1].genres).toContain('Drama');
       
       // Test filtering by multiple genres (shows that have ANY of the genres)
       const comedyOrActionShows = filterByGenre(shows, ['Comedy', 'Action']);
-      expect(comedyOrActionShows.length).toBe(3);
+      expect(comedyOrActionShows).toHaveLength(3);
       
       // Test with empty filter (should return all shows)
       const allShows = filterByGenre(shows, []);
-      expect(allShows.length).toBe(shows.length);
+      expect(allShows).toHaveLength(shows.length);
     });
   });
   
@@ -243,15 +243,15 @@ describe('ShowUtils', () => {
       
       // Test filtering by a single language
       const englishShows = filterByLanguage(shows, ['English']);
-      expect(englishShows.length).toBe(2);
+      expect(englishShows).toHaveLength(2);
       
       // Test filtering by multiple languages
       const englishAndSpanishShows = filterByLanguage(shows, ['English', 'Spanish']);
-      expect(englishAndSpanishShows.length).toBe(3);
+      expect(englishAndSpanishShows).toHaveLength(3);
       
       // Test with empty filter (should return all shows)
       const allShows = filterByLanguage(shows, []);
-      expect(allShows.length).toBe(shows.length);
+      expect(allShows).toHaveLength(shows.length);
     });
     
     it('should handle null language values', () => {
@@ -260,11 +260,11 @@ describe('ShowUtils', () => {
       
       // Filter for English shows
       const englishShows = filterByLanguage(shows, ['English']);
-      expect(englishShows.length).toBe(1);
+      expect(englishShows).toHaveLength(1);
       
       // Filter for null language (should not match anything)
       const nullLanguageShows = filterByLanguage(shows, ['null']);
-      expect(nullLanguageShows.length).toBe(0);
+      expect(nullLanguageShows).toHaveLength(0);
     });
   });
 });

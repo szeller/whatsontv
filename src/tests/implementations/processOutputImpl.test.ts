@@ -33,8 +33,8 @@ describe('ProcessOutputImpl', () => {
       const consoleOutput = new ProcessOutputImpl();
 
       // Act
-      // eslint-disable-next-line sonarjs/no-undefined-argument
-      consoleOutput.log(undefined);
+       
+      consoleOutput.log();
 
       // Assert
       expect(console.log).toHaveBeenCalledWith(undefined);
@@ -99,14 +99,14 @@ describe('ProcessOutputImpl', () => {
       const messages = ['message 1', 'message 2', 'message 3'];
       
       // Act
-      messages.forEach(msg => { mockConsole.log(msg); });
+      for (const msg of messages) { mockConsole.log(msg); }
       
       // Assert
       const output = mockConsole.getOutput();
       expect(output).toHaveLength(messages.length);
-      messages.forEach(msg => {
+      for (const msg of messages) {
         expect(output).toContain(msg);
-      });
+      }
     });
     
     it('should capture error messages with args', () => {

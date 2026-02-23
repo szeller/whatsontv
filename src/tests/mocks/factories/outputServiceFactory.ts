@@ -39,43 +39,41 @@ export function createMockOutputService(
   options: OutputServiceOptions = {}
 ): jest.Mocked<OutputService> {
   const mockOutputService: jest.Mocked<OutputService> = {
+    // eslint-disable-next-line @typescript-eslint/require-await -- mock returns Promise
     renderOutput: jest.fn(async (shows: Show[]): Promise<void> => {
       // If we should throw an error, do so
       if (options.renderError) {
         throw options.renderError;
       }
-      
+
       // If a custom callback is provided, execute it
       if (options.onRenderOutput) {
         options.onRenderOutput(shows);
       } else if (options.logToConsole === true) {
         // Provide a more realistic default behavior that logs to console
         console.log(`[MockOutput] Displaying ${shows.length} shows`);
-        
+
         // If verbose, log some details about the shows
         if (options.verbose === true && shows.length > 0) {
-          shows.forEach(show => {
+          for (const show of shows) {
             const hasAirtime = show.airtime !== null &&
               show.airtime !== '';
-            
+
             const airtime = hasAirtime ? show.airtime : 'No airtime';
             console.log(`  - ${show.name} [${show.network}] ${airtime}`);
-          });
+          }
         }
       }
-      
-      // Default implementation resolves
-      return Promise.resolve();
     })
   };
   
   // Apply any custom implementations
   if (options.implementation) {
-    Object.entries(options.implementation).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(options.implementation)) {
       // We need to cast here because we're dynamically setting properties
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (mockOutputService as any)[key] = value;
-    });
+    }
   }
   
   return mockOutputService;

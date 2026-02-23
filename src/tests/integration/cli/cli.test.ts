@@ -188,25 +188,26 @@ describe('CLI Integration Tests', () => {
       
       // Set up a malformed response for the network schedule endpoint
       const networkUrl = getNetworkScheduleUrl(today);
+      // eslint-disable-next-line @typescript-eslint/require-await -- mock returns Promise
       jest.spyOn(mockHttpClient, 'get').mockImplementation(async (url) => {
         if (url === networkUrl) {
-          return Promise.resolve({
+          return {
             status: 200,
             headers: { 'content-type': 'application/json' },
             data: '{ "malformed": "json", missing closing bracket and quotes'
-          });
+          };
         } else if (url === getWebScheduleUrl(today)) {
-          return Promise.resolve({
+          return {
             status: 200,
             headers: { 'content-type': 'application/json' },
             data: '{ "also": "malformed", ]'
-          });
+          };
         }
-        return Promise.resolve({
+        return {
           status: 404,
           headers: {},
           data: null
-        });
+        };
       });
       
       // Run CLI with all fetch option to try both endpoints

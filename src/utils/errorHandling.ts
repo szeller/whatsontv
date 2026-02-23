@@ -50,6 +50,7 @@ export function handleMainError(error: unknown, processOutput: ProcessOutput): v
   if (hasStack && error instanceof Error) {
     processOutput.error(`Stack: ${error.stack}`);
   }
+  // eslint-disable-next-line unicorn/no-process-exit -- CLI error handler
   process.exit(1);
 }
 

@@ -173,7 +173,7 @@ export class TvMazeServiceImpl implements TvShowService {
    * @private
    */
   private escapeRegex(str: string): string {
-    return str.replaceAll(/[$()*+.?[\\\]^{|}]/g, '\\$&');
+    return str.replaceAll(/[$()*+.?[\\\]^{|}]/g, String.raw`\$&`);
   }
 
   /**
@@ -308,13 +308,13 @@ export class TvMazeServiceImpl implements TvShowService {
 
     const showMap = new Map<string, Show>();
 
-    shows.forEach((show: Show) => {
+    for (const show of shows) {
       // Create a unique key using show ID, season, and episode number
       const key = `${show.id}-${show.season}-${show.number}`;
       if (!showMap.has(key)) {
         showMap.set(key, show);
       }
-    });
+    }
 
     return [...showMap.values()];
   }

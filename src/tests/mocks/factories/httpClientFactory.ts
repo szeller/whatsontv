@@ -40,16 +40,16 @@ export function createMockHttpClient(options: HttpClientOptions = {}): MockHttpC
   
   // Set up GET errors first (they should take precedence)
   if (options.getErrors) {
-    Object.entries(options.getErrors).forEach(([url, error]) => {
+    for (const [url, error] of Object.entries(options.getErrors)) {
       mockHttpClient.mockGetError(url, error);
-    });
+    }
   }
   
   // Set up POST errors first (they should take precedence)
   if (options.postErrors) {
-    Object.entries(options.postErrors).forEach(([url, error]) => {
+    for (const [url, error] of Object.entries(options.postErrors)) {
       mockHttpClient.mockPostError(url, error);
-    });
+    }
   }
   
   // Set default error if provided
@@ -59,16 +59,16 @@ export function createMockHttpClient(options: HttpClientOptions = {}): MockHttpC
   
   // Set up GET responses
   if (options.getResponses) {
-    Object.entries(options.getResponses).forEach(([url, response]) => {
+    for (const [url, response] of Object.entries(options.getResponses)) {
       mockHttpClient.mockGet(url, response);
-    });
+    }
   }
   
   // Set up POST responses
   if (options.postResponses) {
-    Object.entries(options.postResponses).forEach(([url, response]) => {
+    for (const [url, response] of Object.entries(options.postResponses)) {
       mockHttpClient.mockPost(url, response);
-    });
+    }
   }
   
   // Set default response if provided
@@ -85,18 +85,18 @@ export function createMockHttpClient(options: HttpClientOptions = {}): MockHttpC
   
   // Load fixtures
   if (options.fixtures) {
-    Object.entries(options.fixtures).forEach(([url, fixture]) => {
+    for (const [url, fixture] of Object.entries(options.fixtures)) {
       mockHttpClient.mockFixture(url, fixture.path, fixture.status);
-    });
+    }
   }
   
   // Apply any custom implementations
   if (options.implementation) {
-    Object.entries(options.implementation).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(options.implementation)) {
       // We need to cast here because we're dynamically setting properties
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (mockHttpClient as any)[key] = value;
-    });
+    }
   }
   
   return mockHttpClient;

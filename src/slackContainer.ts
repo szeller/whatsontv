@@ -76,4 +76,6 @@ export function initializeSlackContainer(): void {
 }
 
 // Export the container
-export { container };
+
+
+export { container } from 'tsyringe';

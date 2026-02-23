@@ -136,9 +136,9 @@ describe('Fixture Validation', () => {
         z.array(networkScheduleItemSchema).parse(invalidSchedule);
         // If we get here, validation didn't throw as expected
         expect(true).toBe(false); // Force test to fail
-      } catch (err) {
+      } catch (error) {
         // Convert error to string to check for expected validation failures
-        const errorString = String(err);
+        const errorString = String(error);
         
         // Check for specific missing fields in the error message
         expect(errorString).toContain('id');

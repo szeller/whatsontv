@@ -19,7 +19,7 @@ describe('Common Schema Utilities', () => {
     });
 
     it('should convert undefined to 0', () => {
-      expect(numberFromMixed.parse(undefined)).toBe(0);
+      expect(numberFromMixed.parse()).toBe(0);
     });
 
     it('should throw on invalid string input', () => {
@@ -33,11 +33,11 @@ describe('Common Schema Utilities', () => {
     });
 
     it('should pass through null', () => {
-      expect(nullableString.parse(null)).toBe(null);
+      expect(nullableString.parse(null)).toBeNull();
     });
 
     it('should convert undefined to null', () => {
-      expect(nullableString.parse(undefined)).toBe(null);
+      expect(nullableString.parse()).toBeNull();
     });
   });
 

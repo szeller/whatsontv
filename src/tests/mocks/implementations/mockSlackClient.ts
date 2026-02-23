@@ -3,6 +3,8 @@ import { injectable } from 'tsyringe';
 
 import type { SlackClient, SlackMessagePayload } from '../../../interfaces/slackClient.js';
 
+type DebugMode = 'none' | 'console' | 'store';
+
 /**
  * Mock implementation of SlackClient for testing
  * Stores all messages for later verification and provides configurable debug output
@@ -10,7 +12,7 @@ import type { SlackClient, SlackMessagePayload } from '../../../interfaces/slack
 @injectable()
 export class MockSlackClient implements SlackClient {
   private messages: SlackMessagePayload[] = [];
-  private debugMode: 'none' | 'console' | 'store';
+  private debugMode: DebugMode;
   private debugLogs: string[] = [];
   
   /**
@@ -18,7 +20,7 @@ export class MockSlackClient implements SlackClient {
    * @param options Configuration options
    */
   constructor(options: { 
-    debugMode?: 'none' | 'console' | 'store';
+    debugMode?: DebugMode;
   } = {}) {
     this.debugMode = options.debugMode ?? 'none';
     
@@ -39,7 +41,7 @@ export class MockSlackClient implements SlackClient {
     this.messages.push({ ...payload });
     
     // Simulate network latency
-    await new Promise<void>(resolve => { global.setTimeout(resolve, 0); });
+    await new Promise<void>(resolve => { globalThis.setTimeout(resolve, 0); });
     
     // Handle debug output based on mode
     if (this.debugMode !== 'none') {
@@ -66,14 +68,12 @@ export class MockSlackClient implements SlackClient {
       logMessages.push('--- End of MockSlackClient Message ---');
       
       if (this.debugMode === 'console') {
-        logMessages.forEach(msg => { console.log(msg); });
+        for (const msg of logMessages) { console.log(msg); }
       } else {
         this.debugLogs.push(...logMessages);
       }
     }
 
-    // Simulate async behavior
-    return Promise.resolve();
   }
   
   /**
@@ -82,9 +82,9 @@ export class MockSlackClient implements SlackClient {
    */
   getMessages(): SlackMessagePayload[] {
     // Create a deep copy of the messages to prevent modification
-    return this.messages.map(msg => JSON.parse(JSON.stringify(msg)));
+    return this.messages.map(msg => structuredClone(msg));
   }
-  
+
   /**
    * Get messages sent to a specific channel
    * @param channel Channel ID to filter by
@@ -93,9 +93,9 @@ export class MockSlackClient implements SlackClient {
   getMessagesForChannel(channel: string): SlackMessagePayload[] {
     return this.messages
       .filter(msg => msg.channel === channel)
-      .map(msg => JSON.parse(JSON.stringify(msg)));
+      .map(msg => structuredClone(msg));
   }
-  
+
   /**
    * Find messages containing specific text
    * @param text Text to search for
@@ -104,7 +104,7 @@ export class MockSlackClient implements SlackClient {
   findMessagesByText(text: string): SlackMessagePayload[] {
     return this.messages
       .filter(msg => msg.text.includes(text))
-      .map(msg => JSON.parse(JSON.stringify(msg)));
+      .map(msg => structuredClone(msg));
   }
   
   /**
@@ -171,7 +171,7 @@ export class MockSlackClient implements SlackClient {
    * Set the debug mode
    * @param mode The debug mode to set
    */
-  setDebugMode(mode: 'none' | 'console' | 'store'): void {
+  setDebugMode(mode: DebugMode): void {
     this.debugMode = mode;
     
     if (this.debugMode === 'console') {
@@ -196,7 +196,7 @@ export class MockSlackClient implements SlackClient {
       `--- MockSlackClient stored messages (${this.messages.length}) ---`
     ];
     
-    this.messages.forEach((msg, index) => {
+    for (const [index, msg] of this.messages.entries()) {
       summary.push(`[${index}] Channel: ${msg.channel}, Text: ${msg.text}`);
       
       const hasBlocks = includeBlocks &&
@@ -205,12 +205,12 @@ export class MockSlackClient implements SlackClient {
       if (hasBlocks) {
         summary.push(`    Blocks: ${JSON.stringify(msg.blocks, null, 2)}`);
       }
-    });
+    }
     
     summary.push('--- End of MockSlackClient stored messages ---');
     
     if (toConsole) {
-      summary.forEach(line => { console.log(line); });
+      for (const line of summary) { console.log(line); }
     }
     
     if (this.debugMode === 'store') {

@@ -17,6 +17,16 @@ import type { AppConfig, SlackConfig } from '../../../types/configTypes.js';
 import type { ShowOptions } from '../../../types/tvShowOptions.js';
 import { getTodayDate } from '../../../utils/dateUtils.js';
 
+function toStringArrayFromArgv(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value as string[];
+  }
+  if (typeof value === 'string') {
+    return value.split(',');
+  }
+  return [];
+}
+
 // Create a test subclass that extends the implementation
 class TestCliConfigService extends CliConfigServiceImpl {
   // Mock data for tests
@@ -113,14 +123,10 @@ class TestCliConfigService extends CliConfigServiceImpl {
       return {
         date: typeof argv.date === 'string' ? argv.date : getTodayDate(),
         country: typeof argv.country === 'string' ? argv.country : 'US',
-        types: Array.isArray(argv.types) ? argv.types : 
-          typeof argv.types === 'string' ? argv.types.split(',') : [],
-        networks: Array.isArray(argv.networks) ? argv.networks : 
-          typeof argv.networks === 'string' ? argv.networks.split(',') : [],
-        genres: Array.isArray(argv.genres) ? argv.genres : 
-          typeof argv.genres === 'string' ? argv.genres.split(',') : [],
-        languages: Array.isArray(argv.languages) ? argv.languages : 
-          typeof argv.languages === 'string' ? argv.languages.split(',') : [],
+        types: toStringArrayFromArgv(argv.types),
+        networks: toStringArrayFromArgv(argv.networks),
+        genres: toStringArrayFromArgv(argv.genres),
+        languages: toStringArrayFromArgv(argv.languages),
         minAirtime: typeof argv.minAirtime === 'string' ? argv.minAirtime : '18:00',
         debug: argv.debug === true,
         groupByNetwork: argv.groupByNetwork === true
@@ -131,8 +137,7 @@ class TestCliConfigService extends CliConfigServiceImpl {
     const hasDate = this.mockCliArgs.date !== undefined;
     const hasCountry = this.mockCliArgs.country !== undefined;
     const hasMinAirtime = this.mockCliArgs.minAirtime !== undefined;
-    const hasFetch = this.mockCliArgs.fetch !== undefined && this.mockCliArgs.fetch !== null;
-    
+
     return {
       date: hasDate ? this.mockCliArgs.date : getTodayDate(),
       country: hasCountry ? this.mockCliArgs.country : 'US',
@@ -143,11 +148,7 @@ class TestCliConfigService extends CliConfigServiceImpl {
         this.mockCliArgs.languages : ['English'],
       minAirtime: hasMinAirtime ? this.mockCliArgs.minAirtime : '18:00',
       debug: Boolean(this.mockCliArgs.debug),
-      fetch: hasFetch ? 
-        (this.mockCliArgs.fetch === 'network' || 
-         this.mockCliArgs.fetch === 'web' || 
-         this.mockCliArgs.fetch === 'all' ? 
-          this.mockCliArgs.fetch : 'all') : 'all',
+      fetch: this.getFetchMode(),
       groupByNetwork: Boolean(this.mockCliArgs.groupByNetwork)
     } as CliArgs;
   }
@@ -188,7 +189,7 @@ class TestCliConfigService extends CliConfigServiceImpl {
         // Ensure slack config is properly merged
         slack: {
           ...defaultConfig.slack,
-          ...(this.mockConfigContent.slack ?? {})
+          ...this.mockConfigContent.slack
         }
       };
       
@@ -205,7 +206,7 @@ class TestCliConfigService extends CliConfigServiceImpl {
     if (this.mockArgs.length > 0) {
       if (_key === 'types' && this.mockArgs.includes('--types')) {
         const typesIndex = this.mockArgs.indexOf('--types');
-        if (typesIndex >= 0 && typesIndex + 1 < this.mockArgs.length) {
+        if (typesIndex !== -1 && typesIndex + 1 < this.mockArgs.length) {
           const typesValue = this.mockArgs[typesIndex + 1];
           if (typeof typesValue === 'string' && typesValue.length > 0) {
             return typesValue.split(',') as unknown as ShowOptions[K];
@@ -215,7 +216,7 @@ class TestCliConfigService extends CliConfigServiceImpl {
       
       if (_key === 'networks' && this.mockArgs.includes('--networks')) {
         const networksIndex = this.mockArgs.indexOf('--networks');
-        if (networksIndex >= 0 && networksIndex + 1 < this.mockArgs.length) {
+        if (networksIndex !== -1 && networksIndex + 1 < this.mockArgs.length) {
           const networksValue = this.mockArgs[networksIndex + 1];
           if (typeof networksValue === 'string' && networksValue.length > 0) {
             return networksValue.split(',') as unknown as ShowOptions[K];
@@ -317,6 +318,14 @@ class TestCliConfigService extends CliConfigServiceImpl {
     }
   }
   
+  private getFetchMode(): 'network' | 'web' | 'all' {
+    const fetch = this.mockCliArgs.fetch;
+    if (fetch === 'network' || fetch === 'web' || fetch === 'all') {
+      return fetch;
+    }
+    return 'all';
+  }
+
   // Expose the createYargsInstance method for testing
   public exposeCreateYargsInstance(args: string[]): unknown {
     const yargsInstance = this.createYargsInstance(args);
@@ -847,7 +856,7 @@ describe('CliConfigServiceImpl', () => {
     expect(date.getDate()).toBe(14);
   });
 
-  it('should handle invalid date format gracefully', () => {
+  it('should default to today when date format is invalid', () => {
     // Arrange
     const invalidDate = 'not-a-date';
     const configService = new TestCliConfigService({
@@ -855,10 +864,10 @@ describe('CliConfigServiceImpl', () => {
         date: invalidDate
       }
     });
-    
+
     // Act
     const date = configService.getDate();
-    
+
     // Assert
     expect(date).toBeInstanceOf(Date);
     // Should default to today's date if invalid

@@ -241,7 +241,7 @@ describe('SlackShowFormatterImpl', () => {
       const result = formatter.formatNetwork(networkName, emptyShows);
 
       // Assert - compact format returns a single context block
-      expect(result.length).toBe(1);
+      expect(result).toHaveLength(1);
 
       // Block should be a context block with network name
       const contextBlock = result[0];
@@ -276,7 +276,7 @@ describe('SlackShowFormatterImpl', () => {
       const result = formatter.formatNetwork(network, shows);
 
       // Assert - compact format returns a single context block per network
-      expect(result.length).toBe(1);
+      expect(result).toHaveLength(1);
 
       // Block should be a context block
       const contextBlock = result[0];
@@ -326,7 +326,7 @@ describe('SlackShowFormatterImpl', () => {
 
       // No "Shows by Network" header - date header is added by SlackOutputServiceImpl
       const headerBlocks = result.filter(block => isHeaderBlock(block)) as SlackHeaderBlock[];
-      expect(headerBlocks.length).toBe(0);
+      expect(headerBlocks).toHaveLength(0);
 
       // Check that networks are in context blocks
       const contextBlocks = result.filter(block => isContextBlock(block)) as SlackContextBlock[];
@@ -354,7 +354,7 @@ describe('SlackShowFormatterImpl', () => {
 
       // No header blocks - date header is added by SlackOutputServiceImpl
       const headerBlocks = result.filter(block => isHeaderBlock(block));
-      expect(headerBlocks.length).toBe(0);
+      expect(headerBlocks).toHaveLength(0);
 
       // Should have footer context block
       const contextBlocks = result.filter(block => isContextBlock(block));

@@ -59,7 +59,7 @@ describe('OutputServiceFactory', () => {
     
     it('should apply custom implementation', async () => {
       // Arrange
-      const customRenderOutput = jest.fn().mockResolvedValue(undefined);
+      const customRenderOutput = jest.fn().mockResolvedValue();
       
       // Act
       const service = createMockOutputService({

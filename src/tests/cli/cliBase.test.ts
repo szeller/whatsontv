@@ -32,7 +32,7 @@ describe('CLI', () => {
   };
 
   const mockOutputService = {
-    renderOutput: jest.fn<(shows: Show[]) => Promise<void>>().mockResolvedValue(undefined)
+    renderOutput: jest.fn<(shows: Show[]) => Promise<void>>().mockResolvedValue()
   };
 
   const mockConfigService = {

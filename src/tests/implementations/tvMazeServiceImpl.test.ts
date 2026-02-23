@@ -70,7 +70,7 @@ describe('TvMazeServiceImpl', () => {
       const shows = await tvMazeService.fetchShows({ date: '2023-01-01' });
 
       // Verify the result
-      expect(shows.length).toBe(3);
+      expect(shows).toHaveLength(3);
       expectValidShow(shows[0]);
       expect(shows[0].id).toBe(100);
       expect(shows[1].id).toBe(101);
@@ -98,10 +98,10 @@ describe('TvMazeServiceImpl', () => {
       const shows = await tvMazeService.fetchShows();
 
       // Verify the result
-      expect(shows.length).toBe(2);
-      shows.forEach(show => {
+      expect(shows).toHaveLength(2);
+      for (const show of shows) {
         expectValidShow(show);
-      });
+      }
     });
 
     it('handles empty responses', async () => {
@@ -163,7 +163,7 @@ describe('TvMazeServiceImpl', () => {
       const shows = await tvMazeService.fetchShows({ date: '2023-01-01' });
 
       // Verify the result has been transformed correctly
-      expect(shows.length).toBe(1);
+      expect(shows).toHaveLength(1);
       expectValidShow(shows[0]);
       expect(shows[0].id).toBe(100);
       expect(shows[0].name).toBe('Test Show');
@@ -191,7 +191,7 @@ describe('TvMazeServiceImpl', () => {
       const shows = await tvMazeService.fetchShows();
 
       // Verify the result
-      expect(shows.length).toBe(3);
+      expect(shows).toHaveLength(3);
       expectValidShow(shows[0]);
       expect(shows[0].network).toBeTruthy();
     });
@@ -234,10 +234,10 @@ describe('TvMazeServiceImpl', () => {
       const shows = await tvMazeService.fetchShows();
       
       // Verify the result
-      expect(shows.length).toBe(4);
-      shows.forEach(show => {
+      expect(shows).toHaveLength(4);
+      for (const show of shows) {
         expectValidShow(show);
-      });
+      }
       
       // Since we can't easily distinguish network vs web shows 
       // based on the network name alone (depends on implementation details),
@@ -250,8 +250,8 @@ describe('TvMazeServiceImpl', () => {
         .filter(show => show.id >= 200)
         .map(show => show.id);
       
-      expect(networkShowIds.length).toBe(2);
-      expect(webShowIds.length).toBe(2);
+      expect(networkShowIds).toHaveLength(2);
+      expect(webShowIds).toHaveLength(2);
     });
     
     it('handles non-array response data', async () => {
@@ -335,7 +335,7 @@ describe('TvMazeServiceImpl', () => {
       // Create test shows using the utility function
       testShows = createTestShows(5, (index: number) => {
         switch (index) {
-        case 0:
+        case 0: {
           return {
             id: 1,
             name: 'Show 1',
@@ -344,7 +344,8 @@ describe('TvMazeServiceImpl', () => {
             language: 'English',
             network: 'ABC'
           };
-        case 1:
+        }
+        case 1: {
           return {
             id: 2,
             name: 'Show 2',
@@ -353,7 +354,8 @@ describe('TvMazeServiceImpl', () => {
             language: 'Spanish',
             network: 'CBS'
           };
-        case 2:
+        }
+        case 2: {
           return {
             id: 3,
             name: 'Show 3',
@@ -362,7 +364,8 @@ describe('TvMazeServiceImpl', () => {
             language: 'French',
             network: 'Netflix'
           };
-        case 3:
+        }
+        case 3: {
           return {
             id: 4,
             name: 'Show 4',
@@ -371,7 +374,8 @@ describe('TvMazeServiceImpl', () => {
             language: 'English',
             network: 'HBO'
           };
-        case 4:
+        }
+        case 4: {
           return {
             id: 5,
             name: 'Show 5',
@@ -380,8 +384,10 @@ describe('TvMazeServiceImpl', () => {
             language: 'German',
             network: 'PBS'
           };
-        default:
+        }
+        default: {
           return {};
+        }
         }
       });
     });
@@ -396,10 +402,10 @@ describe('TvMazeServiceImpl', () => {
         networks: []
       });
       
-      expect(result.length).toBe(5);
-      result.forEach(show => {
+      expect(result).toHaveLength(5);
+      for (const show of result) {
         expectValidShow(show);
-      });
+      }
     });
     
     it('applies type filter correctly', () => {
@@ -412,7 +418,7 @@ describe('TvMazeServiceImpl', () => {
         networks: []
       });
       
-      expect(result.length).toBe(2);
+      expect(result).toHaveLength(2);
       expect(result[0].id).toBe(1);
       expect(result[1].id).toBe(4);
       expect(result.every(show => show.type === 'Scripted')).toBe(true);
@@ -428,7 +434,7 @@ describe('TvMazeServiceImpl', () => {
         networks: ['Netflix', 'HBO']
       });
       
-      expect(result.length).toBe(2);
+      expect(result).toHaveLength(2);
       expect(result[0].id).toBe(3);
       expect(result[1].id).toBe(4);
       expect(result.every(show => 
@@ -446,7 +452,7 @@ describe('TvMazeServiceImpl', () => {
         networks: []
       });
       
-      expect(result.length).toBe(1);
+      expect(result).toHaveLength(1);
       expect(result[0].id).toBe(3);
       expect(result[0].genres).toContain('Comedy');
     });
@@ -461,12 +467,12 @@ describe('TvMazeServiceImpl', () => {
         networks: []
       });
       
-      expect(result.length).toBe(2);
+      expect(result).toHaveLength(2);
       
       // Check each show's language explicitly to handle null/undefined
-      result.forEach(show => {
+      for (const show of result) {
         expect(show.language).toBe('English');
-      });
+      }
     });
     
     it('applies minAirtime filter correctly', () => {
@@ -491,7 +497,7 @@ describe('TvMazeServiceImpl', () => {
       });
       
       // Should include 8:00 PM, 7:00 PM, and the streaming show with no airtime
-      expect(result.length).toBe(3);
+      expect(result).toHaveLength(3);
       
       // Verify the correct shows were included
       const airtimes = result.map(show => show.airtime).sort((a, b) => a.localeCompare(b));
@@ -520,7 +526,7 @@ describe('TvMazeServiceImpl', () => {
       });
       
       // Should include 8:00 PM and all shows with null/empty airtimes
-      expect(result.length).toBe(4);
+      expect(result).toHaveLength(4);
       
       // Verify the 8:00 AM show was excluded
       expect(result.some(show => show.airtime === '08:00')).toBe(false);
@@ -536,12 +542,12 @@ describe('TvMazeServiceImpl', () => {
         networks: []
       });
       
-      expect(result.length).toBe(2);
+      expect(result).toHaveLength(2);
       
       // Check each show's language explicitly to handle null/undefined
-      result.forEach(show => {
+      for (const show of result) {
         expect(show.language?.toLowerCase()).toBe('english');
-      });
+      }
     });
     
     it('handles multiple language filtering', () => {
@@ -554,7 +560,7 @@ describe('TvMazeServiceImpl', () => {
         networks: []
       });
       
-      expect(result.length).toBe(3); // Should match shows with English or Spanish
+      expect(result).toHaveLength(3); // Should match shows with English or Spanish
       
       // Verify that all shows have either English or Spanish language
       const languages = result.map(show => show.language?.toLowerCase()).sort(
@@ -584,10 +590,10 @@ describe('TvMazeServiceImpl', () => {
       });
       
       // Should only match shows with English language, not null
-      expect(result.length).toBe(2);
-      result.forEach(show => {
+      expect(result).toHaveLength(2);
+      for (const show of result) {
         expect(show.language?.toLowerCase()).toBe('english');
-      });
+      }
     });
     
     it('applies multiple filters correctly', () => {
@@ -600,7 +606,7 @@ describe('TvMazeServiceImpl', () => {
         networks: []
       });
       
-      expect(result.length).toBe(1);
+      expect(result).toHaveLength(1);
       expectValidShow(result[0]);
       expect(result[0].id).toBe(1);
       expect(result[0].type).toBe('Scripted');
@@ -618,7 +624,7 @@ describe('TvMazeServiceImpl', () => {
         networks: []
       });
       
-      expect(result.length).toBe(2);
+      expect(result).toHaveLength(2);
       expect(result.every(show => show.type.toLowerCase() === 'scripted')).toBe(true);
     });
     
@@ -649,7 +655,7 @@ describe('TvMazeServiceImpl', () => {
       });
       
       // Should match Netflix exactly (case insensitive)
-      expect(result.length).toBe(1);
+      expect(result).toHaveLength(1);
       expect(result[0].network).toBe('Netflix');
       
       // Test that country codes are removed for matching
@@ -663,7 +669,7 @@ describe('TvMazeServiceImpl', () => {
       });
       
       // Should match both Hulu and Hulu (JP) since country codes are removed
-      expect(huluResult.length).toBe(2);
+      expect(huluResult).toHaveLength(2);
       expect(huluResult.some(show => show.network === 'Hulu')).toBe(true);
       expect(huluResult.some(show => show.network === 'Hulu (JP)')).toBe(true);
     });
@@ -678,7 +684,7 @@ describe('TvMazeServiceImpl', () => {
         networks: []
       });
 
-      expect(result.length).toBe(1);
+      expect(result).toHaveLength(1);
       expect(result[0].genres).toContain('Comedy');
     });
 
@@ -693,7 +699,7 @@ describe('TvMazeServiceImpl', () => {
         excludeShowNames: ['Show 1', 'Show 3']
       });
 
-      expect(result.length).toBe(3);
+      expect(result).toHaveLength(3);
       expect(result.some(show => show.name === 'Show 1')).toBe(false);
       expect(result.some(show => show.name === 'Show 3')).toBe(false);
       expect(result.some(show => show.name === 'Show 2')).toBe(true);
@@ -710,7 +716,7 @@ describe('TvMazeServiceImpl', () => {
         excludeShowNames: ['^Show [12]$'] // Matches Show 1 and Show 2
       });
 
-      expect(result.length).toBe(3);
+      expect(result).toHaveLength(3);
       expect(result.some(show => show.name === 'Show 1')).toBe(false);
       expect(result.some(show => show.name === 'Show 2')).toBe(false);
       expect(result.some(show => show.name === 'Show 3')).toBe(true);
@@ -727,7 +733,7 @@ describe('TvMazeServiceImpl', () => {
         excludeShowNames: ['SHOW 1'] // uppercase
       });
 
-      expect(result.length).toBe(4);
+      expect(result).toHaveLength(4);
       expect(result.some(show => show.name === 'Show 1')).toBe(false);
     });
 
@@ -753,7 +759,7 @@ describe('TvMazeServiceImpl', () => {
         excludeShowNames: ['Show (Test'] // Unmatched paren is invalid regex
       });
 
-      expect(result.length).toBe(5);
+      expect(result).toHaveLength(5);
       expect(result.some(show => show.name === 'Show (Test')).toBe(false);
     });
 
@@ -768,7 +774,7 @@ describe('TvMazeServiceImpl', () => {
         excludeShowNames: []
       });
 
-      expect(result.length).toBe(5);
+      expect(result).toHaveLength(5);
     });
 
     it('handles undefined excludeShowNames', () => {
@@ -782,7 +788,7 @@ describe('TvMazeServiceImpl', () => {
         // excludeShowNames not provided
       });
 
-      expect(result.length).toBe(5);
+      expect(result).toHaveLength(5);
     });
   });
 });

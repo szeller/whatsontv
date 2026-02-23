@@ -6,12 +6,12 @@
  */
 import type { Show } from '../schemas/domain.js';
 import { readFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // Get current directory for ES modules
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = path.dirname(__filename);
 
 // Local types for Slack message components
 // Note: These are intentionally separate from src/interfaces/slackClient.ts types.
@@ -34,11 +34,11 @@ interface SlackMessagePayload {
 function loadSampleShows(): Show[] {
   try {
     // Load and combine shows from different fixture files
-    const fixturesPath = resolve(__dirname, '../../src/tests/fixtures');
+    const fixturesPath = path.resolve(__dirname, '../../src/tests/fixtures');
     
-    const networkShowsPath = resolve(fixturesPath, 'domain/network-shows.json');
-    const cableShowsPath = resolve(fixturesPath, 'domain/cable-shows.json');
-    const streamingShowsPath = resolve(fixturesPath, 'domain/streaming-shows.json');
+    const networkShowsPath = path.resolve(fixturesPath, 'domain/network-shows.json');
+    const cableShowsPath = path.resolve(fixturesPath, 'domain/cable-shows.json');
+    const streamingShowsPath = path.resolve(fixturesPath, 'domain/streaming-shows.json');
     
     const networkShows = JSON.parse(readFileSync(networkShowsPath, 'utf8')) as Show[];
     const cableShows = JSON.parse(readFileSync(cableShowsPath, 'utf8')) as Show[];
@@ -56,12 +56,12 @@ function loadSampleShows(): Show[] {
 function groupShowsByNetwork(shows: Show[]): Record<string, Show[]> {
   const groups: Record<string, Show[]> = {};
   
-  shows.forEach(show => {
+  for (const show of shows) {
     const networkName = show.network;
     
     groups[networkName] ??= [];
     groups[networkName].push(show);
-  });
+  }
   
   return groups;
 }
@@ -89,17 +89,17 @@ export function generateBasicTextFormat(): SlackMessagePayload {
   
   let messageText = '*📺 TV Shows for Today*\n\n';
   
-  Object.entries(networkGroups).forEach(([network, shows]) => {
+  for (const [network, shows] of Object.entries(networkGroups)) {
     messageText += `*${network}*:\n`;
     
-    shows.forEach(show => {
+    for (const show of shows) {
       const airtime = show.airtime ?? 'N/A';
       const episodeInfo = formatEpisodeInfo(show);
       messageText += `• ${show.name} ${episodeInfo} (${airtime} | ${show.type})\n`;
-    });
+    }
     
     messageText += '\n';
-  });
+  }
   
   messageText += '_Data provided by TVMaze API_';
   
@@ -141,7 +141,7 @@ export function generateRichBlockFormat(): SlackMessagePayload {
     }
   ];
   
-  Object.entries(networkGroups).forEach(([network, shows]) => {
+  for (const [network, shows] of Object.entries(networkGroups)) {
     // Add network header
     blocks.push({
       type: 'section',
@@ -152,7 +152,7 @@ export function generateRichBlockFormat(): SlackMessagePayload {
     });
     
     // Add shows for this network
-    shows.forEach(show => {
+    for (const show of shows) {
       const airtime = show.airtime ?? 'N/A';
       const episodeInfo = formatEpisodeInfo(show);
       
@@ -163,13 +163,13 @@ export function generateRichBlockFormat(): SlackMessagePayload {
           text: `*${show.name}* ${episodeInfo}\n${airtime} | ${show.type}`
         }
       });
-    });
+    }
     
     // Add a divider between networks
     blocks.push({
       type: 'divider'
     });
-  });
+  }
   
   // Add footer
   blocks.push({
@@ -221,7 +221,7 @@ export function generateCompactFormat(): SlackMessagePayload {
     }
   ];
   
-  Object.entries(networkGroups).forEach(([network, shows]) => {
+  for (const [network, shows] of Object.entries(networkGroups)) {
     // Add network header
     blocks.push({
       type: 'section',
@@ -246,13 +246,10 @@ export function generateCompactFormat(): SlackMessagePayload {
         type: 'mrkdwn',
         text: showLines.join('\n')
       }
-    });
-    
-    // Add a divider between networks
-    blocks.push({
+    }, {
       type: 'divider'
     });
-  });
+  }
   
   // Add footer
   blocks.push({
@@ -330,7 +327,7 @@ export function generateInteractiveFormat(): SlackMessagePayload {
     }
   ];
   
-  Object.entries(networkGroups).forEach(([network, shows]) => {
+  for (const [network, shows] of Object.entries(networkGroups)) {
     // Add network header with accessory
     blocks.push({
       type: 'section',
@@ -351,7 +348,7 @@ export function generateInteractiveFormat(): SlackMessagePayload {
     });
     
     // Add shows for this network
-    shows.forEach(show => {
+    for (const show of shows) {
       const airtime = show.airtime ?? 'N/A';
       const episodeInfo = formatEpisodeInfo(show);
       const typeEmoji = getTypeEmoji(show.type);
@@ -375,13 +372,13 @@ export function generateInteractiveFormat(): SlackMessagePayload {
           action_id: 'show_details'
         }
       });
-    });
+    }
     
     // Add a divider between networks
     blocks.push({
       type: 'divider'
     });
-  });
+  }
   
   // Add footer
   blocks.push({
@@ -408,24 +405,33 @@ function getTypeEmoji(type: string): string {
   }
   
   switch (type.toLowerCase()) {
-  case 'scripted':
+  case 'scripted': {
     return '📝';
-  case 'reality':
+  }
+  case 'reality': {
     return '👁';
-  case 'talk':
+  }
+  case 'talk': {
     return '🎙';
-  case 'documentary':
+  }
+  case 'documentary': {
     return '🎬';
-  case 'variety':
+  }
+  case 'variety': {
     return '🎭';
-  case 'game':
+  }
+  case 'game': {
     return '🎮';
-  case 'news':
+  }
+  case 'news': {
     return '📰';
-  case 'sports':
+  }
+  case 'sports': {
     return '⚽';
-  default:
+  }
+  default: {
     return '📺';
+  }
   }
 }
 

@@ -1,6 +1,8 @@
 import { injectable } from 'tsyringe';
 import { LoggerService } from '../../interfaces/loggerService.js';
 
+export type LogLevel = 'info' | 'warn' | 'error' | 'debug';
+
 /**
  * Mock implementation of LoggerService for testing.
  * Captures log calls for verification in tests without producing output.
@@ -39,7 +41,7 @@ export class MockLoggerServiceImpl implements LoggerService {
   /**
    * Get all calls of a specific level
    */
-  getCallsOfLevel(level: 'info' | 'warn' | 'error' | 'debug'): LogCall[] {
+  getCallsOfLevel(level: LogLevel): LogCall[] {
     return this.calls.filter(call => call.level === level);
   }
 
@@ -63,7 +65,7 @@ export class MockLoggerServiceImpl implements LoggerService {
   }
 
   private recordCall(
-    level: 'info' | 'warn' | 'error' | 'debug',
+    level: LogLevel,
     contextOrMessage: Record<string, unknown> | string,
     message?: string
   ): void {
@@ -89,7 +91,7 @@ export class MockLoggerServiceImpl implements LoggerService {
  * Represents a captured log call for testing verification
  */
 export interface LogCall {
-  level: 'info' | 'warn' | 'error' | 'debug';
+  level: LogLevel;
   message: string;
   context?: Record<string, unknown>;
   timestamp: Date;

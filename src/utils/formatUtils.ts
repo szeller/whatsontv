@@ -159,14 +159,14 @@ export function groupShowsByShowId(shows: Show[] | null | undefined): Record<str
     return groups;
   }
 
-  shows.forEach(show => {
+  for (const show of shows) {
     // Use optional chaining and nullish coalescing for safe property access
     const showId = show.id.toString();
     if (showId !== '') {
       groups[showId] ??= [];
       groups[showId].push(show);
     }
-  });
+  }
   
   return groups;
 }

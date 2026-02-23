@@ -2,7 +2,7 @@
  * Base implementation of ConfigService with shared logic
  * Subclasses implement their own initialization strategies
  */
-import { resolve, dirname } from 'node:path';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import type { ConfigService } from '../interfaces/configService.js';
@@ -153,8 +153,8 @@ export abstract class BaseConfigServiceImpl implements ConfigService {
         if (envConfigFile !== undefined && envConfigFile.trim() !== '') {
           configPath = envConfigFile;
         } else {
-          const currentDir = dirname(fileURLToPath(import.meta.url));
-          configPath = resolve(currentDir, '../../config.json');
+          const currentDir = path.dirname(fileURLToPath(import.meta.url));
+          configPath = path.resolve(currentDir, '../../config.json');
         }
       }
 
@@ -173,7 +173,7 @@ export abstract class BaseConfigServiceImpl implements ConfigService {
       // Ensure slack config is properly merged
       slack: {
         ...defaultConfig.slack,
-        ...(userConfig.slack ?? {})
+        ...userConfig.slack
       }
     };
 

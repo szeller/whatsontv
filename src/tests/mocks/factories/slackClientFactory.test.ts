@@ -26,7 +26,7 @@ describe('slackClientFactory', () => {
       // Send a test message to verify basic functionality
       await client.sendMessage({ channel: 'test', text: 'test' });
       const messages = client.getMessages();
-      expect(messages.length).toBe(1);
+      expect(messages).toHaveLength(1);
       expect(messages[0].channel).toBe('test');
     });
   });
@@ -69,7 +69,7 @@ describe('slackClientFactory', () => {
       // Send a test message to verify basic functionality
       await client.sendMessage({ channel: 'test-factory', text: 'test-message' });
       const messages = client.getMessages();
-      expect(messages.length).toBe(1);
+      expect(messages).toHaveLength(1);
       expect(messages[0].channel).toBe('test-factory');
       expect(messages[0].text).toBe('test-message');
     });

@@ -1,7 +1,7 @@
 import type { HttpClient, HttpResponse } from '../../interfaces/httpClient.js';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { jest } from '@jest/globals';
 
 // Get the directory path for fixtures

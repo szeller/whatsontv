@@ -6,6 +6,8 @@ import { injectable } from 'tsyringe';
 import yargs from 'yargs';
 
 import type { CliArgs } from '../../types/cliArgs.js';
+
+type StringOrArray = string | string[] | undefined;
 import { getTodayDate } from '../../utils/dateUtils.js';
 import { getStringValue } from '../../utils/stringUtils.js';
 import {
@@ -76,10 +78,10 @@ export class CliConfigServiceImpl extends BaseConfigServiceImpl {
       country: getStringValue(
         (parsedArgs.country as string | undefined) ?? '', 'US'
       ),
-      types: toStringArray(parsedArgs.types as string | string[] | undefined),
-      networks: toStringArray(parsedArgs.networks as string | string[] | undefined),
-      genres: toStringArray(parsedArgs.genres as string | string[] | undefined),
-      languages: toStringArray(parsedArgs.languages as string | string[] | undefined),
+      types: toStringArray(parsedArgs.types as StringOrArray),
+      networks: toStringArray(parsedArgs.networks as StringOrArray),
+      genres: toStringArray(parsedArgs.genres as StringOrArray),
+      languages: toStringArray(parsedArgs.languages as StringOrArray),
       minAirtime: getStringValue(
         (parsedArgs.minAirtime as string | undefined) ?? '', '18:00'
       ),

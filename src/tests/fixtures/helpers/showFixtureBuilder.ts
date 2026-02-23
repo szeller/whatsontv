@@ -330,8 +330,8 @@ export class ShowBuilder {
   ): Show[] {
     const episodes: Show[] = [];
     
-    Object.entries(seasonEpisodes).forEach(([seasonStr, episodeInfo]) => {
-      const season = parseInt(seasonStr, 10);
+    for (const [seasonStr, episodeInfo] of Object.entries(seasonEpisodes)) {
+      const season = Number.parseInt(seasonStr, 10);
       
       if (typeof episodeInfo === 'number') {
         // Create sequential episodes from 1 to episodeInfo
@@ -340,7 +340,7 @@ export class ShowBuilder {
         // Create episodes with specific episode numbers
         episodes.push(...ShowBuilder.createEpisodeSequence(season, episodeInfo));
       }
-    });
+    }
     
     return episodes;
   }
@@ -349,49 +349,49 @@ export class ShowBuilder {
 /**
  * Fixture collection utilities for working with show fixtures
  */
-export class ShowFixtures {
+export const ShowFixtures = {
   /**
    * Load network shows from JSON fixture
    * @returns Array of network shows
    */
-  static getNetworkShows(): Show[] {
+  getNetworkShows(): Show[] {
     return loadValidatedArrayFixture(showSchema, 'domain/network-shows.json');
-  }
+  },
 
   /**
    * Load streaming shows from JSON fixture
    * @returns Array of streaming shows
    */
-  static getStreamingShows(): Show[] {
+  getStreamingShows(): Show[] {
     return loadValidatedArrayFixture(showSchema, 'domain/streaming-shows.json');
-  }
+  },
 
   /**
    * Load cable shows from JSON fixture
    * @returns Array of cable shows
    */
-  static getCableShows(): Show[] {
+  getCableShows(): Show[] {
     return loadValidatedArrayFixture(showSchema, 'domain/cable-shows.json');
-  }
+  },
 
   /**
    * Get all sample shows from fixtures
    * @returns Combined array of all show types
    */
-  static getAllShows(): Show[] {
+  getAllShows(): Show[] {
     return [
       ...this.getNetworkShows(),
       ...this.getStreamingShows(),
       ...this.getCableShows()
     ];
-  }
+  },
 
   /**
    * Create a collection of shows with different types
    * @param types Array of show types
    * @returns Array of shows with different types
    */
-  static withDifferentTypes(types: string[]): Show[] {
+  withDifferentTypes(types: string[]): Show[] {
     return types.map((type, index) => {
       return new ShowBuilder()
         .withId(1000 + index)
@@ -399,14 +399,14 @@ export class ShowFixtures {
         .withType(type)
         .build();
     });
-  }
+  },
 
   /**
    * Create a collection of shows with different networks
    * @param networks Array of network names
    * @returns Array of shows with different networks
    */
-  static withDifferentNetworks(networks: string[]): Show[] {
+  withDifferentNetworks(networks: string[]): Show[] {
     return networks.map((network, index) => {
       return new ShowBuilder()
         .withId(2000 + index)
@@ -414,14 +414,14 @@ export class ShowFixtures {
         .withNetwork(network)
         .build();
     });
-  }
+  },
 
   /**
    * Create a collection of shows with different genres
    * @param genreSets Array of genre arrays
    * @returns Array of shows with different genre combinations
    */
-  static withDifferentGenres(genreSets: string[][]): Show[] {
+  withDifferentGenres(genreSets: string[][]): Show[] {
     return genreSets.map((genres, index) => {
       return new ShowBuilder()
         .withId(3000 + index)
@@ -429,14 +429,14 @@ export class ShowFixtures {
         .withGenres(genres)
         .build();
     });
-  }
+  },
 
   /**
    * Create a collection of shows with different languages
    * @param languages Array of languages
    * @returns Array of shows with different languages
    */
-  static withDifferentLanguages(languages: (string | null)[]): Show[] {
+  withDifferentLanguages(languages: (string | null)[]): Show[] {
     return languages.map((language, index) => {
       const name = language !== null && language !== '' 
         ? `${language} Show` 
@@ -448,14 +448,14 @@ export class ShowFixtures {
         .withLanguage(language)
         .build();
     });
-  }
+  },
 
   /**
    * Create a collection of shows with specific properties for filtering tests
    * @param options Configuration options for the test fixtures
    * @returns Array of shows with the specified properties
    */
-  static forFilteringTests(options: {
+  forFilteringTests(options: {
     types?: string[];
     networks?: string[];
     genres?: string[][];
@@ -480,14 +480,14 @@ export class ShowFixtures {
     }
     
     return shows;
-  }
+  },
 
   /**
    * Creates a minimal show with only the required fields
    * @param options Optional overrides for the minimal show
    * @returns A minimal show object with only required fields
    */
-  static createMinimalShow(options: Partial<Show> = {}): Show {
+  createMinimalShow(options: Partial<Show> = {}): Show {
     const defaults = {
       id: 1,
       name: 'Minimal Show',
@@ -502,14 +502,14 @@ export class ShowFixtures {
     };
 
     return { ...defaults, ...options };
-  }
+  },
 
   /**
    * Creates a test show with standard properties for testing
    * @param options Optional overrides for the test show
    * @returns A standard test show with common properties
    */
-  static createTestShow(options: Partial<Show> = {}): Show {
+  createTestShow(options: Partial<Show> = {}): Show {
     const defaults = {
       id: 1,
       name: 'Test Show',
@@ -525,4 +525,4 @@ export class ShowFixtures {
 
     return { ...defaults, ...options };
   }
-}
+};

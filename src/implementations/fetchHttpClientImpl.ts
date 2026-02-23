@@ -46,7 +46,7 @@ export class FetchHttpClientImpl implements HttpClient {
     @inject('LoggerService') logger?: LoggerService
   ) {
     const prefixUrl = options.baseUrl ?? '';
-    const timeout = options.timeout ?? 30000;
+    const timeout = options.timeout ?? 30_000;
     const headers = options.headers ?? {};
     
     this.isTestEnvironment = process.env.NODE_ENV === 'test' || 
@@ -130,11 +130,11 @@ export class FetchHttpClientImpl implements HttpClient {
       const searchParams = new URLSearchParams();
       
       // Add each query parameter to the searchParams
-      Object.entries(options.query).forEach(([key, value]) => {
+      for (const [key, value] of Object.entries(options.query)) {
         if (value !== null && value !== undefined) {
           searchParams.append(key, String(value));
         }
-      });
+      }
       
       kyOptions.searchParams = searchParams;
     } else if (typeof options.param === 'string' || 
@@ -222,9 +222,9 @@ export class FetchHttpClientImpl implements HttpClient {
       
       // Extract headers into a plain object
       const headers: Record<string, string> = {};
-      response.headers.forEach((value, key) => {
+      for (const [key, value] of response.headers.entries()) {
         headers[key] = value;
-      });
+      }
       
       // Validate with schema if provided
       const data: T = schema ? schema.parse(responseData) as T : responseData as T;
@@ -329,9 +329,9 @@ export class FetchHttpClientImpl implements HttpClient {
       
       // Extract headers into a plain object
       const headers: Record<string, string> = {};
-      response.headers.forEach((value, key) => {
+      for (const [key, value] of response.headers.entries()) {
         headers[key] = value;
-      });
+      }
       
       // Validate with schema if provided
       const parsedData: T = schema ? schema.parse(responseData) as T : responseData as T;

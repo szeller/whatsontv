@@ -162,10 +162,10 @@ describe('PinoLoggerServiceImpl', () => {
         const _instance = new PinoLoggerServiceImpl();
       }).not.toThrow();
       
-      if (originalLambdaName !== undefined) {
-        process.env.AWS_LAMBDA_FUNCTION_NAME = originalLambdaName;
-      } else {
+      if (originalLambdaName === undefined) {
         delete process.env.AWS_LAMBDA_FUNCTION_NAME;
+      } else {
+        process.env.AWS_LAMBDA_FUNCTION_NAME = originalLambdaName;
       }
     });
   });

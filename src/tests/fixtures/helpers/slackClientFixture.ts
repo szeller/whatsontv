@@ -7,37 +7,37 @@ import type { SlackClient, SlackMessagePayload } from '../../../interfaces/slack
 /**
  * Creates a mock SlackClient with default implementations
  */
-export class SlackClientFixture {
+export const SlackClientFixture = {
   /**
    * Create a mock SlackClient with default implementations
    * @returns A jest mocked SlackClient
    */
-  static createMockClient(): jest.Mocked<SlackClient> {
+  createMockClient(): jest.Mocked<SlackClient> {
     return {
-      sendMessage: jest.fn().mockImplementation(async () => Promise.resolve())
+      sendMessage: jest.fn<() => Promise<void>>().mockResolvedValue()
     } as jest.Mocked<SlackClient>;
-  }
+  },
 
   /**
    * Create a mock SlackClient with custom implementations
    * @param overrides Custom implementations to override defaults
    * @returns A jest mocked SlackClient with custom implementations
    */
-  static createCustomMockClient(
+  createCustomMockClient(
     overrides: Partial<jest.Mocked<SlackClient>>
   ): jest.Mocked<SlackClient> {
     return {
       ...this.createMockClient(),
       ...overrides
     };
-  }
+  },
 
   /**
    * Create a default message payload for testing
    * @param overrides Custom properties to override defaults
    * @returns A SlackMessagePayload with default values
    */
-  static createMessagePayload(
+  createMessagePayload(
     overrides: Partial<SlackMessagePayload> = {}
   ): SlackMessagePayload {
     return {
@@ -46,4 +46,4 @@ export class SlackClientFixture {
       ...overrides
     };
   }
-}
+};

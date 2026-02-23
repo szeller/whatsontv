@@ -91,10 +91,10 @@ describe('ShowBuilder', () => {
       expect(shows).toHaveLength(count);
       
       // All shows should have the same base properties
-      shows.forEach(show => {
+      for (const show of shows) {
         expect(show).toHaveProperty('name', 'Sequence Show');
         expect(show).toHaveProperty('season', 2);
-      });
+      }
       
       // Episode numbers should be sequential
       expect(shows[0]).toHaveProperty('number', 5);
@@ -144,10 +144,10 @@ describe('ShowFixtures', () => {
       expect(shows).toHaveLength(types.length);
       
       // Each show should have the corresponding type
-      types.forEach((type, index) => {
+      for (const [index, type] of types.entries()) {
         expect(shows[index].type).toBe(type);
         expect(shows[index].name).toContain(type);
-      });
+      }
     });
     
     it('should create shows with different networks', () => {
@@ -157,10 +157,10 @@ describe('ShowFixtures', () => {
       expect(shows).toHaveLength(networks.length);
       
       // Each show should have the corresponding network
-      networks.forEach((network, index) => {
+      for (const [index, network] of networks.entries()) {
         expect(shows[index].network).toBe(network);
         expect(shows[index].name).toContain(network);
-      });
+      }
     });
     
     it('should create shows with different genres', () => {
@@ -174,11 +174,11 @@ describe('ShowFixtures', () => {
       expect(shows).toHaveLength(genreSets.length);
       
       // Each show should have the corresponding genres
-      genreSets.forEach((genres, index) => {
+      for (const [index, genres] of genreSets.entries()) {
         expect(shows[index].genres).toEqual(genres);
         // Name should include the genres joined with '/'
         expect(shows[index].name).toContain(genres.join('/'));
-      });
+      }
     });
   });
 });

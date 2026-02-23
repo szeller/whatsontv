@@ -49,8 +49,7 @@ const baseRules = {
   // Code quality rules
   'eqeqeq': 'error',
   'no-var': 'error',
-  'prefer-const': 'error',
-  'no-loss-of-precision': 'error'
+  'prefer-const': 'error'
 };
 
 // TypeScript rules: strict-type-checked + stylistic-type-checked presets,
@@ -127,62 +126,27 @@ const disabledSonarjsRules = {
   // Deferred: violations need manual refactoring
   'sonarjs/cognitive-complexity': 'off',
   'sonarjs/no-identical-functions': 'off',
-  'sonarjs/no-ignored-exceptions': 'off',
-  'sonarjs/use-type-alias': 'off',
-  // Deferred: project conventions
-  'sonarjs/no-nested-conditional': 'off',
-  'sonarjs/todo-tag': 'off',
-  'sonarjs/fixme-tag': 'off'
+  'sonarjs/no-ignored-exceptions': 'off'
 };
 
-// Unicorn rules (curated subset — full recommended is too aggressive)
+// Unicorn rules: recommended preset with project-specific overrides
 const unicornRules = {
-  // Error prevention
-  'unicorn/error-message': 'error',
-  'unicorn/throw-new-error': 'error',
-  'unicorn/no-useless-undefined': 'error',
-  'unicorn/no-useless-promise-resolve-reject': 'error',
-  'unicorn/no-useless-length-check': 'error',
-  'unicorn/no-useless-spread': 'error',
-  'unicorn/no-unnecessary-await': 'error',
-  'unicorn/no-object-as-default-parameter': 'error',
-  'unicorn/no-abusive-eslint-disable': 'error',
+  ...unicornPlugin.configs.recommended.rules,
+  'unicorn/filename-case': 'off',          // Project uses camelCase filenames
+  'unicorn/no-null': 'off',               // Conflicts with Zod nullable() patterns
+  'unicorn/no-array-sort': 'off',         // .toSorted() copies; in-place sort is intentional
+  'unicorn/prevent-abbreviations': 'off'   // Too aggressive for our codebase
+};
 
-  // Modern JS preferences
-  'unicorn/prefer-node-protocol': 'error',
-  'unicorn/prefer-number-properties': 'error',
-  'unicorn/prefer-string-slice': 'error',
-  'unicorn/prefer-string-replace-all': 'error',
-  'unicorn/prefer-at': 'error',
-  'unicorn/prefer-array-find': 'error',
-  'unicorn/prefer-array-flat-map': 'error',
-  'unicorn/prefer-date-now': 'error',
-  'unicorn/prefer-set-has': 'error',
-  'unicorn/prefer-spread': 'error',
-  'unicorn/prefer-regexp-test': 'error',
-  'unicorn/prefer-negative-index': 'error',
-  'unicorn/prefer-type-error': 'error',
-  'unicorn/prefer-ternary': 'error',
-  'unicorn/prefer-optional-catch-binding': 'error',
-  'unicorn/prefer-structured-clone': 'error',
-  'unicorn/prefer-switch': 'error',
-  'unicorn/prefer-top-level-await': 'error',
-
-  // Code clarity
-  'unicorn/catch-error-name': 'error',
-  'unicorn/no-nested-ternary': 'error',
-  'unicorn/no-lonely-if': 'error',
-  'unicorn/no-for-loop': 'error',
-  'unicorn/no-zero-fractions': 'error',
-  'unicorn/no-array-push-push': 'error',
-  'unicorn/no-typeof-undefined': 'error',
-  'unicorn/no-await-expression-member': 'error',
-  'unicorn/consistent-function-scoping': 'error',
-  'unicorn/better-regex': 'error',
-
-  // Disabled — conflicts with project patterns
-  'unicorn/no-null': 'off',              // Conflicts with Zod nullable() patterns
-  'unicorn/prevent-abbreviations': 'off' // Too aggressive for our codebase
+// Promise rules: recommended preset + escalate warn rules to error
+const promiseRules = {
+  ...promisePlugin.configs['flat/recommended'].rules,
+  'promise/always-return': 'error',
+  'promise/no-return-in-finally': 'error',
+  'promise/no-nesting': 'error',
+  'promise/no-promise-in-callback': 'error',
+  'promise/no-callback-in-promise': 'error',
+  'promise/valid-params': 'error'
 };
 
 // ── Config array ────────────────────────────────────────────────────────────────
@@ -196,10 +160,7 @@ export default [
   // Main source files configuration
   {
     files: ['src/**/*.ts'],
-    ignores: [
-      '**/dist/**', '**/node_modules/**', '**/coverage/**',
-      'src/**/*.test.ts', 'src/tests/**/*.ts'
-    ],
+    ignores: ['src/**/*.test.ts', 'src/tests/**/*.ts'],
     languageOptions: {
       parser: tseslintParser,
       parserOptions: {
@@ -211,7 +172,8 @@ export default [
       globals: {
         process: 'readonly',
         console: 'readonly',
-        global: 'readonly'
+        global: 'readonly',
+        structuredClone: 'readonly'
       }
     },
     plugins: {
@@ -238,16 +200,10 @@ export default [
       ...sonarjsPlugin.configs.recommended.rules,
       ...disabledSonarjsRules,
 
-      // Promise: recommended preset + escalate warn rules to error
-      ...promisePlugin.configs['flat/recommended'].rules,
-      'promise/always-return': 'error',
-      'promise/no-return-in-finally': 'error',
-      'promise/no-nesting': 'error',
-      'promise/no-promise-in-callback': 'error',
-      'promise/no-callback-in-promise': 'error',
-      'promise/valid-params': 'error',
+      // Promise: recommended preset + escalations
+      ...promiseRules,
 
-      // Unicorn: curated subset
+      // Unicorn: recommended preset + overrides
       ...unicornRules,
 
       // Console rules
@@ -272,37 +228,40 @@ export default [
         process: 'readonly',
         console: 'readonly',
         global: 'readonly',
-        jest: 'readonly',
-        describe: 'readonly',
-        it: 'readonly',
-        test: 'readonly',
-        expect: 'readonly',
-        beforeAll: 'readonly',
-        afterAll: 'readonly',
-        beforeEach: 'readonly',
-        afterEach: 'readonly'
+        structuredClone: 'readonly',
+        ...jestPlugin.configs['flat/recommended'].languageOptions.globals
       }
     },
     plugins: {
       '@typescript-eslint': tseslint,
       'import': importPlugin,
       'jest': jestPlugin,
-      'sonarjs': sonarjsPlugin
+      'sonarjs': sonarjsPlugin,
+      'promise': promisePlugin,
+      'unicorn': unicornPlugin
     },
     rules: {
       ...baseRules,
       ...tsRules,
 
-      // Disable TypeScript's unbound-method rule in favor of Jest's version
+      // Jest: recommended + style presets
+      ...jestPlugin.configs['flat/recommended'].rules,
+      ...jestPlugin.configs['flat/style'].rules,
+      // Override: use Jest's unbound-method instead of TypeScript's
       '@typescript-eslint/unbound-method': 'off',
       'jest/unbound-method': 'error',
+      // Disable: false positives with Zod discriminated union type narrowing
+      'jest/no-conditional-expect': 'off',
 
       // SonarJS: recommended preset + disabled overlaps/deferred
       ...sonarjsPlugin.configs.recommended.rules,
       ...disabledSonarjsRules,
-      // Test-specific sonarjs rules
-      'sonarjs/no-exclusive-tests': 'error',
-      'sonarjs/no-skipped-tests': 'warn',
+
+      // Promise: recommended preset + escalations
+      ...promiseRules,
+
+      // Unicorn: recommended preset + overrides
+      ...unicornRules,
 
       // Relax rules for test files
       'no-console': 'off',

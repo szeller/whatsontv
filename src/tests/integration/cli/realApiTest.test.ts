@@ -38,7 +38,7 @@ describe('Real API Integration Test', () => {
     // Try to get the original ConfigService, but don't fail if it can't be resolved
     try {
       originalConfigService = container.resolve<ConfigService>('ConfigService');
-    } catch (_) {
+    } catch {
       // If we can't resolve it, that's fine - we'll register our mock anyway
       originalConfigService = null;
     }
@@ -105,7 +105,7 @@ describe('Real API Integration Test', () => {
     // Test formatter with the real data
     const formatted = formatter.formatNetworkGroups(networkGroups);
     expect(formatted.length).toBeGreaterThan(0);
-  }, 30000); // Increase timeout for API call
+  }, 30_000); // Increase timeout for API call
   
   test('should fetch web schedule from real TVMaze API', async () => {
     // Skip the CLI execution and test the components directly
@@ -129,7 +129,7 @@ describe('Real API Integration Test', () => {
     // Test formatter with the real data
     const formatted = formatter.formatNetworkGroups(networkGroups);
     expect(formatted.length).toBeGreaterThan(0);
-  }, 30000); // Increase timeout for API call
+  }, 30_000); // Increase timeout for API call
   
   test('should fetch all shows with filtering', async () => {
     // Skip the CLI execution and test the components directly
@@ -155,5 +155,5 @@ describe('Real API Integration Test', () => {
     // Test formatter with the real data
     const formatted = formatter.formatNetworkGroups(networkGroups);
     expect(formatted.length).toBeGreaterThan(0);
-  }, 30000); // Increase timeout for API call
+  }, 30_000); // Increase timeout for API call
 });

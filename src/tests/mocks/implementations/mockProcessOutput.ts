@@ -36,11 +36,11 @@ export class MockProcessOutput implements ProcessOutput {
 
       // If there are additional args, store them as separate entries
       if (args.length > 0) {
-        args.forEach(arg => {
+        for (const arg of args) {
           if (arg !== undefined && arg !== null) {
             this.output.push(typeof arg === 'string' ? arg : JSON.stringify(arg));
           }
-        });
+        }
       }
 
       this.calls.push({ method: 'error', args: [message, ...args] });
@@ -104,9 +104,9 @@ export class MockProcessOutput implements ProcessOutput {
   debugOutput(prefix = 'MockProcessOutput'): void {
     // Using error since it's allowed by the linting rules
     console.error(`--- ${prefix} captured output ---`);
-    this.output.forEach((line, index) => {
+    for (const [index, line] of this.output.entries()) {
       console.error(`[${index}]: ${line}`);
-    });
+    }
     console.error(`--- End of ${prefix} captured output ---`);
   }
 
@@ -168,8 +168,7 @@ export class MockProcessOutput implements ProcessOutput {
       return false;
     }
 
-    for (let i = 0; i < expected.length; i++) {
-      const expectedArg = expected[i];
+    for (const [i, expectedArg] of expected.entries()) {
       const actualArg = actual[i];
 
       if (typeof expectedArg === 'string' && typeof actualArg === 'string') {

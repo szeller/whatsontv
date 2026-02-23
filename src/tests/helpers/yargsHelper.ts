@@ -157,14 +157,14 @@ export function createMockYargs(): MockYargsInstance {
       }
     }
 
-    Object.entries(currentOptions).forEach(([key, option]: [string, YargsOptions]): void => {
+    for (const [key, option] of Object.entries(currentOptions)) {
       if (option.default !== undefined && parsedArgs[key] === undefined) {
         parsedArgs[key] = option.default;
         if (option.alias !== undefined && option.alias !== '') {
           parsedArgs[option.alias] = option.default;
         }
       }
-    });
+    }
 
     return parsedArgs;
   });
