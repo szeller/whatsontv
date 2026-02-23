@@ -92,7 +92,7 @@ export class SlackClientImpl implements SlackClient {
         duration: Date.now() - startTime,
         stack: error instanceof Error ? error.stack : undefined
       }, 'Failed to send Slack message');
-      throw new Error(`Failed to send Slack message: ${String(error)}`);
+      throw new Error(`Failed to send Slack message: ${String(error)}`, { cause: error });
     }
   }
 }
