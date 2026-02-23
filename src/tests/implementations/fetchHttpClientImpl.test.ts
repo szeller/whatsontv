@@ -125,7 +125,7 @@ describe('FetchHttpClientImpl', () => {
       });
       
       await expect(client.get('shows/999')).rejects.toThrow(
-        'Request Error: HTTP Error 404: Not Found'
+        'Request failed with status code 404'
       );
     });
     
@@ -252,7 +252,7 @@ describe('FetchHttpClientImpl', () => {
       
       const promise = client.post('shows', { title: 'Test' });
       await expect(promise).rejects.toThrow(
-        'Request Error: HTTP Error 400: Request failed'
+        'Request failed with status code 500'
       );
     });
     

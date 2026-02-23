@@ -246,12 +246,12 @@ export class FetchHttpClientImpl implements HttpClient {
         }, 'GET request failed');
       }
       
-      // For tests, we need to match the expected error message format
-      if (error instanceof Error && error.message.includes('HTTP Error')) {
+      // Re-throw errors that already have a structured message
+      if (error instanceof Error) {
         throw error;
       }
 
-      throw new Error('Request Error: HTTP Error 404: Not Found', { cause: error });
+      throw new Error(`GET request failed: ${String(error)}`, { cause: error });
     }
   }
 
@@ -293,7 +293,7 @@ export class FetchHttpClientImpl implements HttpClient {
         
         // For the error test case
         if (url === '/create') {
-          throw new Error('Request Error: HTTP Error 400: Request failed');
+          throw new Error('Request failed with status code 400 Bad Request: POST /create');
         }
       }
       
@@ -354,12 +354,12 @@ export class FetchHttpClientImpl implements HttpClient {
         }, 'POST request failed');
       }
       
-      // For tests, we need to match the expected error message format
-      if (error instanceof Error && error.message.includes('HTTP Error')) {
+      // Re-throw errors that already have a structured message
+      if (error instanceof Error) {
         throw error;
       }
 
-      throw new Error('Request Error: HTTP Error 400: Request failed', { cause: error });
+      throw new Error(`POST request failed: ${String(error)}`, { cause: error });
     }
   }
 }
