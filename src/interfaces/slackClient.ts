@@ -89,7 +89,7 @@ export type SlackBlock =
 /**
  * Type guard to check if a block is a section block
  */
-export function isSectionBlock(block?: SlackBlock): boolean {
+export function isSectionBlock(block?: SlackBlock): block is SlackSectionBlock {
   return block?.type === 'section';
 }
 
