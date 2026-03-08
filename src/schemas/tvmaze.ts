@@ -240,11 +240,11 @@ export const networkScheduleToShowSchema = networkScheduleItemSchema.transform((
     type,
     language,
     genres,
-    network: formatNetworkName(show.network, show.webChannel),
     summary,
     airtime,
     season,
-    number
+    number,
+    network: formatNetworkName(show.network, show.webChannel)
   };
 });
 
@@ -276,10 +276,10 @@ export const webScheduleToShowSchema = webScheduleItemSchema.transform((item) =>
     type,
     language,
     genres,
-    network: formatNetworkName(show.network, show.webChannel),
     summary,
     airtime,
     season,
-    number
+    number,
+    network: formatNetworkName(show.network, show.webChannel)
   };
 });

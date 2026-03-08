@@ -9,6 +9,8 @@ import { groupShowsByNetwork } from '../../../utils/showUtils.js';
 import { createMockFormatter } from '../../mocks/factories/formatterFactory.js';
 import { TextShowFormatter } from '../../../interfaces/showFormatter.js';
 
+const TEST_DATE = '2023-01-01';
+
 // Extend the service to expose protected methods for testing
 class TestTextOutputService extends TextOutputServiceImpl {
   // Expose output for testing
@@ -95,7 +97,7 @@ describe('TextOutputServiceImpl', () => {
     
     // Configure mock config service
     mockConfigService = {
-      getDate: jest.fn().mockReturnValue(new Date('2023-01-01')),
+      getDate: jest.fn().mockReturnValue(new Date(TEST_DATE)),
       isDebugMode: jest.fn().mockReturnValue(false),
       getSlackOptions: jest.fn(),
       getCliOptions: jest.fn().mockReturnValue({
@@ -123,7 +125,7 @@ describe('TextOutputServiceImpl', () => {
   describe('renderHeader', () => {
     it('should display the application header with date', async () => {
       // Act
-      await service.testRenderHeader(new Date('2023-01-01'));
+      await service.testRenderHeader(new Date(TEST_DATE));
       
       // Assert
       expect(mockOutput.log).toHaveBeenCalledWith(expect.stringContaining('WhatsOnTV'));
@@ -132,7 +134,7 @@ describe('TextOutputServiceImpl', () => {
     
     it('should include version number in the header', async () => {
       // Act
-      await service.testRenderHeader(new Date('2023-01-01'));
+      await service.testRenderHeader(new Date(TEST_DATE));
       const version = service.getVersion();
       
       // Assert

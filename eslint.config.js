@@ -114,12 +114,12 @@ const sonarjsOverrides = {
   'sonarjs/no-for-in-iterable': 'error',
   'sonarjs/useless-string-operation': 'error',
   'sonarjs/operation-returning-nan': 'error',
-  // shorthand-property-grouping: too opinionated (16 violations in object literals)
-  // no-wildcard-import: conflicts with barrel re-export pattern (15 violations)
+  'sonarjs/shorthand-property-grouping': 'error',
+  'sonarjs/no-wildcard-import': 'error',
   'sonarjs/nested-control-flow': 'error',
   'sonarjs/no-inconsistent-returns': 'error',
   'sonarjs/values-not-convertible-to-numbers': 'error',
-  // no-duplicate-string: too noisy (113 violations, mostly test fixtures/assertions)
+  'sonarjs/no-duplicate-string': 'error'
 };
 
 // Unicorn rules: recommended preset with project-specific overrides

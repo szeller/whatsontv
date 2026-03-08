@@ -6,6 +6,8 @@ import { Show } from '../schemas/domain.js';
 import { getStringValue, hasElements } from './stringUtils.js';
 import { formatTimeWithPeriod, isValidTime } from './dateUtils.js';
 
+const UNKNOWN_NETWORK_LABEL = 'Unknown Network';
+
 /**
  * Format network name with fallback for null/undefined values
  * @param networkName - The network name to format
@@ -14,7 +16,7 @@ import { formatTimeWithPeriod, isValidTime } from './dateUtils.js';
  */
 export function formatNetworkName(
   networkName: string | null | undefined, 
-  unknownLabel = 'Unknown Network'
+  unknownLabel = UNKNOWN_NETWORK_LABEL
 ): string {
   return getStringValue(networkName, unknownLabel);
 }
@@ -123,7 +125,7 @@ export function prepareShowComponents(
   show: Show, 
   options: FormattingOptions
 ): ShowComponents {
-  const networkLabel = options.networkUnknownLabel ?? 'Unknown Network';
+  const networkLabel = options.networkUnknownLabel ?? UNKNOWN_NETWORK_LABEL;
   const typeLabel = options.typeUnknownLabel ?? 'Unknown Type';
   
   // Use nullish coalescing to handle null/undefined values
@@ -179,7 +181,7 @@ export function groupShowsByShowId(shows: Show[] | null | undefined): Record<str
  */
 export function formatNetworkHeader(
   networkName: string | null | undefined, 
-  unknownLabel = 'Unknown Network'
+  unknownLabel = UNKNOWN_NETWORK_LABEL
 ): [string, string] {
   const formattedName = formatNetworkName(networkName, unknownLabel);
   const header = `${formattedName}:`;

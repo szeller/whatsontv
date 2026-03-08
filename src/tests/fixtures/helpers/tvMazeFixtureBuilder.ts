@@ -9,6 +9,8 @@ import type {
   Network 
 } from '../../../schemas/tvmaze.js';
 
+const DEFAULT_DATE = '2020-01-01';
+
 /**
  * Builder for TVMaze Network objects
  */
@@ -78,7 +80,7 @@ export class TvMazeShowBuilder {
   private status = 'Running';
   private runtime: number | null = 60;
   private averageRuntime = 60;
-  private premiered: string | null = '2020-01-01';
+  private premiered: string | null = DEFAULT_DATE;
   private ended: string | null = null;
   private readonly officialSite: string | null = null;
   private schedule = {
@@ -343,7 +345,7 @@ export class TvMazeScheduleItemBuilder {
   private season = 1;
   private number = 1;
   private type = 'regular';
-  private airdate = '2020-01-01';
+  private airdate = DEFAULT_DATE;
   private airtime: string | null = '20:00';
   private airstamp = '2020-01-01T20:00:00-05:00';
   private runtime: number | null = 60;
@@ -496,7 +498,7 @@ export class TvMazeScheduleItemBuilder {
       .withName(options.name ?? 'Test Episode')
       .withSeason(options.season ?? 1)
       .withNumber(options.number ?? 1)
-      .withAirdate(options.airdate ?? '2020-01-01')
+      .withAirdate(options.airdate ?? DEFAULT_DATE)
       .withAirtime(options.airtime ?? '20:00')
       .withShow(show)
       .build();
@@ -530,7 +532,7 @@ export class TvMazeScheduleItemBuilder {
       .withName(options.name ?? 'Test Web Episode')
       .withSeason(options.season ?? 1)
       .withNumber(options.number ?? 1)
-      .withAirdate(options.airdate ?? '2020-01-01')
+      .withAirdate(options.airdate ?? DEFAULT_DATE)
       .withAirtime(options.airtime ?? '20:00')
       .withShow(show)
       .build();
@@ -554,12 +556,12 @@ export class TvMazeScheduleItemBuilder {
         : `${baseOptions.showName} ${i + 1}`;
         
       items.push(TvMazeScheduleItemBuilder.createNetworkScheduleItem({
+        showName,
         id: 1000 + i,
         name: `Episode ${i + 1}`,
         season: 1,
         number: i + 1,
         showId: baseShowId + i,
-        showName,
         network: baseOptions.network,
         airdate: baseOptions.airdate
       }));
@@ -586,12 +588,12 @@ export class TvMazeScheduleItemBuilder {
         : `${baseOptions.showName} ${i + 1}`;
         
       items.push(TvMazeScheduleItemBuilder.createWebScheduleItem({
+        showName,
         id: 2000 + i,
         name: `Web Episode ${i + 1}`,
         season: 1,
         number: i + 1,
         showId: baseShowId + i,
-        showName,
         webChannel: baseOptions.webChannel,
         airdate: baseOptions.airdate
       }));

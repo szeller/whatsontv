@@ -8,6 +8,12 @@ import type { ConfigService } from '../../../interfaces/configService.js';
 import type { SlackConfig } from '../../../types/configTypes.js';
 import { SlackClientFixture } from '../../fixtures/helpers/slackClientFixture.js';
 
+const MOCK_CHANNEL = 'mock-channel';
+const WHATSONTV_BOT = 'WhatsOnTV Bot';
+const CUSTOM_CHANNEL = 'custom-channel';
+const CUSTOM_BOT = 'Custom Bot';
+const TEST_MESSAGE = 'Test message';
+
 // Create mock functions with proper typing
 interface MockPostMessageResponse {
   ok: boolean;
@@ -31,8 +37,8 @@ describe('SlackClientImpl', () => {
     getShowOptions: jest.fn(),
     getSlackOptions: jest.fn().mockReturnValue({
       token: 'mock-token',
-      channelId: 'mock-channel',
-      username: 'WhatsOnTV Bot',
+      channelId: MOCK_CHANNEL,
+      username: WHATSONTV_BOT,
       icon_emoji: ':tv:'
     }),
     getCliOptions: jest.fn(),
@@ -87,8 +93,8 @@ describe('SlackClientImpl', () => {
     it('should send a message with the provided payload', async () => {
       // Arrange
       const payload = SlackClientFixture.createMessagePayload({
-        channel: 'custom-channel',
-        username: 'Custom Bot',
+        channel: CUSTOM_CHANNEL,
+        username: CUSTOM_BOT,
         icon_emoji: ':robot:'
       });
       
@@ -97,9 +103,9 @@ describe('SlackClientImpl', () => {
       
       // Assert
       expect(mockPostMessage).toHaveBeenCalledWith({
-        channel: 'custom-channel',
-        text: 'Test message',
-        username: 'Custom Bot',
+        channel: CUSTOM_CHANNEL,
+        text: TEST_MESSAGE,
+        username: CUSTOM_BOT,
         icon_emoji: ':robot:'
       });
     });
@@ -115,9 +121,9 @@ describe('SlackClientImpl', () => {
       
       // Assert
       expect(mockPostMessage).toHaveBeenCalledWith({
-        channel: 'mock-channel',
-        text: 'Test message',
-        username: 'WhatsOnTV Bot',
+        channel: MOCK_CHANNEL,
+        text: TEST_MESSAGE,
+        username: WHATSONTV_BOT,
         icon_emoji: ':tv:'
       });
     });
@@ -125,7 +131,7 @@ describe('SlackClientImpl', () => {
     it('should use default username from config if not provided', async () => {
       // Arrange
       const payload = SlackClientFixture.createMessagePayload({
-        channel: 'custom-channel',
+        channel: CUSTOM_CHANNEL,
         username: undefined
       });
       
@@ -134,9 +140,9 @@ describe('SlackClientImpl', () => {
       
       // Assert
       expect(mockPostMessage).toHaveBeenCalledWith({
-        channel: 'custom-channel',
-        text: 'Test message',
-        username: 'WhatsOnTV Bot',
+        channel: CUSTOM_CHANNEL,
+        text: TEST_MESSAGE,
+        username: WHATSONTV_BOT,
         icon_emoji: ':tv:'
       });
     });
@@ -144,8 +150,8 @@ describe('SlackClientImpl', () => {
     it('should use default icon emoji from config if not provided', async () => {
       // Arrange
       const payload = SlackClientFixture.createMessagePayload({
-        channel: 'custom-channel',
-        username: 'Custom Bot',
+        channel: CUSTOM_CHANNEL,
+        username: CUSTOM_BOT,
         icon_emoji: undefined
       });
       
@@ -154,9 +160,9 @@ describe('SlackClientImpl', () => {
       
       // Assert
       expect(mockPostMessage).toHaveBeenCalledWith({
-        channel: 'custom-channel',
-        text: 'Test message',
-        username: 'Custom Bot',
+        channel: CUSTOM_CHANNEL,
+        text: TEST_MESSAGE,
+        username: CUSTOM_BOT,
         icon_emoji: ':tv:'
       });
     });
@@ -174,9 +180,9 @@ describe('SlackClientImpl', () => {
       
       // Assert
       expect(mockPostMessage).toHaveBeenCalledWith({
-        channel: 'mock-channel',
-        text: 'Test message',
-        username: 'WhatsOnTV Bot',
+        channel: MOCK_CHANNEL,
+        text: TEST_MESSAGE,
+        username: WHATSONTV_BOT,
         icon_emoji: ':tv:'
       });
     });
@@ -184,7 +190,7 @@ describe('SlackClientImpl', () => {
     it('should throw an error when Slack API fails', async () => {
       // Arrange
       const payload = SlackClientFixture.createMessagePayload({
-        channel: 'custom-channel'
+        channel: CUSTOM_CHANNEL
       });
       
       // Set up the mock to reject with an error for this test only

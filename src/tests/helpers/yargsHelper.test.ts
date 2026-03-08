@@ -2,6 +2,8 @@ import { jest } from '@jest/globals';
 
 import { createMockYargs, mockYargs, type MockYargsInstance } from './yargsHelper.js';
 
+const DEFAULT_OPTION_VALUE = 'default-value';
+
 describe('yargsHelper', () => {
   describe('createMockYargs', () => {
     let mockYargsInstance: MockYargsInstance;
@@ -102,14 +104,14 @@ describe('yargsHelper', () => {
         mockYargsInstance.options({
           option: {
             type: 'string' as const,
-            default: 'default-value',
+            default: DEFAULT_OPTION_VALUE,
             alias: 'o'
           }
         });
 
         const result = mockYargsInstance.parse([]) as Record<string, unknown>;
-        expect(result).toHaveProperty('option', 'default-value');
-        expect(result).toHaveProperty('o', 'default-value');
+        expect(result).toHaveProperty('option', DEFAULT_OPTION_VALUE);
+        expect(result).toHaveProperty('o', DEFAULT_OPTION_VALUE);
       });
 
       test('throws error for non-array arguments', () => {

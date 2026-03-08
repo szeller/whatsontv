@@ -14,6 +14,9 @@ import { ShowBuilder } from '../../fixtures/helpers/showFixtureBuilder.js';
 import { SlackShowFormatterFixture } from '../../fixtures/helpers/slackShowFormatterFixture.js';
 import { groupShowsByNetwork } from '../../../utils/showUtils.js';
 
+const MOCK_CHANNEL = 'mock-channel';
+const TV_SHOWS_FOR = 'TV Shows for';
+
 describe('SlackOutputServiceImpl', () => {
   let outputService: SlackOutputServiceImpl;
   let mockFormatter: jest.Mocked<SlackShowFormatter>;
@@ -59,7 +62,7 @@ describe('SlackOutputServiceImpl', () => {
       getShowOptions: jest.fn().mockReturnValue({}),
       getSlackOptions: jest.fn().mockReturnValue({
         token: 'mock-token',
-        channelId: 'mock-channel',
+        channelId: MOCK_CHANNEL,
         username: 'WhatsOnTV Bot'
       }),
       getCliOptions: jest.fn().mockReturnValue({}),
@@ -99,14 +102,14 @@ describe('SlackOutputServiceImpl', () => {
 
       // Message should include both date header block and content blocks
       expect(mockSlackClient.sendMessage).toHaveBeenCalledWith({
-        channel: 'mock-channel',
-        text: expect.stringContaining('TV Shows for'),
+        channel: MOCK_CHANNEL,
+        text: expect.stringContaining(TV_SHOWS_FOR),
         blocks: [
           // First block is the date header
           expect.objectContaining({
             type: 'header',
             text: expect.objectContaining({
-              text: expect.stringContaining('TV Shows for')
+              text: expect.stringContaining(TV_SHOWS_FOR)
             })
           }),
           // Remaining blocks are the formatted content
@@ -128,7 +131,7 @@ describe('SlackOutputServiceImpl', () => {
       // Assert
       expect(mockSlackClient.sendMessage).toHaveBeenCalledWith(
         expect.objectContaining({
-          channel: 'mock-channel',
+          channel: MOCK_CHANNEL,
           text: 'Error fetching TV shows: Formatter error'
         })
       );
@@ -177,14 +180,14 @@ describe('SlackOutputServiceImpl', () => {
 
       // Message should include both date header block and content blocks
       expect(mockSlackClient.sendMessage).toHaveBeenCalledWith({
-        channel: 'mock-channel',
-        text: expect.stringContaining('TV Shows for'),
+        channel: MOCK_CHANNEL,
+        text: expect.stringContaining(TV_SHOWS_FOR),
         blocks: [
           // First block is the date header
           expect.objectContaining({
             type: 'header',
             text: expect.objectContaining({
-              text: expect.stringContaining('TV Shows for')
+              text: expect.stringContaining(TV_SHOWS_FOR)
             })
           }),
           // Remaining blocks are the formatted content

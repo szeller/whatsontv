@@ -9,6 +9,11 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// Constants for frequently used strings
+const TVMAZE_ATTRIBUTION = '_Data provided by TVMaze API_';
+const TV_SHOWS_HEADER = '📺 TV Shows for Today';
+const TV_SHOWS_FALLBACK_TEXT = 'TV Shows for Today';
+
 // Get current directory for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -101,7 +106,7 @@ export function generateBasicTextFormat(): SlackMessagePayload {
     messageText += '\n';
   }
   
-  messageText += '_Data provided by TVMaze API_';
+  messageText += TVMAZE_ATTRIBUTION;
   
   return {
     channel: 'tv-shows',
@@ -123,7 +128,7 @@ export function generateRichBlockFormat(): SlackMessagePayload {
       type: 'header',
       text: {
         type: 'plain_text',
-        text: '📺 TV Shows for Today',
+        text: TV_SHOWS_HEADER,
         emoji: true
       }
     },
@@ -177,14 +182,14 @@ export function generateRichBlockFormat(): SlackMessagePayload {
     elements: [
       {
         type: 'mrkdwn',
-        text: '_Data provided by TVMaze API_'
+        text: TVMAZE_ATTRIBUTION
       }
     ]
   });
   
   return {
     channel: 'tv-shows',
-    text: 'TV Shows for Today',
+    text: TV_SHOWS_FALLBACK_TEXT,
     blocks
   };
 }
@@ -203,7 +208,7 @@ export function generateCompactFormat(): SlackMessagePayload {
       type: 'header',
       text: {
         type: 'plain_text',
-        text: '📺 TV Shows for Today',
+        text: TV_SHOWS_HEADER,
         emoji: true
       }
     },
@@ -257,14 +262,14 @@ export function generateCompactFormat(): SlackMessagePayload {
     elements: [
       {
         type: 'mrkdwn',
-        text: '_Data provided by TVMaze API_'
+        text: TVMAZE_ATTRIBUTION
       }
     ]
   });
   
   return {
     channel: 'tv-shows',
-    text: 'TV Shows for Today',
+    text: TV_SHOWS_FALLBACK_TEXT,
     blocks
   };
 }
@@ -283,7 +288,7 @@ export function generateInteractiveFormat(): SlackMessagePayload {
       type: 'header',
       text: {
         type: 'plain_text',
-        text: '📺 TV Shows for Today',
+        text: TV_SHOWS_HEADER,
         emoji: true
       }
     },
@@ -393,7 +398,7 @@ export function generateInteractiveFormat(): SlackMessagePayload {
   
   return {
     channel: 'tv-shows',
-    text: 'TV Shows for Today',
+    text: TV_SHOWS_FALLBACK_TEXT,
     blocks
   };
 }

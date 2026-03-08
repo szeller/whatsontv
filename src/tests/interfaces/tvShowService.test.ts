@@ -25,6 +25,8 @@ import { Fixtures } from '../fixtures/index.js';
 import type { Show } from '../../schemas/domain.js';
 import { ShowBuilder } from '../fixtures/helpers/showFixtureBuilder.js';
 
+const TEST_SUMMARY = 'Test summary';
+
 // Load fixture data
 const networkScheduleFixtures = Fixtures.tvMaze.getSchedule('network-schedule');
 const webScheduleFixtures = Fixtures.tvMaze.getSchedule('web-schedule');
@@ -64,7 +66,7 @@ describe('TvShowService Interface', () => {
           .withLanguage('English')
           .withType('Scripted')
           .withGenres(['Drama'])
-          .withSummary('Test summary')
+          .withSummary(TEST_SUMMARY)
           .withAirtime('20:00')
           .withEpisode(1, 1)
           .build(),
@@ -75,7 +77,7 @@ describe('TvShowService Interface', () => {
           .withLanguage('English')
           .withType('Scripted')
           .withGenres(['Comedy'])
-          .withSummary('Test summary')
+          .withSummary(TEST_SUMMARY)
           .withAirtime('21:00')
           .withEpisode(1, 2)
           .build(),
@@ -86,7 +88,7 @@ describe('TvShowService Interface', () => {
           .withLanguage('English')
           .withType('Scripted')
           .withGenres(['Drama'])
-          .withSummary('Test summary')
+          .withSummary(TEST_SUMMARY)
           .withAirtime('22:00')
           .withEpisode(1, 3)
           .build()

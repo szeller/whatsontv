@@ -11,6 +11,8 @@ import {
 import { showSchema } from '../../schemas/domain.js';
 import { z } from 'zod';
 
+const INVALID_SCHEDULE_FIXTURE = 'test/invalid-schedule.json';
+
 describe('Fixture Validation', () => {
   describe('TVMaze Fixtures', () => {
     it('should validate network schedule fixture against schema', () => {
@@ -121,18 +123,18 @@ describe('Fixture Validation', () => {
       expect(() => {
         loadValidatedArrayFixture(
           networkScheduleItemSchema,
-          'test/invalid-schedule.json'
+          INVALID_SCHEDULE_FIXTURE
         );
       }).toThrow();
       
       // Load the fixture directly to confirm it's well-formed JSON
       expect(() => {
-        loadFixture('test/invalid-schedule.json');
+        loadFixture(INVALID_SCHEDULE_FIXTURE);
       }).not.toThrow();
       
       // Manually validate to confirm the specific validation errors
       try {
-        const invalidSchedule = loadFixture('test/invalid-schedule.json');
+        const invalidSchedule = loadFixture(INVALID_SCHEDULE_FIXTURE);
         z.array(networkScheduleItemSchema).parse(invalidSchedule);
         // If we get here, validation didn't throw as expected
         expect(true).toBe(false); // Force test to fail

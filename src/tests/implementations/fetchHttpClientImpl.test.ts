@@ -11,6 +11,10 @@ import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 import { FetchHttpClientImpl } from '../../implementations/fetchHttpClientImpl.js';
 import type { BeforeRequestHook } from 'ky';
 
+const CONTENT_TYPE_HEADER = 'Content-Type';
+const CONTENT_TYPE_HEADER_LOWER = 'content-type';
+const TEXT_PLAIN = 'text/plain';
+
 describe('FetchHttpClientImpl', () => {
   const mockResponseData = { id: 1, name: 'Test Show' };
   let client: FetchHttpClientImpl;
@@ -22,7 +26,7 @@ describe('FetchHttpClientImpl', () => {
       // Default implementation returns a successful response
       return Response.json(mockResponseData, {
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { [CONTENT_TYPE_HEADER]: 'application/json' }
       });
     });
     
@@ -40,14 +44,14 @@ describe('FetchHttpClientImpl', () => {
       mockBeforeRequestHook.mockImplementation(() => {
         return Response.json(mockResponseData, {
           status: 200,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { [CONTENT_TYPE_HEADER]: 'application/json' }
         });
       });
       
       const result = await client.get<typeof mockResponseData>('shows/1');
       expect(result.data).toEqual(mockResponseData);
       expect(result.status).toBe(200);
-      expect(result.headers).toHaveProperty('content-type');
+      expect(result.headers).toHaveProperty(CONTENT_TYPE_HEADER_LOWER);
       expect(mockBeforeRequestHook).toHaveBeenCalled();
     });
 
@@ -60,7 +64,7 @@ describe('FetchHttpClientImpl', () => {
         capturedUrl = new URL(req.url);
         return Response.json(mockResponseData, {
           status: 200,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { [CONTENT_TYPE_HEADER]: 'application/json' }
         });
       });
       
@@ -85,7 +89,7 @@ describe('FetchHttpClientImpl', () => {
         capturedHeaders = req.headers;
         return Response.json(mockResponseData, {
           status: 200,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { [CONTENT_TYPE_HEADER]: 'application/json' }
         });
       });
       
@@ -113,7 +117,7 @@ describe('FetchHttpClientImpl', () => {
       
       expect(result.data).toEqual(mockResponseData);
       expect(result.status).toBe(200);
-      expect(result.headers).toHaveProperty('content-type');
+      expect(result.headers).toHaveProperty(CONTENT_TYPE_HEADER_LOWER);
     });
 
     it('should throw an error if the request fails', async () => {
@@ -135,7 +139,7 @@ describe('FetchHttpClientImpl', () => {
       mockBeforeRequestHook.mockImplementation(() => {
         return new Response(plainTextContent, {
           status: 200,
-          headers: { 'Content-Type': 'text/plain' }
+          headers: { [CONTENT_TYPE_HEADER]: TEXT_PLAIN }
         });
       });
       
@@ -143,7 +147,7 @@ describe('FetchHttpClientImpl', () => {
       
       expect(result.data).toBe(plainTextContent);
       expect(result.status).toBe(200);
-      expect(result.headers).toHaveProperty('content-type', 'text/plain');
+      expect(result.headers).toHaveProperty(CONTENT_TYPE_HEADER_LOWER, TEXT_PLAIN);
     });
     
     it('should handle invalid JSON responses', async () => {
@@ -157,7 +161,7 @@ describe('FetchHttpClientImpl', () => {
         // Return a response with a modified json method that throws an error
         const mockResponse = new Response('{ "broken": "json"', {
           status: 200,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { [CONTENT_TYPE_HEADER]: 'application/json' }
         });
         
         // Create a clone that we can modify
@@ -176,7 +180,7 @@ describe('FetchHttpClientImpl', () => {
       // Should return the raw text when JSON parsing fails
       expect(result.data).toBe('{ "broken": "json"');
       expect(result.status).toBe(200);
-      expect(result.headers).toHaveProperty('content-type', 'application/json');
+      expect(result.headers).toHaveProperty(CONTENT_TYPE_HEADER_LOWER, 'application/json');
       expect(getSpy).toHaveBeenCalled();
     });
   });
@@ -194,7 +198,7 @@ describe('FetchHttpClientImpl', () => {
         
         return Response.json(mockResponseData, {
           status: 200,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { [CONTENT_TYPE_HEADER]: 'application/json' }
         });
       });
       
@@ -207,7 +211,7 @@ describe('FetchHttpClientImpl', () => {
       
       expect(result.data).toEqual(mockResponseData);
       expect(result.status).toBe(200);
-      expect(result.headers).toHaveProperty('content-type');
+      expect(result.headers).toHaveProperty(CONTENT_TYPE_HEADER_LOWER);
       expect(capturedRequest).toBeDefined();
       if (capturedRequest) {
         expect(capturedRequest.method).toBe('POST');
@@ -224,7 +228,7 @@ describe('FetchHttpClientImpl', () => {
         capturedHeaders = req.headers;
         return Response.json(mockResponseData, {
           status: 200,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { [CONTENT_TYPE_HEADER]: 'application/json' }
         });
       });
       
@@ -267,7 +271,7 @@ describe('FetchHttpClientImpl', () => {
         // Return a response with a modified json method that throws an error
         const mockResponse = new Response('{ "status": "incomplete', {
           status: 201,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { [CONTENT_TYPE_HEADER]: 'application/json' }
         });
         
         // Create a clone that we can modify
@@ -286,7 +290,7 @@ describe('FetchHttpClientImpl', () => {
       // Should return the raw text when JSON parsing fails
       expect(result.data).toBe('{ "status": "incomplete');
       expect(result.status).toBe(201);
-      expect(result.headers).toHaveProperty('content-type', 'application/json');
+      expect(result.headers).toHaveProperty(CONTENT_TYPE_HEADER_LOWER, 'application/json');
       expect(postSpy).toHaveBeenCalled();
     });
   });
@@ -300,7 +304,7 @@ describe('FetchHttpClientImpl', () => {
           expected: { test: true }
         },
         {
-          type: 'text/plain',
+          type: TEXT_PLAIN,
           value: 'Plain text response',
           expected: 'Plain text response'
         },
@@ -315,13 +319,13 @@ describe('FetchHttpClientImpl', () => {
         mockBeforeRequestHook.mockImplementation(() => {
           return new Response(value, {
             status: 200,
-            headers: { 'Content-Type': type }
+            headers: { [CONTENT_TYPE_HEADER]: type }
           });
         });
         
         const result = await client.get<unknown>(`content-type-test-${type}`);
         expect(result.data).toEqual(expected);
-        expect(result.headers).toHaveProperty('content-type', type);
+        expect(result.headers).toHaveProperty(CONTENT_TYPE_HEADER_LOWER, type);
       }
     });
   });

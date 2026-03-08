@@ -13,6 +13,8 @@ import { ShowBuilder, ShowFixtures } from '../../fixtures/helpers/showFixtureBui
 import { createMockTvShowService } from '../../mocks/factories/tvShowServiceFactory.js';
 import { createMockConfigService } from '../../mocks/factories/configServiceFactory.js';
 
+const TEST_NETWORK = 'Test Network';
+
 describe('TextShowFormatterImpl', () => {
   let formatter: TextShowFormatterImpl;
   let mockShow: Show;
@@ -49,7 +51,7 @@ describe('TextShowFormatterImpl', () => {
     it('should format a show with airtime correctly', () => {
       const result = formatter.formatTimedShow(mockShow);
       expect(result).toContain('20:00');
-      expect(result).toContain('Test Network');
+      expect(result).toContain(TEST_NETWORK);
       expect(result).toContain('Scripted');
       expect(result).toContain('Test Show');
       expect(result).toContain('S01E01');
@@ -77,7 +79,7 @@ describe('TextShowFormatterImpl', () => {
   describe('formatUntimedShow', () => {
     it('should format a show without airtime correctly', () => {
       const result = formatter.formatUntimedShow(mockShowNoAirtime);
-      expect(result).toContain('Test Network');
+      expect(result).toContain(TEST_NETWORK);
       expect(result).toContain('Scripted');
       expect(result).toContain('Test Show');
       expect(result).toContain('S01E01');
@@ -100,7 +102,7 @@ describe('TextShowFormatterImpl', () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toContain('Test Show');
       expect(result[0]).toContain('S01E01-03');
-      expect(result[0]).toContain('Test Network');
+      expect(result[0]).toContain(TEST_NETWORK);
     });
     
     it('should handle episodes with different seasons correctly', () => {
@@ -141,11 +143,11 @@ describe('TextShowFormatterImpl', () => {
   describe('formatNetwork', () => {
     it('should format a network and its shows correctly', () => {
       const shows = [mockShow, mockShowNoAirtime];
-      const result = formatter.formatNetwork('Test Network', shows);
+      const result = formatter.formatNetwork(TEST_NETWORK, shows);
       
       // Should include network header and formatted shows
       expect(result.length).toBeGreaterThan(2);
-      expect(result[0]).toContain('Test Network');
+      expect(result[0]).toContain(TEST_NETWORK);
       
       // Should include both shows
       expect(result.some(line => line.includes('Test Show') && line.includes('20:00'))).toBe(true);
@@ -154,19 +156,19 @@ describe('TextShowFormatterImpl', () => {
     
     it('should return header for empty shows array', () => {
       // The base class implementation now returns a header for empty networks
-      const result = formatter.formatNetwork('Test Network', []);
+      const result = formatter.formatNetwork(TEST_NETWORK, []);
       expect(result).toHaveLength(2); // Header + separator line
-      expect(result[0]).toContain('Test Network');
+      expect(result[0]).toContain(TEST_NETWORK);
     });
     
     it('should return header for null or undefined shows', () => {
       // The base class implementation now returns a header for empty networks
       expect(
-        formatter.formatNetwork('Test Network', null as unknown as Show[])
+        formatter.formatNetwork(TEST_NETWORK, null as unknown as Show[])
       ).toHaveLength(2);
       expect(
         formatter.formatNetwork(
-          'Test Network', 
+          TEST_NETWORK, 
           undefined as unknown as Show[]
         )
       ).toHaveLength(2);
@@ -180,7 +182,7 @@ describe('TextShowFormatterImpl', () => {
       const anotherShow = ShowFixtures.createTestShow({ name: 'Another Show' });
       
       const networkGroups = {
-        'Test Network': [testShow],
+        TEST_NETWORK: [testShow],
         'Another Network': [anotherShow]
       };
       
@@ -191,7 +193,7 @@ describe('TextShowFormatterImpl', () => {
       // Blank line = 1 line
       // Network 2: header + separator + show = 3 lines
       expect(result).toHaveLength(7); 
-      expect(result.some(line => line.includes('Test Network'))).toBe(true);
+      expect(result.some(line => line.includes(TEST_NETWORK))).toBe(true);
       expect(result.some(line => line.includes('Another Network'))).toBe(true);
       expect(result.some(line => line.includes('Test Show'))).toBe(true);
       expect(result.some(line => line.includes('Another Show'))).toBe(true);
@@ -240,7 +242,7 @@ describe('TextShowFormatterImpl', () => {
       shows[1].name = 'Early Show';
       
       const networkGroups = {
-        'Test Network': shows
+        TEST_NETWORK: shows
       };
       
       const result = formatter.formatNetworkGroups(networkGroups);
@@ -265,7 +267,7 @@ describe('TextShowFormatterImpl', () => {
       });
       
       const networkGroups = {
-        'Test Network': [showWithoutAirtime, showWithAirtime]
+        TEST_NETWORK: [showWithoutAirtime, showWithAirtime]
       };
       
       const result = formatter.formatNetworkGroups(networkGroups);

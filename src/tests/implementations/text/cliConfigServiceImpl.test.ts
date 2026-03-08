@@ -17,6 +17,18 @@ import type { AppConfig, SlackConfig } from '../../../types/configTypes.js';
 import type { ShowOptions } from '../../../schemas/config.js';
 import { getTodayDate } from '../../../utils/dateUtils.js';
 
+const SCRIPTED_REALITY = 'Scripted,Reality';
+const TEST_TOKEN = 'test-token';
+const ENV_TOKEN = 'env-token';
+const ENV_CHANNEL = 'env-channel';
+const ENV_USERNAME = 'env-username';
+const CONFIG_TOKEN = 'config-token';
+const CONFIG_USERNAME = 'config-username';
+const CONFIG_CHANNEL = 'config-channel';
+const WHATS_ON_TV = 'WhatsOnTV';
+const ARG_NETWORKS = '--networks';
+const ARG_LANGUAGES = '--languages';
+
 function toStringArrayFromArgv(value: unknown): string[] {
   if (Array.isArray(value)) {
     return value as string[];
@@ -167,7 +179,7 @@ class TestCliConfigService extends CliConfigServiceImpl {
       slack: {
         token: '',
         channelId: '',
-        username: 'WhatsOnTV',
+        username: WHATS_ON_TV,
         icon_emoji: ':tv:',
         dateFormat: 'dddd, MMMM D, YYYY'
       }
@@ -454,8 +466,8 @@ describe('CliConfigServiceImpl', () => {
     const configService = new TestCliConfigService({
       mockArgs: [
         '--country', 'DE',
-        '--types', 'Scripted,Reality',
-        '--networks', 'ZDF',
+        '--types', SCRIPTED_REALITY,
+        ARG_NETWORKS, 'ZDF',
         '--debug'
       ]
     });
@@ -555,7 +567,7 @@ describe('CliConfigServiceImpl', () => {
     const mockConfig = {
       country: 'CA',
       slack: {
-        token: 'test-token',
+        token: TEST_TOKEN,
         channelId: '',
         username: 'TestBot',
         icon_emoji: ':tv:',
@@ -571,7 +583,7 @@ describe('CliConfigServiceImpl', () => {
     
     // Assert
     expect(configService.getConfig().country).toBe('CA');
-    expect(configService.getSlackOptions().token).toBe('test-token');
+    expect(configService.getSlackOptions().token).toBe(TEST_TOKEN);
     expect(configService.getSlackOptions().username).toBe('TestBot');
   });
   
@@ -666,9 +678,9 @@ describe('CliConfigServiceImpl', () => {
       
       override getSlackOptions(): SlackConfig {
         return {
-          token: 'env-token',
-          channelId: 'env-channel',
-          username: 'env-username',
+          token: ENV_TOKEN,
+          channelId: ENV_CHANNEL,
+          username: ENV_USERNAME,
           icon_emoji: ':tv:',
           dateFormat: 'dddd, MMMM D, YYYY'
         };
@@ -680,18 +692,18 @@ describe('CliConfigServiceImpl', () => {
     const slackOptions = configService.getSlackOptions();
     
     // Assert
-    expect(slackOptions.token).toBe('env-token');
-    expect(slackOptions.channelId).toBe('env-channel');
-    expect(slackOptions.username).toBe('env-username');
+    expect(slackOptions.token).toBe(ENV_TOKEN);
+    expect(slackOptions.channelId).toBe(ENV_CHANNEL);
+    expect(slackOptions.username).toBe(ENV_USERNAME);
   });
   
   it('should merge slack options from config with defaults', () => {
     // Arrange
     const mockConfig = {
       slack: {
-        token: 'config-token',
+        token: CONFIG_TOKEN,
         channelId: '',
-        username: 'config-username',
+        username: CONFIG_USERNAME,
         icon_emoji: ':robot:',
         dateFormat: 'YYYY-MM-DD'
       } as SlackConfig
@@ -707,9 +719,9 @@ describe('CliConfigServiceImpl', () => {
     
     // Assert
     expect(slackOptions).toBeDefined();
-    expect(slackOptions.username).toBe('config-username');
+    expect(slackOptions.username).toBe(CONFIG_USERNAME);
     expect(slackOptions.icon_emoji).toBe(':robot:'); // Default value preserved
-    expect(slackOptions.token).toBe('config-token');
+    expect(slackOptions.token).toBe(CONFIG_TOKEN);
     expect(slackOptions.channelId).toBe('');
   });
   
@@ -729,7 +741,7 @@ describe('CliConfigServiceImpl', () => {
     
     // Assert
     expect(slackOptions).toBeDefined();
-    expect(slackOptions.username).toBe('WhatsOnTV'); // Default
+    expect(slackOptions.username).toBe(WHATS_ON_TV); // Default
   });
   
   it('should handle all coerce functions in createYargsInstance', () => {
@@ -738,20 +750,20 @@ describe('CliConfigServiceImpl', () => {
     
     // Act - we don't need to store the result since we're testing through configService2
     configService.exposeCreateYargsInstance([
-      '--types', 'Scripted,Reality',
-      '--networks', 'HBO,Netflix',
+      '--types', SCRIPTED_REALITY,
+      ARG_NETWORKS, 'HBO,Netflix',
       '--genres', 'Drama,Comedy',
-      '--languages', 'English,Spanish'
+      ARG_LANGUAGES, 'English,Spanish'
     ]);
     
     // Assert - we can't directly access argv here due to TypeScript constraints
     // Instead, we'll verify the behavior through the parseArgs method
     const configService2 = new TestCliConfigService({
       mockArgs: [
-        '--types', 'Scripted,Reality',
-        '--networks', 'HBO,Netflix',
+        '--types', SCRIPTED_REALITY,
+        ARG_NETWORKS, 'HBO,Netflix',
         '--genres', 'Drama,Comedy',
-        '--languages', 'English,Spanish'
+        ARG_LANGUAGES, 'English,Spanish'
       ]
     });
     
@@ -918,9 +930,9 @@ describe('CliConfigServiceImpl', () => {
         '--date', '2025-05-01',
         '--country', 'FR',
         '--types', 'Documentary,Animation',
-        '--networks', 'Arte,Canal+',
+        ARG_NETWORKS, 'Arte,Canal+',
         '--genres', 'History,Science',
-        '--languages', 'French',
+        ARG_LANGUAGES, 'French',
         '--minAirtime', '20:00',
         '--debug'
       ]
@@ -1006,7 +1018,7 @@ describe('CliConfigServiceImpl', () => {
 
       // Assert
       expect(slackOptions).toBeDefined();
-      expect(slackOptions.username).toBe('WhatsOnTV');
+      expect(slackOptions.username).toBe(WHATS_ON_TV);
       expect(slackOptions.icon_emoji).toBe(':tv:');
       expect(slackOptions.token).toBe('');
       expect(slackOptions.channelId).toBe('');
@@ -1022,7 +1034,7 @@ describe('CliConfigServiceImpl', () => {
             ...this.getConfig(),
             slack: {
               username: 'CustomBot',
-              token: 'test-token',
+              token: TEST_TOKEN,
               channelId: 'test-channel'
             }
           };
@@ -1037,15 +1049,15 @@ describe('CliConfigServiceImpl', () => {
       expect(slackOptions).toBeDefined();
       expect(slackOptions.username).toBe('CustomBot');
       expect(slackOptions.icon_emoji).toBe(':tv:'); // Default value preserved
-      expect(slackOptions.token).toBe('test-token');
+      expect(slackOptions.token).toBe(TEST_TOKEN);
       expect(slackOptions.channelId).toBe('test-channel');
     });
 
     it('should use environment variables when available', () => {
       // Arrange
       const originalEnv = { ...process.env };
-      process.env.SLACK_TOKEN = 'env-token';
-      process.env.SLACK_CHANNEL = 'env-channel';
+      process.env.SLACK_TOKEN = ENV_TOKEN;
+      process.env.SLACK_CHANNEL = ENV_CHANNEL;
       process.env.SLACK_USERNAME = 'EnvBot';
       
       const configService = new NoSlackConfigService();
@@ -1057,8 +1069,8 @@ describe('CliConfigServiceImpl', () => {
         // Assert
         expect(slackOptions).toBeDefined();
         expect(slackOptions.username).toBe('EnvBot');
-        expect(slackOptions.token).toBe('env-token');
-        expect(slackOptions.channelId).toBe('env-channel');
+        expect(slackOptions.token).toBe(ENV_TOKEN);
+        expect(slackOptions.channelId).toBe(ENV_CHANNEL);
       } finally {
         // Cleanup
         process.env = originalEnv;
@@ -1068,8 +1080,8 @@ describe('CliConfigServiceImpl', () => {
     it('should prioritize config over environment variables', () => {
       // Arrange
       const originalEnv = { ...process.env };
-      process.env.SLACK_TOKEN = 'env-token';
-      process.env.SLACK_CHANNEL = 'env-channel';
+      process.env.SLACK_TOKEN = ENV_TOKEN;
+      process.env.SLACK_CHANNEL = ENV_CHANNEL;
       process.env.SLACK_USERNAME = 'EnvBot';
       
       class SlackConfigTestService extends TestCliConfigService {
@@ -1080,8 +1092,8 @@ describe('CliConfigServiceImpl', () => {
             ...this.getConfig(),
             slack: {
               username: 'ConfigBot',
-              token: 'config-token',
-              channelId: 'config-channel'
+              token: CONFIG_TOKEN,
+              channelId: CONFIG_CHANNEL
             }
           };
         }
@@ -1095,8 +1107,8 @@ describe('CliConfigServiceImpl', () => {
         // Assert
         expect(slackOptions).toBeDefined();
         expect(slackOptions.username).toBe('ConfigBot');
-        expect(slackOptions.token).toBe('config-token');
-        expect(slackOptions.channelId).toBe('config-channel');
+        expect(slackOptions.token).toBe(CONFIG_TOKEN);
+        expect(slackOptions.channelId).toBe(CONFIG_CHANNEL);
       } finally {
         // Cleanup
         process.env = originalEnv;
@@ -1127,7 +1139,7 @@ describe('CliConfigServiceImpl', () => {
       expect(config).toBeDefined();
       expect(config.slack).toBeDefined();
       // Default slack config should be used
-      expect(config.slack.username).toBe('WhatsOnTV');
+      expect(config.slack.username).toBe(WHATS_ON_TV);
     });
 
     it('should handle empty slack config in user config', () => {
@@ -1157,7 +1169,7 @@ describe('CliConfigServiceImpl', () => {
       expect(config).toBeDefined();
       expect(config.slack).toBeDefined();
       // Default slack config should be merged with empty object
-      expect(config.slack.username).toBe('WhatsOnTV');
+      expect(config.slack.username).toBe(WHATS_ON_TV);
     });
   });
 });

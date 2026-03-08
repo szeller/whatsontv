@@ -7,6 +7,8 @@ import { loadValidatedArrayFixture } from '../../helpers/fixtureHelper.js';
 import { showSchema } from '../../../schemas/domain.js';
 import type { Show } from '../../../schemas/domain.js';
 
+const TEST_NETWORK = 'Test Network';
+
 /**
  * Get sample network shows for testing
  * @returns Array of network shows in domain model format
@@ -59,15 +61,15 @@ export function getEpisodeSequence(
   
   for (let i = 0; i < count; i++) {
     episodes.push({
+      season,
       id: 100 + i,
       name: `Episode ${startNumber + i}`,
       type: 'scripted',
       language: 'English',
       genres: ['Drama'],
-      network: 'Test Network',
+      network: TEST_NETWORK,
       summary: `Test episode ${startNumber + i} for season ${season}`,
       airtime: '20:00',
-      season,
       number: startNumber + i
     });
   }
@@ -87,7 +89,7 @@ export function getMixedAirtimeShows(): Show[] {
       type: 'scripted',
       language: 'English',
       genres: ['Drama'],
-      network: 'Test Network',
+      network: TEST_NETWORK,
       summary: 'Show with a valid airtime',
       airtime: '20:00',
       season: 1,
@@ -99,7 +101,7 @@ export function getMixedAirtimeShows(): Show[] {
       type: 'scripted',
       language: 'English',
       genres: ['Drama'],
-      network: 'Test Network',
+      network: TEST_NETWORK,
       summary: 'Show with an empty airtime',
       airtime: '',
       season: 1,
@@ -111,7 +113,7 @@ export function getMixedAirtimeShows(): Show[] {
       type: 'scripted',
       language: 'English',
       genres: ['Drama'],
-      network: 'Test Network',
+      network: TEST_NETWORK,
       summary: 'Show with a null airtime',
       airtime: null,
       season: 1,

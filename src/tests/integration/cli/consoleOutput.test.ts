@@ -18,6 +18,9 @@ import { createMockConfigService } from '../../mocks/factories/configServiceFact
 import { MockProcessOutput } from '../../mocks/implementations/mockProcessOutput.js';
 import { describe, expect, test, beforeEach, afterEach } from '@jest/globals';
 
+const STRANGER_THINGS = 'Stranger Things';
+const BREAKING_BAD = 'Breaking Bad';
+
 describe('Console Output Integration Tests', () => {
   // Original services
   let originalTextShowFormatter: TextShowFormatter | null = null;
@@ -46,7 +49,7 @@ describe('Console Output Integration Tests', () => {
       number: 9
     }),
     ShowBuilder.createTestShow({
-      name: 'Stranger Things',
+      name: STRANGER_THINGS,
       airtime: '',
       network: 'Netflix',
       type: 'Scripted',
@@ -55,7 +58,7 @@ describe('Console Output Integration Tests', () => {
     }),
     ShowBuilder.createTestShow({
       id: 1,
-      name: 'Breaking Bad',
+      name: BREAKING_BAD,
       airtime: '', // No airtime so it will be grouped
       network: 'AMC',
       type: 'Scripted',
@@ -64,7 +67,7 @@ describe('Console Output Integration Tests', () => {
     }),
     ShowBuilder.createTestShow({
       id: 1,
-      name: 'Breaking Bad',
+      name: BREAKING_BAD,
       airtime: '', // No airtime so it will be grouped
       network: 'AMC',
       type: 'Scripted',
@@ -142,8 +145,8 @@ describe('Console Output Integration Tests', () => {
     // Show titles should be present
     expect(outputLines.some(line => line.includes('Game of Thrones'))).toBe(true);
     expect(outputLines.some(line => line.includes('The Last of Us'))).toBe(true);
-    expect(outputLines.some(line => line.includes('Stranger Things'))).toBe(true);
-    expect(outputLines.some(line => line.includes('Breaking Bad'))).toBe(true);
+    expect(outputLines.some(line => line.includes(STRANGER_THINGS))).toBe(true);
+    expect(outputLines.some(line => line.includes(BREAKING_BAD))).toBe(true);
     expect(outputLines.some(line => line.includes('The Walking Dead'))).toBe(true);
     
     // Episode info should be present
@@ -169,7 +172,7 @@ describe('Console Output Integration Tests', () => {
     mockProcessOutput.clearOutput();
     
     // Get the Breaking Bad episodes
-    const breakingBadEpisodes = testShows.filter((show: Show) => show.name === 'Breaking Bad');
+    const breakingBadEpisodes = testShows.filter((show: Show) => show.name === BREAKING_BAD);
     
     // Act - render the output
     await outputService.renderOutput(breakingBadEpisodes);
@@ -215,7 +218,7 @@ describe('Console Output Integration Tests', () => {
     mockProcessOutput.clearOutput();
     
     // Filter just the Stranger Things episode (untimed)
-    const untimedShows = testShows.filter((show: Show) => show.name === 'Stranger Things');
+    const untimedShows = testShows.filter((show: Show) => show.name === STRANGER_THINGS);
     
     // Act - render the output
     await outputService.renderOutput(untimedShows);

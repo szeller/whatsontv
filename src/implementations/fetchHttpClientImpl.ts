@@ -254,7 +254,7 @@ export class FetchHttpClientImpl implements HttpClient {
       ? schema.parse(responseData) as T
       : responseData as T;
 
-    return { data, status: response.status, headers };
+    return { data, headers, status: response.status };
   }
 
   /** Extract response body as JSON or text based on content type */
