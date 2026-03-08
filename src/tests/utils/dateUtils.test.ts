@@ -14,11 +14,14 @@ import {
   parseDateString
 } from '../../utils/dateUtils.js';
 
+const TEST_DATE = '2025-03-20';
+const INVALID_INPUT = 'invalid';
+const INVALID_TIME = 'abc:def';
 describe('DateUtils', () => {
   describe('getTodayDate', () => {
     it('returns date in YYYY-MM-DD format', () => {
       // Mock Date to return a fixed date
-      const mockDate = new Date(2025, 2, 20); // March 20, 2025
+      const mockDate = new Date(2025, 2, 20); // March 20, 2025 (TEST_DATE)
       const originalDate = globalThis.Date;
       globalThis.Date = jest.fn(() => mockDate) as unknown as DateConstructor;
       globalThis.Date.UTC = originalDate.UTC;
@@ -32,7 +35,7 @@ describe('DateUtils', () => {
       globalThis.Date = originalDate;
 
       // Assert the result
-      expect(result).toBe('2025-03-20');
+      expect(result).toBe(TEST_DATE);
     });
 
     it('returns date in YYYY-MM-DD format with timezone', () => {
@@ -63,7 +66,7 @@ describe('DateUtils', () => {
     it('formats a date as YYYY-MM-DD', () => {
       const date = new Date(2025, 2, 20); // March 20, 2025
       const result = formatDate(date);
-      expect(result).toBe('2025-03-20');
+      expect(result).toBe(TEST_DATE);
     });
   });
 
@@ -81,11 +84,11 @@ describe('DateUtils', () => {
       expect(parseTimeString('12:30 PM')).toEqual({ hours: 12, minutes: 30 });
     });
 
-    it('handles edge cases and invalid inputs', () => {
+    it('handles edge cases and invalid time string inputs', () => {
       expect(parseTimeString('')).toBeNull();
       expect(parseTimeString(null as unknown as string)).toBeNull();
-      expect(parseTimeString('invalid')).toBeNull();
-      expect(parseTimeString('abc:def')).toBeNull();
+      expect(parseTimeString(INVALID_INPUT)).toBeNull();
+      expect(parseTimeString(INVALID_TIME)).toBeNull();
     });
 
     it('handles hour-only format', () => {
@@ -108,12 +111,12 @@ describe('DateUtils', () => {
       expect(convertTimeToMinutes('12:30 PM')).toBe(12 * 60 + 30);
     });
 
-    it('handles edge cases and invalid inputs', () => {
+    it('handles edge cases and invalid minute conversion inputs', () => {
       expect(convertTimeToMinutes('')).toBe(-1);
       expect(convertTimeToMinutes(null as unknown as string)).toBe(-1);
-      expect(convertTimeToMinutes('invalid')).toBe(-1);
+      expect(convertTimeToMinutes(INVALID_INPUT)).toBe(-1);
       expect(convertTimeToMinutes('25:00')).toBe(25 * 60); // Out of range but still parsed
-      expect(convertTimeToMinutes('abc:def')).toBe(-1);
+      expect(convertTimeToMinutes(INVALID_TIME)).toBe(-1);
     });
 
     it('handles hour-only format', () => {
@@ -131,11 +134,11 @@ describe('DateUtils', () => {
       expect(formatTimeWithPeriod('12:00')).toBe('12:00 PM');
     });
 
-    it('handles edge cases and invalid inputs', () => {
+    it('handles edge cases and invalid formatting inputs', () => {
       expect(formatTimeWithPeriod('')).toBe('N/A');
       expect(formatTimeWithPeriod(null)).toBe('N/A');
       expect(formatTimeWithPeriod()).toBe('N/A');
-      expect(formatTimeWithPeriod('invalid')).toBe('N/A');
+      expect(formatTimeWithPeriod(INVALID_INPUT)).toBe('N/A');
     });
 
     it('pads minutes with leading zeros', () => {
@@ -161,8 +164,8 @@ describe('DateUtils', () => {
       expect(isValidTime('')).toBe(false);
       expect(isValidTime(null)).toBe(false);
       expect(isValidTime()).toBe(false);
-      expect(isValidTime('invalid')).toBe(false);
-      expect(isValidTime('abc:def')).toBe(false);
+      expect(isValidTime(INVALID_INPUT)).toBe(false);
+      expect(isValidTime(INVALID_TIME)).toBe(false);
     });
 
     it('validates hour-only format', () => {
@@ -173,7 +176,7 @@ describe('DateUtils', () => {
 
   describe('parseDateString', () => {
     it('parses a valid date string correctly', () => {
-      const result = parseDateString('2025-03-20');
+      const result = parseDateString(TEST_DATE);
       expect(result.getFullYear()).toBe(2025);
       expect(result.getMonth()).toBe(2); // 0-indexed, so 2 = March
       expect(result.getDate()).toBe(20);
@@ -188,7 +191,7 @@ describe('DateUtils', () => {
 
     it('returns current date for invalid date strings', () => {
       const now = new Date();
-      const result1 = parseDateString('invalid');
+      const result1 = parseDateString(INVALID_INPUT);
       const result2 = parseDateString('');
       const result3 = parseDateString(null);
       const result4 = parseDateString();

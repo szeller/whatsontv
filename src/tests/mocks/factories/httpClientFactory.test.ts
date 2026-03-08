@@ -5,6 +5,8 @@ import { describe, it, expect } from '@jest/globals';
 import { createMockHttpClient } from './httpClientFactory.js';
 import type { HttpResponse } from '../../../interfaces/httpClient.js';
 
+const API_URL = 'https://example.com/api';
+
 describe('HttpClientFactory', () => {
   describe('createMockHttpClient', () => {
     it('should create a mock HTTP client with default settings', () => {
@@ -46,12 +48,12 @@ describe('HttpClientFactory', () => {
       // Act
       const client = createMockHttpClient({
         getResponses: {
-          'https://example.com/api': specificResponse
+          [API_URL]: specificResponse
         }
       });
       
       // Assert
-      const result = await client.get<{ data: string }>('https://example.com/api');
+      const result = await client.get<{ data: string }>(API_URL);
       expect(result).toEqual(specificResponse);
     });
     
@@ -62,12 +64,12 @@ describe('HttpClientFactory', () => {
       // Act
       const client = createMockHttpClient({
         getErrors: {
-          'https://example.com/api': specificError
+          [API_URL]: specificError
         }
       });
       
       // Assert
-      await expect(client.get('https://example.com/api'))
+      await expect(client.get(API_URL))
         .rejects.toThrow('Specific error');
     });
     
@@ -82,13 +84,13 @@ describe('HttpClientFactory', () => {
       // Act
       const client = createMockHttpClient({
         postResponses: {
-          'https://example.com/api': specificResponse
+          [API_URL]: specificResponse
         }
       });
       
       // Assert
       const result = await client.post<{ result: string }>(
-        'https://example.com/api',
+        API_URL,
         { name: 'test' }
       );
       expect(result).toEqual(specificResponse);
@@ -101,12 +103,12 @@ describe('HttpClientFactory', () => {
       // Act
       const client = createMockHttpClient({
         postErrors: {
-          'https://example.com/api': specificError
+          [API_URL]: specificError
         }
       });
       
       // Assert
-      await expect(client.post('https://example.com/api', { data: 'test' }))
+      await expect(client.post(API_URL, { data: 'test' }))
         .rejects.toThrow('POST error');
     });
   });

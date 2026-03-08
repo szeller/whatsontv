@@ -4,6 +4,9 @@
 import { describe, it, expect, jest } from '@jest/globals';
 import { createMockConfigService } from './configServiceFactory.js';
 
+const MOCK_SLACK_TOKEN = 'xoxb-test-token';
+const MOCK_SLACK_CHANNEL = '#tv-shows';
+
 describe('ConfigServiceFactory', () => {
   describe('createMockConfigService', () => {
     it('should create a mock config service with default settings', () => {
@@ -93,8 +96,8 @@ describe('ConfigServiceFactory', () => {
     it('should set custom slack config', () => {
       // Arrange
       const slackConfig = {
-        token: 'xoxb-test-token',
-        channelId: '#tv-shows',
+        token: MOCK_SLACK_TOKEN,
+        channelId: MOCK_SLACK_CHANNEL,
         username: 'SlackBot'
       };
       
@@ -104,8 +107,8 @@ describe('ConfigServiceFactory', () => {
       });
       
       // Assert
-      expect(configService.getConfig().slack.token).toBe('xoxb-test-token');
-      expect(configService.getConfig().slack.channelId).toBe('#tv-shows');
+      expect(configService.getConfig().slack.token).toBe(MOCK_SLACK_TOKEN);
+      expect(configService.getConfig().slack.channelId).toBe(MOCK_SLACK_CHANNEL);
       expect(configService.getConfig().slack.username).toBe('SlackBot');
     });
     
@@ -121,8 +124,8 @@ describe('ConfigServiceFactory', () => {
       };
       
       const slackConfig = {
-        token: 'xoxb-test-token',
-        channelId: '#tv-shows'
+        token: MOCK_SLACK_TOKEN,
+        channelId: MOCK_SLACK_CHANNEL
       };
       
       // Act
@@ -133,8 +136,8 @@ describe('ConfigServiceFactory', () => {
       
       // Assert
       expect(configService.getConfig().country).toBe('UK');
-      expect(configService.getConfig().slack.token).toBe('xoxb-test-token');
-      expect(configService.getConfig().slack.channelId).toBe('#tv-shows');
+      expect(configService.getConfig().slack.token).toBe(MOCK_SLACK_TOKEN);
+      expect(configService.getConfig().slack.channelId).toBe(MOCK_SLACK_CHANNEL);
       expect(configService.getConfig().slack.username).toBe('DefaultBot');
     });
     

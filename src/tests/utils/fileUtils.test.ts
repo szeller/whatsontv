@@ -20,6 +20,9 @@ import type { AppConfig } from '../../types/configTypes.js';
 
 // We'll test the functions that don't rely on external modules directly
 // and leave the other functions for integration tests
+const MODULE_URL = 'file:///some/path/to/src/utils/module.js';
+const CONFIG_FILE_NAME = 'config.json';
+
 describe('fileUtils', () => {
   describe('parseConfigFile', () => {
     it('should parse a JSON config file', () => {
@@ -139,10 +142,10 @@ describe('fileUtils', () => {
       process.env.CONFIG_FILE = '';
 
       // Act
-      const result = getConfigFilePath('file:///some/path/to/src/utils/module.js');
+      const result = getConfigFilePath(MODULE_URL);
 
       // Assert
-      expect(result).toContain('config.json');
+      expect(result).toContain(CONFIG_FILE_NAME);
       expect(result).not.toBe('');
     });
 
@@ -151,10 +154,10 @@ describe('fileUtils', () => {
       process.env.CONFIG_FILE = '   ';
 
       // Act
-      const result = getConfigFilePath('file:///some/path/to/src/utils/module.js');
+      const result = getConfigFilePath(MODULE_URL);
 
       // Assert
-      expect(result).toContain('config.json');
+      expect(result).toContain(CONFIG_FILE_NAME);
       expect(result).not.toBe('   ');
     });
 
@@ -163,7 +166,7 @@ describe('fileUtils', () => {
 
       // Act
       const result = getConfigFilePath(
-        'file:///some/path/to/src/utils/module.js',
+        MODULE_URL,
         'custom-config.json'
       );
 
@@ -175,10 +178,10 @@ describe('fileUtils', () => {
       // Arrange - CONFIG_FILE is not set (cleared in beforeEach)
 
       // Act
-      const result = getConfigFilePath('file:///some/path/to/src/utils/module.js');
+      const result = getConfigFilePath(MODULE_URL);
 
       // Assert
-      expect(result).toContain('config.json');
+      expect(result).toContain(CONFIG_FILE_NAME);
     });
   });
 });

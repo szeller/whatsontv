@@ -12,16 +12,16 @@ import { createMockSlackClient } from '../../mocks/factories/slackClientFactory.
 import { createSlackAppWithContainer } from '../../../cli/slackCli.js';
 import { getTodayDate } from '../../../utils/dateUtils.js';
 
+const SLACK_TOKEN_REQUIRED_ERROR = 'SLACK_TOKEN environment variable is required but not set';
+const SLACK_CHANNEL_REQUIRED_ERROR = 'SLACK_CHANNEL environment variable is required but not set';
+const VALID_TOKEN = 'test-token';
+
 function validateEnvVars(slackToken?: string, slackChannel?: string): void {
   if (slackToken === undefined || slackToken.trim() === '') {
-    throw new Error(
-      'SLACK_TOKEN environment variable is required but not set'
-    );
+    throw new Error(SLACK_TOKEN_REQUIRED_ERROR);
   }
   if (slackChannel === undefined || slackChannel.trim() === '') {
-    throw new Error(
-      'SLACK_CHANNEL environment variable is required but not set'
-    );
+    throw new Error(SLACK_CHANNEL_REQUIRED_ERROR);
   }
 }
 
@@ -119,27 +119,27 @@ describe('Lambda Handler Logic - Isolated Tests', () => {
     test('should validate required environment variables', () => {
       // Test missing token
       expect(() => { validateEnvVars(undefined, '#test'); }).toThrow(
-        'SLACK_TOKEN environment variable is required but not set'
+        SLACK_TOKEN_REQUIRED_ERROR
       );
       
       // Test empty token
       expect(() => { validateEnvVars('', '#test'); }).toThrow(
-        'SLACK_TOKEN environment variable is required but not set'
+        SLACK_TOKEN_REQUIRED_ERROR
       );
       
       // Test missing channel
        
-      expect(() => { validateEnvVars('test-token'); }).toThrow(
-        'SLACK_CHANNEL environment variable is required but not set'
+      expect(() => { validateEnvVars(VALID_TOKEN); }).toThrow(
+        SLACK_CHANNEL_REQUIRED_ERROR
       );
       
       // Test empty channel
-      expect(() => { validateEnvVars('test-token', ''); }).toThrow(
-        'SLACK_CHANNEL environment variable is required but not set'
+      expect(() => { validateEnvVars(VALID_TOKEN, ''); }).toThrow(
+        SLACK_CHANNEL_REQUIRED_ERROR
       );
       
       // Test valid values
-      expect(() => { validateEnvVars('test-token', '#test-channel'); }).not.toThrow();
+      expect(() => { validateEnvVars(VALID_TOKEN, '#test-channel'); }).not.toThrow();
     });
   });
 

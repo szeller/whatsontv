@@ -6,6 +6,8 @@ import { createMockTvShowService } from './tvShowServiceFactory.js';
 import type { Show } from '../../../schemas/domain.js';
 import type { ShowOptions } from '../../../schemas/config.js';
 
+const TEST_DATE = '2025-04-01';
+
 describe('TvShowServiceFactory', () => {
   describe('createMockTvShowService', () => {
     // Sample test data
@@ -45,7 +47,7 @@ describe('TvShowServiceFactory', () => {
       
       // Check default implementation
       const options: ShowOptions = {
-        date: '2025-04-01',
+        date: TEST_DATE,
         country: 'US',
         types: [],
         networks: [],
@@ -76,12 +78,12 @@ describe('TvShowServiceFactory', () => {
       const service = createMockTvShowService({
         defaultShows: [sampleShow2],
         showsByDate: {
-          '2025-04-01': dateShows
+          [TEST_DATE]: dateShows
         }
       });
       
       // Act
-      const result = await service.fetchShows({ date: '2025-04-01' } as ShowOptions);
+      const result = await service.fetchShows({ date: TEST_DATE } as ShowOptions);
       
       // Assert
       expect(result).toEqual(dateShows);
@@ -179,7 +181,7 @@ describe('TvShowServiceFactory', () => {
       });
       
       // Assert
-      const options = { date: '2025-04-01' } as ShowOptions;
+      const options = { date: TEST_DATE } as ShowOptions;
       const result = await service.fetchShows(options);
       expect(result).toEqual([sampleShow]);
       expect(mockFetchShows).toHaveBeenCalledWith(options);

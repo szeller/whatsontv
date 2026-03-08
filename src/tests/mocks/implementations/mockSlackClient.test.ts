@@ -2,6 +2,8 @@ import { MockSlackClient } from './mockSlackClient.js';
 import type { SlackMessagePayload } from '../../../interfaces/slackClient.js';
 import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 
+const TEST_CHANNEL = 'test-channel';
+
 describe('MockSlackClient', () => {
   let mockSlackClient: MockSlackClient;
 
@@ -19,7 +21,7 @@ describe('MockSlackClient', () => {
   it('should store sent messages', async () => {
     // Arrange
     const testMessage: SlackMessagePayload = {
-      channel: 'test-channel',
+      channel: TEST_CHANNEL,
       text: 'Test message'
     };
     
@@ -61,7 +63,7 @@ describe('MockSlackClient', () => {
   it('should detect if a message was sent with specific criteria', async () => {
     // Arrange
     const message: SlackMessagePayload = {
-      channel: 'test-channel',
+      channel: TEST_CHANNEL,
       text: 'Test with blocks',
       blocks: [
         { type: 'header', text: { type: 'plain_text', text: 'Header' } },
@@ -74,7 +76,7 @@ describe('MockSlackClient', () => {
     await mockSlackClient.sendMessage(message);
     
     // Assert
-    expect(mockSlackClient.wasMessageSent({ channel: 'test-channel' })).toBe(true);
+    expect(mockSlackClient.wasMessageSent({ channel: TEST_CHANNEL })).toBe(true);
     expect(mockSlackClient.wasMessageSent({ text: 'Test with blocks' })).toBe(true);
     expect(mockSlackClient.wasMessageSent({ username: 'TestBot' })).toBe(true);
     expect(mockSlackClient.wasMessageSent({ 

@@ -53,15 +53,20 @@ function teardownExitMock(state: ExitMockState): void {
   state.exitCode = 0;
 }
 
+const TEST_ERROR_MESSAGE = 'Test error';
+const STRING_ERROR = 'String error';
+const TEST_DATE_ISO = '2023-01-01T12:00:00Z';
+const UNCAUGHT_EXCEPTION_LABEL = 'Uncaught Exception:';
+
 describe('errorHandling', () => {
   describe('formatError', () => {
     it('should format Error objects', () => {
-      const error = new Error('Test error');
-      expect(formatError(error)).toBe('Test error');
+      const error = new Error(TEST_ERROR_MESSAGE);
+      expect(formatError(error)).toBe(TEST_ERROR_MESSAGE);
     });
 
     it('should format string errors', () => {
-      expect(formatError('String error')).toBe('String error');
+      expect(formatError(STRING_ERROR)).toBe(STRING_ERROR);
     });
 
     it('should format number errors', () => {
@@ -73,7 +78,7 @@ describe('errorHandling', () => {
     });
 
     it('should add prefix when provided', () => {
-      const error = new Error('Test error');
+      const error = new Error(TEST_ERROR_MESSAGE);
       expect(formatError(error, 'Prefix: ')).toBe('Prefix: Test error');
     });
   });
@@ -90,31 +95,31 @@ describe('errorHandling', () => {
     });
 
     it('should log error message', () => {
-      const error = new Error('Test error');
+      const error = new Error(TEST_ERROR_MESSAGE);
       handleMainError(error, state.mockProcessOutput);
 
       expect(state.mockProcessOutput.error).toHaveBeenCalledWith(
-        'Unhandled error in main: Test error'
+        `Unhandled error in main: ${TEST_ERROR_MESSAGE}`
       );
       expect(state.exitCalled).toBe(true);
       expect(state.exitCode).toBe(1);
     });
 
     it('should log error stack when available', () => {
-      const error = new Error('Test error');
+      const error = new Error(TEST_ERROR_MESSAGE);
       handleMainError(error, state.mockProcessOutput);
 
       expect(state.mockProcessOutput.error).toHaveBeenCalledTimes(2);
       expect(state.mockProcessOutput.error).toHaveBeenCalledWith(
-        expect.stringContaining('Stack: Error: Test error')
+        expect.stringContaining(`Stack: Error: ${TEST_ERROR_MESSAGE}`)
       );
     });
 
     it('should handle non-Error objects', () => {
-      handleMainError('String error', state.mockProcessOutput);
+      handleMainError(STRING_ERROR, state.mockProcessOutput);
 
       expect(state.mockProcessOutput.error).toHaveBeenCalledWith(
-        'Unhandled error in main: String error'
+        `Unhandled error in main: ${STRING_ERROR}`
       );
       expect(state.mockProcessOutput.error).toHaveBeenCalledTimes(1);
     });
@@ -170,7 +175,7 @@ describe('errorHandling', () => {
 
   describe('generateDebugInfo', () => {
     it('should generate debug info with empty shows array', () => {
-      const date = new Date('2023-01-01T12:00:00Z');
+      const date = new Date(TEST_DATE_ISO);
       const shows: Show[] = [];
       
       const result = generateDebugInfo(shows, date);
@@ -183,7 +188,7 @@ describe('errorHandling', () => {
     });
 
     it('should generate debug info with shows', () => {
-      const date = new Date('2023-01-01T12:00:00Z');
+      const date = new Date(TEST_DATE_ISO);
       const shows: Show[] = [
         { id: 1, name: 'Show 1', network: 'ABC' },
         { id: 2, name: 'Show 2', network: 'NBC' },
@@ -200,7 +205,7 @@ describe('errorHandling', () => {
     });
 
     it('should handle shows without network information', () => {
-      const date = new Date('2023-01-01T12:00:00Z');
+      const date = new Date(TEST_DATE_ISO);
       const shows: Show[] = [
         { id: 1, name: 'Show 1', network: 'ABC' },
         { id: 2, name: 'Show 2' },
@@ -262,7 +267,7 @@ describe('errorHandling', () => {
         
         registeredCallback(error);
         
-        expect(state.mockProcessOutput.error).toHaveBeenCalledWith('Uncaught Exception:');
+        expect(state.mockProcessOutput.error).toHaveBeenCalledWith(UNCAUGHT_EXCEPTION_LABEL);
         expect(state.mockProcessOutput.error)
           .toHaveBeenCalledWith('Error: Test uncaught exception');
         expect(state.mockProcessOutput.error).toHaveBeenCalledWith('Error stack trace');
@@ -278,7 +283,7 @@ describe('errorHandling', () => {
         
         registeredCallback(error);
         
-        expect(state.mockProcessOutput.error).toHaveBeenCalledWith('Uncaught Exception:');
+        expect(state.mockProcessOutput.error).toHaveBeenCalledWith(UNCAUGHT_EXCEPTION_LABEL);
         expect(state.mockProcessOutput.error)
           .toHaveBeenCalledWith('Error: Test error without stack');
         expect(state.mockProcessOutput.error).toHaveBeenCalledTimes(2);
@@ -289,10 +294,10 @@ describe('errorHandling', () => {
 
     it('should handle non-Error objects', () => {
       if (registeredCallback) {
-        registeredCallback('String error' as unknown as Error);
+        registeredCallback(STRING_ERROR as unknown as Error);
         
-        expect(state.mockProcessOutput.error).toHaveBeenCalledWith('Uncaught Exception:');
-        expect(state.mockProcessOutput.error).toHaveBeenCalledWith('String error');
+        expect(state.mockProcessOutput.error).toHaveBeenCalledWith(UNCAUGHT_EXCEPTION_LABEL);
+        expect(state.mockProcessOutput.error).toHaveBeenCalledWith(STRING_ERROR);
         expect(state.exitCalled).toBe(true);
         expect(state.exitCode).toBe(1);
       }

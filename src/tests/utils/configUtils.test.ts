@@ -14,6 +14,9 @@ import { CliArgs } from '../../types/cliArgs.js';
 import { AppConfig } from '../../types/configTypes.js';
 import { getTodayDate } from '../../utils/dateUtils.js';
 
+const DEFAULT_USERNAME = 'WhatsOnTV';
+const TEST_DATE = '2025-04-01';
+
 describe('configUtils', () => {
   describe('toStringArray', () => {
     it('should handle undefined values', () => {
@@ -120,7 +123,7 @@ describe('configUtils', () => {
     it('should correctly merge show options from different sources', () => {
       // Arrange
       const cliArgs: CliArgs = {
-        date: '2025-04-01',
+        date: TEST_DATE,
         country: 'CA',
         types: ['Drama'],
         networks: [],
@@ -142,7 +145,7 @@ describe('configUtils', () => {
         slack: {
           token: '',
           channelId: '',
-          username: 'WhatsOnTV'
+          username: DEFAULT_USERNAME
         }
       };
 
@@ -150,7 +153,7 @@ describe('configUtils', () => {
       const showOptions = mergeShowOptions(cliArgs, appConfig);
 
       // Assert - CLI values should override config values when provided
-      expect(showOptions.date).toBe('2025-04-01'); // From CLI
+      expect(showOptions.date).toBe(TEST_DATE); // From CLI
       expect(showOptions.country).toBe('CA'); // From CLI
       expect(showOptions.types).toEqual(['Drama']); // From CLI
 
@@ -163,7 +166,7 @@ describe('configUtils', () => {
     it('should handle merging arrays with different priorities correctly', () => {
       // Arrange
       const cliArgs: CliArgs = {
-        date: '2025-04-01',
+        date: TEST_DATE,
         country: 'US',
         types: [], // Empty array should fall back to config
         networks: ['HBO', 'Showtime'], // Should override config
@@ -185,7 +188,7 @@ describe('configUtils', () => {
         slack: {
           token: '',
           channelId: '',
-          username: 'WhatsOnTV'
+          username: DEFAULT_USERNAME
         }
       };
 
@@ -224,7 +227,7 @@ describe('configUtils', () => {
         slack: {
           token: '',
           channelId: '',
-          username: 'WhatsOnTV'
+          username: DEFAULT_USERNAME
         }
       };
 
@@ -260,7 +263,7 @@ describe('configUtils', () => {
         slack: {
           token: '',
           channelId: '',
-          username: 'WhatsOnTV'
+          username: DEFAULT_USERNAME
         }
       };
 
@@ -283,7 +286,7 @@ describe('configUtils', () => {
 
       // Arrange - CLI provides some values, leaves others undefined
       const cliArgs: Partial<CliArgs> = {
-        date: '2025-04-01',
+        date: TEST_DATE,
         country: 'US',
         types: ['Action'], // CLI provides value - should be used
         networks: [], // CLI provides empty - falls back to appConfig per mergeArraysWithPriority
@@ -323,7 +326,7 @@ describe('configUtils', () => {
     it('should include excludeShowNames from showNameFilter', () => {
       // Arrange
       const cliArgs: CliArgs = {
-        date: '2025-04-01',
+        date: TEST_DATE,
         country: 'US',
         types: [],
         networks: [],
@@ -346,7 +349,7 @@ describe('configUtils', () => {
         slack: {
           token: '',
           channelId: '',
-          username: 'WhatsOnTV'
+          username: DEFAULT_USERNAME
         }
       };
 

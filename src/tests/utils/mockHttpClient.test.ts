@@ -6,6 +6,10 @@ import { describe, it, expect, beforeEach } from '@jest/globals';
 import { MockHttpClient } from '../testutils/mockHttpClient.js';
 import type { HttpResponse } from '../../interfaces/httpClient.js';
 
+const API_URL = 'https://example.com/api';
+const UNKNOWN_URL = 'https://example.com/unknown';
+const DEFAULT_ERROR_MESSAGE = 'Default error';
+
 describe('MockHttpClient', () => {
   let mockClient: MockHttpClient;
 
@@ -21,25 +25,25 @@ describe('MockHttpClient', () => {
         status: 200,
         headers: {}
       };
-      mockClient.mockGet('https://example.com/api', mockResponse);
+      mockClient.mockGet(API_URL, mockResponse);
 
       // Act
-      const result = await mockClient.get<{ data: string }>('https://example.com/api');
+      const result = await mockClient.get<{ data: string }>(API_URL);
 
       // Assert
       expect(result).toEqual(mockResponse);
-      expect(mockClient.lastUrl).toBe('https://example.com/api');
+      expect(mockClient.lastUrl).toBe(API_URL);
     });
 
     it('should throw mocked error for specific URL', async () => {
       // Arrange
       const mockError = new Error('Network error');
-      mockClient.mockGetError('https://example.com/api', mockError);
+      mockClient.mockGetError(API_URL, mockError);
 
       // Act & Assert
-      await expect(mockClient.get('https://example.com/api'))
+      await expect(mockClient.get(API_URL))
         .rejects.toThrow('Network error');
-      expect(mockClient.lastUrl).toBe('https://example.com/api');
+      expect(mockClient.lastUrl).toBe(API_URL);
     });
 
     it('should return default mock response when URL is not specifically mocked', async () => {
@@ -52,29 +56,29 @@ describe('MockHttpClient', () => {
       mockClient.setMockResponse(defaultResponse);
 
       // Act
-      const result = await mockClient.get<{ data: string }>('https://example.com/unknown');
+      const result = await mockClient.get<{ data: string }>(UNKNOWN_URL);
 
       // Assert
       expect(result).toEqual(defaultResponse);
-      expect(mockClient.lastUrl).toBe('https://example.com/unknown');
+      expect(mockClient.lastUrl).toBe(UNKNOWN_URL);
     });
 
     it('should throw default mock error when URL is not specifically mocked', async () => {
       // Arrange
-      const defaultError = new Error('Default error');
+      const defaultError = new Error(DEFAULT_ERROR_MESSAGE);
       mockClient.setMockError(defaultError);
 
       // Act & Assert
-      await expect(mockClient.get('https://example.com/unknown'))
-        .rejects.toThrow('Default error');
-      expect(mockClient.lastUrl).toBe('https://example.com/unknown');
+      await expect(mockClient.get(UNKNOWN_URL))
+        .rejects.toThrow(DEFAULT_ERROR_MESSAGE);
+      expect(mockClient.lastUrl).toBe(UNKNOWN_URL);
     });
 
     it('should throw error when no mock is set up', async () => {
       // Act & Assert
-      await expect(mockClient.get('https://example.com/api'))
-        .rejects.toThrow('No mock response or error set for URL: https://example.com/api');
-      expect(mockClient.lastUrl).toBe('https://example.com/api');
+      await expect(mockClient.get(API_URL))
+        .rejects.toThrow(`No mock response or error set for URL: ${API_URL}`);
+      expect(mockClient.lastUrl).toBe(API_URL);
     });
   });
 
@@ -86,28 +90,28 @@ describe('MockHttpClient', () => {
         status: 201,
         headers: {}
       };
-      mockClient.mockPost('https://example.com/api', mockResponse);
+      mockClient.mockPost(API_URL, mockResponse);
 
       // Act
       const result = await mockClient.post<{ result: string }, { name: string }>(
-        'https://example.com/api',
+        API_URL,
         { name: 'test' }
       );
 
       // Assert
       expect(result).toEqual(mockResponse);
-      expect(mockClient.lastUrl).toBe('https://example.com/api');
+      expect(mockClient.lastUrl).toBe(API_URL);
     });
 
     it('should throw mocked error for specific URL', async () => {
       // Arrange
       const mockError = new Error('POST error');
-      mockClient.mockPostError('https://example.com/api', mockError);
+      mockClient.mockPostError(API_URL, mockError);
 
       // Act & Assert
-      await expect(mockClient.post('https://example.com/api', { data: 'test' }))
+      await expect(mockClient.post(API_URL, { data: 'test' }))
         .rejects.toThrow('POST error');
-      expect(mockClient.lastUrl).toBe('https://example.com/api');
+      expect(mockClient.lastUrl).toBe(API_URL);
     });
 
     it('should return default mock response when URL is not specifically mocked', async () => {
@@ -121,31 +125,31 @@ describe('MockHttpClient', () => {
 
       // Act
       const result = await mockClient.post<{ result: string }>(
-        'https://example.com/unknown',
+        UNKNOWN_URL,
         { data: 'test' }
       );
 
       // Assert
       expect(result).toEqual(defaultResponse);
-      expect(mockClient.lastUrl).toBe('https://example.com/unknown');
+      expect(mockClient.lastUrl).toBe(UNKNOWN_URL);
     });
 
     it('should throw default mock error when URL is not specifically mocked', async () => {
       // Arrange
-      const defaultError = new Error('Default error');
+      const defaultError = new Error(DEFAULT_ERROR_MESSAGE);
       mockClient.setMockError(defaultError);
 
       // Act & Assert
-      await expect(mockClient.post('https://example.com/unknown', { data: 'test' }))
-        .rejects.toThrow('Default error');
-      expect(mockClient.lastUrl).toBe('https://example.com/unknown');
+      await expect(mockClient.post(UNKNOWN_URL, { data: 'test' }))
+        .rejects.toThrow(DEFAULT_ERROR_MESSAGE);
+      expect(mockClient.lastUrl).toBe(UNKNOWN_URL);
     });
 
     it('should throw error when no mock is set up', async () => {
       // Act & Assert
-      await expect(mockClient.post('https://example.com/api', { data: 'test' }))
-        .rejects.toThrow('No mock response or error set for URL: https://example.com/api');
-      expect(mockClient.lastUrl).toBe('https://example.com/api');
+      await expect(mockClient.post(API_URL, { data: 'test' }))
+        .rejects.toThrow(`No mock response or error set for URL: ${API_URL}`);
+      expect(mockClient.lastUrl).toBe(API_URL);
     });
   });
 });

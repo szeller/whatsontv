@@ -5,6 +5,8 @@ import { describe, it, expect, jest } from '@jest/globals';
 import { validateData, validateDataOrNull, validateArray } from '../../utils/validationUtils.js';
 import { z } from 'zod';
 
+const INVALID_ID = 'not-a-number';
+
 describe('Validation Utilities', () => {
   // Create a simple test schema
   const testSchema = z.object({
@@ -32,17 +34,17 @@ describe('Validation Utilities', () => {
     });
 
     it('should throw error for invalid input', () => {
-      const testData = { id: 'not-a-number', name: 'Test' };
+      const testData = { id: INVALID_ID, name: 'Test' };
       expect(() => validateData(testSchema, testData)).toThrow('Validation error');
     });
 
     it('should include custom error message when provided', () => {
-      const testData = { id: 'not-a-number', name: 'Test' };
+      const testData = { id: INVALID_ID, name: 'Test' };
       expect(() => validateData(testSchema, testData, 'Custom error')).toThrow('Custom error');
     });
 
     it('should include detailed validation errors when includeDetails is true', () => {
-      const testData = { id: 'not-a-number', name: 'Test' };
+      const testData = { id: INVALID_ID, name: 'Test' };
       expect(() => validateData(testSchema, testData, 'Validation error', true))
         .toThrow(/Validation error[\s\S]*id[\s\S]*number/);
     });
@@ -53,7 +55,7 @@ describe('Validation Utilities', () => {
       delete process.env.JEST_WORKER_ID;
       
       const consoleSpy = jest.spyOn(console, 'error');
-      const testData = { id: 'not-a-number', name: 'Test' };
+      const testData = { id: INVALID_ID, name: 'Test' };
       
       try {
         validateData(testSchema, testData);
@@ -68,7 +70,7 @@ describe('Validation Utilities', () => {
       process.env.NODE_ENV = 'production';
       
       const consoleSpy = jest.spyOn(console, 'error');
-      const testData = { id: 'not-a-number', name: 'Test' };
+      const testData = { id: INVALID_ID, name: 'Test' };
       
       try {
         validateData(testSchema, testData);
@@ -83,7 +85,7 @@ describe('Validation Utilities', () => {
       process.env.NODE_ENV = 'test';
       
       const consoleSpy = jest.spyOn(console, 'error');
-      const testData = { id: 'not-a-number', name: 'Test' };
+      const testData = { id: INVALID_ID, name: 'Test' };
       
       try {
         validateData(testSchema, testData);
@@ -99,7 +101,7 @@ describe('Validation Utilities', () => {
       process.env.JEST_WORKER_ID = '1';
       
       const consoleSpy = jest.spyOn(console, 'error');
-      const testData = { id: 'not-a-number', name: 'Test' };
+      const testData = { id: INVALID_ID, name: 'Test' };
       
       try {
         validateData(testSchema, testData);
@@ -119,7 +121,7 @@ describe('Validation Utilities', () => {
     });
 
     it('should return null for invalid input', () => {
-      const testData = { id: 'not-a-number', name: 'Test' };
+      const testData = { id: INVALID_ID, name: 'Test' };
       const result = validateDataOrNull(testSchema, testData);
       expect(result).toBeNull();
     });
@@ -130,7 +132,7 @@ describe('Validation Utilities', () => {
       delete process.env.JEST_WORKER_ID;
       
       const consoleSpy = jest.spyOn(console, 'error');
-      const testData = { id: 'not-a-number', name: 'Test' };
+      const testData = { id: INVALID_ID, name: 'Test' };
       
       validateDataOrNull(testSchema, testData);
       
@@ -141,7 +143,7 @@ describe('Validation Utilities', () => {
       process.env.NODE_ENV = 'production';
       
       const consoleSpy = jest.spyOn(console, 'error');
-      const testData = { id: 'not-a-number', name: 'Test' };
+      const testData = { id: INVALID_ID, name: 'Test' };
       
       validateDataOrNull(testSchema, testData);
       
@@ -169,7 +171,7 @@ describe('Validation Utilities', () => {
     it('should throw error for array with invalid items', () => {
       const testData = [
         { value: 1 },
-        { value: 'not-a-number' as unknown as number }, // Invalid
+        { value: INVALID_ID as unknown as number }, // Invalid
         { value: 3 }
       ];
       
@@ -180,7 +182,7 @@ describe('Validation Utilities', () => {
     it('should include custom error message when provided', () => {
       const testData = [
         { value: 1 },
-        { value: 'not-a-number' as unknown as number }, // Invalid
+        { value: INVALID_ID as unknown as number }, // Invalid
         { value: 3 }
       ];
       
@@ -191,7 +193,7 @@ describe('Validation Utilities', () => {
     it('should include detailed validation errors when includeDetails is true', () => {
       const testData = [
         { value: 1 },
-        { value: 'not-a-number' as unknown as number }, // Invalid
+        { value: INVALID_ID as unknown as number }, // Invalid
         { value: 3 }
       ];
       
