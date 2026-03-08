@@ -122,41 +122,11 @@ expect.extend({
   },
   
   toBeValidNetworkGroups(received: unknown) {
-    // Check if the received value is a valid NetworkGroups object
-    let isValid = 
-      received !== null &&
-      received !== undefined &&
-      typeof received === 'object';
-    
-    // If basic check passes, validate structure
-    if (isValid) {
-      try {
-        const networkGroups = received as NetworkGroups;
-        
-        // Check each network entry
-        for (const [network, shows] of Object.entries(networkGroups)) {
-          if (typeof network !== 'string' || !Array.isArray(shows)) {
-            isValid = false;
-            continue;
-          }
-          
-          // Check shows if any exist
-          if (shows.length > 0) {
-            const firstShow = shows[0];
-            if (typeof firstShow !== 'object' || typeof firstShow.name !== 'string') {
-              isValid = false;
-            }
-          }
-        }
-      } catch {
-        // If any error occurs during validation, the object is not valid
-        isValid = false;
-      }
-    }
-    
+    const isValid = isValidNetworkGroups(received);
+
     return {
-      message: () => isValid 
-        ? `Expected ${JSON.stringify(received)} not to be valid network groups` 
+      message: () => isValid
+        ? `Expected ${JSON.stringify(received)} not to be valid network groups`
         : `Expected ${JSON.stringify(received)} to be valid network groups`,
       pass: isValid
     };
@@ -188,6 +158,30 @@ export function expectValidNetwork(network: unknown): void {
 /**
  * Asserts that network groups have the expected structure
  */
+/** Check whether a value is a valid NetworkGroups object */
+function isValidNetworkGroups(received: unknown): boolean {
+  if (received === null || received === undefined || typeof received !== 'object') {
+    return false;
+  }
+
+  try {
+    for (const [network, shows] of Object.entries(received as NetworkGroups)) {
+      if (typeof network !== 'string' || !Array.isArray(shows)) {
+        return false;
+      }
+      if (shows.length > 0) {
+        const firstShow = shows[0];
+        if (typeof firstShow !== 'object' || typeof firstShow.name !== 'string') {
+          return false;
+        }
+      }
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function expectValidNetworkGroups(networkGroups: NetworkGroups): void {
   expect(networkGroups).toBeValidNetworkGroups();
   

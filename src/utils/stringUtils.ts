@@ -144,46 +144,47 @@ export function wrapText(text: string, maxWidth: number): string[] {
   if (!text || maxWidth <= 0) {
     return [];
   }
-  
+
   const words = text.split(' ');
   const lines: string[] = [];
   let currentLine = '';
-  
+
   for (const word of words) {
-    // Check if adding this word would exceed the max width
     if (currentLine.length + word.length + 1 > maxWidth) {
-      // If the current line is not empty, add it to the lines array
       if (currentLine.length > 0) {
         lines.push(currentLine);
-        currentLine = '';
       }
-      
-      // If the word itself is longer than maxWidth, split it
-      if (word.length > maxWidth) {
-        let remainingWord = word;
-        while (remainingWord.length > 0) {
-          const chunk = remainingWord.slice(0, Math.max(0, maxWidth));
-          lines.push(chunk);
-          remainingWord = remainingWord.slice(Math.max(0, maxWidth));
-        }
-      } else {
-        currentLine = word;
-      }
+      currentLine = appendOverflowWord(word, maxWidth, lines);
     } else {
-      // Add the word to the current line
-      if (currentLine.length > 0) {
-        currentLine += ' ';
-      }
-      currentLine += word;
+      currentLine = currentLine.length > 0
+        ? `${currentLine} ${word}`
+        : word;
     }
   }
-  
-  // Add the last line if it's not empty
+
   if (currentLine.length > 0) {
     lines.push(currentLine);
   }
-  
+
   return lines;
+}
+
+/** Handle a word that doesn't fit on the current line, splitting if needed */
+function appendOverflowWord(
+  word: string, maxWidth: number, lines: string[]
+): string {
+  if (word.length <= maxWidth) {
+    return word;
+  }
+  let remaining = word;
+  while (remaining.length > maxWidth) {
+    lines.push(remaining.slice(0, maxWidth));
+    remaining = remaining.slice(maxWidth);
+  }
+  if (remaining.length > 0) {
+    lines.push(remaining);
+  }
+  return '';
 }
 
 /**

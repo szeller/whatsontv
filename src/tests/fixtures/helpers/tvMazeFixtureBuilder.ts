@@ -260,39 +260,23 @@ export class TvMazeShowBuilder {
    */
   static createShow(options: Partial<TvMazeShow> = {}): TvMazeShow {
     const builder = new TvMazeShowBuilder();
-    
+
     if (options.id !== undefined) builder.withId(options.id);
     if (options.name !== undefined) builder.withName(options.name);
     if (options.type !== undefined) builder.withType(options.type);
     if (options.language !== undefined) builder.withLanguage(options.language);
     if (options.genres !== undefined) builder.withGenres(options.genres);
     if (options.status !== undefined) builder.withStatus(options.status);
-    
-    // Handle runtime and averageRuntime
-    if (options.runtime !== undefined) {
-      // Use a type guard to handle null values
-      if (options.runtime === null) {
-        builder.withRuntime(null);
-      } else {
-        builder.withRuntime(options.runtime);
-      }
-    }
-    
+    if (options.runtime !== undefined) builder.withRuntime(options.runtime);
     if (options.averageRuntime !== undefined) {
-      // Use a type guard to handle null values
-      if (options.averageRuntime === null) {
-        builder.withAverageRuntime(0); // Use 0 or another default value for null
-      } else {
-        builder.withAverageRuntime(options.averageRuntime);
-      }
+      builder.withAverageRuntime(options.averageRuntime ?? 0);
     }
-    
     if (options.premiered !== undefined) builder.withPremiered(options.premiered);
     if (options.ended !== undefined) builder.withEnded(options.ended);
     if (options.network !== undefined) builder.withNetwork(options.network);
     if (options.webChannel !== undefined) builder.withWebChannel(options.webChannel);
     if (options.summary !== undefined) builder.withSummary(options.summary);
-    
+
     return builder.build();
   }
 

@@ -3,6 +3,20 @@ import pino, { Logger } from 'pino';
 import { hostname } from 'node:os';
 import { LoggerService } from '../../interfaces/loggerService.js';
 
+/** Dispatch a log call to the appropriate pino method */
+function logMessage(
+  logger: Logger,
+  level: 'info' | 'warn' | 'error' | 'debug',
+  contextOrMessage: Record<string, unknown> | string,
+  message?: string
+): void {
+  if (typeof contextOrMessage === 'string') {
+    logger[level](contextOrMessage);
+  } else {
+    logger[level](contextOrMessage, message);
+  }
+}
+
 /**
  * Pino-based implementation of LoggerService for structured logging.
  * Provides high-performance JSON logging with configurable levels.
@@ -29,35 +43,19 @@ export class PinoLoggerServiceImpl implements LoggerService {
   }
 
   info(contextOrMessage: Record<string, unknown> | string, message?: string): void {
-    if (typeof contextOrMessage === 'string') {
-      this.logger.info(contextOrMessage);
-    } else {
-      this.logger.info(contextOrMessage, message);
-    }
+    logMessage(this.logger, 'info', contextOrMessage, message);
   }
 
   warn(contextOrMessage: Record<string, unknown> | string, message?: string): void {
-    if (typeof contextOrMessage === 'string') {
-      this.logger.warn(contextOrMessage);
-    } else {
-      this.logger.warn(contextOrMessage, message);
-    }
+    logMessage(this.logger, 'warn', contextOrMessage, message);
   }
 
   error(contextOrMessage: Record<string, unknown> | string, message?: string): void {
-    if (typeof contextOrMessage === 'string') {
-      this.logger.error(contextOrMessage);
-    } else {
-      this.logger.error(contextOrMessage, message);
-    }
+    logMessage(this.logger, 'error', contextOrMessage, message);
   }
 
   debug(contextOrMessage: Record<string, unknown> | string, message?: string): void {
-    if (typeof contextOrMessage === 'string') {
-      this.logger.debug(contextOrMessage);
-    } else {
-      this.logger.debug(contextOrMessage, message);
-    }
+    logMessage(this.logger, 'debug', contextOrMessage, message);
   }
 
   child(context: Record<string, unknown>): LoggerService {
@@ -68,7 +66,7 @@ export class PinoLoggerServiceImpl implements LoggerService {
   private getLogLevel(): string {
     const level = process.env.LOG_LEVEL?.toLowerCase();
     const validLevels = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'];
-    
+
     if (level !== undefined && validLevels.includes(level)) {
       return level;
     }
@@ -99,35 +97,19 @@ class PinoLoggerServiceWrapper implements LoggerService {
   constructor(private readonly logger: Logger) {}
 
   info(contextOrMessage: Record<string, unknown> | string, message?: string): void {
-    if (typeof contextOrMessage === 'string') {
-      this.logger.info(contextOrMessage);
-    } else {
-      this.logger.info(contextOrMessage, message);
-    }
+    logMessage(this.logger, 'info', contextOrMessage, message);
   }
 
   warn(contextOrMessage: Record<string, unknown> | string, message?: string): void {
-    if (typeof contextOrMessage === 'string') {
-      this.logger.warn(contextOrMessage);
-    } else {
-      this.logger.warn(contextOrMessage, message);
-    }
+    logMessage(this.logger, 'warn', contextOrMessage, message);
   }
 
   error(contextOrMessage: Record<string, unknown> | string, message?: string): void {
-    if (typeof contextOrMessage === 'string') {
-      this.logger.error(contextOrMessage);
-    } else {
-      this.logger.error(contextOrMessage, message);
-    }
+    logMessage(this.logger, 'error', contextOrMessage, message);
   }
 
   debug(contextOrMessage: Record<string, unknown> | string, message?: string): void {
-    if (typeof contextOrMessage === 'string') {
-      this.logger.debug(contextOrMessage);
-    } else {
-      this.logger.debug(contextOrMessage, message);
-    }
+    logMessage(this.logger, 'debug', contextOrMessage, message);
   }
 
   child(context: Record<string, unknown>): LoggerService {

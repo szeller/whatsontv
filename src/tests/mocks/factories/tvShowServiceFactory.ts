@@ -41,99 +41,59 @@ export function createMockTvShowService(
   const mockTvShowService: jest.Mocked<TvShowService> = {
     // eslint-disable-next-line @typescript-eslint/require-await
     fetchShows: jest.fn(async (showOptions: ShowOptions): Promise<Show[]> => {
-      // If we should throw an error, do so
       if (options.fetchError) {
         throw options.fetchError;
       }
-      
-      // Check for date-specific shows
-      const hasDateOption = Boolean(showOptions.date);
-      const hasDateMatches = Boolean(options.showsByDate);
-      
-      if (hasDateMatches && hasDateOption) {
-        const date = showOptions.date ?? '';
-        const dateShows = options.showsByDate?.[date];
-        if (dateShows) {
-          return dateShows;
-        }
-      }
-      
-      // Check for country-specific shows
-      const hasCountryOption = Boolean(showOptions.country);
-      const hasCountryMatches = Boolean(options.showsByCountry);
-      
-      if (hasCountryMatches && hasCountryOption) {
-        const country = showOptions.country ?? '';
-        const countryShows = options.showsByCountry?.[country];
-        if (countryShows) {
-          return countryShows;
-        }
-      }
-      
-      // Check for network-specific shows
-      const hasNetworkOptions = Boolean(
-        showOptions.networks && showOptions.networks.length > 0
-      );
-      const hasNetworkMatches = Boolean(options.showsByNetwork);
-      
-      if (hasNetworkMatches && hasNetworkOptions && showOptions.networks) {
-        // Return shows for the first matching network
-        for (const network of showOptions.networks) {
-          if (!network) continue;
-          const networkShows = options.showsByNetwork?.[network];
-          if (networkShows) {
-            return networkShows;
-          }
-        }
-      }
-      
-      // Check for genre-specific shows
-      const hasGenreOptions = Boolean(
-        showOptions.genres && showOptions.genres.length > 0
-      );
-      const hasGenreMatches = Boolean(options.showsByGenre);
-      
-      if (hasGenreMatches && hasGenreOptions && showOptions.genres) {
-        // Return shows for the first matching genre
-        for (const genre of showOptions.genres) {
-          if (!genre) continue;
-          const genreShows = options.showsByGenre?.[genre];
-          if (genreShows) {
-            return genreShows;
-          }
-        }
-      }
-      
-      // Check for language-specific shows
-      const hasLanguageOptions = Boolean(
-        showOptions.languages && showOptions.languages.length > 0
-      );
-      const hasLanguageMatches = Boolean(options.showsByLanguage);
-      
-      if (hasLanguageMatches && hasLanguageOptions && showOptions.languages) {
-        // Return shows for the first matching language
-        for (const language of showOptions.languages) {
-          if (!language) continue;
-          const languageShows = options.showsByLanguage?.[language];
-          if (languageShows) {
-            return languageShows;
-          }
-        }
-      }
-      
-      // Return default shows if none of the specific criteria matched
-      return options.defaultShows ?? [];
+
+      return resolveShows(showOptions, options);
     })
   };
-  
-  // Apply any custom implementations
+
   if (options.implementation) {
     for (const [key, value] of Object.entries(options.implementation)) {
-      // We need to cast here because we're dynamically setting properties
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (mockTvShowService as any)[key] = value;
     }
   }
-  
+
   return mockTvShowService;
+}
+
+/** Look up a single string key in a shows map */
+function lookupByKey(
+  key: string | undefined, map: Record<string, Show[]> | undefined
+): Show[] | undefined {
+  if (key === undefined || key === '' || map === undefined) {
+    return undefined;
+  }
+  return map[key];
+}
+
+/** Find the first matching entry from an array key in a shows map */
+function lookupByArray(
+  keys: string[] | undefined, map: Record<string, Show[]> | undefined
+): Show[] | undefined {
+  if (keys === undefined || keys.length === 0 || map === undefined) {
+    return undefined;
+  }
+  for (const key of keys) {
+    if (key === '') continue;
+    if (key in map) {
+      return map[key];
+    }
+  }
+  return undefined;
+}
+
+/** Resolve shows from options based on the show options criteria */
+function resolveShows(
+  showOptions: ShowOptions, options: TvShowServiceOptions
+): Show[] {
+  return lookupByKey(showOptions.date, options.showsByDate)
+    ?? lookupByKey(showOptions.country, options.showsByCountry)
+    ?? lookupByArray(showOptions.networks, options.showsByNetwork)
+    ?? lookupByArray(showOptions.genres, options.showsByGenre)
+    ?? lookupByArray(showOptions.languages, options.showsByLanguage)
+    ?? options.defaultShows
+    ?? [];
 }

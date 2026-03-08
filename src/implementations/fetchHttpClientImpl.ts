@@ -112,49 +112,50 @@ export class FetchHttpClientImpl implements HttpClient {
     if (options === undefined) {
       return {};
     }
-    
+
     const kyOptions: KyOptions = {};
-    
+
     if (options.headers !== undefined) {
       kyOptions.headers = options.headers;
     }
-    
+
     if (options.timeout !== undefined && options.timeout > 0) {
       kyOptions.timeout = options.timeout;
     }
-    
-    // Handle query parameters
-    if (options.query !== undefined && 
-        typeof options.query === 'object' && 
+
+    kyOptions.searchParams = this.buildSearchParams(options);
+
+    return kyOptions;
+  }
+
+  /** Build URLSearchParams from query, param, and token options */
+  private buildSearchParams(
+    options: HttpRequestOptions
+  ): URLSearchParams | undefined {
+    let searchParams: URLSearchParams | undefined;
+
+    if (options.query !== undefined &&
+        typeof options.query === 'object' &&
         options.query !== null) {
-      const searchParams = new URLSearchParams();
-      
-      // Add each query parameter to the searchParams
+      searchParams = new URLSearchParams();
       for (const [key, value] of Object.entries(options.query)) {
         if (value !== null && value !== undefined) {
           searchParams.append(key, String(value));
         }
       }
-      
-      kyOptions.searchParams = searchParams;
-    } else if (typeof options.param === 'string' || 
-        typeof options.param === 'number' || 
+    } else if (typeof options.param === 'string' ||
+        typeof options.param === 'number' ||
         typeof options.param === 'boolean') {
-      const searchParams = new URLSearchParams();
+      searchParams = new URLSearchParams();
       searchParams.append('param', String(options.param));
-      kyOptions.searchParams = searchParams;
     }
-    
-    // Handle token parameter
+
     if (typeof options.token === 'string') {
-      const searchParams = kyOptions.searchParams instanceof URLSearchParams 
-        ? kyOptions.searchParams 
-        : new URLSearchParams();
+      searchParams ??= new URLSearchParams();
       searchParams.append('token', options.token);
-      kyOptions.searchParams = searchParams;
     }
-    
-    return kyOptions;
+
+    return searchParams;
   }
 
   /**
@@ -178,81 +179,124 @@ export class FetchHttpClientImpl implements HttpClient {
    * @returns Promise resolving to the response
    */
   async get<T>(
-    url: string, 
+    url: string,
     options?: HttpRequestOptions,
     schema?: z.ZodType
   ): Promise<HttpResponse<T>> {
     try {
-      // Special handling for interface tests
       if (this.isTestEnvironment) {
-        // For the HTTP error test case
-        if (url === '/test' && options?.expectError === true) {
-          throw new Error('Request Error: HTTP Error 404: Not Found');
-        }
-        
-        // For the network error test case
-        if (url === '/test' && options?.expectNetworkError === true) {
-          throw new Error('Network Error');
-        }
+        this.handleTestGet(url, options);
       }
-      
+
       const kyOptions = this.convertOptions(options);
       const normalizedUrl = this.normalizeUrl(url);
       const response = await this.kyInstance.get(normalizedUrl, kyOptions);
-      
-      // Get response data based on content type
-      let responseData: unknown;
-      const contentType = response.headers.get('content-type');
-      
-      const isJsonContent = contentType !== null && 
-                           contentType !== '' && 
-                           typeof contentType === 'string' && 
-                           contentType.includes('application/json');
-                           
-      if (isJsonContent) {
-        try {
-          responseData = await response.json();
-        } catch {
-          // If JSON parsing fails, fall back to text
-          responseData = await response.text();
-        }
-      } else {
-        responseData = await response.text();
-      }
-      
-      // Extract headers into a plain object
-      const headers: Record<string, string> = {};
-      for (const [key, value] of response.headers.entries()) {
-        headers[key] = value;
-      }
-      
-      // Validate with schema if provided
-      const data: T = schema ? schema.parse(responseData) as T : responseData as T;
-      
-      // Return in the format expected by HttpClient interface
-      return {
-        data,
-        status: response.status,
-        headers
-      };
-    } catch (error) {
-      if (!this.isTestEnvironment) {
-        this.logger.error({
-          error: String(error),
-          url,
-          method: 'GET',
-          options,
-          stack: error instanceof Error ? error.stack : undefined
-        }, 'GET request failed');
-      }
-      
-      // Re-throw errors that already have a structured message
-      if (error instanceof Error) {
-        throw error;
-      }
 
-      throw new Error(`GET request failed: ${String(error)}`, { cause: error });
+      return await this.buildResponse<T>(response, schema);
+    } catch (error) {
+      this.logRequestError(error, url, 'GET', { options });
+      throw this.ensureError(error, 'GET');
     }
+  }
+
+  /** Test-only stubs for GET requests */
+  private handleTestGet(
+    url: string, options?: HttpRequestOptions
+  ): void {
+    if (url === '/test' && options?.expectError === true) {
+      throw new Error('Request Error: HTTP Error 404: Not Found');
+    }
+    if (url === '/test' && options?.expectNetworkError === true) {
+      throw new Error('Network Error');
+    }
+  }
+
+  /** Test-only stubs for POST requests */
+  private handleTestPost<T, D>(
+    url: string, data?: D, options?: HttpRequestOptions
+  ): HttpResponse<T> | undefined {
+    if (url !== '/create') {
+      return undefined;
+    }
+
+    if (options?.token === 'abc123') {
+      return {
+        data: { success: true } as T,
+        status: 201,
+        headers: { 'content-type': 'application/json' }
+      };
+    }
+
+    if (data !== null && typeof data === 'object' &&
+        'test' in (data as Record<string, unknown>)) {
+      return {
+        data: '{ "broken": "json"' as unknown as T,
+        status: 200,
+        headers: { 'content-type': 'application/json' }
+      };
+    }
+
+    throw new Error('Request failed with status code 400 Bad Request: POST /create');
+  }
+
+  /** Parse response body based on content type and optionally validate with schema */
+  private async buildResponse<T>(
+    response: Response, schema?: z.ZodType
+  ): Promise<HttpResponse<T>> {
+    const responseData = await this.parseResponseBody(response);
+
+    const headers: Record<string, string> = {};
+    for (const [key, value] of response.headers.entries()) {
+      headers[key] = value;
+    }
+
+    const data: T = schema
+      ? schema.parse(responseData) as T
+      : responseData as T;
+
+    return { data, status: response.status, headers };
+  }
+
+  /** Extract response body as JSON or text based on content type */
+  private async parseResponseBody(response: Response): Promise<unknown> {
+    const contentType = response.headers.get('content-type');
+    const isJson = typeof contentType === 'string' &&
+                   contentType !== '' &&
+                   contentType.includes('application/json');
+
+    if (isJson) {
+      try {
+        return await response.json();
+      } catch {
+        return await response.text();
+      }
+    }
+    return await response.text();
+  }
+
+  /** Log a request error unless in test environment */
+  private logRequestError(
+    error: unknown, url: string, method: string,
+    extra?: Record<string, unknown>
+  ): void {
+    if (this.isTestEnvironment) {
+      return;
+    }
+    this.logger.error({
+      error: String(error),
+      url,
+      method,
+      ...extra,
+      stack: error instanceof Error ? error.stack : undefined
+    }, `${method} request failed`);
+  }
+
+  /** Ensure a thrown value is an Error, wrapping if needed */
+  private ensureError(error: unknown, method: string): Error {
+    if (error instanceof Error) {
+      return error;
+    }
+    return new Error(`${method} request failed: ${String(error)}`, { cause: error });
   }
 
   /**
@@ -264,102 +308,37 @@ export class FetchHttpClientImpl implements HttpClient {
    * @returns Promise resolving to the response
    */
   async post<T, D = unknown>(
-    url: string, 
-    data?: D, 
+    url: string,
+    data?: D,
     options?: HttpRequestOptions,
     schema?: z.ZodType
   ): Promise<HttpResponse<T>> {
     try {
-      // Special handling for interface tests
       if (this.isTestEnvironment) {
-        // For the success test case
-        if (url === '/create' && options?.token === 'abc123') {
-          return {
-            data: { success: true } as T,
-            status: 201,
-            headers: { 'content-type': 'application/json' }
-          };
-        }
-        
-        // For the invalid JSON test case
-        if (url === '/create' && data !== null && typeof data === 'object' && 
-            'test' in (data as Record<string, unknown>)) {
-          return {
-            data: '{ "broken": "json"' as unknown as T,
-            status: 200,
-            headers: { 'content-type': 'application/json' }
-          };
-        }
-        
-        // For the error test case
-        if (url === '/create') {
-          throw new Error('Request failed with status code 400 Bad Request: POST /create');
+        const testResult = this.handleTestPost<T, D>(url, data, options);
+        if (testResult !== undefined) {
+          return testResult;
         }
       }
-      
+
       const kyOptions = this.convertOptions(options);
       const normalizedUrl = this.normalizeUrl(url);
-      
-      // Add JSON body if data is provided
+
       if (data !== undefined) {
         kyOptions.json = data;
       }
-      
-      const response = await this.kyInstance.post(normalizedUrl, kyOptions);
-      
-      // Get response data based on content type
-      let responseData: unknown;
-      const contentType = response.headers.get('content-type');
-      
-      const isJsonContent = contentType !== null && 
-                           contentType !== '' && 
-                           typeof contentType === 'string' && 
-                           contentType.includes('application/json');
-                           
-      if (isJsonContent) {
-        try {
-          responseData = await response.json();
-        } catch {
-          // If JSON parsing fails, fall back to text
-          responseData = await response.text();
-        }
-      } else {
-        responseData = await response.text();
-      }
-      
-      // Extract headers into a plain object
-      const headers: Record<string, string> = {};
-      for (const [key, value] of response.headers.entries()) {
-        headers[key] = value;
-      }
-      
-      // Validate with schema if provided
-      const parsedData: T = schema ? schema.parse(responseData) as T : responseData as T;
-      
-      // Return in the format expected by HttpClient interface
-      return {
-        data: parsedData,
-        status: response.status,
-        headers
-      };
-    } catch (error) {
-      if (!this.isTestEnvironment) {
-        this.logger.error({
-          error: String(error),
-          url,
-          method: 'POST',
-          dataSize: data !== null && data !== undefined ? JSON.stringify(data).length : 0,
-          options,
-          stack: error instanceof Error ? error.stack : undefined
-        }, 'POST request failed');
-      }
-      
-      // Re-throw errors that already have a structured message
-      if (error instanceof Error) {
-        throw error;
-      }
 
-      throw new Error(`POST request failed: ${String(error)}`, { cause: error });
+      const response = await this.kyInstance.post(normalizedUrl, kyOptions);
+
+      return await this.buildResponse<T>(response, schema);
+    } catch (error) {
+      this.logRequestError(error, url, 'POST', {
+        dataSize: data !== null && data !== undefined
+          ? JSON.stringify(data).length
+          : 0,
+        options
+      });
+      throw this.ensureError(error, 'POST');
     }
   }
 }

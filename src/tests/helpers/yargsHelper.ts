@@ -123,48 +123,8 @@ export function createMockYargs(): MockYargsInstance {
     }
 
     const parsedArgs: Record<string, unknown> = { ...defaultArgs };
-
-    for (let i = 0; i < args.length; i++) {
-      const arg: string = args[i];
-      if (arg.startsWith('--')) {
-        const key: string = arg.slice(2);
-        const option = currentOptions[key];
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-        if (option === undefined) {
-          continue;
-        }
-        if (option.type === 'boolean') {
-          parsedArgs[key] = true;
-          if (option.alias !== undefined && option.alias !== '') {
-            parsedArgs[option.alias] = true;
-          }
-        } else {
-          const value: string = args[i + 1];
-          if (option.type === 'array' && value !== '') {
-            parsedArgs[key] = [value];
-            if (option.alias !== undefined && option.alias !== '') {
-              parsedArgs[option.alias] = [value];
-            }
-            i++;
-          } else if (value !== '' && !value.startsWith('--')) {
-            parsedArgs[key] = value;
-            if (option.alias !== undefined && option.alias !== '') {
-              parsedArgs[option.alias] = value;
-            }
-            i++;
-          }
-        }
-      }
-    }
-
-    for (const [key, option] of Object.entries(currentOptions)) {
-      if (option.default !== undefined && parsedArgs[key] === undefined) {
-        parsedArgs[key] = option.default;
-        if (option.alias !== undefined && option.alias !== '') {
-          parsedArgs[option.alias] = option.default;
-        }
-      }
-    }
+    parseArgs(args, currentOptions, parsedArgs);
+    applyDefaults(currentOptions, parsedArgs);
 
     return parsedArgs;
   });
@@ -196,6 +156,73 @@ export function createMockYargs(): MockYargsInstance {
  * Mock the yargs module for testing
  * @param yargs Mock Yargs instance to use
  */
+/** Set a parsed value and its alias if present */
+function setWithAlias(
+  parsedArgs: Record<string, unknown>,
+  key: string, value: unknown,
+  option: YargsOptions
+): void {
+  parsedArgs[key] = value;
+  if (option.alias !== undefined && option.alias !== '') {
+    parsedArgs[option.alias] = value;
+  }
+}
+
+/** Parse a non-boolean argument, returning how many args were consumed */
+function parseValueArg(
+  args: string[], index: number,
+  key: string, option: YargsOptions,
+  parsedArgs: Record<string, unknown>
+): number {
+  const value: string = args[index + 1];
+  if (option.type === 'array' && value !== '') {
+    setWithAlias(parsedArgs, key, [value], option);
+    return 1;
+  }
+  if (value !== '' && !value.startsWith('--')) {
+    setWithAlias(parsedArgs, key, value, option);
+    return 1;
+  }
+  return 0;
+}
+
+/** Parse CLI args into parsedArgs using the registered options */
+function parseArgs(
+  args: string[],
+  options: Record<string, YargsOptions>,
+  parsedArgs: Record<string, unknown>
+): void {
+  for (let i = 0; i < args.length; i++) {
+    const arg: string = args[i];
+    if (!arg.startsWith('--')) {
+      continue;
+    }
+    const key: string = arg.slice(2);
+    const option = options[key];
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (option === undefined) {
+      continue;
+    }
+    if (option.type === 'boolean') {
+      setWithAlias(parsedArgs, key, true, option);
+    } else {
+      i += parseValueArg(args, i, key, option, parsedArgs);
+    }
+  }
+}
+
+/** Apply default values for any options not yet set */
+function applyDefaults(
+  options: Record<string, YargsOptions>,
+  parsedArgs: Record<string, unknown>
+): void {
+  for (const [key, option] of Object.entries(options)) {
+    if (option.default !== undefined && parsedArgs[key] === undefined) {
+      setWithAlias(parsedArgs, key, option.default, option);
+    }
+  }
+}
+
 export function mockYargs(yargs: MockYargsInstance): void {
   jest.mock('yargs', () => ({
     __esModule: true,

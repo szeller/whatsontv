@@ -97,7 +97,7 @@ const tsRules = {
   '@typescript-eslint/promise-function-async': 'error'
 };
 
-// SonarJS overrides: rules disabled for false positives or deferred refactoring
+// SonarJS overrides: rules disabled for false positives
 // (shared between source and test configs)
 const disabledSonarjsRules = {
   // False positives: flags defensive coding, generic narrowing, Record indexing
@@ -105,10 +105,7 @@ const disabledSonarjsRules = {
   // False positives: doesn't respect _ prefix convention (typescript-eslint handles this)
   'sonarjs/no-unused-vars': 'off',
   // False positives: flags intentional lexicographic sort on simple strings
-  'sonarjs/no-alphabetical-sort': 'off',
-  // Deferred: violations need manual refactoring
-  'sonarjs/cognitive-complexity': 'off',
-  'sonarjs/no-identical-functions': 'off'
+  'sonarjs/no-alphabetical-sort': 'off'
 };
 
 // Unicorn rules: recommended preset with project-specific overrides

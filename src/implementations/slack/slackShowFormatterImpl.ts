@@ -44,12 +44,7 @@ export class SlackShowFormatterImpl extends BaseShowFormatterImpl<SlackBlock>
    * @returns Formatted show as bullet point string
    */
   public formatUntimedShow(show: Show): SlackSectionBlock {
-    // This method is required by the interface but we use formatShowAsBullet instead
-    const text = this.formatShowAsBullet(show);
-    return {
-      type: 'section',
-      text: { type: 'mrkdwn', text }
-    };
+    return this.formatTimedShow(show);
   }
 
   /**

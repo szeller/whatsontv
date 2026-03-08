@@ -104,64 +104,19 @@ export function setupTvMazeMocks(
     // Set up mock implementation for the get method
     // eslint-disable-next-line @typescript-eslint/require-await -- mock returns Promise
     jest.spyOn(mockHttpClient, 'get').mockImplementation(async (_url: string) => {
-      // Network schedule endpoint
       if (_url === networkEndpoint) {
-        return {
-          status: 200,
-          headers: {},
-          data: networkData
-        };
+        return { status: 200, headers: {}, data: networkData };
       }
-      
-      // Web schedule endpoint
       if (_url === webEndpoint) {
-        return {
-          status: 200,
-          headers: {},
-          data: webData
-        };
+        return { status: 200, headers: {}, data: webData };
       }
-      
-      // Individual show endpoints
-      if (_url.startsWith(`${TVMAZE_API.BASE_URL}${TVMAZE_API.SHOW_ENDPOINT}/`)) {
-        const showIdMatch = /\/shows\/(\d+)$/.exec(_url);
-        if (showIdMatch) {
-          const showId = Number.parseInt(showIdMatch[1], 10);
-          
-          // Look for the show in network data
-          if (Array.isArray(networkData)) {
-            for (const item of networkData) {
-              if (item.show?.id === showId) {
-                return {
-                  status: 200,
-                  headers: {},
-                  data: item.show
-                };
-              }
-            }
-          }
-          
-          // Look for the show in web data
-          if (Array.isArray(webData)) {
-            for (const item of webData) {
-              if (item._embedded?.show?.id === showId) {
-                return {
-                  status: 200,
-                  headers: {},
-                  data: item._embedded.show
-                };
-              }
-            }
-          }
-        }
+
+      const showData = findShowById(_url, networkData, webData);
+      if (showData !== undefined) {
+        return { status: 200, headers: {}, data: showData };
       }
-      
-      // Default fallback for any other URLs
-      return {
-        status: 404,
-        headers: {},
-        data: null
-      };
+
+      return { status: 404, headers: {}, data: null };
     });
   } catch (error) {
     console.error('Error setting up TVMaze mocks:', error);
@@ -176,4 +131,37 @@ export function setupTvMazeMocks(
       };
     });
   }
+}
+
+/** Extract a show ID from a /shows/:id URL and look it up in fixture data */
+function findShowById(
+  url: string,
+  networkData: NetworkScheduleItem[],
+  webData: WebScheduleItem[]
+): unknown {
+  const showPrefix = `${TVMAZE_API.BASE_URL}${TVMAZE_API.SHOW_ENDPOINT}/`;
+  if (!url.startsWith(showPrefix)) {
+    return undefined;
+  }
+
+  const showIdMatch = /\/shows\/(\d+)$/.exec(url);
+  if (!showIdMatch) {
+    return undefined;
+  }
+
+  const showId = Number.parseInt(showIdMatch[1], 10);
+
+  for (const item of networkData) {
+    if (item.show?.id === showId) {
+      return item.show;
+    }
+  }
+
+  for (const item of webData) {
+    if (item._embedded?.show?.id === showId) {
+      return item._embedded.show;
+    }
+  }
+
+  return undefined;
 }

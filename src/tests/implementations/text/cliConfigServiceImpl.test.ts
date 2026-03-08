@@ -202,82 +202,94 @@ class TestCliConfigService extends CliConfigServiceImpl {
   
   // Override getShowOption to use our mock show options
   public override getShowOption<K extends keyof ShowOptions>(_key: K): ShowOptions[K] {
-    // Special handling for command line arguments tests
-    if (this.mockArgs.length > 0) {
-      if (_key === 'types' && this.mockArgs.includes('--types')) {
-        const typesIndex = this.mockArgs.indexOf('--types');
-        if (typesIndex !== -1 && typesIndex + 1 < this.mockArgs.length) {
-          const typesValue = this.mockArgs[typesIndex + 1];
-          if (typeof typesValue === 'string' && typesValue.length > 0) {
-            return typesValue.split(',') as unknown as ShowOptions[K];
-          }
-        }
-      }
-      
-      if (_key === 'networks' && this.mockArgs.includes('--networks')) {
-        const networksIndex = this.mockArgs.indexOf('--networks');
-        if (networksIndex !== -1 && networksIndex + 1 < this.mockArgs.length) {
-          const networksValue = this.mockArgs[networksIndex + 1];
-          if (typeof networksValue === 'string' && networksValue.length > 0) {
-            return networksValue.split(',') as unknown as ShowOptions[K];
-          }
-        }
-      }
+    const fromArgs = this.getOptionFromArgs(_key);
+    if (fromArgs !== undefined) {
+      return fromArgs;
     }
-    
-    // If we have a specific mock for this option, return it
+
     if (_key in this.mockShowOptions) {
       return this.mockShowOptions[_key] as ShowOptions[K];
     }
-    
-    // For date option with invalid value, return today's date
-    const isDateKey = _key === 'date';
-    const hasStringDate = typeof this.mockCliArgs.date === 'string';
-    const isInvalidDateStr = hasStringDate && 
-      this.mockCliArgs.date === 'invalid-date';
-      
-    if (isDateKey && isInvalidDateStr) {
+
+    if (_key === 'date' && this.mockCliArgs.date === 'invalid-date') {
       console.warn('Invalid date format provided. Using today\'s date.');
       return new Date() as unknown as ShowOptions[K];
     }
-    
-    // For tests that expect specific values from config file
-    if (this.mockFileExists) {
-      // Only use config values if they exist and CLI args don't override them
-      const cliValue = _key in this.mockCliArgs ? 
-        this.mockCliArgs[_key as keyof CliArgs] : undefined;
-      
-      if (cliValue === undefined || (Array.isArray(cliValue) && cliValue.length === 0)) {
-        if (_key === 'country' && typeof this.mockConfigContent.country === 'string' && 
-            this.mockConfigContent.country.length > 0) {
-          return this.mockConfigContent.country as unknown as ShowOptions[K];
-        }
-        if (_key === 'types' && Array.isArray(this.mockConfigContent.types)) {
-          return this.mockConfigContent.types as unknown as ShowOptions[K];
-        }
-        if (_key === 'networks' && Array.isArray(this.mockConfigContent.networks)) {
-          return this.mockConfigContent.networks as unknown as ShowOptions[K];
-        }
-        if (_key === 'genres' && Array.isArray(this.mockConfigContent.genres)) {
-          return this.mockConfigContent.genres as unknown as ShowOptions[K];
-        }
-        if (_key === 'languages' && Array.isArray(this.mockConfigContent.languages)) {
-          return this.mockConfigContent.languages as unknown as ShowOptions[K];
-        }
-        if (_key === 'minAirtime' && typeof this.mockConfigContent.minAirtime === 'string' && 
-            this.mockConfigContent.minAirtime.length > 0) {
-          return this.mockConfigContent.minAirtime as unknown as ShowOptions[K];
-        }
-      }
+
+    const fromConfig = this.getOptionFromConfig(_key);
+    if (fromConfig !== undefined) {
+      return fromConfig;
     }
-    
-    // CLI args override config file
+
     if (_key in this.mockCliArgs && this.mockCliArgs[_key as keyof CliArgs] !== undefined) {
       return this.mockCliArgs[_key as keyof CliArgs] as unknown as ShowOptions[K];
     }
-    
-    // Fall back to parent implementation
+
     return super.getShowOption(_key);
+  }
+
+  /** Extract a CSV arg value from mockArgs for the given key */
+  private getOptionFromArgs<K extends keyof ShowOptions>(
+    key: K
+  ): ShowOptions[K] | undefined {
+    if (this.mockArgs.length === 0) {
+      return undefined;
+    }
+
+    const argName = `--${key}`;
+    if (!this.mockArgs.includes(argName)) {
+      return undefined;
+    }
+
+    if (key !== 'types' && key !== 'networks') {
+      return undefined;
+    }
+
+    const argIndex = this.mockArgs.indexOf(argName);
+    if (argIndex === -1 || argIndex + 1 >= this.mockArgs.length) {
+      return undefined;
+    }
+
+    const argValue = this.mockArgs[argIndex + 1];
+    if (typeof argValue === 'string' && argValue.length > 0) {
+      return argValue.split(',') as unknown as ShowOptions[K];
+    }
+
+    return undefined;
+  }
+
+  /** Look up a config file value when CLI args don't override it */
+  private getOptionFromConfig<K extends keyof ShowOptions>(
+    key: K
+  ): ShowOptions[K] | undefined {
+    if (!this.mockFileExists) {
+      return undefined;
+    }
+
+    const cliValue = key in this.mockCliArgs
+      ? this.mockCliArgs[key as keyof CliArgs]
+      : undefined;
+    if (cliValue !== undefined && !(Array.isArray(cliValue) && cliValue.length === 0)) {
+      return undefined;
+    }
+
+    const configValue = this.mockConfigContent[key as keyof AppConfig];
+    if (configValue === undefined) {
+      return undefined;
+    }
+
+    const isStringKey = key === 'country' || key === 'minAirtime';
+    if (isStringKey && typeof configValue === 'string' && configValue.length > 0) {
+      return configValue as unknown as ShowOptions[K];
+    }
+
+    const isArrayKey = key === 'types' || key === 'networks' ||
+                       key === 'genres' || key === 'languages';
+    if (isArrayKey && Array.isArray(configValue)) {
+      return configValue as unknown as ShowOptions[K];
+    }
+
+    return undefined;
   }
   
   // Override handleConfigError to ensure console.error is called for tests
@@ -979,19 +991,19 @@ describe('CliConfigServiceImpl', () => {
   });
 
   describe('getSlackOptions', () => {
+    class NoSlackConfigService extends TestCliConfigService {
+      constructor() {
+        super();
+        this.appConfig = {
+          ...this.getConfig(),
+          slack: undefined as unknown as SlackConfig
+        };
+      }
+    }
+
     it('should return default slack options when no slack config exists', () => {
       // Arrange
-      class SlackConfigTestService extends TestCliConfigService {
-        constructor() {
-          super();
-          // Access protected property directly in subclass
-          this.appConfig = {
-            ...this.getConfig(),
-            slack: undefined as unknown as SlackConfig
-          };
-        }
-      }
-      const configService = new SlackConfigTestService();
+      const configService = new NoSlackConfigService();
 
       // Act
       const slackOptions = configService.getSlackOptions();
@@ -1040,17 +1052,7 @@ describe('CliConfigServiceImpl', () => {
       process.env.SLACK_CHANNEL = 'env-channel';
       process.env.SLACK_USERNAME = 'EnvBot';
       
-      class SlackConfigTestService extends TestCliConfigService {
-        constructor() {
-          super();
-          // Access protected property directly in subclass
-          this.appConfig = {
-            ...this.getConfig(),
-            slack: undefined as unknown as SlackConfig
-          };
-        }
-      }
-      const configService = new SlackConfigTestService();
+      const configService = new NoSlackConfigService();
 
       try {
         // Act
