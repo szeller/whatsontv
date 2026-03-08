@@ -152,10 +152,6 @@ export function createMockYargs(): MockYargsInstance {
   return mockYargs;
 }
 
-/**
- * Mock the yargs module for testing
- * @param yargs Mock Yargs instance to use
- */
 /** Set a parsed value and its alias if present */
 function setWithAlias(
   parsedArgs: Record<string, unknown>,
@@ -223,6 +219,10 @@ function applyDefaults(
   }
 }
 
+/**
+ * Mock the yargs module for testing
+ * @param yargs Mock Yargs instance to use
+ */
 export function mockYargs(yargs: MockYargsInstance): void {
   jest.mock('yargs', () => ({
     __esModule: true,

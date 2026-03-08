@@ -182,18 +182,14 @@ class TestCliConfigService extends CliConfigServiceImpl {
       // Try to read the file, this may throw if mockReadFileError is set
       this.readFile('/mock/path/config.json');
       
-      // Merge default and user config
-      const mergedConfig = {
+      return {
         ...defaultConfig,
         ...this.mockConfigContent,
-        // Ensure slack config is properly merged
         slack: {
           ...defaultConfig.slack,
           ...this.mockConfigContent.slack
         }
       };
-      
-      return mergedConfig;
     } catch (error) {
       this.handleConfigError(error);
       return defaultConfig;

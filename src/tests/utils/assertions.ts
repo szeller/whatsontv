@@ -155,9 +155,6 @@ export function expectValidNetwork(network: unknown): void {
   expect(network).toBeValidNetwork();
 }
 
-/**
- * Asserts that network groups have the expected structure
- */
 /** Check whether a value is a valid NetworkGroups object */
 function isValidNetworkGroups(received: unknown): boolean {
   if (received === null || received === undefined || typeof received !== 'object') {
@@ -165,23 +162,26 @@ function isValidNetworkGroups(received: unknown): boolean {
   }
 
   try {
-    for (const [network, shows] of Object.entries(received as NetworkGroups)) {
-      if (typeof network !== 'string' || !Array.isArray(shows)) {
-        return false;
-      }
-      if (shows.length > 0) {
-        const firstShow = shows[0];
-        if (typeof firstShow !== 'object' || typeof firstShow.name !== 'string') {
-          return false;
-        }
-      }
-    }
-    return true;
+    return Object.entries(received as NetworkGroups)
+      .every(([network, shows]) => isValidNetworkEntry(network, shows));
   } catch {
     return false;
   }
 }
 
+/** Validate a single network entry in a NetworkGroups object */
+function isValidNetworkEntry(network: string, shows: unknown): boolean {
+  if (typeof network !== 'string' || !Array.isArray(shows)) {
+    return false;
+  }
+  if (shows.length === 0) {
+    return true;
+  }
+  const firstShow = shows[0];
+  return typeof firstShow === 'object' && typeof firstShow.name === 'string';
+}
+
+/** Asserts that network groups have the expected structure */
 export function expectValidNetworkGroups(networkGroups: NetworkGroups): void {
   expect(networkGroups).toBeValidNetworkGroups();
   

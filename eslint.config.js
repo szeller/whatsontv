@@ -97,15 +97,29 @@ const tsRules = {
   '@typescript-eslint/promise-function-async': 'error'
 };
 
-// SonarJS overrides: rules disabled for false positives
-// (shared between source and test configs)
-const disabledSonarjsRules = {
+// SonarJS overrides (shared between source and test configs)
+const sonarjsOverrides = {
   // False positives: flags defensive coding, generic narrowing, Record indexing
   'sonarjs/different-types-comparison': 'off',
   // False positives: doesn't respect _ prefix convention (typescript-eslint handles this)
   'sonarjs/no-unused-vars': 'off',
   // False positives: flags intentional lexicographic sort on simple strings
-  'sonarjs/no-alphabetical-sort': 'off'
+  'sonarjs/no-alphabetical-sort': 'off',
+  // Enable rules that are off in recommended but have zero violations
+  'sonarjs/no-collapsible-if': 'error',
+  'sonarjs/prefer-immediate-return': 'error',
+  'sonarjs/prefer-object-literal': 'error',
+  'sonarjs/no-nested-switch': 'error',
+  'sonarjs/no-built-in-override': 'error',
+  'sonarjs/no-for-in-iterable': 'error',
+  'sonarjs/useless-string-operation': 'error',
+  'sonarjs/operation-returning-nan': 'error',
+  // shorthand-property-grouping: too opinionated (16 violations in object literals)
+  // no-wildcard-import: conflicts with barrel re-export pattern (15 violations)
+  'sonarjs/nested-control-flow': 'error',
+  'sonarjs/no-inconsistent-returns': 'error',
+  'sonarjs/values-not-convertible-to-numbers': 'error',
+  // no-duplicate-string: too noisy (113 violations, mostly test fixtures/assertions)
 };
 
 // Unicorn rules: recommended preset with project-specific overrides
@@ -177,7 +191,7 @@ export default [
 
       // SonarJS: recommended preset + disabled overlaps/deferred
       ...sonarjsPlugin.configs.recommended.rules,
-      ...disabledSonarjsRules,
+      ...sonarjsOverrides,
 
       // Promise: recommended preset + escalations
       ...promiseRules,
@@ -234,7 +248,7 @@ export default [
 
       // SonarJS: recommended preset + disabled overlaps/deferred
       ...sonarjsPlugin.configs.recommended.rules,
-      ...disabledSonarjsRules,
+      ...sonarjsOverrides,
 
       // Promise: recommended preset + escalations
       ...promiseRules,

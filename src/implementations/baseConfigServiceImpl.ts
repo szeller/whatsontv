@@ -166,17 +166,13 @@ export abstract class BaseConfigServiceImpl implements ConfigService {
       handleConfigError(error);
     }
 
-    // Merge default and user config
-    const mergedConfig = {
+    return {
       ...defaultConfig,
       ...userConfig,
-      // Ensure slack config is properly merged
       slack: {
         ...defaultConfig.slack,
         ...userConfig.slack
       }
     };
-
-    return mergedConfig;
   }
 }
