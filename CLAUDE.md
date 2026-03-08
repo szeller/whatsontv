@@ -131,7 +131,7 @@ gh pr create --title "chore(deps): update dependencies to latest versions" --bod
 - `FORCE_COLOR=3` is built into the test scripts (forces Chalk to emit ANSI codes even without TTY)
 - Use `--no-verify` flag on commits to skip pre-commit hooks (avoids TTY issues during automation)
 - Test coverage must remain above 75% threshold
-- All 595 tests must pass before committing
+- All 662 tests must pass before committing
 
 ## Architecture
 
@@ -146,15 +146,17 @@ The codebase follows clean architecture principles with clear separation of conc
 - `HttpClient`: HTTP requests
 - `ConfigService`: Configuration management
 - `SlackClient`: Slack API interactions
-- `ConsoleOutput`: Console I/O operations
+- `ProcessOutput`: Console I/O operations
 - `StyleService`: Terminal styling
 - `LoggerService`: Structured logging
 
 **Implementations Layer** (`src/implementations/`):
-- `console/`: Console-specific implementations (ChalkStyleService, ConsoleOutput, TextShowFormatter, etc.)
+- `text/`: Text/console-specific implementations (ChalkStyleService, CliConfigService, TextOutputService, TextShowFormatter)
 - `slack/`: Slack-specific implementations (SlackClient, SlackShowFormatter, SlackOutputService)
+- `pino/`: Structured logging (PinoLoggerService)
+- `lambda/`: Lambda-specific implementations (LambdaConfigService)
 - `test/`: Test-only implementations (PlainStyleService, TestConfigService, MockLoggerService)
-- Root-level: Shared implementations (TvMazeService, FetchHttpClient, BaseShowFormatter)
+- Root-level: Shared implementations (TvMazeService, FetchHttpClient, BaseShowFormatter, BaseOutputService, BaseConfigService, ProcessOutput)
 
 **Domain Layer** (`src/schemas/domain.ts`): Core business entities (Show, Network, etc.)
 
@@ -162,16 +164,18 @@ The codebase follows clean architecture principles with clear separation of conc
 
 The application uses TSyringe for IoC with separate container configurations:
 
-**Console Container** (`src/container.ts`): Used by `src/cli/consoleCli.ts`
-- Registers console-specific services (ChalkStyleService, ConsoleOutput, TextShowFormatter)
-- Platform type: 'console'
+**Text CLI Container** (`src/textCliContainer.ts`): Used by `src/cli/textCli.ts`
+- Registers text/console-specific services (ChalkStyleService, ProcessOutput, TextShowFormatter)
 
-**Slack Container** (`src/slackContainer.ts`): Used by `src/cli/slackCli.ts` and Lambda handler
+**Slack Container** (`src/slackContainer.ts`): Used by `src/cli/slackCli.ts`
 - Registers Slack-specific services (SlackClient, SlackShowFormatter, SlackOutputService)
-- Platform type: 'slack'
 - Includes WebClientFactory for creating Slack WebClient instances
 
-**Key Pattern**: Each CLI entry point uses its own container, resolved at startup. The Lambda handler initializes the Slack container once during cold start for optimal performance.
+**Lambda Container** (`src/lambdaContainer.ts`): Used by Lambda handler
+- Registers Lambda-specific services (LambdaConfigService, PinoLoggerService)
+- Initialized once during cold start for optimal performance
+
+**Key Pattern**: Each CLI entry point uses its own container, resolved at startup.
 
 ### Schema System (Zod)
 
@@ -179,6 +183,7 @@ All data validation and transformation uses Zod schemas for runtime type safety:
 
 **Schema Files**:
 - `src/schemas/common.ts`: Utility schemas and transformers
+- `src/schemas/config.ts`: Configuration schemas (ShowOptions, AppConfig)
 - `src/schemas/domain.ts`: Internal domain model (Show, NetworkGroups)
 - `src/schemas/tvmaze.ts`: TVMaze API schemas and transformation schemas
 - `src/schemas/http.ts`: HTTP-related schemas
@@ -195,13 +200,13 @@ This eliminates manual type conversions and centralizes transformation logic in 
 The application supports two execution modes with shared business logic:
 
 **Console Mode**: Interactive CLI tool with colored terminal output
-- Entry point: `src/cli/consoleCli.ts`
-- Container: `src/container.ts`
-- Uses: ChalkStyleService, ConsoleOutput, TextShowFormatter
+- Entry point: `src/cli/textCli.ts`
+- Container: `src/textCliContainer.ts`
+- Uses: ChalkStyleService, ProcessOutput, TextShowFormatter
 
 **Slack Mode**: Automated Slack notifications
 - Entry points: `src/cli/slackCli.ts` (local), `src/lambda/handlers/slackHandler.ts` (Lambda)
-- Container: `src/slackContainer.ts`
+- Containers: `src/slackContainer.ts` (CLI), `src/lambdaContainer.ts` (Lambda)
 - Uses: SlackClient, SlackShowFormatter, SlackOutputService
 
 **Shared**: TvMazeService, schemas, utilities, and base formatters are platform-agnostic.
@@ -252,7 +257,7 @@ Tests follow a comprehensive structure in `src/tests/`:
 
 **Test Helpers**:
 - `containerHelpers`: DI container setup for tests
-- `mockHttpClient`: HTTP request/response mocking with nock
+- `mockHttpClient`: HTTP request/response mocking
 - `consoleTestHelpers`: Capture and verify console output
 
 ### Testing Approach

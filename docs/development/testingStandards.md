@@ -35,15 +35,15 @@ The WhatsOnTV project follows these core testing principles:
 
 In accordance with our development standards, we maintain the following minimum coverage thresholds:
 
-- **80%** statement coverage
-- **80%** branch coverage
-- **80%** function coverage
-- **80%** line coverage
+- **75%** statement coverage
+- **75%** branch coverage
+- **75%** function coverage
+- **75%** line coverage
 
 Coverage reports are generated using Jest's built-in coverage reporter and can be viewed by running:
 
 ```bash
-npm run test:coverage
+npm test
 ```
 
 ## Test Directory Structure
@@ -53,18 +53,27 @@ Tests are organized to mirror the source code structure:
 ```
 src/
 ├── tests/
+│   ├── cli/            # Tests for CLI entry points
 │   ├── fixtures/       # Test fixtures and test data
 │   │   ├── domain/     # Domain model fixtures
-│   │   └── helpers/    # Fixture helper utilities
+│   │   ├── helpers/    # Fixture helper utilities
+│   │   └── tvmaze/     # TVMaze API response fixtures
 │   ├── helpers/        # Test helper utilities
 │   ├── implementations/ # Tests for implementation classes
-│   │   ├── console/    # Tests for console implementations
-│   │   └── tvmaze/     # Tests for TVMaze implementations
+│   │   ├── lambda/     # Tests for Lambda implementations
+│   │   ├── pino/       # Tests for Pino logger
+│   │   ├── slack/      # Tests for Slack implementations
+│   │   ├── test/       # Tests for test-only implementations
+│   │   └── text/       # Tests for text/console implementations
+│   ├── integration/    # Integration tests
 │   ├── interfaces/     # Tests for interface definitions
+│   ├── lambda/         # Lambda handler tests
 │   ├── mocks/          # Mock implementations and factories
 │   │   ├── factories/  # Factory functions for creating mocks
 │   │   └── implementations/ # Mock implementations of interfaces
-│   ├── services/       # Tests for service classes
+│   ├── schemas/        # Tests for Zod schemas
+│   ├── setup/          # Test setup and configuration
+│   ├── testutils/      # Test utility helpers
 │   └── utils/          # Tests for utility functions
 ```
 
@@ -203,14 +212,11 @@ The project provides the following mock factories:
 7. `styleServiceFactory.ts` - Creates mock StyleService instances
 8. `tvShowServiceFactory.ts` - Creates mock TvShowService instances
 
-All factories are exported through a central index.ts file and can be imported as:
+Import factories directly from their individual files:
 
 ```typescript
-import { 
-  createMockHttpClient, 
-  createMockConfigService,
-  // other factories...
-} from '../../mocks/factories/index.js';
+import { createMockHttpClient } from '../../mocks/factories/httpClientFactory.js';
+import { createMockConfigService } from '../../mocks/factories/configServiceFactory.js';
 ```
 
 ### Mock Implementations
