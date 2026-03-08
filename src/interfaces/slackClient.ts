@@ -89,20 +89,20 @@ export type SlackBlock =
 /**
  * Type guard to check if a block is a section block
  */
-export function isSectionBlock(block?: SlackBlock): boolean {
+export function isSectionBlock(block?: SlackBlock): block is SlackSectionBlock {
   return block?.type === 'section';
 }
 
 /**
  * Type guard to check if a block is a header block
  */
-export function isHeaderBlock(block?: SlackBlock): boolean {
+export function isHeaderBlock(block?: SlackBlock): block is SlackHeaderBlock {
   return block?.type === 'header';
 }
 
 /**
  * Type guard to check if a block is a context block
  */
-export function isContextBlock(block?: SlackBlock): boolean {
+export function isContextBlock(block?: SlackBlock): block is SlackContextBlock {
   return block?.type === 'context';
 }
