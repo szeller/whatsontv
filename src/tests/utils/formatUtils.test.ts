@@ -11,6 +11,14 @@ import {
 import { Show } from '../../schemas/domain.js';
 import { ShowBuilder } from '../fixtures/helpers/showFixtureBuilder.js';
 
+const UNKNOWN_NETWORK = 'Unknown Network';
+const UNKNOWN_TYPE = 'Unknown Type';
+const TEST_SHOW_NAME = 'Test Show';
+const NO_AIRTIME = 'No airtime';
+const UNKNOWN_NETWORK_HEADER = 'Unknown Network:';
+const NO_NETWORK_LABEL = 'No Network';
+const NETWORK_HEADER_SEPARATOR = '----------------';
+
 describe('formatUtils', () => {
   describe('formatNetworkName', () => {
     it('should return the network name when provided', () => {
@@ -18,15 +26,15 @@ describe('formatUtils', () => {
     });
 
     it('should return the default unknown label when network is null', () => {
-      expect(formatNetworkName(null)).toBe('Unknown Network');
+      expect(formatNetworkName(null)).toBe(UNKNOWN_NETWORK);
     });
 
     it('should return the default unknown label when network is undefined', () => {
-      expect(formatNetworkName()).toBe('Unknown Network');
+      expect(formatNetworkName()).toBe(UNKNOWN_NETWORK);
     });
 
     it('should return the custom unknown label when provided', () => {
-      expect(formatNetworkName(null, 'No Network')).toBe('No Network');
+      expect(formatNetworkName(null, NO_NETWORK_LABEL)).toBe(NO_NETWORK_LABEL);
     });
   });
 
@@ -36,11 +44,11 @@ describe('formatUtils', () => {
     });
 
     it('should return the default unknown label when type is null', () => {
-      expect(formatShowType(null)).toBe('Unknown Type');
+      expect(formatShowType(null)).toBe(UNKNOWN_TYPE);
     });
 
     it('should return the default unknown label when type is undefined', () => {
-      expect(formatShowType()).toBe('Unknown Type');
+      expect(formatShowType()).toBe(UNKNOWN_TYPE);
     });
 
     it('should return the custom unknown label when provided', () => {
@@ -171,7 +179,7 @@ describe('formatUtils', () => {
     it('should prepare components with airtime when included and available', () => {
       const show: Show = {
         id: 1,
-        name: 'Test Show',
+        name: TEST_SHOW_NAME,
         season: 1,
         number: 5,
         type: 'Drama',
@@ -185,7 +193,7 @@ describe('formatUtils', () => {
       const components = prepareShowComponents(show, { includeAirtime: true });
       
       expect(components).toEqual({
-        name: 'Test Show',
+        name: TEST_SHOW_NAME,
         network: 'ABC',
         type: 'Drama',
         airtime: '8:30 PM',
@@ -196,7 +204,7 @@ describe('formatUtils', () => {
     it('should prepare components without airtime when not included', () => {
       const show: Show = {
         id: 1,
-        name: 'Test Show',
+        name: TEST_SHOW_NAME,
         season: 1,
         number: 5,
         type: 'Drama',
@@ -210,10 +218,10 @@ describe('formatUtils', () => {
       const components = prepareShowComponents(show, { includeAirtime: false });
       
       expect(components).toEqual({
-        name: 'Test Show',
+        name: TEST_SHOW_NAME,
         network: 'ABC',
         type: 'Drama',
-        airtime: 'No airtime',
+        airtime: NO_AIRTIME,
         episode: 'S01E05'
       });
     });
@@ -236,9 +244,9 @@ describe('formatUtils', () => {
       
       expect(components).toEqual({
         name: 'Untitled Show',
-        network: 'Unknown Network',
-        type: 'Unknown Type',
-        airtime: 'No airtime',
+        network: UNKNOWN_NETWORK,
+        type: UNKNOWN_TYPE,
+        airtime: NO_AIRTIME,
         episode: ''
       });
     });
@@ -259,15 +267,15 @@ describe('formatUtils', () => {
       
       const components = prepareShowComponents(show, { 
         includeAirtime: true,
-        networkUnknownLabel: 'No Network',
+        networkUnknownLabel: NO_NETWORK_LABEL,
         typeUnknownLabel: 'No Type'
       });
       
       expect(components).toEqual({
         name: 'Untitled Show',
-        network: 'No Network',
+        network: NO_NETWORK_LABEL,
         type: 'No Type',
-        airtime: 'No airtime',
+        airtime: NO_AIRTIME,
         episode: ''
       });
     });
@@ -327,27 +335,27 @@ describe('formatUtils', () => {
     });
 
     it('should format network header with custom unknown label', () => {
-      const [header, separator] = formatNetworkHeader('HBO', 'No Network');
+      const [header, separator] = formatNetworkHeader('HBO', NO_NETWORK_LABEL);
       expect(header).toBe('HBO:');
       expect(separator).toBe('----');
     });
 
     it('should handle null network', () => {
       const [header, separator] = formatNetworkHeader(null);
-      expect(header).toBe('Unknown Network:');
-      expect(separator).toBe('----------------');
+      expect(header).toBe(UNKNOWN_NETWORK_HEADER);
+      expect(separator).toBe(NETWORK_HEADER_SEPARATOR);
     });
 
     it('should handle undefined network', () => {
       const [header, separator] = formatNetworkHeader();
-      expect(header).toBe('Unknown Network:');
-      expect(separator).toBe('----------------');
+      expect(header).toBe(UNKNOWN_NETWORK_HEADER);
+      expect(separator).toBe(NETWORK_HEADER_SEPARATOR);
     });
 
     it('should handle empty network', () => {
       const [header, separator] = formatNetworkHeader('');
-      expect(header).toBe('Unknown Network:');
-      expect(separator).toBe('----------------');
+      expect(header).toBe(UNKNOWN_NETWORK_HEADER);
+      expect(separator).toBe(NETWORK_HEADER_SEPARATOR);
     });
   });
 });

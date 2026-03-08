@@ -22,6 +22,8 @@ interface ShowWithId {
   name: string;
 }
 
+const TEST_DATE = '2023-01-01';
+
 describe('TVMaze Utils', () => {
   // Load test fixtures using the utility class and add type assertions
   const networkSchedule = Fixtures.tvMaze.getSchedule('network-schedule') as 
@@ -31,13 +33,13 @@ describe('TVMaze Utils', () => {
 
   describe('URL Generation', () => {
     it('should generate network schedule URL with date and country', () => {
-      const url = getNetworkScheduleUrl('2023-01-01', 'US');
-      expect(url).toBe('https://api.tvmaze.com/schedule?date=2023-01-01&country=US');
+      const url = getNetworkScheduleUrl(TEST_DATE, 'US');
+      expect(url).toBe(`https://api.tvmaze.com/schedule?date=${TEST_DATE}&country=US`);
     });
     
     it('should generate network schedule URL with date only', () => {
-      const url = getNetworkScheduleUrl('2023-01-01');
-      expect(url).toBe('https://api.tvmaze.com/schedule?date=2023-01-01');
+      const url = getNetworkScheduleUrl(TEST_DATE);
+      expect(url).toBe(`https://api.tvmaze.com/schedule?date=${TEST_DATE}`);
     });
     
     it('should generate network schedule URL with no parameters', () => {
@@ -46,8 +48,8 @@ describe('TVMaze Utils', () => {
     });
     
     it('should generate web schedule URL with date', () => {
-      const url = getWebScheduleUrl('2023-01-01');
-      expect(url).toBe('https://api.tvmaze.com/schedule/web?date=2023-01-01');
+      const url = getWebScheduleUrl(TEST_DATE);
+      expect(url).toBe(`https://api.tvmaze.com/schedule/web?date=${TEST_DATE}`);
     });
     
     it('should generate web schedule URL with no parameters', () => {

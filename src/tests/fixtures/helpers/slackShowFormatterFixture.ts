@@ -62,7 +62,7 @@ export const SlackShowFormatterFixture = {
   createHeaderBlock(text = 'TV Shows'): SlackBlock {
     return {
       type: 'header',
-      text: { type: 'plain_text', text, emoji: true }
+      text: { text, type: 'plain_text', emoji: true }
     };
   },
 

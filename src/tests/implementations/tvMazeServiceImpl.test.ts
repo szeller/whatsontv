@@ -12,8 +12,12 @@ import {
   TvMazeScheduleItemBuilder 
 } from '../fixtures/helpers/tvMazeFixtureBuilder.js';
 import type { Show } from '../../schemas/domain.js';
-import type { ShowOptions } from '../../types/tvShowOptions.js';
+import type { ShowOptions } from '../../schemas/config.js';
 import { expectValidShow, createTestShows } from '../utils/assertions.js';
+
+const TEST_DATE = '2023-01-01';
+const NETWORK_ERROR = 'Network error';
+const SHOW_WITH_UNMATCHED_PAREN = 'Show (Test';
 
 describe('TvMazeServiceImpl', () => {
   let tvMazeService: TvMazeServiceImpl;
@@ -55,7 +59,7 @@ describe('TvMazeServiceImpl', () => {
       const scheduleItems = TvMazeScheduleItemBuilder.createNetworkScheduleItems(
         3,
         {
-          airdate: '2023-01-01'
+          airdate: TEST_DATE
         }
       );
 
@@ -67,7 +71,7 @@ describe('TvMazeServiceImpl', () => {
       });
 
       // Call the method under test
-      const shows = await tvMazeService.fetchShows({ date: '2023-01-01' });
+      const shows = await tvMazeService.fetchShows({ date: TEST_DATE });
 
       // Verify the result
       expect(shows).toHaveLength(3);
@@ -122,11 +126,11 @@ describe('TvMazeServiceImpl', () => {
     it('handles HTTP errors', async () => {
       // Mock an HTTP error
       jest.spyOn(mockHttpClient, 'get').mockRejectedValueOnce(
-        new Error('Network error')
+        new Error(NETWORK_ERROR)
       );
 
       // Call the method under test
-      const shows = await tvMazeService.fetchShows({ date: '2023-01-01' });
+      const shows = await tvMazeService.fetchShows({ date: TEST_DATE });
 
       // Verify the result is an empty array on error
       expect(shows).toEqual([]);
@@ -146,10 +150,10 @@ describe('TvMazeServiceImpl', () => {
 
       // Create a schedule item with the show
       const scheduleItem = TvMazeScheduleItemBuilder.createNetworkScheduleItem({
+        network,
         id: 100,
         name: 'Test Show',
-        network,
-        airdate: '2023-01-01'
+        airdate: TEST_DATE
       });
 
       // Mock the HTTP client response
@@ -160,7 +164,7 @@ describe('TvMazeServiceImpl', () => {
       });
 
       // Call the method under test
-      const shows = await tvMazeService.fetchShows({ date: '2023-01-01' });
+      const shows = await tvMazeService.fetchShows({ date: TEST_DATE });
 
       // Verify the result has been transformed correctly
       expect(shows).toHaveLength(1);
@@ -263,7 +267,7 @@ describe('TvMazeServiceImpl', () => {
       });
 
       // Call the method under test
-      const shows = await tvMazeService.fetchShows({ date: '2023-01-01' });
+      const shows = await tvMazeService.fetchShows({ date: TEST_DATE });
 
       // Verify the result is an empty array
       expect(shows).toEqual([]);
@@ -276,11 +280,11 @@ describe('TvMazeServiceImpl', () => {
       
       // Mock the HTTP client to throw an error
       jest.spyOn(mockHttpClient, 'get').mockRejectedValueOnce(
-        new Error('Network error')
+        new Error(NETWORK_ERROR)
       );
       
       // Call the method under test
-      const shows = await tvMazeService.fetchShows({ date: '2023-01-01' });
+      const shows = await tvMazeService.fetchShows({ date: TEST_DATE });
       
       // Verify the result is an empty array
       expect(shows).toEqual([]);
@@ -295,7 +299,7 @@ describe('TvMazeServiceImpl', () => {
     it('handles errors in the fetchShows method', async () => {
       // Mock the HTTP client to throw an error
       jest.spyOn(mockHttpClient, 'get').mockRejectedValueOnce(
-        new Error('Network error')
+        new Error(NETWORK_ERROR)
       );
 
       // Save the original NODE_ENV and set it to production to test error logging
@@ -306,7 +310,7 @@ describe('TvMazeServiceImpl', () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => { /* noop */ });
       
       // Call the method under test
-      const shows = await tvMazeService.fetchShows({ date: '2023-01-01' });
+      const shows = await tvMazeService.fetchShows({ date: TEST_DATE });
       
       // Verify the result is an empty array
       expect(shows).toEqual([]);
@@ -744,7 +748,7 @@ describe('TvMazeServiceImpl', () => {
         {
           ...testShows[0],
           id: 6,
-          name: 'Show (Test'
+          name: SHOW_WITH_UNMATCHED_PAREN
         }
       ];
 
@@ -756,11 +760,11 @@ describe('TvMazeServiceImpl', () => {
         genres: [],
         languages: [],
         networks: [],
-        excludeShowNames: ['Show (Test'] // Unmatched paren is invalid regex
+        excludeShowNames: [SHOW_WITH_UNMATCHED_PAREN] // Unmatched paren is invalid regex
       });
 
       expect(result).toHaveLength(5);
-      expect(result.some(show => show.name === 'Show (Test')).toBe(false);
+      expect(result.some(show => show.name === SHOW_WITH_UNMATCHED_PAREN)).toBe(false);
     });
 
     it('handles empty excludeShowNames array', () => {

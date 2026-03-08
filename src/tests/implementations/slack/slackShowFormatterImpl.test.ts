@@ -14,6 +14,10 @@ import {
   type SlackContextBlock
 } from '../../../interfaces/slackClient';
 
+const TEST_SHOW_NO_AIRTIME = 'Test Show No Airtime';
+const NO_EPISODES_FOUND = 'No episodes found';
+const TEST_NETWORK = 'Test Network';
+
 describe('SlackShowFormatterImpl', () => {
   let formatter: SlackShowFormatterImpl;
   let mockShow: Show;
@@ -39,7 +43,7 @@ describe('SlackShowFormatterImpl', () => {
     
     // Create a mock show with no airtime
     mockShowNoAirtime = ShowBuilder.createTestShow({ 
-      name: 'Test Show No Airtime',
+      name: TEST_SHOW_NO_AIRTIME,
       airtime: null 
     });
   });
@@ -79,7 +83,7 @@ describe('SlackShowFormatterImpl', () => {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: expect.stringContaining('Test Show No Airtime')
+          text: expect.stringContaining(TEST_SHOW_NO_AIRTIME)
         }
       });
 
@@ -90,7 +94,7 @@ describe('SlackShowFormatterImpl', () => {
       if (isSectionResult === true) {
         const sectionBlock = result as SlackSectionBlock;
         expect(sectionBlock.text.type).toBe('mrkdwn');
-        expect(sectionBlock.text.text).toContain('Test Show No Airtime');
+        expect(sectionBlock.text.text).toContain(TEST_SHOW_NO_AIRTIME);
       }
     });
   });
@@ -226,14 +230,14 @@ describe('SlackShowFormatterImpl', () => {
       expect(result[0].type).toBe('section');
       
       const sectionBlock = result[0] as SlackSectionBlock;
-      expect(sectionBlock.text.text).toBe('No episodes found');
+      expect(sectionBlock.text.text).toBe(NO_EPISODES_FOUND);
     });
   });
 
   describe('formatNetwork', () => {
     it('should format an empty network as context block', () => {
       // Arrange
-      const networkName = 'Test Network';
+      const networkName = TEST_NETWORK;
       const emptyShows: Show[] = [];
 
       // Act
@@ -251,7 +255,7 @@ describe('SlackShowFormatterImpl', () => {
         const contextBlockTyped = contextBlock as SlackContextBlock;
         const textElement = contextBlockTyped.elements[0];
         if ('text' in textElement) {
-          expect(textElement.text).toContain('Test Network');
+          expect(textElement.text).toContain(TEST_NETWORK);
           expect(textElement.text).toContain(':tv:');
         }
       }
@@ -259,15 +263,15 @@ describe('SlackShowFormatterImpl', () => {
 
     it('should format a network with shows as single context block', () => {
       // Arrange
-      const network = 'Test Network';
+      const network = TEST_NETWORK;
       const shows: Show[] = [
         ShowBuilder.createTestShow({
           name: 'Network Show 1',
-          network: 'Test Network'
+          network: TEST_NETWORK
         }),
         ShowBuilder.createTestShow({
           name: 'Network Show 2',
-          network: 'Test Network'
+          network: TEST_NETWORK
         })
       ];
 
@@ -286,7 +290,7 @@ describe('SlackShowFormatterImpl', () => {
         const contextBlockTyped = contextBlock as SlackContextBlock;
         const textElement = contextBlockTyped.elements[0];
         if ('text' in textElement) {
-          expect(textElement.text).toContain('Test Network');
+          expect(textElement.text).toContain(TEST_NETWORK);
           expect(textElement.text).toContain('Network Show 1');
           expect(textElement.text).toContain('Network Show 2');
           expect(textElement.text).toContain('•'); // Bullet points
@@ -407,7 +411,7 @@ describe('SlackShowFormatterImpl', () => {
       expect(resultNull).toHaveLength(1);
       expect(resultNull[0].type).toBe('section');
       const sectionBlockNull = resultNull[0] as SlackSectionBlock;
-      expect(sectionBlockNull.text.text).toBe('No episodes found');
+      expect(sectionBlockNull.text.text).toBe(NO_EPISODES_FOUND);
       
       // Act with undefined
       const resultUndefined = formatter.formatMultipleEpisodes(undefined as unknown as Show[]);
@@ -416,7 +420,7 @@ describe('SlackShowFormatterImpl', () => {
       expect(resultUndefined).toHaveLength(1);
       expect(resultUndefined[0].type).toBe('section');
       const sectionBlockUndefined = resultUndefined[0] as SlackSectionBlock;
-      expect(sectionBlockUndefined.text.text).toBe('No episodes found');
+      expect(sectionBlockUndefined.text.text).toBe(NO_EPISODES_FOUND);
     });
     
     it('should handle episodes from different seasons', () => {

@@ -87,36 +87,37 @@ export abstract class BaseShowFormatterImpl<TOutput> implements ShowFormatter<TO
       }
 
       processedShowIds.add(showId);
-      
-      // Format based on number of episodes
-      if (showGroup.length === 1) {
-        // Single episode
-        const formattedShow = hasAirtime(show)
-          ? this.formatTimedShow(show)
-          : this.formatUntimedShow(show);
-        output.push(formattedShow);
-      } else if (allShowsHaveNoAirtime(showGroup)) {
-        // Multiple episodes without airtime
-        const multipleEpisodes = this.formatMultipleEpisodes(showGroup);
-        for (const episode of multipleEpisodes) {
-          output.push(episode);
-        }
-      } else {
-        // Multiple episodes with different airtimes
-        // Sort by airtime, then by episode number
-        const sortedEpisodes = sortShowsByTime(showGroup);
-        for (const episode of sortedEpisodes) {
-          const formattedEpisode = hasAirtime(episode)
-            ? this.formatTimedShow(episode)
-            : this.formatUntimedShow(episode);
-          output.push(formattedEpisode);
-        }
+
+      for (const item of this.formatShowGroup(showGroup)) {
+        output.push(item);
       }
     }
     
     return output;
   }
   
+  /** Format a group of episodes for a single show */
+  private formatShowGroup(showGroup: Show[]): TOutput[] {
+    if (showGroup.length === 1) {
+      const show = showGroup[0];
+      const formatted = hasAirtime(show)
+        ? this.formatTimedShow(show)
+        : this.formatUntimedShow(show);
+      return [formatted];
+    }
+
+    if (allShowsHaveNoAirtime(showGroup)) {
+      return this.formatMultipleEpisodes(showGroup);
+    }
+
+    // Multiple episodes with different airtimes
+    return sortShowsByTime(showGroup).map(episode =>
+      hasAirtime(episode)
+        ? this.formatTimedShow(episode)
+        : this.formatUntimedShow(episode)
+    );
+  }
+
   /**
    * Format a group of shows by network
    * @param networkGroups Shows grouped by network

@@ -8,6 +8,10 @@ import type { Show } from '../../../schemas/domain.js';
 import { loadValidatedArrayFixture } from '../../helpers/fixtureHelper.js';
 import { showSchema } from '../../../schemas/domain.js';
 
+const TEST_NETWORK = 'Test Network';
+const TEST_SUMMARY = 'Test summary';
+const MINIMAL_SHOW_NAME = 'Minimal Show';
+
 /**
  * Base show template with minimal required fields
  */
@@ -17,8 +21,8 @@ const baseShow: Show = {
   type: 'Scripted',
   language: 'English',
   genres: ['Drama'],
-  network: 'Test Network',
-  summary: 'Test summary',
+  network: TEST_NETWORK,
+  summary: TEST_SUMMARY,
   airtime: '20:00',
   season: 1,
   number: 1
@@ -137,7 +141,7 @@ export class ShowBuilder {
   static createMinimalShow(options: Partial<Show> = {}): Show {
     const defaults = {
       id: 1,
-      name: 'Minimal Show',
+      name: MINIMAL_SHOW_NAME,
       type: '',
       language: null,
       genres: [] as string[],
@@ -163,8 +167,8 @@ export class ShowBuilder {
       type: 'Scripted',
       language: 'English',
       genres: ['Drama'],
-      network: 'Test Network',
-      summary: 'Test summary',
+      network: TEST_NETWORK,
+      summary: TEST_SUMMARY,
       airtime: '20:00',
       season: 1,
       number: 1
@@ -180,7 +184,7 @@ export class ShowBuilder {
   static minimal(): Show {
     return new ShowBuilder({
       id: 0,
-      name: 'Minimal Show',
+      name: MINIMAL_SHOW_NAME,
       type: '',
       language: null,
       genres: [],
@@ -490,7 +494,7 @@ export const ShowFixtures = {
   createMinimalShow(options: Partial<Show> = {}): Show {
     const defaults = {
       id: 1,
-      name: 'Minimal Show',
+      name: MINIMAL_SHOW_NAME,
       type: '',
       language: null,
       genres: [] as string[],
@@ -516,8 +520,8 @@ export const ShowFixtures = {
       type: 'Scripted',
       language: 'English',
       genres: ['Drama'],
-      network: 'Test Network',
-      summary: 'Test summary',
+      network: TEST_NETWORK,
+      summary: TEST_SUMMARY,
       airtime: '20:00',
       season: 1,
       number: 1

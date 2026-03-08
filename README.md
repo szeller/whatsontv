@@ -102,10 +102,11 @@ npm run ci            # Full CI pipeline (lint + typecheck + test)
 src/
 ├── cli/                    # CLI entry points (textCli, slackCli)
 ├── implementations/        # Service implementations
-│   ├── text/               # Console output (Chalk styling)
+│   ├── text/               # Text/console output (Chalk styling)
 │   ├── slack/              # Slack output (Block Kit)
 │   ├── lambda/             # Lambda-specific config
-│   └── pino/               # Structured logging
+│   ├── pino/               # Structured logging
+│   └── test/               # Test-only implementations
 ├── interfaces/             # Service contracts
 ├── schemas/                # Zod schemas for validation
 ├── lambda/handlers/        # AWS Lambda handler

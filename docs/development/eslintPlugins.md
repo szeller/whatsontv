@@ -8,7 +8,7 @@ Our ESLint configuration follows these core principles:
 
 1. **Single Source of Truth**: ESLint is the exclusive tool for both code quality and formatting
 2. **Strict Type Safety**: Leveraging TypeScript and ESLint to ensure type safety
-3. **Progressive Enhancement**: New rules are initially added as warnings before being promoted to errors
+3. **All Errors, No Warnings**: All enabled rules are set to `error` — there are no warnings
 4. **Balanced Approach**: Rules are chosen to improve code without being overly restrictive
 
 ## Plugins Overview
@@ -45,14 +45,22 @@ Identifies potential security vulnerabilities in the code.
 
 ### 4. SonarJS Plugin (`eslint-plugin-sonarjs`)
 
-Detects bugs and suspicious patterns based on static code analysis.
+Detects bugs and suspicious patterns based on static code analysis. Uses the `recommended` preset (204 rules enabled) with additional rules explicitly enabled.
 
-**Key Rules:**
-- `no-identical-expressions`: Prevents redundant expressions in conditions
-- `no-identical-conditions`: Prevents duplicate conditions in if-else chains
-- `no-unused-collection`: Detects collections that are created but not used
-- `no-use-of-empty-return-value`: Prevents using the return value of functions that don't return anything
-- `no-duplicate-string`: Identifies repeated string literals that could be constants
+**Key Rules (beyond recommended preset):**
+- `no-collapsible-if`: Merge nested if statements
+- `prefer-immediate-return`: Return values directly instead of assigning to variables
+- `no-duplicate-string`: Identifies repeated string literals that should be constants
+- `shorthand-property-grouping`: Group shorthand properties together in object literals
+- `no-wildcard-import`: Prevents `export *` and `import *` patterns
+- `nested-control-flow`: Limits nesting depth of control flow
+- `no-inconsistent-returns`: Ensures consistent return statements
+- `no-built-in-override`: Prevents overriding built-in globals
+
+**Disabled Rules (false positives):**
+- `different-types-comparison`: Flags defensive coding and generic narrowing
+- `no-unused-vars`: Doesn't respect `_` prefix convention (typescript-eslint handles this)
+- `no-alphabetical-sort`: Flags intentional lexicographic sort on simple strings
 
 ### 5. Promise Plugin (`eslint-plugin-promise`)
 
@@ -79,20 +87,26 @@ Promotes modern JavaScript patterns and practices.
 
 ## Rule Severity Levels
 
-Our configuration uses three severity levels:
+Our configuration uses two severity levels:
 
 1. **Error** (`error`): Must be fixed before committing code
-2. **Warning** (`warn`): Should be fixed but won't block commits
-3. **Off** (`off`): Rule is disabled
+2. **Off** (`off`): Rule is disabled (only for rules with known false positives)
+
+### 7. Jest Plugin (`eslint-plugin-jest`)
+
+Enforces best practices for Jest tests (test files only).
+
+**Key Rules:**
+- `jest/unbound-method`: Replaces `@typescript-eslint/unbound-method` for test files
+- Recommended + style presets enabled
 
 ## Test Files Configuration
 
 Test files have relaxed rules to allow for testing patterns that would otherwise violate the rules:
 
-- Non-null assertions are allowed
-- Boolean expressions don't need to be strict
 - Console usage is unrestricted
-- Many security rules are relaxed
+- Unsafe type operations are allowed (member access, calls, assignments, arguments, returns)
+- Security plugin is not applied
 
 ## Automatic Fixing
 
@@ -102,11 +116,9 @@ Many rules can be automatically fixed using:
 npm run lint:fix
 ```
 
-## Future Considerations
+## Configuration
 
-1. **Gradual Promotion**: Rules currently set as warnings will be promoted to errors as the codebase is updated
-2. **Additional Plugins**: We'll continue to evaluate new plugins that align with our project goals
-3. **Custom Rules**: We may develop custom rules for project-specific patterns
+The ESLint configuration uses ESLint v10 flat config format in `eslint.config.js`. It defines separate config blocks for source files and test files, each with appropriate rule sets and TypeScript project references.
 
 ## References
 

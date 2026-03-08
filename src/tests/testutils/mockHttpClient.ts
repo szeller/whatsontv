@@ -111,14 +111,14 @@ export class MockHttpClient implements HttpClient {
     const data = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
     
     this.mockResponses.set(url, {
+      data,
       status,
-      headers: {},
-      data
+      headers: {}
     });
     this.getMock.mockResolvedValue({
+      data,
       status,
-      headers: {},
-      data
+      headers: {}
     });
   }
 

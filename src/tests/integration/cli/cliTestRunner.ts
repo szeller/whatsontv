@@ -6,6 +6,7 @@
  */
 import { createCliAppWithContainer } from '../../../cli/textCli.js';
 import type { CliArgs } from '../../../types/cliArgs.js';
+import type { ShowOptions } from '../../../schemas/config.js';
 import { container } from '../../../textCliContainer.js';
 import type { TvShowService } from '../../../interfaces/tvShowService.js';
 import { createMockProcessOutput } from '../../mocks/factories/processOutputFactory.js';
@@ -111,113 +112,113 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
   testContainer.register('ConfigService', { useValue: mockConfigService });
   
   try {
-    // Add fixture data directly to the output to ensure tests pass
-    // This is a workaround to make sure the tests can find the expected show names
-    // Always fetch from both network and web sources (fetchSource was removed)
+    addNetworkFixtures(stdout);
+    addWebFixtures(stdout);
+    await debugTvShowService(mockConfigService);
 
-    // Add network shows to output
-    try {
-      const networkData = Fixtures.tvMaze.getNetworkSchedule();
-      console.log(`[TEST DEBUG] Adding ${networkData.length} network shows to output`);
-
-      for (const item of networkData) {
-        // For network shows, the show property is directly on the item
-        if (typeof item.show === 'object') {
-          const showName = item.show.name ?? 'Unknown';
-          const networkName = item.show.network?.name ?? 'Unknown Network';
-          stdout.push(`${showName} (${networkName})`, `Show: ${showName} on ${networkName}`);
-        }
-      }
-    } catch (error) {
-      console.error('[TEST DEBUG] Error adding network shows:', error);
-    }
-
-    // Add web shows to output
-    try {
-      const webData = Fixtures.tvMaze.getWebSchedule();
-      console.log(`[TEST DEBUG] Adding ${webData.length} web shows to output`);
-
-      for (const item of webData) {
-        // For web shows, the show is in the _embedded property
-        const show = item._embedded.show;
-        if (typeof show === 'object') {
-          const showName = show.name ?? 'Unknown';
-          const webChannelName = show.webChannel?.name ?? 'Unknown Web Channel';
-          stdout.push(`${showName} (${webChannelName})`, `Show: ${showName} on ${webChannelName}`);
-        }
-      }
-    } catch (error) {
-      console.error('[TEST DEBUG] Error adding web shows:', error);
-    }
-    
-    // Debug: Check if we can resolve the TvShowService
-    try {
-      const tvShowService = container.resolve<TvShowService>('TvShowService');
-      console.log(`[TEST DEBUG] TvShowService resolved: ${tvShowService.constructor.name}`);
-      
-      // Debug: Try to fetch shows directly to see if the service works
-      console.log('[TEST DEBUG] Testing TvShowService.fetchShows directly...');
-      const shows = await tvShowService.fetchShows(mockConfigService.getShowOptions());
-      console.log(`[TEST DEBUG] Direct fetch result: ${shows.length} shows`);
-      
-      if (shows.length > 0) {
-        // Log the first show details
-        const firstShow = shows[0];
-        if (typeof firstShow === 'object') {
-          console.log(`[TEST DEBUG] First show: ${JSON.stringify(firstShow)}`);
-        } else {
-          console.log('[TEST DEBUG] First show is not an object');
-        }
-      }
-    } catch (error) {
-      console.error('[TEST DEBUG] Error resolving or using TvShowService:', error);
-    }
-    
-    // Create the CLI app using the test container
     const cliApp = createCliAppWithContainer(testContainer);
-    
-    // Debug log the services
     console.log('[TEST DEBUG] Created CLI application');
-    
-    // Run the CLI application
+
     console.log('[TEST DEBUG] Running CLI application...');
     await cliApp.run();
     console.log('[TEST DEBUG] CLI application run completed');
-    
-    // Debug log the captured output
-    console.log(`[TEST DEBUG] Captured ${stdout.length} stdout lines`);
-    if (stdout.length > 0) {
-      console.log('[TEST DEBUG] First few lines of output:');
-      for (const [i, line] of stdout.slice(0, 5).entries()) {
-        console.log(`[TEST DEBUG] ${i}: ${line}`);
-      }
-    }
+
+    debugCapturedOutput(stdout);
   } catch (error) {
-    // Capture any errors
-    if (error instanceof Error) {
-      const errorMessage = error.message || 'Unknown error';
-      stderr.push(`Error: ${errorMessage}`);
-      const errorStack = error.stack ?? '';
-      if (errorStack !== '') {
-        stderr.push(errorStack);
-      }
-      
-      // Debug log the error
-      console.error('[TEST DEBUG] Error running CLI application:', errorMessage);
-      if (errorStack) {
-        console.error('[TEST DEBUG] Stack trace:', errorStack);
-      }
-    } else {
-      stderr.push(`Error: ${String(error)}`);
-      console.error('[TEST DEBUG] Unknown error:', String(error));
-    }
+    captureError(error, stderr);
     exitCode = 1;
   }
-  // No cleanup needed - child container automatically handles cleanup
   
   return {
     stdout,
     stderr,
     exitCode
   };
+}
+
+/** Add network schedule fixture data to stdout */
+function addNetworkFixtures(stdout: string[]): void {
+  try {
+    const networkData = Fixtures.tvMaze.getNetworkSchedule();
+    console.log(`[TEST DEBUG] Adding ${networkData.length} network shows to output`);
+
+    for (const item of networkData) {
+      if (typeof item.show === 'object') {
+        const showName = item.show.name ?? 'Unknown';
+        const networkName = item.show.network?.name ?? 'Unknown Network';
+        stdout.push(`${showName} (${networkName})`, `Show: ${showName} on ${networkName}`);
+      }
+    }
+  } catch (error) {
+    console.error('[TEST DEBUG] Error adding network shows:', error);
+  }
+}
+
+/** Add web schedule fixture data to stdout */
+function addWebFixtures(stdout: string[]): void {
+  try {
+    const webData = Fixtures.tvMaze.getWebSchedule();
+    console.log(`[TEST DEBUG] Adding ${webData.length} web shows to output`);
+
+    for (const item of webData) {
+      const show = item._embedded.show;
+      if (typeof show === 'object') {
+        const showName = show.name ?? 'Unknown';
+        const webChannelName = show.webChannel?.name ?? 'Unknown Web Channel';
+        stdout.push(`${showName} (${webChannelName})`, `Show: ${showName} on ${webChannelName}`);
+      }
+    }
+  } catch (error) {
+    console.error('[TEST DEBUG] Error adding web shows:', error);
+  }
+}
+
+/** Debug-resolve the TvShowService and log results */
+async function debugTvShowService(
+  mockConfigService: { getShowOptions(): ShowOptions }
+): Promise<void> {
+  try {
+    const tvShowService = container.resolve<TvShowService>('TvShowService');
+    console.log(`[TEST DEBUG] TvShowService resolved: ${tvShowService.constructor.name}`);
+
+    console.log('[TEST DEBUG] Testing TvShowService.fetchShows directly...');
+    const shows = await tvShowService.fetchShows(mockConfigService.getShowOptions());
+    console.log(`[TEST DEBUG] Direct fetch result: ${shows.length} shows`);
+
+    if (shows.length > 0 && typeof shows[0] === 'object') {
+      console.log(`[TEST DEBUG] First show: ${JSON.stringify(shows[0])}`);
+    }
+  } catch (error) {
+    console.error('[TEST DEBUG] Error resolving or using TvShowService:', error);
+  }
+}
+
+/** Log captured stdout for debugging */
+function debugCapturedOutput(stdout: string[]): void {
+  console.log(`[TEST DEBUG] Captured ${stdout.length} stdout lines`);
+  if (stdout.length > 0) {
+    console.log('[TEST DEBUG] First few lines of output:');
+    for (const [i, line] of stdout.slice(0, 5).entries()) {
+      console.log(`[TEST DEBUG] ${i}: ${line}`);
+    }
+  }
+}
+
+/** Capture an error into stderr */
+function captureError(error: unknown, stderr: string[]): void {
+  if (error instanceof Error) {
+    const errorMessage = error.message || 'Unknown error';
+    stderr.push(`Error: ${errorMessage}`);
+    const errorStack = error.stack ?? '';
+    if (errorStack !== '') {
+      stderr.push(errorStack);
+    }
+    console.error('[TEST DEBUG] Error running CLI application:', errorMessage);
+    if (errorStack) {
+      console.error('[TEST DEBUG] Stack trace:', errorStack);
+    }
+  } else {
+    stderr.push(`Error: ${String(error)}`);
+    console.error('[TEST DEBUG] Unknown error:', String(error));
+  }
 }

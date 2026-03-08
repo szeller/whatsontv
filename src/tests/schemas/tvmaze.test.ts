@@ -11,6 +11,9 @@ import {
   scheduleItemSchema
 } from '../../schemas/tvmaze.js';
 
+const SHOW_NAME = 'Show Name';
+const EPISODE_NAME = 'Episode Name';
+
 describe('TVMaze Schemas', () => {
   describe('networkSchema', () => {
     it('should validate a valid network', () => {
@@ -60,7 +63,7 @@ describe('TVMaze Schemas', () => {
     it('should validate a valid show', () => {
       const show = {
         id: 1,
-        name: 'Show Name',
+        name: SHOW_NAME,
         type: 'scripted',
         language: 'English',
         genres: ['Drama', 'Comedy'],
@@ -77,9 +80,9 @@ describe('TVMaze Schemas', () => {
     it('should provide default values for missing fields', () => {
       const show = {
         id: 1,
-        name: 'Show Name'
+        name: SHOW_NAME
       };
-      
+
       const result = baseShowSchema.safeParse(show);
       expect(result.success).toBe(true);
       if (result.success) {
@@ -92,7 +95,7 @@ describe('TVMaze Schemas', () => {
     it('should validate a show with network information', () => {
       const show = {
         id: 1,
-        name: 'Show Name',
+        name: SHOW_NAME,
         network: {
           id: 1,
           name: 'NBC',
@@ -113,13 +116,13 @@ describe('TVMaze Schemas', () => {
     it('should validate a valid network schedule item', () => {
       const item = {
         id: 1,
-        name: 'Episode Name',
+        name: EPISODE_NAME,
         season: 1,
         number: 2,
         airtime: '20:00',
         show: {
           id: 100,
-          name: 'Show Name',
+          name: SHOW_NAME,
           type: 'scripted'
         }
       };
@@ -131,13 +134,13 @@ describe('TVMaze Schemas', () => {
     it('should convert string seasons and numbers to numbers', () => {
       const item = {
         id: 1,
-        name: 'Episode Name',
+        name: EPISODE_NAME,
         season: '1',
         number: '2',
         airtime: '20:00',
         show: {
           id: 100,
-          name: 'Show Name',
+          name: SHOW_NAME,
           type: 'scripted'
         }
       };
@@ -157,14 +160,14 @@ describe('TVMaze Schemas', () => {
     it('should validate a valid web schedule item', () => {
       const item = {
         id: 1,
-        name: 'Episode Name',
+        name: EPISODE_NAME,
         season: 1,
         number: 2,
         airtime: '20:00',
         _embedded: {
           show: {
             id: 100,
-            name: 'Show Name',
+            name: SHOW_NAME,
             type: 'scripted'
           }
         }
@@ -179,13 +182,13 @@ describe('TVMaze Schemas', () => {
     it('should validate a network schedule item', () => {
       const item = {
         id: 1,
-        name: 'Episode Name',
+        name: EPISODE_NAME,
         season: 1,
         number: 2,
         airtime: '20:00',
         show: {
           id: 100,
-          name: 'Show Name',
+          name: SHOW_NAME,
           type: 'scripted'
         }
       };
@@ -197,14 +200,14 @@ describe('TVMaze Schemas', () => {
     it('should validate a web schedule item', () => {
       const item = {
         id: 1,
-        name: 'Episode Name',
+        name: EPISODE_NAME,
         season: 1,
         number: 2,
         airtime: '20:00',
         _embedded: {
           show: {
             id: 100,
-            name: 'Show Name',
+            name: SHOW_NAME,
             type: 'scripted'
           }
         }

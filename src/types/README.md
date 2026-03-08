@@ -7,15 +7,15 @@ This document explains the type/interface/schema organization in the codebase.
 ### `src/types/` - Configuration & CLI Types
 TypeScript type definitions for application configuration:
 - `configTypes.ts` - AppConfig, SlackConfig, CliOptions
-- `tvShowOptions.ts` - ShowOptions for filtering
 - `cliArgs.ts` - CLI argument types
 
 ### `src/schemas/` - Zod Schemas & Domain Types
 Runtime validation schemas and domain model types:
-- `domain.ts` - Core domain types (Show, NetworkGroups)
-- `tvmaze.ts` - TVMaze API response schemas with transformations
 - `common.ts` - Shared schema utilities
+- `config.ts` - Configuration schemas (ShowOptions, AppConfig)
+- `domain.ts` - Core domain types (Show, NetworkGroups)
 - `http.ts` - HTTP request/response validation schemas
+- `tvmaze.ts` - TVMaze API response schemas with transformations
 
 ### `src/interfaces/` - Service Contracts
 Abstract service interfaces for dependency injection:

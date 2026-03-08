@@ -14,6 +14,14 @@ Contains common utility schemas and transformers that are reused across the appl
 - Reusable validation patterns
 - Common data formats (dates, nullable strings, etc.)
 
+### `config.ts`
+
+Contains schemas for application configuration:
+
+- `showOptionsSchema` - Schema for show filtering options (types, networks, languages)
+- `appConfigSchema` - Schema for the full application configuration
+- `ShowOptions` type - TypeScript type for show filtering options
+
 ### `domain.ts`
 
 Contains schemas for the internal domain model, independent of any particular API:

@@ -4,7 +4,7 @@
  */
 import { injectable } from 'tsyringe';
 
-import type { ShowOptions } from '../../types/tvShowOptions.js';
+import type { ShowOptions } from '../../schemas/config.js';
 import type { AppConfig } from '../../types/configTypes.js';
 import { getTodayDate } from '../../utils/dateUtils.js';
 import { getDefaultConfig } from '../../utils/configUtils.js';

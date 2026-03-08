@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import { MockLoggerServiceImpl } from '../../../implementations/test/mockLoggerServiceImpl.js';
 
+const INFO_MESSAGE = 'Info message';
+const WARN_MESSAGE = 'Warn message';
+
 describe('MockLoggerServiceImpl', () => {
   let mockLogger: MockLoggerServiceImpl;
 
@@ -55,8 +58,8 @@ describe('MockLoggerServiceImpl', () => {
 
   describe('utility methods', () => {
     beforeEach(() => {
-      mockLogger.info('Info message');
-      mockLogger.warn({ module: 'test' }, 'Warn message');
+      mockLogger.info(INFO_MESSAGE);
+      mockLogger.warn({ module: 'test' }, WARN_MESSAGE);
       mockLogger.error('Error message');
       mockLogger.debug({ trace: 'debug' }, 'Debug message');
     });
@@ -80,15 +83,15 @@ describe('MockLoggerServiceImpl', () => {
       expect(errorCalls).toHaveLength(1);
       expect(debugCalls).toHaveLength(1);
       
-      expect(infoCalls[0].message).toBe('Info message');
-      expect(warnCalls[0].message).toBe('Warn message');
+      expect(infoCalls[0].message).toBe(INFO_MESSAGE);
+      expect(warnCalls[0].message).toBe(WARN_MESSAGE);
       expect(errorCalls[0].message).toBe('Error message');
       expect(debugCalls[0].message).toBe('Debug message');
     });
 
     it('should check if specific message was logged', () => {
-      expect(mockLogger.hasMessage('Info message')).toBe(true);
-      expect(mockLogger.hasMessage('Warn message')).toBe(true);
+      expect(mockLogger.hasMessage(INFO_MESSAGE)).toBe(true);
+      expect(mockLogger.hasMessage(WARN_MESSAGE)).toBe(true);
       expect(mockLogger.hasMessage('Nonexistent message')).toBe(false);
     });
 

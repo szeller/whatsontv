@@ -117,8 +117,8 @@ export function createEpisodeSequence(
 ): Show[] {
   return Array.from({ length: count }, (_, _index) => {
     return createShow({
-      name: baseName,
       season,
+      name: baseName,
       number: startNumber + _index
     });
   });

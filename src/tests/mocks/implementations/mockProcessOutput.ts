@@ -30,20 +30,18 @@ export class MockProcessOutput implements ProcessOutput {
    */
   error(message?: string, ...args: unknown[]): void {
     if (message !== undefined) {
-      // Simply store the message as-is, without any formatting
-      // This allows tests to check for exact message content
       this.output.push(message);
-
-      // If there are additional args, store them as separate entries
-      if (args.length > 0) {
-        for (const arg of args) {
-          if (arg !== undefined && arg !== null) {
-            this.output.push(typeof arg === 'string' ? arg : JSON.stringify(arg));
-          }
-        }
-      }
-
+      this.pushArgs(args);
       this.calls.push({ method: 'error', args: [message, ...args] });
+    }
+  }
+
+  /** Push non-null args to the output array */
+  private pushArgs(args: unknown[]): void {
+    for (const arg of args) {
+      if (arg !== undefined && arg !== null) {
+        this.output.push(typeof arg === 'string' ? arg : JSON.stringify(arg));
+      }
     }
   }
 

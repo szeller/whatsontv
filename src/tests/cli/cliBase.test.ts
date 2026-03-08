@@ -13,9 +13,11 @@ import type { ConfigService } from '../../interfaces/configService.js';
 import type { ProcessOutput } from '../../interfaces/processOutput.js';
 import type { Show } from '../../schemas/domain.js';
 import type { CliOptions, AppConfig } from '../../types/configTypes.js';
-import type { ShowOptions } from '../../types/tvShowOptions.js';
+import type { ShowOptions } from '../../schemas/config.js';
 import { Fixtures } from '../helpers/fixtureHelper.js';
 import { BaseCliApplication } from '../../cli/cliBase.js';
+
+const TEST_DATE = '2023-01-01';
 
 // Mock the console implementation to avoid actual console output during tests
 jest.spyOn(console, 'log').mockImplementation(() => { /* noop */ });
@@ -44,13 +46,13 @@ describe('CLI', () => {
     getOutputFormat: jest.fn<() => string>().mockReturnValue('text'),
     getEnvironment: jest.fn<() => string>().mockReturnValue('test'),
     getShowOptions: jest.fn<() => ShowOptions>().mockReturnValue({
-      date: '2023-01-01',
+      date: TEST_DATE,
       country: 'US',
       fetchSource: 'network'
     }),
     getShowOption: jest.fn<(key: string) => unknown>().mockImplementation((key) => {
       const options = {
-        date: '2023-01-01',
+        date: TEST_DATE,
         country: 'US',
         fetchSource: 'network'
       };
@@ -119,7 +121,7 @@ describe('CLI', () => {
     // Arrange
     const mockNetworkShows = Fixtures.domain.getNetworkShows();
     mockConfigService.getShowOptions.mockReturnValue({
-      date: '2023-01-01',
+      date: TEST_DATE,
       country: 'US',
       fetchSource: 'network'
     });
@@ -137,7 +139,7 @@ describe('CLI', () => {
     // Arrange
     const mockStreamingShows = Fixtures.domain.getStreamingShows();
     mockConfigService.getShowOptions.mockReturnValue({
-      date: '2023-01-01',
+      date: TEST_DATE,
       country: 'US',
       fetchSource: 'web'
     });
