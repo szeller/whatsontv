@@ -7,11 +7,9 @@ import sonarjsPlugin from 'eslint-plugin-sonarjs';
 import promisePlugin from 'eslint-plugin-promise';
 import unicornPlugin from 'eslint-plugin-unicorn';
 import jestPlugin from 'eslint-plugin-jest';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 /**
- * ESLint v9 configuration with TypeScript-ESLint v8.x
+ * ESLint v10 configuration with TypeScript-ESLint v8.x
  *
  * This configuration maintains compatibility with the project's formatting standards:
  * - Single quotes, semicolons required, no trailing commas, 2-space indent, 100 char width
@@ -125,8 +123,7 @@ const disabledSonarjsRules = {
   'sonarjs/no-literal-call': 'off',
   // Deferred: violations need manual refactoring
   'sonarjs/cognitive-complexity': 'off',
-  'sonarjs/no-identical-functions': 'off',
-  'sonarjs/no-ignored-exceptions': 'off'
+  'sonarjs/no-identical-functions': 'off'
 };
 
 // Unicorn rules: recommended preset with project-specific overrides
@@ -167,7 +164,7 @@ export default [
         ecmaVersion: 2022,
         sourceType: 'module',
         project: './tsconfig.json',
-        tsconfigRootDir: path.dirname(fileURLToPath(import.meta.url))
+        tsconfigRootDir: import.meta.dirname
       },
       globals: {
         process: 'readonly',
@@ -222,7 +219,7 @@ export default [
         ecmaVersion: 2022,
         sourceType: 'module',
         project: './tsconfig.test.json',
-        tsconfigRootDir: path.dirname(fileURLToPath(import.meta.url))
+        tsconfigRootDir: import.meta.dirname
       },
       globals: {
         process: 'readonly',
