@@ -4,7 +4,7 @@
 import { describe, it, expect, jest } from '@jest/globals';
 import { createMockTvShowService } from './tvShowServiceFactory.js';
 import type { Show } from '../../../schemas/domain.js';
-import type { ShowOptions } from '../../../types/tvShowOptions.js';
+import type { ShowOptions } from '../../../schemas/config.js';
 
 describe('TvShowServiceFactory', () => {
   describe('createMockTvShowService', () => {

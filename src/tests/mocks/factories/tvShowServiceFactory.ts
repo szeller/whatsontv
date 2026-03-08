@@ -1,6 +1,6 @@
 import type { TvShowService } from '../../../interfaces/tvShowService.js';
 import type { Show } from '../../../schemas/domain.js';
-import type { ShowOptions } from '../../../types/tvShowOptions.js';
+import type { ShowOptions } from '../../../schemas/config.js';
 import { MockOptions } from './types.js';
 import { jest } from '@jest/globals';
 

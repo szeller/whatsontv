@@ -2,7 +2,7 @@
  * Tests to ensure all fixtures are valid according to their schemas
  */
 import { describe, it, expect } from '@jest/globals';
-import * as fixtureHelper from '../helpers/fixtureHelper.js';
+import { loadValidatedArrayFixture, loadFixture } from '../helpers/fixtureHelper.js';
 import {
   networkScheduleItemSchema,
   webScheduleItemSchema,
@@ -15,7 +15,7 @@ describe('Fixture Validation', () => {
   describe('TVMaze Fixtures', () => {
     it('should validate network schedule fixture against schema', () => {
       expect(() => {
-        fixtureHelper.loadValidatedArrayFixture(
+        loadValidatedArrayFixture(
           networkScheduleItemSchema, 
           'tvmaze/network-schedule.json'
         );
@@ -24,7 +24,7 @@ describe('Fixture Validation', () => {
     
     it('should validate web schedule fixture against schema', () => {
       expect(() => {
-        fixtureHelper.loadValidatedArrayFixture(
+        loadValidatedArrayFixture(
           webScheduleItemSchema, 
           'tvmaze/web-schedule.json'
         );
@@ -33,7 +33,7 @@ describe('Fixture Validation', () => {
     
     it('should validate combined schedule fixture against schema', () => {
       expect(() => {
-        fixtureHelper.loadValidatedArrayFixture(
+        loadValidatedArrayFixture(
           scheduleItemSchema, 
           'tvmaze/combined-schedule.json'
         );
@@ -62,7 +62,7 @@ describe('Fixture Validation', () => {
   describe('Domain Model Fixtures', () => {
     it('should validate network shows fixture against schema', () => {
       expect(() => {
-        fixtureHelper.loadValidatedArrayFixture(
+        loadValidatedArrayFixture(
           showSchema, 
           'domain/network-shows.json'
         );
@@ -71,7 +71,7 @@ describe('Fixture Validation', () => {
     
     it('should validate streaming shows fixture against schema', () => {
       expect(() => {
-        fixtureHelper.loadValidatedArrayFixture(
+        loadValidatedArrayFixture(
           showSchema, 
           'domain/streaming-shows.json'
         );
@@ -80,7 +80,7 @@ describe('Fixture Validation', () => {
     
     it('should validate cable shows fixture against schema', () => {
       expect(() => {
-        fixtureHelper.loadValidatedArrayFixture(
+        loadValidatedArrayFixture(
           showSchema, 
           'domain/cable-shows.json'
         );
@@ -101,7 +101,7 @@ describe('Fixture Validation', () => {
       
       // Expect validation to throw for malformed JSON
       expect(() => {
-        fixtureHelper.loadValidatedArrayFixture(
+        loadValidatedArrayFixture(
           z.array(testSchema), 
           'test/malformed.json'
         );
@@ -109,7 +109,7 @@ describe('Fixture Validation', () => {
       
       // Expect loadFixture to throw when the JSON is malformed
       expect(() => {
-        fixtureHelper.loadFixture('test/malformed.json');
+        loadFixture('test/malformed.json');
       }).toThrow();
     });
     
@@ -119,7 +119,7 @@ describe('Fixture Validation', () => {
       
       // Expect validation to throw for a schedule missing required fields
       expect(() => {
-        fixtureHelper.loadValidatedArrayFixture(
+        loadValidatedArrayFixture(
           networkScheduleItemSchema,
           'test/invalid-schedule.json'
         );
@@ -127,12 +127,12 @@ describe('Fixture Validation', () => {
       
       // Load the fixture directly to confirm it's well-formed JSON
       expect(() => {
-        fixtureHelper.loadFixture('test/invalid-schedule.json');
+        loadFixture('test/invalid-schedule.json');
       }).not.toThrow();
       
       // Manually validate to confirm the specific validation errors
       try {
-        const invalidSchedule = fixtureHelper.loadFixture('test/invalid-schedule.json');
+        const invalidSchedule = loadFixture('test/invalid-schedule.json');
         z.array(networkScheduleItemSchema).parse(invalidSchedule);
         // If we get here, validation didn't throw as expected
         expect(true).toBe(false); // Force test to fail

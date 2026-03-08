@@ -6,7 +6,7 @@ import type { HttpClient } from '../interfaces/httpClient.js';
 import type { LoggerService } from '../interfaces/loggerService.js';
 import type { TvShowService } from '../interfaces/tvShowService.js';
 import type { Show } from '../schemas/domain.js';
-import type { ShowOptions } from '../types/tvShowOptions.js';
+import type { ShowOptions } from '../schemas/config.js';
 import {
   getNetworkScheduleUrl,
   getWebScheduleUrl,
@@ -48,8 +48,8 @@ export class TvMazeServiceImpl implements TvShowService {
 
     // Debug: Log the API request details
     this.logger.debug({
-      operation: 'getSchedule',
       url,
+      operation: 'getSchedule',
       timestamp: new Date().toISOString()
     }, 'Making TVMaze API request');
 
@@ -59,8 +59,8 @@ export class TvMazeServiceImpl implements TvShowService {
         // Debug: Log raw API response (with size limits)
         const responseSize = JSON.stringify(response.data).length;
         this.logger.debug({
-          operation: 'getSchedule',
           url,
+          operation: 'getSchedule',
           rawResponseSize: responseSize,
           rawResponseSample: response.data.slice(0, 3), // First 3 items for debugging
           totalItems: response.data.length,
@@ -85,8 +85,8 @@ export class TvMazeServiceImpl implements TvShowService {
 
       // Debug: Log empty or invalid response
       this.logger.debug({
-        operation: 'getSchedule',
         url,
+        operation: 'getSchedule',
         responseType: typeof response.data,
         isArray: Array.isArray(response.data),
         statusCode: response.status
@@ -96,8 +96,8 @@ export class TvMazeServiceImpl implements TvShowService {
     } catch (error) {
       // Log errors with structured logging for better observability
       this.logger.error({
-        error: String(error),
         url,
+        error: String(error),
         duration: Date.now() - startTime,
         stack: error instanceof Error ? error.stack : undefined
       }, 'Failed to fetch schedule from TVMaze API');

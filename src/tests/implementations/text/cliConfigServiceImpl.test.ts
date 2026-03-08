@@ -14,7 +14,7 @@ import {
 } from '../../../implementations/text/cliConfigServiceImpl.js';
 import type { CliArgs } from '../../../types/cliArgs.js';
 import type { AppConfig, SlackConfig } from '../../../types/configTypes.js';
-import type { ShowOptions } from '../../../types/tvShowOptions.js';
+import type { ShowOptions } from '../../../schemas/config.js';
 import { getTodayDate } from '../../../utils/dateUtils.js';
 
 function toStringArrayFromArgv(value: unknown): string[] {
@@ -436,8 +436,8 @@ describe('CliConfigServiceImpl', () => {
     // Act
     const configService = new TestCliConfigService({
       cliArgs,
-      fileExists: true,
-      mockConfig
+      mockConfig,
+      fileExists: true
     });
     
     // Assert

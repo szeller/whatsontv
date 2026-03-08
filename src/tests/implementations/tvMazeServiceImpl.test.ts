@@ -12,7 +12,7 @@ import {
   TvMazeScheduleItemBuilder 
 } from '../fixtures/helpers/tvMazeFixtureBuilder.js';
 import type { Show } from '../../schemas/domain.js';
-import type { ShowOptions } from '../../types/tvShowOptions.js';
+import type { ShowOptions } from '../../schemas/config.js';
 import { expectValidShow, createTestShows } from '../utils/assertions.js';
 
 describe('TvMazeServiceImpl', () => {
@@ -146,9 +146,9 @@ describe('TvMazeServiceImpl', () => {
 
       // Create a schedule item with the show
       const scheduleItem = TvMazeScheduleItemBuilder.createNetworkScheduleItem({
+        network,
         id: 100,
         name: 'Test Show',
-        network,
         airdate: '2023-01-01'
       });
 

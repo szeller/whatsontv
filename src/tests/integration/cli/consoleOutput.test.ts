@@ -13,10 +13,8 @@ import type { OutputService } from '../../../interfaces/outputService.js';
 import type { TextShowFormatter } from '../../../interfaces/showFormatter.js';
 import type { Show } from '../../../schemas/domain.js';
 import { ShowBuilder } from '../../fixtures/helpers/showFixtureBuilder.js';
-import {
-  createMockProcessOutput,
-  createMockConfigService
-} from '../../mocks/factories/index.js';
+import { createMockProcessOutput } from '../../mocks/factories/processOutputFactory.js';
+import { createMockConfigService } from '../../mocks/factories/configServiceFactory.js';
 import { MockProcessOutput } from '../../mocks/implementations/mockProcessOutput.js';
 import { describe, expect, test, beforeEach, afterEach } from '@jest/globals';
 

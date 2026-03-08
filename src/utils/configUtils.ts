@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CliArgs } from '../types/cliArgs.js';
 import { AppConfig } from '../types/configTypes.js';
-import { ShowOptions } from '../types/tvShowOptions.js';
+import { ShowOptions } from '../schemas/config.js';
 import { getTodayDate } from './dateUtils.js';
 import { getStringValue } from './stringUtils.js';
 

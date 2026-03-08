@@ -13,7 +13,7 @@ import type { ConfigService } from '../../interfaces/configService.js';
 import type { ProcessOutput } from '../../interfaces/processOutput.js';
 import type { Show } from '../../schemas/domain.js';
 import type { CliOptions, AppConfig } from '../../types/configTypes.js';
-import type { ShowOptions } from '../../types/tvShowOptions.js';
+import type { ShowOptions } from '../../schemas/config.js';
 import { Fixtures } from '../helpers/fixtureHelper.js';
 import { BaseCliApplication } from '../../cli/cliBase.js';
 

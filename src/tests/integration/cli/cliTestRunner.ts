@@ -6,7 +6,7 @@
  */
 import { createCliAppWithContainer } from '../../../cli/textCli.js';
 import type { CliArgs } from '../../../types/cliArgs.js';
-import type { ShowOptions } from '../../../types/tvShowOptions.js';
+import type { ShowOptions } from '../../../schemas/config.js';
 import { container } from '../../../textCliContainer.js';
 import type { TvShowService } from '../../../interfaces/tvShowService.js';
 import { createMockProcessOutput } from '../../mocks/factories/processOutputFactory.js';

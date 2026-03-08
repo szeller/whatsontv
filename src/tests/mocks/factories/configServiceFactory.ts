@@ -1,6 +1,6 @@
 import { TestConfigServiceImpl } from '../../../implementations/test/testConfigServiceImpl.js';
 import type { ConfigService } from '../../../interfaces/configService.js';
-import type { ShowOptions } from '../../../types/tvShowOptions.js';
+import type { ShowOptions } from '../../../schemas/config.js';
 import type { CliOptions, AppConfig, SlackConfig } from '../../../types/configTypes.js';
 import { MockOptions } from './types.js';
 import { createTypedMock } from '../../testutils/jestHelpers.js';
