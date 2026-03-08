@@ -500,7 +500,7 @@ describe('TvMazeServiceImpl', () => {
       expect(result).toHaveLength(3);
       
       // Verify the correct shows were included
-      const airtimes = result.map(show => show.airtime).sort((a, b) => a.localeCompare(b));
+      const airtimes = result.map(show => show.airtime ?? '').sort((a, b) => a.localeCompare(b));
       expect(airtimes).toEqual(['', '19:00', '20:00']);
     });
     

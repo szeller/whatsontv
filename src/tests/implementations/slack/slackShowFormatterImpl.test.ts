@@ -11,7 +11,6 @@ import {
   isHeaderBlock,
   isContextBlock,
   type SlackSectionBlock,
-  type SlackHeaderBlock,
   type SlackContextBlock
 } from '../../../interfaces/slackClient';
 
@@ -324,12 +323,12 @@ describe('SlackShowFormatterImpl', () => {
       // Assert
       expect(result.length).toBeGreaterThan(0);
 
-      // No "Shows by Network" header - date header is added by SlackOutputServiceImpl
-      const headerBlocks = result.filter(block => isHeaderBlock(block)) as SlackHeaderBlock[];
+      // No "Shows by Network" header - added by SlackOutputServiceImpl
+      const headerBlocks = result.filter(block => isHeaderBlock(block));
       expect(headerBlocks).toHaveLength(0);
 
       // Check that networks are in context blocks
-      const contextBlocks = result.filter(block => isContextBlock(block)) as SlackContextBlock[];
+      const contextBlocks = result.filter(block => isContextBlock(block));
       expect(contextBlocks.length).toBeGreaterThan(0);
 
       // Find context blocks with shows

@@ -97,30 +97,15 @@ const tsRules = {
   '@typescript-eslint/promise-function-async': 'error'
 };
 
-// SonarJS overrides: rules disabled because they overlap with other plugins
-// or are deferred for future refactoring (shared between source and test configs)
+// SonarJS overrides: rules disabled for false positives or deferred refactoring
+// (shared between source and test configs)
 const disabledSonarjsRules = {
-  // Overlap with typescript-eslint
-  'sonarjs/no-array-delete': 'off',           // @typescript-eslint/no-array-delete
-  'sonarjs/deprecation': 'off',               // @typescript-eslint/no-deprecated
-  'sonarjs/no-unused-vars': 'off',            // @typescript-eslint/no-unused-vars
-  'sonarjs/prefer-regexp-exec': 'off',        // @typescript-eslint/prefer-regexp-exec
-  'sonarjs/no-alphabetical-sort': 'off',      // @typescript-eslint/require-array-sort-compare
-  'sonarjs/unused-import': 'off',             // @typescript-eslint/no-unused-vars
-  // Overlap with eslint built-in
-  'sonarjs/no-useless-catch': 'off',          // eslint no-useless-catch
-  'sonarjs/no-fallthrough': 'off',            // eslint no-fallthrough
-  'sonarjs/different-types-comparison': 'off', // eqeqeq
-  'sonarjs/no-delete-var': 'off',             // eslint no-delete-var
-  'sonarjs/no-control-regex': 'off',          // eslint no-control-regex
-  'sonarjs/no-empty-character-class': 'off',  // eslint no-empty-character-class
-  'sonarjs/no-invalid-regexp': 'off',         // eslint no-invalid-regexp
-  'sonarjs/no-regex-spaces': 'off',           // eslint no-regex-spaces
-  // Covered by TypeScript compiler
-  'sonarjs/no-extra-arguments': 'off',
-  'sonarjs/argument-type': 'off',
-  'sonarjs/in-operator-type-error': 'off',
-  'sonarjs/no-literal-call': 'off',
+  // False positives: flags defensive coding, generic narrowing, Record indexing
+  'sonarjs/different-types-comparison': 'off',
+  // False positives: doesn't respect _ prefix convention (typescript-eslint handles this)
+  'sonarjs/no-unused-vars': 'off',
+  // False positives: flags intentional lexicographic sort on simple strings
+  'sonarjs/no-alphabetical-sort': 'off',
   // Deferred: violations need manual refactoring
   'sonarjs/cognitive-complexity': 'off',
   'sonarjs/no-identical-functions': 'off'
@@ -262,8 +247,6 @@ export default [
 
       // Relax rules for test files
       'no-console': 'off',
-      'no-unused-expressions': 'off',
-      '@typescript-eslint/no-unused-expressions': 'off',
       // Tests use mocks, type assertions, and loose typing extensively
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
