@@ -12,7 +12,7 @@ import { FetchHttpClientImpl } from '../../implementations/fetchHttpClientImpl.j
 import type { BeforeRequestHook } from 'ky';
 
 const CONTENT_TYPE_HEADER = 'Content-Type';
-const CONTENT_TYPE_HEADER_LOWER = 'content-type';
+const CONTENT_TYPE_HEADER_LOWER = CONTENT_TYPE_HEADER.toLowerCase();
 const TEXT_PLAIN = 'text/plain';
 
 describe('FetchHttpClientImpl', () => {

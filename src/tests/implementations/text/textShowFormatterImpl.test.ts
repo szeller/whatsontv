@@ -14,6 +14,7 @@ import { createMockTvShowService } from '../../mocks/factories/tvShowServiceFact
 import { createMockConfigService } from '../../mocks/factories/configServiceFactory.js';
 
 const TEST_NETWORK = 'Test Network';
+const TEST_SHOW = 'Test Show';
 
 describe('TextShowFormatterImpl', () => {
   let formatter: TextShowFormatterImpl;
@@ -53,7 +54,7 @@ describe('TextShowFormatterImpl', () => {
       expect(result).toContain('20:00');
       expect(result).toContain(TEST_NETWORK);
       expect(result).toContain('Scripted');
-      expect(result).toContain('Test Show');
+      expect(result).toContain(TEST_SHOW);
       expect(result).toContain('S01E01');
     });
 
@@ -81,7 +82,7 @@ describe('TextShowFormatterImpl', () => {
       const result = formatter.formatUntimedShow(mockShowNoAirtime);
       expect(result).toContain(TEST_NETWORK);
       expect(result).toContain('Scripted');
-      expect(result).toContain('Test Show');
+      expect(result).toContain(TEST_SHOW);
       expect(result).toContain('S01E01');
     });
   });
@@ -100,7 +101,7 @@ describe('TextShowFormatterImpl', () => {
       
       // Should return a single formatted string with episode range
       expect(result).toHaveLength(1);
-      expect(result[0]).toContain('Test Show');
+      expect(result[0]).toContain(TEST_SHOW);
       expect(result[0]).toContain('S01E01-03');
       expect(result[0]).toContain(TEST_NETWORK);
     });
@@ -130,7 +131,7 @@ describe('TextShowFormatterImpl', () => {
       
       // Should still return a result but without episode codes
       expect(result).toHaveLength(1);
-      expect(result[0]).toContain('Test Show');
+      expect(result[0]).toContain(TEST_SHOW);
     });
 
     it('should handle empty, null, or undefined input', () => {
@@ -150,8 +151,8 @@ describe('TextShowFormatterImpl', () => {
       expect(result[0]).toContain(TEST_NETWORK);
       
       // Should include both shows
-      expect(result.some(line => line.includes('Test Show') && line.includes('20:00'))).toBe(true);
-      expect(result.some(line => line.includes('Test Show') && line.includes('N/A'))).toBe(true);
+      expect(result.some(line => line.includes(TEST_SHOW) && line.includes('20:00'))).toBe(true);
+      expect(result.some(line => line.includes(TEST_SHOW) && line.includes('N/A'))).toBe(true);
     });
     
     it('should return header for empty shows array', () => {
@@ -195,7 +196,7 @@ describe('TextShowFormatterImpl', () => {
       expect(result).toHaveLength(7); 
       expect(result.some(line => line.includes(TEST_NETWORK))).toBe(true);
       expect(result.some(line => line.includes('Another Network'))).toBe(true);
-      expect(result.some(line => line.includes('Test Show'))).toBe(true);
+      expect(result.some(line => line.includes(TEST_SHOW))).toBe(true);
       expect(result.some(line => line.includes('Another Show'))).toBe(true);
     });
     
@@ -232,7 +233,7 @@ describe('TextShowFormatterImpl', () => {
       // Should only include the valid network
       expect(result).toHaveLength(3); // header + separator + show
       expect(result.some(line => line.includes('Valid Network'))).toBe(true);
-      expect(result.some(line => line.includes('Test Show'))).toBe(true);
+      expect(result.some(line => line.includes(TEST_SHOW))).toBe(true);
     });
 
     it('should sort shows by airtime', () => {

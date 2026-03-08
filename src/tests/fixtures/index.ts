@@ -78,9 +78,3 @@ export const Fixtures = {
     loadCombinedShows
   }
 };
-
-// Export individual modules for direct imports
-
-
-// Export types for convenience
-export type { Show, NetworkGroups } from '../../schemas/domain.js';
