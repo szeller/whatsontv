@@ -44,7 +44,7 @@ describe('TvShowService Interface', () => {
     mockHttpClient = createMockHttpClient();
     
     // Register the mock HTTP client
-    container.registerInstance<HttpClient>('HttpClient', mockHttpClient);
+    container.registerInstance('HttpClient', mockHttpClient);
     
     // Create the service instance
     service = new TvMazeServiceImpl(mockHttpClient);

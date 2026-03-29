@@ -31,7 +31,7 @@ describe('TvMazeServiceImpl', () => {
     mockHttpClient = createMockHttpClient();
 
     // Register the mock HTTP client with the DI container
-    container.registerInstance<HttpClient>('HttpClient', mockHttpClient);
+    container.registerInstance('HttpClient', mockHttpClient);
 
     // Create the service under test
     tvMazeService = new TvMazeServiceImpl(mockHttpClient);
