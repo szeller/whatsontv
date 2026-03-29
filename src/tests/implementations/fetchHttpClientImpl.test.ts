@@ -204,7 +204,7 @@ describe('FetchHttpClientImpl', () => {
       
       const requestData = { title: 'New Show', genre: 'Drama' };
       
-      const result = await client.post<typeof mockResponseData, typeof requestData>(
+      const result = await client.post<typeof mockResponseData>(
         'shows',
         requestData
       );
@@ -234,7 +234,7 @@ describe('FetchHttpClientImpl', () => {
       
       const requestData = { title: 'New Show', genre: 'Drama' };
       
-      await client.post<typeof mockResponseData, typeof requestData>(
+      await client.post<typeof mockResponseData>(
         'shows',
         requestData,
         { headers: { 'X-API-Key': 'test-key' } }
@@ -285,7 +285,7 @@ describe('FetchHttpClientImpl', () => {
         return responseClone;
       });
       
-      const result = await client.post<unknown, { title: string }>('shows', { title: 'Test Show' });
+      const result = await client.post<unknown>('shows', { title: 'Test Show' });
       
       // Should return the raw text when JSON parsing fails
       expect(result.data).toBe('{ "status": "incomplete');

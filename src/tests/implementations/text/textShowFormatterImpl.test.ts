@@ -4,7 +4,6 @@
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import { container } from 'tsyringe';
 import { TextShowFormatterImpl } from '../../../implementations/text/textShowFormatterImpl.js';
-import type { StyleService } from '../../../interfaces/styleService.js';
 import type { Show } from '../../../schemas/domain.js';
 import type { TvShowService } from '../../../interfaces/tvShowService.js';
 import type { ConfigService } from '../../../interfaces/configService.js';
@@ -36,7 +35,7 @@ describe('TextShowFormatterImpl', () => {
     container.registerInstance('ConfigService', mockConfigService);
     
     // Register the style service - use PlainStyleServiceImpl for tests to avoid ANSI color codes
-    container.registerInstance<StyleService>('StyleService', new PlainStyleServiceImpl());
+    container.registerInstance('StyleService', new PlainStyleServiceImpl());
 
     // Create the formatter instance
     formatter = container.resolve(TextShowFormatterImpl);

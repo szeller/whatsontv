@@ -93,7 +93,7 @@ describe('MockHttpClient', () => {
       mockClient.mockPost(API_URL, mockResponse);
 
       // Act
-      const result = await mockClient.post<{ result: string }, { name: string }>(
+      const result = await mockClient.post<{ result: string }>(
         API_URL,
         { name: 'test' }
       );
