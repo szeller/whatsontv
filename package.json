@@ -29,7 +29,7 @@
     "cdk:diff": "npm run build:lambda && cdk diff",
     "cdk:synth": "npm run build:lambda && cdk synth",
     "prepublishOnly": "npm run build",
-    "postinstall": "echo 'Note: Using TypeScript v5.9, ESLint v10, and TypeScript ESLint v8'"
+    "postinstall": "echo 'Note: Using TypeScript v6, ESLint v10, and TypeScript ESLint v8'"
   },
   "keywords": [
     "tv",
@@ -82,7 +82,7 @@
     "nock": "^14.0.10",
     "ts-jest": "^29.4.5",
     "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.2"
   },
   "overrides": {
     "eslint-plugin-import": {
