@@ -91,6 +91,7 @@
     "eslint-plugin-promise": {
       "eslint": "$eslint"
     },
-    "babel-plugin-istanbul": "^8.0.2"
+    "babel-plugin-istanbul": "^8.0.2",
+    "glob": "^13.0.0"
   }
 }
