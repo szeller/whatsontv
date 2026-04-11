@@ -9,7 +9,7 @@ import 'reflect-metadata';
 import { z } from 'zod';
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 import { FetchHttpClientImpl } from '../../implementations/fetchHttpClientImpl.js';
-import type { BeforeRequestHook } from 'ky';
+import type { BeforeRequestHook, BeforeRequestState } from 'ky';
 
 const CONTENT_TYPE_HEADER = 'Content-Type';
 const CONTENT_TYPE_HEADER_LOWER = CONTENT_TYPE_HEADER.toLowerCase();
@@ -22,7 +22,7 @@ describe('FetchHttpClientImpl', () => {
 
   beforeEach(() => {
     // Create a mock function that can be used as a hook
-    mockBeforeRequestHook = jest.fn().mockImplementation((_request: unknown) => {
+    mockBeforeRequestHook = jest.fn().mockImplementation((_state: unknown) => {
       // Default implementation returns a successful response
       return Response.json(mockResponseData, {
         status: 200,
@@ -58,10 +58,9 @@ describe('FetchHttpClientImpl', () => {
     it('should handle query parameters correctly', async () => {
       let capturedUrl: URL | undefined;
       
-      mockBeforeRequestHook.mockImplementation((request: unknown) => {
-        // Safe to cast here since we know the hook receives a Request object
-        const req = request as Request;
-        capturedUrl = new URL(req.url);
+      mockBeforeRequestHook.mockImplementation((state: unknown) => {
+        const { request } = state as BeforeRequestState;
+        capturedUrl = new URL(request.url);
         return Response.json(mockResponseData, {
           status: 200,
           headers: { [CONTENT_TYPE_HEADER]: 'application/json' }
@@ -82,11 +81,10 @@ describe('FetchHttpClientImpl', () => {
 
     it('should handle custom headers', async () => {
       let capturedHeaders: Headers | undefined;
-      
-      mockBeforeRequestHook.mockImplementation((request: unknown) => {
-        // Safe to cast here since we know the hook receives a Request object
-        const req = request as Request;
-        capturedHeaders = req.headers;
+
+      mockBeforeRequestHook.mockImplementation((state: unknown) => {
+        const { request } = state as BeforeRequestState;
+        capturedHeaders = request.headers;
         return Response.json(mockResponseData, {
           status: 200,
           headers: { [CONTENT_TYPE_HEADER]: 'application/json' }
@@ -190,11 +188,10 @@ describe('FetchHttpClientImpl', () => {
       let capturedRequest: Request | undefined;
       let capturedBody = '';
       
-      mockBeforeRequestHook.mockImplementation(async (request: unknown) => {
-        // Safe to cast here since we know the hook receives a Request object
-        const req = request as Request;
-        capturedRequest = req.clone();
-        capturedBody = await req.clone().text();
+      mockBeforeRequestHook.mockImplementation(async (state: unknown) => {
+        const { request } = state as BeforeRequestState;
+        capturedRequest = request.clone();
+        capturedBody = await request.clone().text();
         
         return Response.json(mockResponseData, {
           status: 200,
@@ -221,11 +218,10 @@ describe('FetchHttpClientImpl', () => {
 
     it('should handle custom headers in POST requests', async () => {
       let capturedHeaders: Headers | undefined;
-      
-      mockBeforeRequestHook.mockImplementation((request: unknown) => {
-        // Safe to cast here since we know the hook receives a Request object
-        const req = request as Request;
-        capturedHeaders = req.headers;
+
+      mockBeforeRequestHook.mockImplementation((state: unknown) => {
+        const { request } = state as BeforeRequestState;
+        capturedHeaders = request.headers;
         return Response.json(mockResponseData, {
           status: 200,
           headers: { [CONTENT_TYPE_HEADER]: 'application/json' }
