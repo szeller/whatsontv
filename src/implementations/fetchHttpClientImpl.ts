@@ -7,7 +7,7 @@
 
 import 'reflect-metadata';
 import { injectable, inject } from 'tsyringe';
-import ky, { Options as KyOptions, Hooks } from 'ky';
+import ky, { Options as KyOptions, Hooks, type AfterResponseState } from 'ky';
 import type { 
   HttpClient, 
   HttpResponse, 
@@ -63,8 +63,8 @@ export class FetchHttpClientImpl implements HttpClient {
     
     // Create a configured instance of ky
     this.kyInstance = ky.create({
-      // Only set prefixUrl if it's not empty, otherwise ky will throw an error
-      ...(prefixUrl ? { prefixUrl } : {}),
+      // Only set prefix if it's not empty, otherwise ky will throw an error
+      ...(prefixUrl ? { prefix: prefixUrl } : {}),
       timeout,
       headers,
       retry: 0, // Don't retry by default
@@ -74,7 +74,7 @@ export class FetchHttpClientImpl implements HttpClient {
           ...(options.hooks?.beforeRequest ?? [])
         ],
         afterResponse: [
-          (_request, _options, response) => {
+          ({ response }: AfterResponseState) => {
             if (!this.isTestEnvironment) {
               if (response.ok) {
                 this.logger.debug({
@@ -159,7 +159,7 @@ export class FetchHttpClientImpl implements HttpClient {
   }
 
   /**
-   * Normalize URL by removing leading slash if using prefixUrl
+   * Normalize URL by removing leading slash if using prefix
    * @param url URL to normalize
    * @returns Normalized URL
    */
