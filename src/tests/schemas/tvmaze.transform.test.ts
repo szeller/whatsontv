@@ -5,6 +5,7 @@ import {
   networkScheduleToShowSchema,
   webScheduleToShowSchema
 } from '../../schemas/tvmaze.js';
+
 const EPISODE_TITLE = 'Episode Title';
 const COUNTRY_US = 'United States';
 const NY_TIMEZONE = 'America/New_York';
