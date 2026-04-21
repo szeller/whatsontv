@@ -26,11 +26,11 @@ interface ExitMockState {
 function setupExitMock(): ExitMockState {
   const state: ExitMockState = {
     mockProcessOutput: {
-      log: jest.fn(),
-      error: jest.fn(),
-      warn: jest.fn(),
-      logWithLevel: jest.fn()
-    } as unknown as ProcessOutput,
+      log: jest.fn<ProcessOutput['log']>(),
+      error: jest.fn<ProcessOutput['error']>(),
+      warn: jest.fn<ProcessOutput['warn']>(),
+      logWithLevel: jest.fn<ProcessOutput['logWithLevel']>()
+    },
     originalExit: process.exit,
     exitCalled: false,
     exitCode: 0
@@ -245,7 +245,7 @@ describe('errorHandling', () => {
         registeredCallback = callback;
         return process;
       };
-      process.on = jest.fn(processOnMock) as unknown as typeof process.on;
+      process.on = jest.fn(processOnMock);
 
       registerGlobalErrorHandler(state.mockProcessOutput);
     });

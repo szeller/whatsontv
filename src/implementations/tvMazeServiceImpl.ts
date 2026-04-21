@@ -34,7 +34,7 @@ export class TvMazeServiceImpl implements TvShowService {
       info: () => { /* noop */ },
       debug: () => { /* noop */ },
       child: () => this.logger
-    } as LoggerService;
+    };
   }
 
   /**

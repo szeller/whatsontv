@@ -32,7 +32,7 @@ export class SlackOutputServiceImpl extends BaseOutputServiceImpl<SlackBlock> {
       info: () => { /* noop */ },
       debug: () => { /* noop */ },
       child: () => this.logger
-    } as LoggerService;
+    };
   }
 
   /**

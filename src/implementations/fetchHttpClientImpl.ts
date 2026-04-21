@@ -59,7 +59,7 @@ export class FetchHttpClientImpl implements HttpClient {
       info: () => { /* noop */ },
       debug: () => { /* noop */ },
       child: () => this.logger
-    } as LoggerService;
+    };
     
     // Create a configured instance of ky
     this.kyInstance = ky.create({

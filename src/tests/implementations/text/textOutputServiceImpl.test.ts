@@ -61,11 +61,11 @@ describe('TextOutputServiceImpl', () => {
     
     // Create mock output
     mockOutput = {
-      log: jest.fn(),
-      error: jest.fn(),
-      warn: jest.fn(),
-      logWithLevel: jest.fn()
-    } as unknown as ProcessOutput;
+      log: jest.fn<ProcessOutput['log']>(),
+      error: jest.fn<ProcessOutput['error']>(),
+      warn: jest.fn<ProcessOutput['warn']>(),
+      logWithLevel: jest.fn<ProcessOutput['logWithLevel']>()
+    };
     
     // Create sample shows for testing
     sampleShows = [

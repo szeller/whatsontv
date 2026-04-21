@@ -405,7 +405,7 @@ describe('SlackShowFormatterImpl', () => {
   describe('formatMultipleEpisodes edge cases', () => {
     it('should handle null or undefined shows array', () => {
       // Act with null
-      const resultNull = formatter.formatMultipleEpisodes(null as unknown as Show[]);
+      const resultNull = formatter.formatMultipleEpisodes(null);
       
       // Assert
       expect(resultNull).toHaveLength(1);
@@ -414,7 +414,7 @@ describe('SlackShowFormatterImpl', () => {
       expect(sectionBlockNull.text.text).toBe(NO_EPISODES_FOUND);
       
       // Act with undefined
-      const resultUndefined = formatter.formatMultipleEpisodes(undefined as unknown as Show[]);
+      const resultUndefined = formatter.formatMultipleEpisodes();
       
       // Assert
       expect(resultUndefined).toHaveLength(1);

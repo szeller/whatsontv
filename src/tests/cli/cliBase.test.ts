@@ -7,8 +7,6 @@ import {
   it,
   expect
 } from '@jest/globals';
-import type { OutputService } from '../../interfaces/outputService.js';
-import type { TvShowService } from '../../interfaces/tvShowService.js';
 import type { ConfigService } from '../../interfaces/configService.js';
 import type { ProcessOutput } from '../../interfaces/processOutput.js';
 import type { Show } from '../../schemas/domain.js';
@@ -93,10 +91,10 @@ describe('CLI', () => {
     
     // Create CLI application with mock services
     cliApp = new BaseCliApplication(
-      mockTvShowService as unknown as TvShowService,
+      mockTvShowService,
       mockConfigService as unknown as ConfigService,
       mockProcessOutput as unknown as ProcessOutput,
-      mockOutputService as unknown as OutputService
+      mockOutputService
     );
   });
 

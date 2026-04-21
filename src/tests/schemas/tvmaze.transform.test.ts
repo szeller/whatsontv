@@ -5,7 +5,6 @@ import {
   networkScheduleToShowSchema,
   webScheduleToShowSchema
 } from '../../schemas/tvmaze.js';
-import type { Show } from '../../schemas/domain.js';
 
 const EPISODE_TITLE = 'Episode Title';
 const COUNTRY_US = 'United States';
@@ -59,7 +58,7 @@ describe('TVMaze Schema Transformations', () => {
         airtime: '20:00',
         season: 5,
         number: 10
-      } as Show);
+      });
     });
 
     it('should handle missing or null values with defaults', () => {
@@ -87,7 +86,7 @@ describe('TVMaze Schema Transformations', () => {
         airtime: null,
         season: 0,
         number: 0
-      } as Show);
+      });
     });
 
     it('should handle web channel instead of network', () => {
@@ -172,7 +171,7 @@ describe('TVMaze Schema Transformations', () => {
         airtime: '20:00',
         season: 5,
         number: 10
-      } as Show);
+      });
     });
 
     it('should handle missing or null values with defaults', () => {
@@ -201,7 +200,7 @@ describe('TVMaze Schema Transformations', () => {
         airtime: null,
         season: 0,
         number: 0
-      } as Show);
+      });
     });
   });
 });

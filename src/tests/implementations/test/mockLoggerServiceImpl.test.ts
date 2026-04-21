@@ -149,7 +149,7 @@ describe('MockLoggerServiceImpl', () => {
     });
 
     it('should handle undefined message in context call', () => {
-      mockLogger.info({ context: 'test' }, undefined as unknown as string);
+      mockLogger.info({ context: 'test' });
       
       expect(mockLogger.calls).toHaveLength(1);
       expect(mockLogger.calls[0].message).toBe('');

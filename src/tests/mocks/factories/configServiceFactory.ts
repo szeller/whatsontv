@@ -47,7 +47,7 @@ export function createMockConfigService(options: ConfigServiceOptions = {}): Tes
     slack: {
       ...defaultSlackConfig,
       ...appConfig.slack
-    } as SlackConfig
+    }
   };
   
   // Apply slackConfig if provided
@@ -70,7 +70,7 @@ export function createMockConfigService(options: ConfigServiceOptions = {}): Tes
     {
       ...defaultSlackConfig,
       ...options.slackConfig
-    } as SlackConfig
+    }
   );
   
   // By default, enhance with Jest mocks unless explicitly disabled

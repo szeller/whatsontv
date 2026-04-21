@@ -54,7 +54,7 @@ describe('SlackOutputServiceImpl', () => {
     
     mockSlackClient = {
       sendMessage: jest.fn<() => Promise<void>>().mockResolvedValue()
-    } as jest.Mocked<SlackClient>;
+    };
     
     mockConfigService = {
       getDate: jest.fn().mockReturnValue(new Date('2022-12-28')),

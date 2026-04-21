@@ -195,7 +195,7 @@ describe('SlackClientImpl', () => {
       
       // Set up the mock to reject with an error for this test only
       const error = new Error('Slack API error');
-      mockPostMessage.mockRejectedValueOnce(error as never);
+      mockPostMessage.mockRejectedValueOnce(error);
       
       // Act & Assert
       await expect(slackClient.sendMessage(payload)).rejects.toThrow(
