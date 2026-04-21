@@ -66,7 +66,7 @@ describe('TvShowServiceFactory', () => {
       const service = createMockTvShowService({ defaultShows });
       
       // Act
-      const result = await service.fetchShows({} as ShowOptions);
+      const result = await service.fetchShows({});
       
       // Assert
       expect(result).toEqual(defaultShows);
@@ -83,7 +83,7 @@ describe('TvShowServiceFactory', () => {
       });
       
       // Act
-      const result = await service.fetchShows({ date: TEST_DATE } as ShowOptions);
+      const result = await service.fetchShows({ date: TEST_DATE });
       
       // Assert
       expect(result).toEqual(dateShows);
@@ -100,7 +100,7 @@ describe('TvShowServiceFactory', () => {
       });
       
       // Act
-      const result = await service.fetchShows({ country: 'US' } as ShowOptions);
+      const result = await service.fetchShows({ country: 'US' });
       
       // Assert
       expect(result).toEqual(countryShows);
@@ -117,7 +117,7 @@ describe('TvShowServiceFactory', () => {
       });
       
       // Act
-      const result = await service.fetchShows({ networks: ['Test Network'] } as ShowOptions);
+      const result = await service.fetchShows({ networks: ['Test Network'] });
       
       // Assert
       expect(result).toEqual(networkShows);
@@ -134,7 +134,7 @@ describe('TvShowServiceFactory', () => {
       });
       
       // Act
-      const result = await service.fetchShows({ genres: ['Drama'] } as ShowOptions);
+      const result = await service.fetchShows({ genres: ['Drama'] });
       
       // Assert
       expect(result).toEqual(genreShows);
@@ -151,7 +151,7 @@ describe('TvShowServiceFactory', () => {
       });
       
       // Act
-      const result = await service.fetchShows({ languages: ['English'] } as ShowOptions);
+      const result = await service.fetchShows({ languages: ['English'] });
       
       // Assert
       expect(result).toEqual(languageShows);
@@ -165,7 +165,7 @@ describe('TvShowServiceFactory', () => {
       });
       
       // Act & Assert
-      await expect(service.fetchShows({} as ShowOptions)).rejects.toThrow(error);
+      await expect(service.fetchShows({})).rejects.toThrow(error);
     });
     
     it('should apply custom implementation methods', async () => {

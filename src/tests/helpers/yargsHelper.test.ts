@@ -49,10 +49,10 @@ describe('yargsHelper', () => {
 
       test('throws error for invalid command argument', () => {
         expect(() => {
-          mockYargsInstance.command(123 as unknown);
+          mockYargsInstance.command(123);
         }).toThrow(TypeError);
         expect(() => {
-          mockYargsInstance.command(123 as unknown);
+          mockYargsInstance.command(123);
         }).toThrow('Invalid command argument');
       });
     });
@@ -116,10 +116,10 @@ describe('yargsHelper', () => {
 
       test('throws error for non-array arguments', () => {
         expect(() => {
-          mockYargsInstance.parse(123 as unknown);
+          mockYargsInstance.parse(123);
         }).toThrow(TypeError);
         expect(() => {
-          mockYargsInstance.parse(123 as unknown);
+          mockYargsInstance.parse(123);
         }).toThrow('Parse expects string array argument');
       });
     });
@@ -140,10 +140,10 @@ describe('yargsHelper', () => {
 
       test('throws error for invalid options argument', () => {
         expect(() => {
-          mockYargsInstance.options('invalid' as unknown);
+          mockYargsInstance.options('invalid');
         }).toThrow(TypeError);
         expect(() => {
-          mockYargsInstance.options('invalid' as unknown);
+          mockYargsInstance.options('invalid');
         }).toThrow('Options expects options object argument');
       });
     });
@@ -167,10 +167,10 @@ describe('yargsHelper', () => {
 
       test('throws error for non-number argument', () => {
         expect(() => {
-          mockYargsInstance.exit('invalid' as unknown);
+          mockYargsInstance.exit('invalid');
         }).toThrow(TypeError);
         expect(() => {
-          mockYargsInstance.exit('invalid' as unknown);
+          mockYargsInstance.exit('invalid');
         }).toThrow('Exit expects number argument');
       });
     });

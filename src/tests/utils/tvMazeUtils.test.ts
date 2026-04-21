@@ -216,7 +216,7 @@ describe('TVMaze Utils', () => {
       const mixedSchedule = [...networkSchedule, null, ...webSchedule, undefined];
       
       // Act
-      const result = transformSchedule(mixedSchedule as unknown[]);
+      const result = transformSchedule(mixedSchedule);
       
       // Assert
       expect(result).toHaveLength(networkSchedule.length + webSchedule.length);
@@ -261,7 +261,7 @@ describe('TVMaze Utils', () => {
         process.env.NODE_ENV = 'production';
         
         // Act - this should not throw but return null
-        const result = transformScheduleItem(malformedItem as unknown as NetworkScheduleItem);
+        const result = transformScheduleItem(malformedItem);
         
         // Assert - the function returns null when an error occurs
         expect(result).toBeNull();

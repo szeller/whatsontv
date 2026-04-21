@@ -2,7 +2,7 @@ import { afterEach, afterAll, beforeEach, describe, expect, it } from '@jest/glo
 import nock from 'nock';
 
 import { FetchHttpClientImpl } from '../../implementations/fetchHttpClientImpl.js';
-import type { HttpClientOptions, HttpClient } from '../../interfaces/httpClient.js';
+import type { HttpClient } from '../../interfaces/httpClient.js';
 
 // Base URL for tests
 const BASE_URL = 'https://api.example.com';
@@ -20,7 +20,7 @@ describe('HttpClient Interface', () => {
   
   beforeEach(() => {
     // Create a new client instance before each test
-    client = new FetchHttpClientImpl({ baseUrl: BASE_URL } as HttpClientOptions);
+    client = new FetchHttpClientImpl({ baseUrl: BASE_URL });
     
     // Disable real network connections
     nock.disableNetConnect();

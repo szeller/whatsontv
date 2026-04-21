@@ -34,7 +34,7 @@ export class SlackClientImpl implements SlackClient {
       info: () => { /* noop */ },
       debug: () => { /* noop */ },
       child: () => this.logger
-    } as LoggerService;
+    };
     
     // Use the factory if provided, otherwise create a new WebClient directly
     this._client = this.webClientFactory

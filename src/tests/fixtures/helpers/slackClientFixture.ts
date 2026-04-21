@@ -15,7 +15,7 @@ export const SlackClientFixture = {
   createMockClient(): jest.Mocked<SlackClient> {
     return {
       sendMessage: jest.fn<() => Promise<void>>().mockResolvedValue()
-    } as jest.Mocked<SlackClient>;
+    };
   },
 
   /**

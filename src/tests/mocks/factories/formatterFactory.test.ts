@@ -23,7 +23,7 @@ describe('FormatterFactory', () => {
 
     const sampleNetworkGroups: NetworkGroups = {
       'Test Network': [sampleShow],
-      'Another Network': [{ ...sampleShow, id: 2, name: 'Another Show' } as Show]
+      'Another Network': [{ ...sampleShow, id: 2, name: 'Another Show' }]
     };
 
     it('should create a mock formatter with default implementations', () => {
@@ -89,9 +89,9 @@ describe('FormatterFactory', () => {
 
       // Assert
       expect(formatter.formatTimedShow(sampleShow)).toBe('Special Format for Show ID 1');
-      const show2 = { ...sampleShow, id: 2 } as Show;
+      const show2 = { ...sampleShow, id: 2 };
       expect(formatter.formatTimedShow(show2)).toBe('Special Format for Show ID 2');
-      const show3 = { ...sampleShow, id: 3 } as Show;
+      const show3 = { ...sampleShow, id: 3 };
       expect(formatter.formatTimedShow(show3)).toBe('Timed Show: Test Show at 20:00');
     });
 

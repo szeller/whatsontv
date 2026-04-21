@@ -44,7 +44,7 @@ export class MockHttpClient implements HttpClient {
    * @param response The response to return
    */
   mockGet<T>(url: string, response: HttpResponse<T>): void {
-    this.mockResponses.set(url, response as HttpResponse<unknown>);
+    this.mockResponses.set(url, response);
     this.getMock.mockResolvedValue(response);
   }
 
@@ -84,7 +84,7 @@ export class MockHttpClient implements HttpClient {
    */
   setMockResponse<T>(response: HttpResponse<T>): void {
     // This will be used as a default response for any URL
-    this.mockResponses.set('*', response as HttpResponse<unknown>);
+    this.mockResponses.set('*', response);
     this.getMock.mockResolvedValue(response);
     this.postMock.mockResolvedValue(response);
   }
