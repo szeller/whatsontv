@@ -34,11 +34,11 @@ describe('stringUtils', () => {
     });
 
     it('should return false for whitespace without trim', () => {
-      expect(isEmptyString('   ')).toBe(false);
+      expect(isEmptyString(' '.repeat(3))).toBe(false);
     });
 
     it('should return true for whitespace with trim', () => {
-      expect(isEmptyString('   ', true)).toBe(true);
+      expect(isEmptyString(' '.repeat(3), true)).toBe(true);
     });
 
     it('should return false for string with content and trim', () => {
@@ -64,7 +64,7 @@ describe('stringUtils', () => {
     });
 
     it('should return true for whitespace (does not trim)', () => {
-      expect(hasContent('   ')).toBe(true);
+      expect(hasContent(' '.repeat(3))).toBe(true);
     });
 
     it('should narrow type correctly', () => {
@@ -152,7 +152,7 @@ describe('stringUtils', () => {
     });
 
     it('should return the default value if input is whitespace', () => {
-      expect(getStringOrDefault('   ', 'default')).toBe('default');
+      expect(getStringOrDefault(' '.repeat(3), 'default')).toBe('default');
     });
 
     it('should trim the input value', () => {
@@ -188,11 +188,11 @@ describe('stringUtils', () => {
     });
 
     it('should handle undefined input', () => {
-      expect(padString(undefined, 5)).toBe('     ');
+      expect(padString(undefined, 5)).toBe(' '.repeat(5));
     });
 
     it('should handle null input', () => {
-      expect(padString(null, 5)).toBe('     ');
+      expect(padString(null, 5)).toBe(' '.repeat(5));
     });
 
     it('should use the specified pad character', () => {

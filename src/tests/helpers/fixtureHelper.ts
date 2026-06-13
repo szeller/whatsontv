@@ -134,7 +134,7 @@ export class Fixtures {
      * @returns Array of transformed Show objects
      */
     loadNetworkShows(): Show[] {
-      const data = this.getSchedule('network-schedule');
+      const data = Fixtures.tvMaze.getSchedule('network-schedule');
       return transformSchedule(data);
     },
 
@@ -143,7 +143,7 @@ export class Fixtures {
      * @returns Array of transformed Show objects
      */
     loadWebShows(): Show[] {
-      const data = this.getSchedule('web-schedule');
+      const data = Fixtures.tvMaze.getSchedule('web-schedule');
       return transformSchedule(data);
     },
 
@@ -152,7 +152,7 @@ export class Fixtures {
      * @returns Array of transformed Show objects
      */
     loadCombinedShows(): Show[] {
-      const data = this.getSchedule('combined-schedule');
+      const data = Fixtures.tvMaze.getSchedule('combined-schedule');
       return transformSchedule(data);
     }
   };
@@ -234,8 +234,8 @@ export class Fixtures {
     getNetworkGroups(): NetworkGroups {
       return {
         broadcast: [
-          this.getNetworkShows()[0],
-          this.getNetworkShows()[1]
+          Fixtures.domain.getNetworkShows()[0],
+          Fixtures.domain.getNetworkShows()[1]
         ],
         cable: [
           {
@@ -252,8 +252,8 @@ export class Fixtures {
           }
         ],
         streaming: [
-          this.getStreamingShows()[0],
-          this.getStreamingShows()[1]
+          Fixtures.domain.getStreamingShows()[0],
+          Fixtures.domain.getStreamingShows()[1]
         ]
       };
     }

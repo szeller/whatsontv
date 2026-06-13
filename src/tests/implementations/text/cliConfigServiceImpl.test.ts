@@ -291,8 +291,7 @@ class TestCliConfigService extends CliConfigServiceImpl {
       return configValue as unknown as ShowOptions[K];
     }
 
-    const isArrayKey = key === 'types' || key === 'networks' ||
-                       key === 'genres' || key === 'languages';
+    const isArrayKey = ['types', 'networks', 'genres', 'languages'].includes(key);
     if (isArrayKey && Array.isArray(configValue)) {
       return configValue as unknown as ShowOptions[K];
     }
@@ -340,10 +339,8 @@ class TestCliConfigService extends CliConfigServiceImpl {
   
   private getFetchMode(): 'network' | 'web' | 'all' {
     const fetch = this.mockCliArgs.fetch;
-    if (fetch === 'network' || fetch === 'web' || fetch === 'all') {
-      return fetch;
-    }
-    return 'all';
+    const validModes = ['network', 'web', 'all'] as const;
+    return validModes.find((mode) => mode === fetch) ?? 'all';
   }
 
   // Expose the createYargsInstance method for testing
