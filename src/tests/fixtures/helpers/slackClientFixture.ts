@@ -27,7 +27,7 @@ export const SlackClientFixture = {
     overrides: Partial<jest.Mocked<SlackClient>>
   ): jest.Mocked<SlackClient> {
     return {
-      ...this.createMockClient(),
+      ...SlackClientFixture.createMockClient(),
       ...overrides
     };
   },

@@ -384,9 +384,9 @@ export const ShowFixtures = {
    */
   getAllShows(): Show[] {
     return [
-      ...this.getNetworkShows(),
-      ...this.getStreamingShows(),
-      ...this.getCableShows()
+      ...ShowFixtures.getNetworkShows(),
+      ...ShowFixtures.getStreamingShows(),
+      ...ShowFixtures.getCableShows()
     ];
   },
 
@@ -468,19 +468,19 @@ export const ShowFixtures = {
     const shows: Show[] = [];
     
     if (options.types && options.types.length > 0) {
-      shows.push(...this.withDifferentTypes(options.types));
+      shows.push(...ShowFixtures.withDifferentTypes(options.types));
     }
-    
+
     if (options.networks && options.networks.length > 0) {
-      shows.push(...this.withDifferentNetworks(options.networks));
+      shows.push(...ShowFixtures.withDifferentNetworks(options.networks));
     }
-    
+
     if (options.genres && options.genres.length > 0) {
-      shows.push(...this.withDifferentGenres(options.genres));
+      shows.push(...ShowFixtures.withDifferentGenres(options.genres));
     }
-    
+
     if (options.languages && options.languages.length > 0) {
-      shows.push(...this.withDifferentLanguages(options.languages));
+      shows.push(...ShowFixtures.withDifferentLanguages(options.languages));
     }
     
     return shows;

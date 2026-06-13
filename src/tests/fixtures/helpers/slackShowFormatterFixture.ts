@@ -49,7 +49,7 @@ export const SlackShowFormatterFixture = {
     overrides: Partial<jest.Mocked<SlackShowFormatter>>
   ): jest.Mocked<SlackShowFormatter> {
     return {
-      ...this.createMockFormatter(),
+      ...SlackShowFormatterFixture.createMockFormatter(),
       ...overrides
     };
   },

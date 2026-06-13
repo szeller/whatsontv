@@ -151,14 +151,14 @@ describe('fileUtils', () => {
 
     it('should ignore whitespace-only CONFIG_FILE env var', () => {
       // Arrange
-      process.env.CONFIG_FILE = '   ';
+      process.env.CONFIG_FILE = ' '.repeat(3);
 
       // Act
       const result = getConfigFilePath(MODULE_URL);
 
       // Assert
       expect(result).toContain(CONFIG_FILE_NAME);
-      expect(result).not.toBe('   ');
+      expect(result).not.toBe(' '.repeat(3));
     });
 
     it('should use configFileName parameter when CONFIG_FILE not set', () => {

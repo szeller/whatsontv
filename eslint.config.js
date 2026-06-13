@@ -206,6 +206,13 @@ export default [
       reportUnusedDisableDirectives: 'error'
     }
   },
+  // CLI entry points: shebang scripts that also export factory functions for tests
+  {
+    files: ['src/cli/textCli.ts', 'src/cli/slackCli.ts'],
+    rules: {
+      'unicorn/no-exports-in-scripts': 'off'
+    }
+  },
   // Test files configuration
   {
     files: ['src/**/*.test.ts', 'src/tests/**/*.ts'],

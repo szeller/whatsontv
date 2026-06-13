@@ -57,7 +57,7 @@ describe('DateUtils', () => {
       expect(result2).toMatch(/^\d{4}-\d{2}-\d{2}$/);
 
       // Whitespace should fall back to local date
-      const result3 = getTodayDate('   ');
+      const result3 = getTodayDate(' '.repeat(3));
       expect(result3).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     });
   });
