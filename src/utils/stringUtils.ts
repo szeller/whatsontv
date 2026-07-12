@@ -5,14 +5,14 @@
 /**
  * Check if a string is null, undefined, or empty
  * @param value - The value to check
- * @param trim - Whether to trim whitespace before checking (default: false)
+ * @param shouldTrim - Whether to trim whitespace before checking (default: false)
  * @returns True if the value is null, undefined, or empty string
  */
-export function isEmptyString(value: string | null | undefined, trim = false): boolean {
+export function isEmptyString(value: string | null | undefined, shouldTrim = false): boolean {
   if (value === null || value === undefined) {
     return true;
   }
-  return trim ? value.trim() === '' : value === '';
+  return (shouldTrim ? value.trim() : value) === '';
 }
 
 /**

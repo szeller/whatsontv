@@ -64,6 +64,12 @@ export class BaseCliApplication {
  */
 export function runMain(appFactory: () => BaseCliApplication, processOutput: ProcessOutput): void {
   if (isDirectExecution()) {
-    appFactory().run().catch((error: unknown) => { handleMainError(error, processOutput); });
+    void (async (): Promise<void> => {
+      try {
+        await appFactory().run();
+      } catch (error: unknown) {
+        handleMainError(error, processOutput);
+      }
+    })();
   }
 }

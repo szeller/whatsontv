@@ -71,6 +71,85 @@ export class NetworkBuilder {
  * Builder for TVMaze Show objects
  */
 export class TvMazeShowBuilder {
+  /**
+   * Create a TVMaze show with custom options
+   * @param options Custom options for the show
+   * @returns A TVMaze show object
+   */
+  static createShow(options: Partial<TvMazeShow> = {}): TvMazeShow {
+    const builder = new TvMazeShowBuilder();
+
+    if (options.id !== undefined) builder.withId(options.id);
+    if (options.name !== undefined) builder.withName(options.name);
+    if (options.type !== undefined) builder.withType(options.type);
+    if (options.language !== undefined) builder.withLanguage(options.language);
+    if (options.genres !== undefined) builder.withGenres(options.genres);
+    if (options.status !== undefined) builder.withStatus(options.status);
+    if (options.runtime !== undefined) builder.withRuntime(options.runtime);
+    if (options.averageRuntime !== undefined) {
+      builder.withAverageRuntime(options.averageRuntime ?? 0);
+    }
+    if (options.premiered !== undefined) builder.withPremiered(options.premiered);
+    if (options.ended !== undefined) builder.withEnded(options.ended);
+    if (options.network !== undefined) builder.withNetwork(options.network);
+    if (options.webChannel !== undefined) builder.withWebChannel(options.webChannel);
+    if (options.summary !== undefined) builder.withSummary(options.summary);
+
+    return builder.build();
+  }
+
+  /**
+   * Create multiple TVMaze shows with sequential IDs
+   * @param count Number of shows to create
+   * @param baseOptions Base options for all shows
+   * @returns Array of TVMaze show objects
+   */
+  static createShows(count: number, baseOptions: Partial<TvMazeShow> = {}): TvMazeShow[] {
+    return Array.from({ length: count }, (_, index) => {
+      const id = (baseOptions.id ?? 100) + index;
+      const name = baseOptions.name === undefined 
+        ? `Test Show ${index + 1}` 
+        : `${baseOptions.name} ${index + 1}`;
+      
+      return this.createShow({
+        ...baseOptions,
+        id,
+        name
+      });
+    });
+  }
+
+  /**
+   * Create a network show (with network, not webChannel)
+   * @param options Custom options for the show
+   * @returns A TVMaze show with network
+   */
+  static createNetworkShow(options: Partial<TvMazeShow> = {}): TvMazeShow {
+    const network = options.network ?? new NetworkBuilder().build();
+
+    return this.createShow({
+      ...options,
+      network,
+      webChannel: null
+    });
+  }
+
+  /**
+   * Create a web show (with webChannel, not network)
+   * @param options Custom options for the show
+   * @returns A TVMaze show with webChannel
+   */
+  static createWebShow(options: Partial<TvMazeShow> = {}): TvMazeShow {
+    const webChannel = options.webChannel
+      ?? new NetworkBuilder().withName('Web Channel').asWebChannel().build();
+
+    return this.createShow({
+      ...options,
+      network: null,
+      webChannel
+    });
+  }
+
   private id = 100;
   private readonly url = 'https://www.tvmaze.com/shows/100/test-show';
   private name = 'Test Show';
@@ -254,91 +333,219 @@ export class TvMazeShowBuilder {
       _links: this._links
     };
   }
-
-  /**
-   * Create a TVMaze show with custom options
-   * @param options Custom options for the show
-   * @returns A TVMaze show object
-   */
-  static createShow(options: Partial<TvMazeShow> = {}): TvMazeShow {
-    const builder = new TvMazeShowBuilder();
-
-    if (options.id !== undefined) builder.withId(options.id);
-    if (options.name !== undefined) builder.withName(options.name);
-    if (options.type !== undefined) builder.withType(options.type);
-    if (options.language !== undefined) builder.withLanguage(options.language);
-    if (options.genres !== undefined) builder.withGenres(options.genres);
-    if (options.status !== undefined) builder.withStatus(options.status);
-    if (options.runtime !== undefined) builder.withRuntime(options.runtime);
-    if (options.averageRuntime !== undefined) {
-      builder.withAverageRuntime(options.averageRuntime ?? 0);
-    }
-    if (options.premiered !== undefined) builder.withPremiered(options.premiered);
-    if (options.ended !== undefined) builder.withEnded(options.ended);
-    if (options.network !== undefined) builder.withNetwork(options.network);
-    if (options.webChannel !== undefined) builder.withWebChannel(options.webChannel);
-    if (options.summary !== undefined) builder.withSummary(options.summary);
-
-    return builder.build();
-  }
-
-  /**
-   * Create multiple TVMaze shows with sequential IDs
-   * @param count Number of shows to create
-   * @param baseOptions Base options for all shows
-   * @returns Array of TVMaze show objects
-   */
-  static createShows(count: number, baseOptions: Partial<TvMazeShow> = {}): TvMazeShow[] {
-    return Array.from({ length: count }, (_, index) => {
-      const id = baseOptions.id === undefined ? 100 + index : baseOptions.id + index;
-      const name = baseOptions.name === undefined 
-        ? `Test Show ${index + 1}` 
-        : `${baseOptions.name} ${index + 1}`;
-      
-      return TvMazeShowBuilder.createShow({
-        ...baseOptions,
-        id,
-        name
-      });
-    });
-  }
-
-  /**
-   * Create a network show (with network, not webChannel)
-   * @param options Custom options for the show
-   * @returns A TVMaze show with network
-   */
-  static createNetworkShow(options: Partial<TvMazeShow> = {}): TvMazeShow {
-    const network = options.network ?? new NetworkBuilder().build();
-
-    return TvMazeShowBuilder.createShow({
-      ...options,
-      network,
-      webChannel: null
-    });
-  }
-
-  /**
-   * Create a web show (with webChannel, not network)
-   * @param options Custom options for the show
-   * @returns A TVMaze show with webChannel
-   */
-  static createWebShow(options: Partial<TvMazeShow> = {}): TvMazeShow {
-    const webChannel = options.webChannel
-      ?? new NetworkBuilder().withName('Web Channel').asWebChannel().build();
-
-    return TvMazeShowBuilder.createShow({
-      ...options,
-      network: null,
-      webChannel
-    });
-  }
 }
 
 /**
  * Builder for TVMaze Schedule Item objects
  */
 export class TvMazeScheduleItemBuilder {
+  /**
+   * Create a network schedule item
+   */
+  static createNetworkScheduleItem(options: {
+    id?: number;
+    name?: string;
+    season?: number;
+    number?: number;
+    airdate?: string;
+    airtime?: string;
+    showId?: number;
+    showName?: string;
+    network?: Network;
+  } = {}): TvMazeScheduleItem {
+    const network = options.network ?? new NetworkBuilder().build();
+    const show = new TvMazeShowBuilder()
+      .withId(options.showId ?? 100)
+      .withName(options.showName ?? 'Test Show')
+      .withNetwork(network)
+      .build();
+
+    return new TvMazeScheduleItemBuilder()
+      .withId(options.id ?? 1000)
+      .withName(options.name ?? 'Test Episode')
+      .withSeason(options.season ?? 1)
+      .withNumber(options.number ?? 1)
+      .withAirdate(options.airdate ?? DEFAULT_DATE)
+      .withAirtime(options.airtime ?? '20:00')
+      .withShow(show)
+      .build();
+  }
+
+  /**
+   * Create a web schedule item
+   */
+  static createWebScheduleItem(options: {
+    id?: number;
+    name?: string;
+    season?: number;
+    number?: number;
+    airdate?: string;
+    airtime?: string;
+    showId?: number;
+    showName?: string;
+    webChannel?: Network;
+  } = {}): TvMazeScheduleItem {
+    const webChannel = options.webChannel
+      ?? new NetworkBuilder().asWebChannel().build();
+    const show = new TvMazeShowBuilder()
+      .withId(options.showId ?? 200)
+      .withName(options.showName ?? 'Test Web Show')
+      .withNetwork(null)
+      .withWebChannel(webChannel)
+      .build();
+
+    return new TvMazeScheduleItemBuilder()
+      .withId(options.id ?? 2000)
+      .withName(options.name ?? 'Test Web Episode')
+      .withSeason(options.season ?? 1)
+      .withNumber(options.number ?? 1)
+      .withAirdate(options.airdate ?? DEFAULT_DATE)
+      .withAirtime(options.airtime ?? '20:00')
+      .withShow(show)
+      .build();
+  }
+
+  /**
+   * Create a batch of network schedule items
+   */
+  static createNetworkScheduleItems(count: number, baseOptions: {
+    showId?: number;
+    showName?: string;
+    network?: Network;
+    airdate?: string;
+  } = {}): TvMazeScheduleItem[] {
+    const items: TvMazeScheduleItem[] = [];
+    const baseShowId = baseOptions.showId ?? 100;
+
+    for (let index = 0; index < count; index++) {
+      const showName = baseOptions.showName === undefined
+        ? `Test Show ${index + 1}`
+        : `${baseOptions.showName} ${index + 1}`;
+        
+      items.push(this.createNetworkScheduleItem({
+        showName,
+        id: 1000 + index,
+        name: `Episode ${index + 1}`,
+        season: 1,
+        number: index + 1,
+        showId: baseShowId + index,
+        network: baseOptions.network,
+        airdate: baseOptions.airdate
+      }));
+    }
+    
+    return items;
+  }
+
+  /**
+   * Create a batch of web schedule items
+   */
+  static createWebScheduleItems(count: number, baseOptions: {
+    showId?: number;
+    showName?: string;
+    webChannel?: Network;
+    airdate?: string;
+  } = {}): TvMazeScheduleItem[] {
+    const items: TvMazeScheduleItem[] = [];
+    const baseShowId = baseOptions.showId ?? 200;
+
+    for (let index = 0; index < count; index++) {
+      const showName = baseOptions.showName === undefined
+        ? `Test Web Show ${index + 1}`
+        : `${baseOptions.showName} ${index + 1}`;
+        
+      items.push(this.createWebScheduleItem({
+        showName,
+        id: 2000 + index,
+        name: `Web Episode ${index + 1}`,
+        season: 1,
+        number: index + 1,
+        showId: baseShowId + index,
+        webChannel: baseOptions.webChannel,
+        airdate: baseOptions.airdate
+      }));
+    }
+    
+    return items;
+  }
+
+  /**
+   * Create a batch of network schedule items with specific options for each item
+   * @param options Array of options for each schedule item
+   * @returns Array of TVMaze schedule items
+   */
+  static createNetworkScheduleItemsWithOptions(
+    options: Partial<{
+      id: number;
+      name: string;
+      season: number;
+      number: number;
+      airdate: string;
+      airtime: string;
+      showId: number;
+      showName: string;
+      network: Network;
+    }>[]
+  ): TvMazeScheduleItem[] {
+    return options.map(opt => this.createNetworkScheduleItem(opt));
+  }
+
+  /**
+   * Create a batch of web schedule items with specific options for each item
+   * @param options Array of options for each schedule item
+   * @returns Array of TVMaze schedule items
+   */
+  static createWebScheduleItemsWithOptions(
+    options: Partial<{
+      id: number;
+      name: string;
+      season: number;
+      number: number;
+      airdate: string;
+      airtime: string;
+      showId: number;
+      showName: string;
+      webChannel: Network;
+    }>[]
+  ): TvMazeScheduleItem[] {
+    return options.map(opt => this.createWebScheduleItem(opt));
+  }
+
+  /**
+   * Create a mixed batch of network and web schedule items
+   * @param networkCount Number of network schedule items
+   * @param webCount Number of web schedule items
+   * @param baseOptions Base options for all items
+   * @returns Array of TVMaze schedule items (network items first, then web items)
+   */
+  static createMixedScheduleItems(
+    networkCount: number,
+    webCount: number,
+    baseOptions: Partial<{
+      airdate: string;
+    }> = {}
+  ): TvMazeScheduleItem[] {
+    const networkItems = this.createNetworkScheduleItems(
+      networkCount,
+      {
+        showId: 100,
+        showName: 'Network Show',
+        airdate: baseOptions.airdate
+      }
+    );
+    
+    const webItems = this.createWebScheduleItems(
+      webCount,
+      {
+        showId: 200,
+        showName: 'Web Show',
+        airdate: baseOptions.airdate
+      }
+    );
+    
+    return [...networkItems, ...webItems];
+  }
+
   private id = 1000;
   private readonly url = 'https://www.tvmaze.com/episodes/1000/test-show-1x01-pilot';
   private name = 'Pilot';
@@ -470,212 +677,5 @@ export class TvMazeScheduleItemBuilder {
       summary: this.summary,
       show: this.show
     };
-  }
-
-  /**
-   * Create a network schedule item
-   */
-  static createNetworkScheduleItem(options: {
-    id?: number;
-    name?: string;
-    season?: number;
-    number?: number;
-    airdate?: string;
-    airtime?: string;
-    showId?: number;
-    showName?: string;
-    network?: Network;
-  } = {}): TvMazeScheduleItem {
-    const network = options.network ?? new NetworkBuilder().build();
-    const show = new TvMazeShowBuilder()
-      .withId(options.showId ?? 100)
-      .withName(options.showName ?? 'Test Show')
-      .withNetwork(network)
-      .build();
-
-    return new TvMazeScheduleItemBuilder()
-      .withId(options.id ?? 1000)
-      .withName(options.name ?? 'Test Episode')
-      .withSeason(options.season ?? 1)
-      .withNumber(options.number ?? 1)
-      .withAirdate(options.airdate ?? DEFAULT_DATE)
-      .withAirtime(options.airtime ?? '20:00')
-      .withShow(show)
-      .build();
-  }
-
-  /**
-   * Create a web schedule item
-   */
-  static createWebScheduleItem(options: {
-    id?: number;
-    name?: string;
-    season?: number;
-    number?: number;
-    airdate?: string;
-    airtime?: string;
-    showId?: number;
-    showName?: string;
-    webChannel?: Network;
-  } = {}): TvMazeScheduleItem {
-    const webChannel = options.webChannel
-      ?? new NetworkBuilder().asWebChannel().build();
-    const show = new TvMazeShowBuilder()
-      .withId(options.showId ?? 200)
-      .withName(options.showName ?? 'Test Web Show')
-      .withNetwork(null)
-      .withWebChannel(webChannel)
-      .build();
-
-    return new TvMazeScheduleItemBuilder()
-      .withId(options.id ?? 2000)
-      .withName(options.name ?? 'Test Web Episode')
-      .withSeason(options.season ?? 1)
-      .withNumber(options.number ?? 1)
-      .withAirdate(options.airdate ?? DEFAULT_DATE)
-      .withAirtime(options.airtime ?? '20:00')
-      .withShow(show)
-      .build();
-  }
-
-  /**
-   * Create a batch of network schedule items
-   */
-  static createNetworkScheduleItems(count: number, baseOptions: {
-    showId?: number;
-    showName?: string;
-    network?: Network;
-    airdate?: string;
-  } = {}): TvMazeScheduleItem[] {
-    const items: TvMazeScheduleItem[] = [];
-    const baseShowId = baseOptions.showId ?? 100;
-
-    for (let i = 0; i < count; i++) {
-      const showName = baseOptions.showName === undefined
-        ? `Test Show ${i + 1}`
-        : `${baseOptions.showName} ${i + 1}`;
-        
-      items.push(TvMazeScheduleItemBuilder.createNetworkScheduleItem({
-        showName,
-        id: 1000 + i,
-        name: `Episode ${i + 1}`,
-        season: 1,
-        number: i + 1,
-        showId: baseShowId + i,
-        network: baseOptions.network,
-        airdate: baseOptions.airdate
-      }));
-    }
-    
-    return items;
-  }
-
-  /**
-   * Create a batch of web schedule items
-   */
-  static createWebScheduleItems(count: number, baseOptions: {
-    showId?: number;
-    showName?: string;
-    webChannel?: Network;
-    airdate?: string;
-  } = {}): TvMazeScheduleItem[] {
-    const items: TvMazeScheduleItem[] = [];
-    const baseShowId = baseOptions.showId ?? 200;
-
-    for (let i = 0; i < count; i++) {
-      const showName = baseOptions.showName === undefined
-        ? `Test Web Show ${i + 1}`
-        : `${baseOptions.showName} ${i + 1}`;
-        
-      items.push(TvMazeScheduleItemBuilder.createWebScheduleItem({
-        showName,
-        id: 2000 + i,
-        name: `Web Episode ${i + 1}`,
-        season: 1,
-        number: i + 1,
-        showId: baseShowId + i,
-        webChannel: baseOptions.webChannel,
-        airdate: baseOptions.airdate
-      }));
-    }
-    
-    return items;
-  }
-
-  /**
-   * Create a batch of network schedule items with specific options for each item
-   * @param options Array of options for each schedule item
-   * @returns Array of TVMaze schedule items
-   */
-  static createNetworkScheduleItemsWithOptions(
-    options: Partial<{
-      id: number;
-      name: string;
-      season: number;
-      number: number;
-      airdate: string;
-      airtime: string;
-      showId: number;
-      showName: string;
-      network: Network;
-    }>[]
-  ): TvMazeScheduleItem[] {
-    return options.map(opt => TvMazeScheduleItemBuilder.createNetworkScheduleItem(opt));
-  }
-
-  /**
-   * Create a batch of web schedule items with specific options for each item
-   * @param options Array of options for each schedule item
-   * @returns Array of TVMaze schedule items
-   */
-  static createWebScheduleItemsWithOptions(
-    options: Partial<{
-      id: number;
-      name: string;
-      season: number;
-      number: number;
-      airdate: string;
-      airtime: string;
-      showId: number;
-      showName: string;
-      webChannel: Network;
-    }>[]
-  ): TvMazeScheduleItem[] {
-    return options.map(opt => TvMazeScheduleItemBuilder.createWebScheduleItem(opt));
-  }
-
-  /**
-   * Create a mixed batch of network and web schedule items
-   * @param networkCount Number of network schedule items
-   * @param webCount Number of web schedule items
-   * @param baseOptions Base options for all items
-   * @returns Array of TVMaze schedule items (network items first, then web items)
-   */
-  static createMixedScheduleItems(
-    networkCount: number,
-    webCount: number,
-    baseOptions: Partial<{
-      airdate: string;
-    }> = {}
-  ): TvMazeScheduleItem[] {
-    const networkItems = TvMazeScheduleItemBuilder.createNetworkScheduleItems(
-      networkCount,
-      {
-        showId: 100,
-        showName: 'Network Show',
-        airdate: baseOptions.airdate
-      }
-    );
-    
-    const webItems = TvMazeScheduleItemBuilder.createWebScheduleItems(
-      webCount,
-      {
-        showId: 200,
-        showName: 'Web Show',
-        airdate: baseOptions.airdate
-      }
-    );
-    
-    return [...networkItems, ...webItems];
   }
 }

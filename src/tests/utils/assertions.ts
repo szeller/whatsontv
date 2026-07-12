@@ -79,22 +79,22 @@ expect.extend({
   toHaveBeenCalledWithShow(received: jest.Mock, expectedShow: Partial<Show>) {
     // Check if the mock was called with an object matching the expected show properties
     const calls = received.mock.calls.filter(call => {
-      const arg = call[0];
-      return arg !== null && 
-        arg !== undefined &&
-        typeof arg === 'object' && 
+      const argument = call[0];
+      return argument !== null && 
+        argument !== undefined &&
+        typeof argument === 'object' && 
         Object.entries(expectedShow).every(([key, value]) => {
-          return (arg as Record<string, unknown>)[key] === value;
+          return (argument as Record<string, unknown>)[key] === value;
         });
     });
     
-    const pass = calls.length > 0;
+    const isPass = calls.length > 0;
     
     return {
-      message: () => pass 
+      message: () => isPass 
         ? `Expected mock not to be called with show matching ${JSON.stringify(expectedShow)}` 
         : `Expected mock to be called with show matching ${JSON.stringify(expectedShow)}`,
-      pass
+      pass: isPass
     };
   },
   
@@ -111,13 +111,13 @@ expect.extend({
       });
     });
     
-    const pass = calls.length > 0;
+    const isPass = calls.length > 0;
     
     return {
-      message: () => pass 
+      message: () => isPass 
         ? `Expected mock not to be called with shows including ${JSON.stringify(expectedShow)}` 
         : `Expected mock to be called with shows including ${JSON.stringify(expectedShow)}`,
-      pass
+      pass: isPass
     };
   },
   
@@ -220,15 +220,15 @@ export function createTestShow(overrides: Partial<Show> = {}): Show {
  */
 export function createTestShows(
   count: number, 
-  overridesFn?: (index: number) => Partial<Show>
+  overridesFunction?: (index: number) => Partial<Show>
 ): Show[] {
-  return Array.from({ length: count }).map((_, index) => {
+  return Array.from({ length: count }, (_, index) => {
     const baseOverrides = {
       id: index + 1,
       name: `Test Show ${index + 1}`
     };
     
-    const customOverrides = overridesFn ? overridesFn(index) : {};
+    const customOverrides = overridesFunction ? overridesFunction(index) : {};
     
     return createTestShow({
       ...baseOverrides,

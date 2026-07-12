@@ -68,7 +68,7 @@ export class MockSlackClient implements SlackClient {
       logMessages.push('--- End of MockSlackClient Message ---');
       
       if (this.debugMode === 'console') {
-        for (const msg of logMessages) { console.log(msg); }
+        for (const message of logMessages) { console.log(message); }
       } else {
         this.debugLogs.push(...logMessages);
       }
@@ -82,7 +82,7 @@ export class MockSlackClient implements SlackClient {
    */
   getMessages(): SlackMessagePayload[] {
     // Create a deep copy of the messages to prevent modification
-    return this.messages.map(msg => structuredClone(msg));
+    return this.messages.map(message => structuredClone(message));
   }
 
   /**
@@ -92,8 +92,8 @@ export class MockSlackClient implements SlackClient {
    */
   getMessagesForChannel(channel: string): SlackMessagePayload[] {
     return this.messages
-      .filter(msg => msg.channel === channel)
-      .map(msg => structuredClone(msg));
+      .filter(message => message.channel === channel)
+      .map(message => structuredClone(message));
   }
 
   /**
@@ -103,8 +103,8 @@ export class MockSlackClient implements SlackClient {
    */
   findMessagesByText(text: string): SlackMessagePayload[] {
     return this.messages
-      .filter(msg => msg.text.includes(text))
-      .map(msg => structuredClone(msg));
+      .filter(message => message.text.includes(text))
+      .map(message => structuredClone(message));
   }
   
   /**
@@ -113,23 +113,23 @@ export class MockSlackClient implements SlackClient {
    * @returns True if a matching message was sent
    */
   wasMessageSent(criteria: Partial<SlackMessagePayload>): boolean {
-    return this.messages.some(msg => {
+    return this.messages.some(message => {
       return Object.entries(criteria).every(([key, value]) => {
         // Handle blocks separately with explicit null check
         if (key === 'blocks') {
           // If criteria has blocks but message doesn't, return false
-          if (Array.isArray(value) && !Array.isArray(msg.blocks)) {
+          if (Array.isArray(value) && !Array.isArray(message.blocks)) {
             return false;
           }
           
           // If both have blocks, compare them
-          if (Array.isArray(value) && Array.isArray(msg.blocks)) {
-            const messageBlocks = msg.blocks ?? [];
+          if (Array.isArray(value) && Array.isArray(message.blocks)) {
+            const messageBlocks = message.blocks ?? [];
             return value.every((block, index) => {
               // Check if the index exists in the message blocks
               if (index < messageBlocks.length) {
-                const msgBlock = messageBlocks[index];
-                return msgBlock.type === block.type;
+                const messageBlock = messageBlocks[index];
+                return messageBlock.type === block.type;
               }
               return false;
             });
@@ -140,7 +140,7 @@ export class MockSlackClient implements SlackClient {
         }
         
         // For other properties, do a simple equality check
-        return msg[key as keyof SlackMessagePayload] === value;
+        return message[key as keyof SlackMessagePayload] === value;
       });
     });
   }
@@ -189,27 +189,27 @@ export class MockSlackClient implements SlackClient {
     includeBlocks?: boolean;
     toConsole?: boolean;
   } = {}): string[] {
-    const includeBlocks = options.includeBlocks ?? false;
-    const toConsole = options.toConsole ?? (this.debugMode === 'console');
+    const isIncludeBlocks = options.includeBlocks ?? false;
+    const isToConsole = options.toConsole ?? (this.debugMode === 'console');
     
     const summary = [
       `--- MockSlackClient stored messages (${this.messages.length}) ---`
     ];
     
-    for (const [index, msg] of this.messages.entries()) {
-      summary.push(`[${index}] Channel: ${msg.channel}, Text: ${msg.text}`);
+    for (const [index, message] of this.messages.entries()) {
+      summary.push(`[${index}] Channel: ${message.channel}, Text: ${message.text}`);
       
-      const hasBlocks = includeBlocks &&
-                        msg.blocks !== undefined &&
-                        msg.blocks.length > 0;
+      const hasBlocks = isIncludeBlocks &&
+                        message.blocks !== undefined &&
+                        message.blocks.length > 0;
       if (hasBlocks) {
-        summary.push(`    Blocks: ${JSON.stringify(msg.blocks, null, 2)}`);
+        summary.push(`    Blocks: ${JSON.stringify(message.blocks, null, 2)}`);
       }
     }
     
     summary.push('--- End of MockSlackClient stored messages ---');
     
-    if (toConsole) {
+    if (isToConsole) {
       for (const line of summary) { console.log(line); }
     }
     

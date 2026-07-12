@@ -20,11 +20,11 @@ describe('ShowUtils', () => {
     it('returns date in YYYY-MM-DD format', () => {
       // Mock Date to return a fixed date
       const mockDate = new Date(2025, 2, 20); // March 20, 2025
-      const originalDate = globalThis.Date;
+      const originalDate = Date;
       globalThis.Date = jest.fn(() => mockDate) as unknown as DateConstructor;
-      globalThis.Date.UTC = originalDate.UTC;
-      globalThis.Date.parse = originalDate.parse;
-      globalThis.Date.now = originalDate.now;
+      Date.UTC = originalDate.UTC;
+      Date.parse = originalDate.parse;
+      Date.now = originalDate.now;
 
       // Test the function
       const result = getTodayDate();
@@ -85,7 +85,9 @@ describe('ShowUtils', () => {
       expect(result.NBC[0].name).toBe('Show 1');
       
       // Both null and empty string networks are now in 'Unknown Network' group
-      const unknownNetworkNames = result['Unknown Network'].map(show => show.name).sort();
+      const unknownNetworkNames = result['Unknown Network']
+        .map(show => show.name)
+        .sort((a, b) => a.localeCompare(b));
       expect(unknownNetworkNames).toEqual(['Show 2', 'Show 3']);
     });
     
@@ -106,7 +108,9 @@ describe('ShowUtils', () => {
       expect(result.Netflix).toHaveLength(1);
       
       // Check that the shows are in the right groups
-      const huluShows = result.Hulu.map(show => show.name).sort();
+      const huluShows = result.Hulu
+        .map(show => show.name)
+        .sort((a, b) => a.localeCompare(b));
       expect(huluShows).toEqual(['Show 1', 'Show 2']);
       expect(result.Netflix[0].name).toBe('Show 3');
     });

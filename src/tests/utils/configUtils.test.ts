@@ -10,7 +10,7 @@ import {
   resolveRelativePath,
   mergeShowOptions
 } from '../../utils/configUtils.js';
-import { CliArgs } from '../../types/cliArgs.js';
+import { CliArgs as CliArguments } from '../../types/cliArgs.js';
 import { AppConfig } from '../../types/configTypes.js';
 import { getTodayDate } from '../../utils/dateUtils.js';
 
@@ -122,7 +122,7 @@ describe('configUtils', () => {
   describe('mergeShowOptions', () => {
     it('should correctly merge show options from different sources', () => {
       // Arrange
-      const cliArgs: CliArgs = {
+      const cliArguments: CliArguments = {
         date: TEST_DATE,
         country: 'CA',
         types: ['Drama'],
@@ -150,7 +150,7 @@ describe('configUtils', () => {
       };
 
       // Act
-      const showOptions = mergeShowOptions(cliArgs, appConfig);
+      const showOptions = mergeShowOptions(cliArguments, appConfig);
 
       // Assert - CLI values should override config values when provided
       expect(showOptions.date).toBe(TEST_DATE); // From CLI
@@ -165,7 +165,7 @@ describe('configUtils', () => {
 
     it('should handle merging arrays with different priorities correctly', () => {
       // Arrange
-      const cliArgs: CliArgs = {
+      const cliArguments: CliArguments = {
         date: TEST_DATE,
         country: 'US',
         types: [], // Empty array should fall back to config
@@ -193,7 +193,7 @@ describe('configUtils', () => {
       };
 
       // Act
-      const showOptions = mergeShowOptions(cliArgs, appConfig);
+      const showOptions = mergeShowOptions(cliArguments, appConfig);
 
       // Assert - arrays should be merged with CLI taking priority when non-empty
       expect(showOptions.types).toEqual(['Reality', 'Game Show']); // From config (CLI was empty)
@@ -204,7 +204,7 @@ describe('configUtils', () => {
 
     it('should use default values when both CLI and config are empty', () => {
       // Arrange
-      const cliArgs: CliArgs = {
+      const cliArguments: CliArguments = {
         date: '',
         country: '',
         types: [],
@@ -232,7 +232,7 @@ describe('configUtils', () => {
       };
 
       // Act
-      const showOptions = mergeShowOptions(cliArgs, appConfig);
+      const showOptions = mergeShowOptions(cliArguments, appConfig);
 
       // Assert - should use defaults
       expect(showOptions.date).toBe(getTodayDate());
@@ -245,7 +245,7 @@ describe('configUtils', () => {
 
     it('should handle undefined and null values gracefully', () => {
       // Arrange
-      const cliArgs: Partial<CliArgs> = {
+      const cliArguments: Partial<CliArguments> = {
         date: undefined,
         country: null as unknown as string,
         types: undefined,
@@ -268,7 +268,7 @@ describe('configUtils', () => {
       };
 
       // Act
-      const showOptions = mergeShowOptions(cliArgs as CliArgs, appConfig as AppConfig);
+      const showOptions = mergeShowOptions(cliArguments as CliArguments, appConfig as AppConfig);
 
       // Assert
       expect(showOptions.date).toBe(getTodayDate()); // Default
@@ -285,7 +285,7 @@ describe('configUtils', () => {
       // This matters when base config has values that should be preserved
 
       // Arrange - CLI provides some values, leaves others undefined
-      const cliArgs: Partial<CliArgs> = {
+      const cliArguments: Partial<CliArguments> = {
         date: TEST_DATE,
         country: 'US',
         types: ['Action'], // CLI provides value - should be used
@@ -313,7 +313,7 @@ describe('configUtils', () => {
       };
 
       // Act
-      const showOptions = mergeShowOptions(cliArgs as CliArgs, appConfig);
+      const showOptions = mergeShowOptions(cliArguments as CliArguments, appConfig);
 
       // Assert - verify the null/undefined checks work correctly
       expect(showOptions.types).toEqual(['Action']); // CLI value used
@@ -325,7 +325,7 @@ describe('configUtils', () => {
 
     it('should include excludeShowNames from showNameFilter', () => {
       // Arrange
-      const cliArgs: CliArgs = {
+      const cliArguments: CliArguments = {
         date: TEST_DATE,
         country: 'US',
         types: [],
@@ -354,7 +354,7 @@ describe('configUtils', () => {
       };
 
       // Act
-      const showOptions = mergeShowOptions(cliArgs, appConfig);
+      const showOptions = mergeShowOptions(cliArguments, appConfig);
 
       // Assert
       expect(showOptions.excludeShowNames).toEqual(['Days of Our Lives', 'General Hospital']);

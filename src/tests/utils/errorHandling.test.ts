@@ -126,18 +126,18 @@ describe('errorHandling', () => {
   });
 
   describe('isDirectExecution', () => {
-    let originalNodeEnv: string | undefined;
+    let originalNodeEnvironment: string | undefined;
     let originalLambdaFunctionName: string | undefined;
 
     beforeEach(() => {
-      originalNodeEnv = process.env.NODE_ENV;
+      originalNodeEnvironment = process.env.NODE_ENV;
       originalLambdaFunctionName = process.env.AWS_LAMBDA_FUNCTION_NAME;
       // Clear Lambda env var for most tests
       delete process.env.AWS_LAMBDA_FUNCTION_NAME;
     });
 
     afterEach(() => {
-      process.env.NODE_ENV = originalNodeEnv;
+      process.env.NODE_ENV = originalNodeEnvironment;
       if (originalLambdaFunctionName === undefined) {
         delete process.env.AWS_LAMBDA_FUNCTION_NAME;
       } else {
@@ -261,46 +261,52 @@ describe('errorHandling', () => {
     });
 
     it('should handle Error objects', () => {
-      if (registeredCallback) {
-        const error = new Error('Test uncaught exception');
-        error.stack = 'Error stack trace';
-        
-        registeredCallback(error);
-        
-        expect(state.mockProcessOutput.error).toHaveBeenCalledWith(UNCAUGHT_EXCEPTION_LABEL);
-        expect(state.mockProcessOutput.error)
-          .toHaveBeenCalledWith('Error: Test uncaught exception');
-        expect(state.mockProcessOutput.error).toHaveBeenCalledWith('Error stack trace');
-        expect(state.exitCalled).toBe(true);
-        expect(state.exitCode).toBe(1);
+      if (!registeredCallback) {
+      	return;
       }
+
+      const error = new Error('Test uncaught exception');
+      error.stack = 'Error stack trace';
+
+      registeredCallback(error);
+
+      expect(state.mockProcessOutput.error).toHaveBeenCalledWith(UNCAUGHT_EXCEPTION_LABEL);
+      expect(state.mockProcessOutput.error)
+        .toHaveBeenCalledWith('Error: Test uncaught exception');
+      expect(state.mockProcessOutput.error).toHaveBeenCalledWith('Error stack trace');
+      expect(state.exitCalled).toBe(true);
+      expect(state.exitCode).toBe(1);
     });
 
     it('should handle errors without stack', () => {
-      if (registeredCallback) {
-        const error = new Error('Test error without stack');
-        error.stack = '';
-        
-        registeredCallback(error);
-        
-        expect(state.mockProcessOutput.error).toHaveBeenCalledWith(UNCAUGHT_EXCEPTION_LABEL);
-        expect(state.mockProcessOutput.error)
-          .toHaveBeenCalledWith('Error: Test error without stack');
-        expect(state.mockProcessOutput.error).toHaveBeenCalledTimes(2);
-        expect(state.exitCalled).toBe(true);
-        expect(state.exitCode).toBe(1);
+      if (!registeredCallback) {
+      	return;
       }
+
+      const error = new Error('Test error without stack');
+      error.stack = '';
+
+      registeredCallback(error);
+
+      expect(state.mockProcessOutput.error).toHaveBeenCalledWith(UNCAUGHT_EXCEPTION_LABEL);
+      expect(state.mockProcessOutput.error)
+        .toHaveBeenCalledWith('Error: Test error without stack');
+      expect(state.mockProcessOutput.error).toHaveBeenCalledTimes(2);
+      expect(state.exitCalled).toBe(true);
+      expect(state.exitCode).toBe(1);
     });
 
     it('should handle non-Error objects', () => {
-      if (registeredCallback) {
-        registeredCallback(STRING_ERROR as unknown as Error);
-        
-        expect(state.mockProcessOutput.error).toHaveBeenCalledWith(UNCAUGHT_EXCEPTION_LABEL);
-        expect(state.mockProcessOutput.error).toHaveBeenCalledWith(STRING_ERROR);
-        expect(state.exitCalled).toBe(true);
-        expect(state.exitCode).toBe(1);
+      if (!registeredCallback) {
+      	return;
       }
+
+      registeredCallback(STRING_ERROR as unknown as Error);
+
+      expect(state.mockProcessOutput.error).toHaveBeenCalledWith(UNCAUGHT_EXCEPTION_LABEL);
+      expect(state.mockProcessOutput.error).toHaveBeenCalledWith(STRING_ERROR);
+      expect(state.exitCalled).toBe(true);
+      expect(state.exitCode).toBe(1);
     });
   });
 });

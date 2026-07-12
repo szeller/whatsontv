@@ -9,12 +9,12 @@ import { z } from 'zod';
  */
 export const numberFromMixed = z.union([
   z.number(),
-  z.string().transform((val, ctx) => {
-    const parsed = Number.parseInt(val, 10);
+  z.string().transform((value, context) => {
+    const parsed = Number.parseInt(value, 10);
     if (Number.isNaN(parsed)) {
-      ctx.addIssue({
+      context.addIssue({
         code: 'custom',
-        message: `Could not parse "${val}" as a number`
+        message: `Could not parse "${value}" as a number`
       });
       return z.NEVER;
     }

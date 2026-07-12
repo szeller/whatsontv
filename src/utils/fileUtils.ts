@@ -77,9 +77,9 @@ export function getConfigFilePath(
   configFileName = 'config.json'
 ): string {
   // Check for CONFIG_FILE env var first (used in Lambda)
-  const envConfigFile = process.env.CONFIG_FILE;
-  if (envConfigFile !== undefined && envConfigFile.trim() !== '') {
-    return envConfigFile;
+  const environmentConfigFile = process.env.CONFIG_FILE;
+  if (environmentConfigFile !== undefined && environmentConfigFile.trim() !== '') {
+    return environmentConfigFile;
   }
 
   // Fall back to relative path from module

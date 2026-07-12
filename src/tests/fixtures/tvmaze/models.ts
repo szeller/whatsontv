@@ -25,11 +25,11 @@ export function getSchedule(
   
   if (name === 'network-schedule') {
     return loadValidatedArrayFixture(networkScheduleItemSchema, fixturePath);
-  } else if (name === 'web-schedule') {
-    return loadValidatedArrayFixture(webScheduleItemSchema, fixturePath);
-  } else {
-    return loadValidatedArrayFixture(scheduleItemSchema, fixturePath);
   }
+  if (name === 'web-schedule') {
+    return loadValidatedArrayFixture(webScheduleItemSchema, fixturePath);
+  }
+  return loadValidatedArrayFixture(scheduleItemSchema, fixturePath);
 }
 
 /**

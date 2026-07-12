@@ -6,7 +6,7 @@ import { jest } from '@jest/globals';
 /**
  * Creates a typed Jest mock function
  */
-export function createTypedMock<T extends (...args: unknown[]) => unknown>(): 
+export function createTypedMock<T extends (...arguments_: unknown[]) => unknown>(): 
   jest.MockedFunction<T> {
   return jest.fn() as unknown as jest.MockedFunction<T>;
 }
@@ -16,11 +16,11 @@ export function createTypedMock<T extends (...args: unknown[]) => unknown>():
  * This simpler version avoids complex type issues with Jest's spyOn
  */
 export function createTypedSpy<T extends object, K extends keyof T>(
-  obj: T,
+  object: T,
   method: K
 ): ReturnType<typeof jest.spyOn> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return jest.spyOn(obj as any, method as any);
+  return jest.spyOn(object as any, method as any);
 }
 
 /**
@@ -32,7 +32,7 @@ export function createMockImplementation<T extends object>(
   const mockedMethods = {} as Record<keyof T, jest.Mock>;
   for (const [key, value] of Object.entries(implementation)) {
     mockedMethods[key as keyof T] = typeof value === 'function'
-      ? jest.fn(value as (...args: unknown[]) => unknown)
+      ? jest.fn(value as (...arguments_: unknown[]) => unknown)
       : jest.fn(() => value);
   }
 

@@ -16,7 +16,7 @@ const SLACK_TOKEN_REQUIRED_ERROR = 'SLACK_TOKEN environment variable is required
 const SLACK_CHANNEL_REQUIRED_ERROR = 'SLACK_CHANNEL environment variable is required but not set';
 const VALID_TOKEN = 'test-token';
 
-function validateEnvVars(slackToken?: string, slackChannel?: string): void {
+function validateEnvironmentVariables(slackToken?: string, slackChannel?: string): void {
   if (slackToken === undefined || slackToken.trim() === '') {
     throw new Error(SLACK_TOKEN_REQUIRED_ERROR);
   }
@@ -118,28 +118,28 @@ describe('Lambda Handler Logic - Isolated Tests', () => {
   describe('Environment Variable Validation', () => {
     test('should validate required environment variables', () => {
       // Test missing token
-      expect(() => { validateEnvVars(undefined, '#test'); }).toThrow(
+      expect(() => { validateEnvironmentVariables(undefined, '#test'); }).toThrow(
         SLACK_TOKEN_REQUIRED_ERROR
       );
       
       // Test empty token
-      expect(() => { validateEnvVars('', '#test'); }).toThrow(
+      expect(() => { validateEnvironmentVariables('', '#test'); }).toThrow(
         SLACK_TOKEN_REQUIRED_ERROR
       );
       
       // Test missing channel
        
-      expect(() => { validateEnvVars(VALID_TOKEN); }).toThrow(
+      expect(() => { validateEnvironmentVariables(VALID_TOKEN); }).toThrow(
         SLACK_CHANNEL_REQUIRED_ERROR
       );
       
       // Test empty channel
-      expect(() => { validateEnvVars(VALID_TOKEN, ''); }).toThrow(
+      expect(() => { validateEnvironmentVariables(VALID_TOKEN, ''); }).toThrow(
         SLACK_CHANNEL_REQUIRED_ERROR
       );
       
       // Test valid values
-      expect(() => { validateEnvVars(VALID_TOKEN, '#test-channel'); }).not.toThrow();
+      expect(() => { validateEnvironmentVariables(VALID_TOKEN, '#test-channel'); }).not.toThrow();
     });
   });
 

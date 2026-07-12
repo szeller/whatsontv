@@ -117,8 +117,8 @@ export class TestConfigServiceImpl implements ConfigService {
    */
   getDate(): Date {
     // Parse the date string from showOptions
-    const dateStr = this.showOptions.date;
-    return parseDateString(dateStr);
+    const dateString = this.showOptions.date;
+    return parseDateString(dateString);
   }
   
   /**

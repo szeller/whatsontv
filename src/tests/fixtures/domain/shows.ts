@@ -59,18 +59,18 @@ export function getEpisodeSequence(
 ): Show[] {
   const episodes: Show[] = [];
   
-  for (let i = 0; i < count; i++) {
+  for (let index = 0; index < count; index++) {
     episodes.push({
       season,
-      id: 100 + i,
-      name: `Episode ${startNumber + i}`,
+      id: 100 + index,
+      name: `Episode ${startNumber + index}`,
       type: 'scripted',
       language: 'English',
       genres: ['Drama'],
       network: TEST_NETWORK,
-      summary: `Test episode ${startNumber + i} for season ${season}`,
+      summary: `Test episode ${startNumber + index} for season ${season}`,
       airtime: '20:00',
-      number: startNumber + i
+      number: startNumber + index
     });
   }
   

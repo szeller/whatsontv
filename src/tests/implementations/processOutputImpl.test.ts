@@ -43,14 +43,14 @@ describe('ProcessOutputImpl', () => {
     it('should log errors correctly', () => {
       // Arrange
       const message = 'error message';
-      const args = ['arg1', 'arg2'];
+      const arguments_ = ['arg1', 'arg2'];
       const consoleOutput = new ProcessOutputImpl();
 
       // Act
-      consoleOutput.error(message, ...args);
+      consoleOutput.error(message, ...arguments_);
 
       // Assert
-      expect(console.error).toHaveBeenCalledWith(message, ...args);
+      expect(console.error).toHaveBeenCalledWith(message, ...arguments_);
     });
     
     it('should log with level "log" correctly', () => {
@@ -68,14 +68,14 @@ describe('ProcessOutputImpl', () => {
     it('should log with level "error" correctly', () => {
       // Arrange
       const message = 'error level message';
-      const args = ['detail1', 'detail2'];
+      const arguments_ = ['detail1', 'detail2'];
       const consoleOutput = new ProcessOutputImpl();
 
       // Act
-      consoleOutput.logWithLevel('error', message, ...args);
+      consoleOutput.logWithLevel('error', message, ...arguments_);
 
       // Assert
-      expect(console.error).toHaveBeenCalledWith(message, ...args);
+      expect(console.error).toHaveBeenCalledWith(message, ...arguments_);
     });
   });
 
@@ -99,13 +99,13 @@ describe('ProcessOutputImpl', () => {
       const messages = ['message 1', 'message 2', 'message 3'];
       
       // Act
-      for (const msg of messages) { mockConsole.log(msg); }
+      for (const message of messages) { mockConsole.log(message); }
       
       // Assert
       const output = mockConsole.getOutput();
       expect(output).toHaveLength(messages.length);
-      for (const msg of messages) {
-        expect(output).toContain(msg);
+      for (const message of messages) {
+        expect(output).toContain(message);
       }
     });
     
@@ -138,10 +138,10 @@ describe('ProcessOutputImpl', () => {
       // Arrange
       const mockConsole = createMockConsole();
       const message = 'error level message';
-      const args = ['detail1', 'detail2'];
+      const arguments_ = ['detail1', 'detail2'];
       
       // Act
-      mockConsole.logWithLevel('error', message, ...args);
+      mockConsole.logWithLevel('error', message, ...arguments_);
       
       // Assert
       const output = mockConsole.getOutput();

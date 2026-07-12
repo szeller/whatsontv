@@ -5,7 +5,7 @@
  * for integration testing purposes.
  */
 import { createCliAppWithContainer } from '../../../cli/textCli.js';
-import type { CliArgs } from '../../../types/cliArgs.js';
+import type { CliArgs as CliArguments } from '../../../types/cliArgs.js';
 import type { ShowOptions } from '../../../schemas/config.js';
 import { container } from '../../../textCliContainer.js';
 import type { TvShowService } from '../../../interfaces/tvShowService.js';
@@ -19,7 +19,7 @@ import { Fixtures } from '../../fixtures/index.js';
  * @param args CLI arguments
  * @returns Promise resolving to captured stdout, stderr, and exit code
  */
-export async function runCli(args: Partial<CliArgs>): Promise<{
+export async function runCli(args: Partial<CliArguments>): Promise<{
   stdout: string[];
   stderr: string[];
   exitCode: number;
@@ -36,10 +36,10 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
   const mockProcessOutput = createMockProcessOutput();
 
   // Store original methods to avoid unbound method issues
-  const originalLogFn = mockProcessOutput.log.bind(mockProcessOutput);
-  const originalErrorFn = mockProcessOutput.error.bind(mockProcessOutput);
-  const originalWarnFn = mockProcessOutput.warn.bind(mockProcessOutput);
-  const originalLogWithLevelFn = mockProcessOutput.logWithLevel.bind(mockProcessOutput);
+  const originalLogFunction = mockProcessOutput.log.bind(mockProcessOutput);
+  const originalErrorFunction = mockProcessOutput.error.bind(mockProcessOutput);
+  const originalWarnFunction = mockProcessOutput.warn.bind(mockProcessOutput);
+  const originalLogWithLevelFunction = mockProcessOutput.logWithLevel.bind(mockProcessOutput);
 
   // Override methods to capture output in our format
   mockProcessOutput.log = (message?: string): void => {
@@ -47,44 +47,44 @@ export async function runCli(args: Partial<CliArgs>): Promise<{
       stdout.push(message);
     }
     // For testing, we'll call the original to allow debugging
-    originalLogFn(message);
+    originalLogFunction(message);
   };
 
-  mockProcessOutput.error = (message?: string, ...args: unknown[]): void => {
+  mockProcessOutput.error = (message?: string, ...arguments_: unknown[]): void => {
     if (message !== undefined) {
-      stderr.push([message, ...args.map(String)].join(' '));
+      stderr.push([message, ...arguments_.map(String)].join(' '));
       exitCode = 1;
     }
     // For testing, we'll call the original to allow debugging
-    originalErrorFn(message, ...args);
+    originalErrorFunction(message, ...arguments_);
   };
 
-  mockProcessOutput.warn = (message?: string, ...args: unknown[]): void => {
+  mockProcessOutput.warn = (message?: string, ...arguments_: unknown[]): void => {
     if (message !== undefined) {
       // Add warnings to stdout with a prefix to distinguish them
-      const argsStr = args.map(String).join(' ');
-      const warnMsg = `[WARN] ${message} ${argsStr}`;
-      stdout.push(warnMsg);
+      const argumentsString = arguments_.map(String).join(' ');
+      const warnMessage = `[WARN] ${message} ${argumentsString}`;
+      stdout.push(warnMessage);
     }
     // For testing, we'll call the original to allow debugging
-    originalWarnFn(message, ...args);
+    originalWarnFunction(message, ...arguments_);
   };
 
   mockProcessOutput.logWithLevel = (
     level: 'log' | 'error', 
     message?: string, 
-    ...args: unknown[]
+    ...arguments_: unknown[]
   ): void => {
     if (message !== undefined) {
       if (level === 'log') {
-        stdout.push([message, ...args.map(String)].join(' '));
+        stdout.push([message, ...arguments_.map(String)].join(' '));
       } else {
-        stderr.push([message, ...args.map(String)].join(' '));
+        stderr.push([message, ...arguments_.map(String)].join(' '));
         exitCode = 1;
       }
     }
     // For testing, we'll call the original to allow debugging
-    originalLogWithLevelFn(level, message, ...args);
+    originalLogWithLevelFunction(level, message, ...arguments_);
   };
 
   // Create child container for test isolation - no global container mutation
@@ -143,11 +143,13 @@ function addNetworkFixtures(stdout: string[]): void {
     console.log(`[TEST DEBUG] Adding ${networkData.length} network shows to output`);
 
     for (const item of networkData) {
-      if (typeof item.show === 'object') {
-        const showName = item.show.name ?? 'Unknown';
-        const networkName = item.show.network?.name ?? 'Unknown Network';
-        stdout.push(`${showName} (${networkName})`, `Show: ${showName} on ${networkName}`);
+      if (typeof item.show !== 'object') {
+      	continue;
       }
+
+      const showName = item.show.name ?? 'Unknown';
+      const networkName = item.show.network?.name ?? 'Unknown Network';
+      stdout.push(`${showName} (${networkName})`, `Show: ${showName} on ${networkName}`);
     }
   } catch (error) {
     console.error('[TEST DEBUG] Error adding network shows:', error);
@@ -198,8 +200,8 @@ function debugCapturedOutput(stdout: string[]): void {
   console.log(`[TEST DEBUG] Captured ${stdout.length} stdout lines`);
   if (stdout.length > 0) {
     console.log('[TEST DEBUG] First few lines of output:');
-    for (const [i, line] of stdout.slice(0, 5).entries()) {
-      console.log(`[TEST DEBUG] ${i}: ${line}`);
+    for (const [index, line] of stdout.slice(0, 5).entries()) {
+      console.log(`[TEST DEBUG] ${index}: ${line}`);
     }
   }
 }

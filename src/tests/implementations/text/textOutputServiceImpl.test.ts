@@ -175,8 +175,8 @@ describe('TextOutputServiceImpl', () => {
       await service.testRenderContent(networkGroups, new Date());
       
       // Assert
-      const expectedErrorMsg = 'Error: Formatter error';
-      expect(mockOutput.error).toHaveBeenCalledWith(expectedErrorMsg);
+      const expectedErrorMessage = 'Error: Formatter error';
+      expect(mockOutput.error).toHaveBeenCalledWith(expectedErrorMessage);
     });
   });
   
@@ -251,8 +251,8 @@ describe('TextOutputServiceImpl', () => {
       await service.renderOutput(sampleShows);
       
       // Assert
-      const expectedErrorMsg = 'Error: Formatter error';
-      expect(mockOutput.error).toHaveBeenCalledWith(expectedErrorMsg);
+      const expectedErrorMessage = 'Error: Formatter error';
+      expect(mockOutput.error).toHaveBeenCalledWith(expectedErrorMessage);
     });
     
     // Debug test removed - debug functionality now uses structured logging

@@ -275,7 +275,7 @@ describe('TvMazeServiceImpl', () => {
     
     it('handles errors in the getSchedule method', async () => {
       // Save the original NODE_ENV and set it to production to test error logging
-      const originalNodeEnv = process.env.NODE_ENV;
+      const originalNodeEnvironment = process.env.NODE_ENV;
       process.env.NODE_ENV = 'production';
       
       // Mock the HTTP client to throw an error
@@ -293,7 +293,7 @@ describe('TvMazeServiceImpl', () => {
       // The service will gracefully handle errors and return empty array
       
       // Restore NODE_ENV
-      process.env.NODE_ENV = originalNodeEnv;
+      process.env.NODE_ENV = originalNodeEnvironment;
     });
     
     it('handles errors in the fetchShows method', async () => {
@@ -303,7 +303,7 @@ describe('TvMazeServiceImpl', () => {
       );
 
       // Save the original NODE_ENV and set it to production to test error logging
-      const originalNodeEnv = process.env.NODE_ENV;
+      const originalNodeEnvironment = process.env.NODE_ENV;
       process.env.NODE_ENV = 'production';
       
       // Spy on console.error
@@ -316,7 +316,7 @@ describe('TvMazeServiceImpl', () => {
       expect(shows).toEqual([]);
       
       // Restore NODE_ENV and console.error
-      process.env.NODE_ENV = originalNodeEnv;
+      process.env.NODE_ENV = originalNodeEnvironment;
       consoleErrorSpy.mockRestore();
     });
   });

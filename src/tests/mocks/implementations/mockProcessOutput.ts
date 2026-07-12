@@ -12,15 +12,56 @@ export class MockProcessOutput implements ProcessOutput {
   private output: string[] = [];
   private calls: { method: string; args: unknown[] }[] = [];
 
+  /** Push non-null args to the output array */
+  private pushArgs(arguments_: unknown[]): void {
+    for (const argument of arguments_) {
+      if (argument !== undefined && argument !== null) {
+        this.output.push(typeof argument === 'string' ? argument : JSON.stringify(argument));
+      }
+    }
+  }
+
+  /**
+   * Check if arguments match, handling partial matches
+   * @param actual Actual arguments
+   * @param expected Expected arguments
+   * @returns True if arguments match
+   */
+  private argsMatch(actual: unknown[], expected: unknown[]): boolean {
+    if (expected.length === 0) {
+      return true;
+    }
+
+    if (expected.length > actual.length) {
+      return false;
+    }
+
+    for (const [index, expectedArgument] of expected.entries()) {
+      const actualArgument = actual[index];
+
+      if (typeof expectedArgument === 'string' && typeof actualArgument === 'string') {
+        if (!actualArgument.includes(expectedArgument)) {
+          return false;
+        }
+      } else if (expectedArgument !== actualArgument) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   /**
    * Log a message to the captured output
    * @param message Message to log
    */
   log(message?: string): void {
-    if (message !== undefined) {
-      this.output.push(message);
-      this.calls.push({ method: 'log', args: [message] });
+    if (message === undefined) {
+    	return;
     }
+
+    this.output.push(message);
+    this.calls.push({ method: 'log', args: [message] });
   }
 
   /**
@@ -29,20 +70,13 @@ export class MockProcessOutput implements ProcessOutput {
    * @param args Additional arguments
    */
   error(message?: string, ...args: unknown[]): void {
-    if (message !== undefined) {
-      this.output.push(message);
-      this.pushArgs(args);
-      this.calls.push({ method: 'error', args: [message, ...args] });
+    if (message === undefined) {
+    	return;
     }
-  }
 
-  /** Push non-null args to the output array */
-  private pushArgs(args: unknown[]): void {
-    for (const arg of args) {
-      if (arg !== undefined && arg !== null) {
-        this.output.push(typeof arg === 'string' ? arg : JSON.stringify(arg));
-      }
-    }
+    this.output.push(message);
+    this.pushArgs(args);
+    this.calls.push({ method: 'error', args: [message, ...args] });
   }
 
   /**
@@ -51,12 +85,14 @@ export class MockProcessOutput implements ProcessOutput {
    * @param args Additional arguments
    */
   warn(message?: string, ...args: unknown[]): void {
-    if (message !== undefined) {
-      // Format the warning message similar to console.warn
-      // Don't add WARN: prefix as the real implementation doesn't
-      this.output.push(`${message}${args.length > 0 ? ' ' + args.join(' ') : ''}`);
-      this.calls.push({ method: 'warn', args: [message, ...args] });
+    if (message === undefined) {
+    	return;
     }
+
+    // Format the warning message similar to console.warn
+    // Don't add WARN: prefix as the real implementation doesn't
+    this.output.push(`${message}${args.length > 0 ? ' ' + args.join(' ') : ''}`);
+    this.calls.push({ method: 'warn', args: [message, ...args] });
   }
 
   /**
@@ -66,16 +102,17 @@ export class MockProcessOutput implements ProcessOutput {
    * @param args Additional arguments
    */
   logWithLevel(level: 'log' | 'error', message?: string, ...args: unknown[]): void {
-    if (message !== undefined) {
-      if (level === 'log') {
-        this.output.push(message);
-        this.calls.push({ method: 'logWithLevel', args: [level, message, ...args] });
-      } else {
-        // Format the error message similar to console.error
-        this.output.push(`${message}${args.length > 0 ? ' ' + args.join(' ') : ''}`);
-        this.calls.push({ method: 'logWithLevel', args: [level, message, ...args] });
-      }
+    if (message === undefined) {
+    	return;
     }
+
+    if (level === 'log') {
+      this.output.push(message);
+    } else {
+      // Format the error message similar to console.error
+      this.output.push(`${message}${args.length > 0 ? ' ' + args.join(' ') : ''}`);
+    }
+    this.calls.push({ method: 'logWithLevel', args: [level, message, ...args] });
   }
 
   /**
@@ -133,7 +170,7 @@ export class MockProcessOutput implements ProcessOutput {
 
       // For exact matches
       if (args.length === call.args.length) {
-        return args.every((arg, index) => arg === call.args[index]);
+        return args.every((argument, index) => argument === call.args[index]);
       }
 
       return false;
@@ -149,35 +186,5 @@ export class MockProcessOutput implements ProcessOutput {
     return this.calls
       .filter(call => call.method === method)
       .map(call => call.args);
-  }
-
-  /**
-   * Check if arguments match, handling partial matches
-   * @param actual Actual arguments
-   * @param expected Expected arguments
-   * @returns True if arguments match
-   */
-  private argsMatch(actual: unknown[], expected: unknown[]): boolean {
-    if (expected.length === 0) {
-      return true;
-    }
-
-    if (expected.length > actual.length) {
-      return false;
-    }
-
-    for (const [i, expectedArg] of expected.entries()) {
-      const actualArg = actual[i];
-
-      if (typeof expectedArg === 'string' && typeof actualArg === 'string') {
-        if (!actualArg.includes(expectedArg)) {
-          return false;
-        }
-      } else if (expectedArg !== actualArg) {
-        return false;
-      }
-    }
-
-    return true;
   }
 }

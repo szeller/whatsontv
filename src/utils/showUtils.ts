@@ -12,14 +12,10 @@ import { isEmptyArray, hasContent } from './stringUtils.js';
  * @returns Network name or fallback value
  */
 export function getNetworkName(show: Show): string {
-  let networkName = 'Unknown Network';
-  
-  if (show.network) {
-    // Remove country codes in parentheses, e.g., "Hulu (JP)" -> "Hulu"
-    networkName = show.network.replace(/ \([A-Z]{2}\)$/, '');
-  }
-  
-  return networkName;
+  // Remove country codes in parentheses, e.g., "Hulu (JP)" -> "Hulu"
+  return show.network
+    ? show.network.replace(/ \([A-Z]{2}\)$/, '')
+    : 'Unknown Network';
 }
 
 /**
@@ -107,54 +103,52 @@ export function sortShowsByTime(shows: Show[]): Show[] {
  * @param season - Season number
  * @param start - Starting episode number
  * @param end - Ending episode number
- * @param padEpisodeNumbers - Whether to pad season and episode numbers with leading zeros
+ * @param shouldPadEpisodeNumbers - Whether to pad season and episode numbers with leading zeros
  * @returns Formatted range string
  */
 function formatRange(
-  season: number, 
-  start: number, 
-  end: number, 
-  padEpisodeNumbers: boolean
+  season: number,
+  start: number,
+  end: number,
+  shouldPadEpisodeNumbers: boolean
 ): string {
   // Handle undefined or null season/episode numbers
-  const seasonNum = season || 1;
-  const startNum = start || 1;
-  const endNum = end || startNum;
-  
-  if (startNum === endNum) {
+  const seasonNumber = season || 1;
+  const startNumber = start || 1;
+  const endNumber = end || startNumber;
+
+  const seasonString = shouldPadEpisodeNumbers
+    ? seasonNumber.toString().padStart(2, '0')
+    : seasonNumber.toString();
+
+  if (startNumber === endNumber) {
     // Single episode
-    const seasonStr = padEpisodeNumbers 
-      ? seasonNum.toString().padStart(2, '0') 
-      : seasonNum.toString();
-    const episodeStr = padEpisodeNumbers 
-      ? startNum.toString().padStart(2, '0') 
-      : startNum.toString();
-    return `S${seasonStr}E${episodeStr}`;
-  } else {
-    // Episode range with consistent formatting (S01E01-02)
-    const seasonStr = padEpisodeNumbers 
-      ? seasonNum.toString().padStart(2, '0') 
-      : seasonNum.toString();
-    const startStr = padEpisodeNumbers
-      ? startNum.toString().padStart(2, '0')
-      : startNum.toString();
-    const endStr = padEpisodeNumbers
-      ? endNum.toString().padStart(2, '0')
-      : endNum.toString();
-    return `S${seasonStr}E${startStr}-${endStr}`;
+    const episodeString = shouldPadEpisodeNumbers
+      ? startNumber.toString().padStart(2, '0')
+      : startNumber.toString();
+    return `S${seasonString}E${episodeString}`;
   }
+
+  // Episode range with consistent formatting (S01E01-02)
+  const startString = shouldPadEpisodeNumbers
+    ? startNumber.toString().padStart(2, '0')
+    : startNumber.toString();
+  const endString = shouldPadEpisodeNumbers
+    ? endNumber.toString().padStart(2, '0')
+    : endNumber.toString();
+  return `S${seasonString}E${startString}-${endString}`;
 }
 
 /**
  * Format episodes into a compact representation with ranges
  * @param episodes - Array of episodes to format
- * @param padEpisodeNumbers - Whether to pad season and episode numbers with leading zeros
+ * @param shouldPadEpisodeNumbers - Whether to pad season and episode numbers with leading zeros
  *                          (default: true)
  * @returns Formatted episode string with ranges (e.g., "S01E01-03, S01E05, S02E01-02")
  */
 export function formatEpisodeRanges(
-  episodes: Show[], 
-  padEpisodeNumbers = true
+  episodes: Show[],
+  shouldPadEpisodeNumbers = true
 ): string {
   if (!Array.isArray(episodes) || episodes.length === 0) {
     return '';
@@ -193,16 +187,16 @@ export function formatEpisodeRanges(
     let rangeEnd = rangeStart;
     
     // Detect ranges using a sliding window approach
-    for (let i = 1; i < episodeNumbers.length; i++) {
-      const current = episodeNumbers[i];
-      const previous = episodeNumbers[i - 1];
+    for (let index = 1; index < episodeNumbers.length; index++) {
+      const current = episodeNumbers[index];
+      const previous = episodeNumbers[index - 1];
       
       // If current episode follows the previous one sequentially
       if (current === previous + 1) {
         rangeEnd = current;
       } else {
         // End of a range, add it to the result
-        ranges.push(formatRange(season, rangeStart, rangeEnd, padEpisodeNumbers));
+        ranges.push(formatRange(season, rangeStart, rangeEnd, shouldPadEpisodeNumbers));
         // Start a new range
         rangeStart = current;
         rangeEnd = current;
@@ -210,7 +204,7 @@ export function formatEpisodeRanges(
     }
     
     // Add the last range
-    ranges.push(formatRange(season, rangeStart, rangeEnd, padEpisodeNumbers));
+    ranges.push(formatRange(season, rangeStart, rangeEnd, shouldPadEpisodeNumbers));
     
     // Join all ranges for this season
     formattedSeasons.push(ranges.join(', '));

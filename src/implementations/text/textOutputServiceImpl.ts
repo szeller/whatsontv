@@ -16,8 +16,8 @@ import { formatError, safeResolve } from '../../utils/errorHandling.js';
  */
 @injectable()
 export class TextOutputServiceImpl extends BaseOutputServiceImpl<string> {
-  protected readonly output: ProcessOutput;
   private readonly version = '1.0.0'; // Could be imported from package.json
+  protected readonly output: ProcessOutput;
 
   /**
    * Create a new TextOutputService

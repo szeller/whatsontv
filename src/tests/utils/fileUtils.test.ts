@@ -97,7 +97,7 @@ describe('fileUtils', () => {
   });
 
   describe('getConfigFilePath', () => {
-    const originalEnv = process.env.CONFIG_FILE;
+    const originalEnvironment = process.env.CONFIG_FILE;
 
     beforeEach(() => {
       // Clear CONFIG_FILE before each test
@@ -106,10 +106,10 @@ describe('fileUtils', () => {
 
     afterEach(() => {
       // Restore original value
-      if (originalEnv === undefined) {
+      if (originalEnvironment === undefined) {
         delete process.env.CONFIG_FILE;
       } else {
-        process.env.CONFIG_FILE = originalEnv;
+        process.env.CONFIG_FILE = originalEnvironment;
       }
     });
 

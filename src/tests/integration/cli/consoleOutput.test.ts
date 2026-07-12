@@ -164,7 +164,7 @@ describe('Console Output Integration Tests', () => {
     expect(outputLines.some(line => line.toLowerCase().includes('tvmaze'))).toBe(true);
     
     // Verify that ANSI color codes are present in the output (chalk styling)
-    expect(outputLines.some(line => line.includes('\u001B['))).toBe(true);
+    expect(outputLines.some(line => line.includes('\u{1B}['))).toBe(true);
   });
   
   test('should format multiple episodes with consistent styling', async () => {
@@ -209,7 +209,7 @@ describe('Console Output Integration Tests', () => {
       expect(breakingBadLine).toContain('(');
       
       // Verify that ANSI color codes are present (chalk styling)
-      expect(breakingBadLine).toContain('\u001B[');
+      expect(breakingBadLine).toContain('\u{1B}[');
     }
   });
   
@@ -250,7 +250,7 @@ describe('Console Output Integration Tests', () => {
       expect(strangerThingsLine).toContain('(');
       
       // Verify that ANSI color codes are present (chalk styling)
-      expect(strangerThingsLine).toContain('\u001B[');
+      expect(strangerThingsLine).toContain('\u{1B}[');
     }
   });
 });

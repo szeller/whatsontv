@@ -12,7 +12,7 @@ import {
 import {
   CliConfigServiceImpl
 } from '../../../implementations/text/cliConfigServiceImpl.js';
-import type { CliArgs } from '../../../types/cliArgs.js';
+import type { CliArgs as CliArguments } from '../../../types/cliArgs.js';
 import type { AppConfig, SlackConfig } from '../../../types/configTypes.js';
 import type { ShowOptions } from '../../../schemas/config.js';
 import { getTodayDate } from '../../../utils/dateUtils.js';
@@ -42,7 +42,7 @@ function toStringArrayFromArgv(value: unknown): string[] {
 // Create a test subclass that extends the implementation
 class TestCliConfigService extends CliConfigServiceImpl {
   // Mock data for tests
-  private mockCliArgs: Partial<CliArgs> = {
+  private mockCliArgs: Partial<CliArguments> = {
     date: getTodayDate(),
     debug: false,
     fetch: 'network',
@@ -60,7 +60,7 @@ class TestCliConfigService extends CliConfigServiceImpl {
   private readonly mockEnvVars: Record<string, string | undefined> = {};
 
   constructor(options: {
-    cliArgs?: Partial<CliArgs>;
+    cliArgs?: Partial<CliArguments>;
     fileExists?: boolean;
     mockConfig?: Partial<AppConfig>;
     mockArgs?: string[];
@@ -97,11 +97,80 @@ class TestCliConfigService extends CliConfigServiceImpl {
     // Initialize after setting up mocks
     this.initialize();
   }
-  
-  public setMockCliArgs(args: Partial<CliArgs>): void {
+
+  /** Extract a CSV arg value from mockArgs for the given key */
+  private getOptionFromArgs<K extends keyof ShowOptions>(
+    key: K
+  ): ShowOptions[K] | undefined {
+    if (this.mockArgs.length === 0) {
+      return undefined;
+    }
+
+    const argumentName = `--${key}`;
+    if (!this.mockArgs.includes(argumentName)) {
+      return undefined;
+    }
+
+    if (key !== 'types' && key !== 'networks') {
+      return undefined;
+    }
+
+    const argumentIndex = this.mockArgs.indexOf(argumentName);
+    if (argumentIndex === -1 || argumentIndex + 1 >= this.mockArgs.length) {
+      return undefined;
+    }
+
+    const argumentValue = this.mockArgs[argumentIndex + 1];
+    if (typeof argumentValue === 'string' && argumentValue.length > 0) {
+      return argumentValue.split(',') as unknown as ShowOptions[K];
+    }
+
+    return undefined;
+  }
+
+  /** Look up a config file value when CLI args don't override it */
+  private getOptionFromConfig<K extends keyof ShowOptions>(
+    key: K
+  ): ShowOptions[K] | undefined {
+    if (!this.mockFileExists) {
+      return undefined;
+    }
+
+    const cliValue = key in this.mockCliArgs
+      ? this.mockCliArgs[key as keyof CliArguments]
+      : undefined;
+    if (cliValue !== undefined && !(Array.isArray(cliValue) && cliValue.length === 0)) {
+      return undefined;
+    }
+
+    const configValue = this.mockConfigContent[key as keyof AppConfig];
+    if (configValue === undefined) {
+      return undefined;
+    }
+
+    const isStringKey = key === 'country' || key === 'minAirtime';
+    if (isStringKey && typeof configValue === 'string' && configValue.length > 0) {
+      return configValue as unknown as ShowOptions[K];
+    }
+
+    const isArrayKey = ['types', 'networks', 'genres', 'languages'].includes(key);
+    if (isArrayKey && Array.isArray(configValue)) {
+      return configValue as unknown as ShowOptions[K];
+    }
+
+    return undefined;
+  }
+
+  private getFetchMode(): 'network' | 'web' | 'all' {
+    const fetch = this.mockCliArgs.fetch;
+    const validModes = ['network', 'web', 'all'] as const;
+    return validModes.find((mode) => mode === fetch) ?? 'all';
+  }
+
+  public setMockCliArgs(arguments_: Partial<CliArguments>): void {
     this.mockCliArgs = {
       ...this.mockCliArgs,
-      ...args
+      ...arguments_
     };
   }
   
@@ -124,7 +193,7 @@ class TestCliConfigService extends CliConfigServiceImpl {
   }
   
   // Override parseArgs to use mock CLI arguments
-  protected parseArgs(_args?: string[]): CliArgs {
+  protected parseArgs(_arguments?: string[]): CliArguments {
     // If mockArgs is provided, use it to create a real yargs instance
     if (this.mockArgs.length > 0) {
       const yargsInstance = this.createYargsInstance(this.mockArgs);
@@ -162,7 +231,7 @@ class TestCliConfigService extends CliConfigServiceImpl {
       debug: Boolean(this.mockCliArgs.debug),
       fetch: this.getFetchMode(),
       groupByNetwork: Boolean(this.mockCliArgs.groupByNetwork)
-    } as CliArgs;
+    } as CliArguments;
   }
   
   // Override loadConfig to use our mock configuration
@@ -210,9 +279,9 @@ class TestCliConfigService extends CliConfigServiceImpl {
   
   // Override getShowOption to use our mock show options
   public override getShowOption<K extends keyof ShowOptions>(_key: K): ShowOptions[K] {
-    const fromArgs = this.getOptionFromArgs(_key);
-    if (fromArgs !== undefined) {
-      return fromArgs;
+    const fromArguments = this.getOptionFromArgs(_key);
+    if (fromArguments !== undefined) {
+      return fromArguments;
     }
 
     if (_key in this.mockShowOptions) {
@@ -229,76 +298,13 @@ class TestCliConfigService extends CliConfigServiceImpl {
       return fromConfig;
     }
 
-    if (_key in this.mockCliArgs && this.mockCliArgs[_key as keyof CliArgs] !== undefined) {
-      return this.mockCliArgs[_key as keyof CliArgs] as unknown as ShowOptions[K];
+    if (_key in this.mockCliArgs && this.mockCliArgs[_key as keyof CliArguments] !== undefined) {
+      return this.mockCliArgs[_key as keyof CliArguments] as unknown as ShowOptions[K];
     }
 
     return super.getShowOption(_key);
   }
 
-  /** Extract a CSV arg value from mockArgs for the given key */
-  private getOptionFromArgs<K extends keyof ShowOptions>(
-    key: K
-  ): ShowOptions[K] | undefined {
-    if (this.mockArgs.length === 0) {
-      return undefined;
-    }
-
-    const argName = `--${key}`;
-    if (!this.mockArgs.includes(argName)) {
-      return undefined;
-    }
-
-    if (key !== 'types' && key !== 'networks') {
-      return undefined;
-    }
-
-    const argIndex = this.mockArgs.indexOf(argName);
-    if (argIndex === -1 || argIndex + 1 >= this.mockArgs.length) {
-      return undefined;
-    }
-
-    const argValue = this.mockArgs[argIndex + 1];
-    if (typeof argValue === 'string' && argValue.length > 0) {
-      return argValue.split(',') as unknown as ShowOptions[K];
-    }
-
-    return undefined;
-  }
-
-  /** Look up a config file value when CLI args don't override it */
-  private getOptionFromConfig<K extends keyof ShowOptions>(
-    key: K
-  ): ShowOptions[K] | undefined {
-    if (!this.mockFileExists) {
-      return undefined;
-    }
-
-    const cliValue = key in this.mockCliArgs
-      ? this.mockCliArgs[key as keyof CliArgs]
-      : undefined;
-    if (cliValue !== undefined && !(Array.isArray(cliValue) && cliValue.length === 0)) {
-      return undefined;
-    }
-
-    const configValue = this.mockConfigContent[key as keyof AppConfig];
-    if (configValue === undefined) {
-      return undefined;
-    }
-
-    const isStringKey = key === 'country' || key === 'minAirtime';
-    if (isStringKey && typeof configValue === 'string' && configValue.length > 0) {
-      return configValue as unknown as ShowOptions[K];
-    }
-
-    const isArrayKey = ['types', 'networks', 'genres', 'languages'].includes(key);
-    if (isArrayKey && Array.isArray(configValue)) {
-      return configValue as unknown as ShowOptions[K];
-    }
-
-    return undefined;
-  }
-  
   // Override handleConfigError to ensure console.error is called for tests
   protected handleConfigError(error: unknown): void {
     this.errorHandlerCalled = true;
@@ -317,7 +323,7 @@ class TestCliConfigService extends CliConfigServiceImpl {
   // Override getSlackOptions to use mock environment variables
   public override getSlackOptions(): SlackConfig {
     // Create a mock process.env object for the test
-    const originalEnv = process.env;
+    const originalEnvironment = process.env;
     
     try {
       // Set up mock environment variables for testing
@@ -333,19 +339,13 @@ class TestCliConfigService extends CliConfigServiceImpl {
       return super.getSlackOptions();
     } finally {
       // Restore the original process.env
-      process.env = originalEnv;
+      process.env = originalEnvironment;
     }
-  }
-  
-  private getFetchMode(): 'network' | 'web' | 'all' {
-    const fetch = this.mockCliArgs.fetch;
-    const validModes = ['network', 'web', 'all'] as const;
-    return validModes.find((mode) => mode === fetch) ?? 'all';
   }
 
   // Expose the createYargsInstance method for testing
-  public exposeCreateYargsInstance(args: string[]): unknown {
-    const yargsInstance = this.createYargsInstance(args);
+  public exposeCreateYargsInstance(arguments_: string[]): unknown {
+    const yargsInstance = this.createYargsInstance(arguments_);
     // Force parsing to ensure coerce functions are called
     yargsInstance.parseSync();
     return yargsInstance;
@@ -378,7 +378,7 @@ describe('CliConfigServiceImpl', () => {
   
   it('should use CLI arguments when provided', () => {
     // Arrange
-    const cliArgs: Partial<CliArgs> = {
+    const cliArguments: Partial<CliArguments> = {
       country: 'CA',
       types: ['Scripted'],
       networks: ['HBO', 'Netflix'],
@@ -390,7 +390,7 @@ describe('CliConfigServiceImpl', () => {
     
     // Act
     const configService = new TestCliConfigService({
-      cliArgs
+      cliArgs: cliArguments
     });
     
     // Assert
@@ -430,7 +430,7 @@ describe('CliConfigServiceImpl', () => {
   
   it('should merge CLI args with config file', () => {
     // Arrange
-    const cliArgs: Partial<CliArgs> = {
+    const cliArguments: Partial<CliArguments> = {
       country: 'CA',
       types: ['Scripted'],
       debug: true
@@ -444,9 +444,9 @@ describe('CliConfigServiceImpl', () => {
     
     // Act
     const configService = new TestCliConfigService({
-      cliArgs,
-      mockConfig,
-      fileExists: true
+      cliArgs: cliArguments,
+      fileExists: true,
+      mockConfig
     });
     
     // Assert
@@ -588,7 +588,7 @@ describe('CliConfigServiceImpl', () => {
   
   it('should return the complete show options', () => {
     // Arrange
-    const cliArgs: Partial<CliArgs> = {
+    const cliArguments: Partial<CliArguments> = {
       country: 'CA',
       types: ['Scripted'],
       networks: ['HBO']
@@ -596,7 +596,7 @@ describe('CliConfigServiceImpl', () => {
     
     // Act
     const configService = new TestCliConfigService({
-      cliArgs
+      cliArgs: cliArguments
     });
     
     // Assert
@@ -609,14 +609,14 @@ describe('CliConfigServiceImpl', () => {
   
   it('should return the complete CLI options', () => {
     // Arrange
-    const cliArgs: Partial<CliArgs> = {
+    const cliArguments: Partial<CliArguments> = {
       debug: true,
       groupByNetwork: false
     };
     
     // Act
     const configService = new TestCliConfigService({
-      cliArgs
+      cliArgs: cliArguments
     });
     
     // Assert
@@ -667,7 +667,7 @@ describe('CliConfigServiceImpl', () => {
   
   it('should handle environment variables in slack options', () => {
     // Arrange - create a special test class that overrides getSlackOptions directly
-    class EnvTestConfigService extends CliConfigServiceImpl {
+    class EnvironmentTestConfigService extends CliConfigServiceImpl {
       constructor() {
         super(true);
         this.initialize();
@@ -685,7 +685,7 @@ describe('CliConfigServiceImpl', () => {
     }
     
     // Act
-    const configService = new EnvTestConfigService();
+    const configService = new EnvironmentTestConfigService();
     const slackOptions = configService.getSlackOptions();
     
     // Assert
@@ -1052,7 +1052,7 @@ describe('CliConfigServiceImpl', () => {
 
     it('should use environment variables when available', () => {
       // Arrange
-      const originalEnv = { ...process.env };
+      const originalEnvironment = { ...process.env };
       process.env.SLACK_TOKEN = ENV_TOKEN;
       process.env.SLACK_CHANNEL = ENV_CHANNEL;
       process.env.SLACK_USERNAME = 'EnvBot';
@@ -1070,13 +1070,13 @@ describe('CliConfigServiceImpl', () => {
         expect(slackOptions.channelId).toBe(ENV_CHANNEL);
       } finally {
         // Cleanup
-        process.env = originalEnv;
+        process.env = originalEnvironment;
       }
     });
 
     it('should prioritize config over environment variables', () => {
       // Arrange
-      const originalEnv = { ...process.env };
+      const originalEnvironment = { ...process.env };
       process.env.SLACK_TOKEN = ENV_TOKEN;
       process.env.SLACK_CHANNEL = ENV_CHANNEL;
       process.env.SLACK_USERNAME = 'EnvBot';
@@ -1108,7 +1108,7 @@ describe('CliConfigServiceImpl', () => {
         expect(slackOptions.channelId).toBe(CONFIG_CHANNEL);
       } finally {
         // Cleanup
-        process.env = originalEnv;
+        process.env = originalEnvironment;
       }
     });
   });

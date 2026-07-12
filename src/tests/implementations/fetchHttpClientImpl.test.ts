@@ -73,9 +73,9 @@ describe('FetchHttpClientImpl', () => {
       
       expect(capturedUrl).toBeDefined();
       if (capturedUrl) {
-        const params = capturedUrl.searchParams;
-        expect(params.get('q')).toBe('test');
-        expect(params.get('page')).toBe('1');
+        const parameters = capturedUrl.searchParams;
+        expect(parameters.get('q')).toBe('test');
+        expect(parameters.get('page')).toBe('1');
       }
     });
 

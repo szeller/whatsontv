@@ -5,7 +5,7 @@
 
 import 'reflect-metadata';
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
-import { BaseCliApplication } from '../../cli/cliBase.js';
+import { BaseCliApplication as BaseCliApp } from '../../cli/cliBase.js';
 import { container, initializeLambdaContainer } from '../../lambdaContainer.js';
 import type { ProcessOutput } from '../../interfaces/processOutput.js';
 import type { LoggerService } from '../../interfaces/loggerService.js';
@@ -29,13 +29,13 @@ registerGlobalErrorHandler(processOutput);
  * Create a Lambda application instance with all required services
  * @returns A new BaseCliApplication instance configured for Lambda
  */
-function createLambdaApp(): BaseCliApplication {
+function createLambdaApp(): BaseCliApp {
   const tvShowService = container.resolve<TvShowService>('TvShowService');
   const configService = container.resolve<ConfigService>('ConfigService');
   const outputService = container.resolve<OutputService>('SlackOutputService');
   const processOutputFromContainer = container.resolve<ProcessOutput>('ProcessOutput');
 
-  return new BaseCliApplication(
+  return new BaseCliApp(
     tvShowService,
     configService,
     processOutputFromContainer,

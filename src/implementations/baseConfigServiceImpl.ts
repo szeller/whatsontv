@@ -78,7 +78,7 @@ export abstract class BaseConfigServiceImpl implements ConfigService {
    */
   getSlackOptions(): SlackConfig {
     // Start with environment variables as the base
-    const envSlackOptions: SlackConfig = {
+    const environmentSlackOptions: SlackConfig = {
       token: this.getOptionalEnv('SLACK_TOKEN', ''),
       channelId: this.getOptionalEnv('SLACK_CHANNEL', ''),
       username: this.getOptionalEnv('SLACK_USERNAME', 'WhatsOnTV'),
@@ -100,17 +100,17 @@ export abstract class BaseConfigServiceImpl implements ConfigService {
       const hasDateFormat = appSlack.dateFormat !== undefined;
 
       return {
-        ...envSlackOptions,
+        ...environmentSlackOptions,
         // Only use appConfig values if they're non-empty strings
-        ...(hasToken ? { token: appSlack.token } : {}),
-        ...(hasChannel ? { channelId: appSlack.channelId } : {}),
-        ...(hasUsername ? { username: appSlack.username } : {}),
-        ...(hasEmoji ? { icon_emoji: appSlack.icon_emoji } : {}),
-        ...(hasDateFormat ? { dateFormat: appSlack.dateFormat } : {})
+        ...(hasToken && { token: appSlack.token }),
+        ...(hasChannel && { channelId: appSlack.channelId }),
+        ...(hasUsername && { username: appSlack.username }),
+        ...(hasEmoji && { icon_emoji: appSlack.icon_emoji }),
+        ...(hasDateFormat && { dateFormat: appSlack.dateFormat })
       };
     }
 
-    return envSlackOptions;
+    return environmentSlackOptions;
   }
 
   /**
@@ -149,9 +149,9 @@ export abstract class BaseConfigServiceImpl implements ConfigService {
       if (configFilePath !== undefined && configFilePath.trim() !== '') {
         configPath = configFilePath;
       } else {
-        const envConfigFile = process.env.CONFIG_FILE;
-        if (envConfigFile !== undefined && envConfigFile.trim() !== '') {
-          configPath = envConfigFile;
+        const environmentConfigFile = process.env.CONFIG_FILE;
+        if (environmentConfigFile !== undefined && environmentConfigFile.trim() !== '') {
+          configPath = environmentConfigFile;
         } else {
           const currentDir = path.dirname(fileURLToPath(import.meta.url));
           configPath = path.resolve(currentDir, '../../config.json');

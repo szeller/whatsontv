@@ -52,14 +52,14 @@ export function loadFixtureString(relativePath: string): string {
  * Load and validate a fixture file against a schema
  * @param schema Zod schema to validate against
  * @param relativePath Path to the fixture file, relative to the fixtures directory
- * @param includeDetails Whether to include detailed validation errors in the message
+ * @param shouldIncludeDetails Whether to include detailed validation errors in the message
  * @returns The validated fixture data with proper typing
  * @throws Error if validation fails
  */
 export function loadValidatedFixture<T extends z.ZodType>(
   schema: T,
   relativePath: string,
-  includeDetails = true
+  shouldIncludeDetails = true
 ): z.infer<T> {
   const fileContent = loadFixtureString(relativePath);
   const data = JSON.parse(fileContent);
@@ -67,7 +67,7 @@ export function loadValidatedFixture<T extends z.ZodType>(
     schema, 
     data, 
     `Fixture validation failed for ${relativePath}`,
-    includeDetails
+    shouldIncludeDetails
   );
 }
 
@@ -75,13 +75,13 @@ export function loadValidatedFixture<T extends z.ZodType>(
  * Load and validate an array fixture against a schema
  * @param schema Schema for array items
  * @param relativePath Path to the fixture file
- * @param includeDetails Whether to include detailed validation errors in the message
+ * @param shouldIncludeDetails Whether to include detailed validation errors in the message
  * @returns Validated array with proper typing
  */
 export function loadValidatedArrayFixture<T extends z.ZodType>(
   schema: T,
   relativePath: string,
-  includeDetails = true
+  shouldIncludeDetails = true
 ): z.infer<T>[] {
   const fileContent = loadFixtureString(relativePath);
   const data = JSON.parse(fileContent);
@@ -94,7 +94,7 @@ export function loadValidatedArrayFixture<T extends z.ZodType>(
     schema, 
     data, 
     `Array fixture validation failed for ${relativePath}`,
-    includeDetails
+    shouldIncludeDetails
   );
 }
 

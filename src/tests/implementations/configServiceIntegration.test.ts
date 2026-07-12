@@ -10,12 +10,12 @@ import { CliConfigServiceImpl } from '../../implementations/text/cliConfigServic
 import { LambdaConfigServiceImpl } from '../../implementations/lambda/lambdaConfigServiceImpl.js';
 
 // Check if config.json exists (it's gitignored, so won't exist in CI)
-const configJsonExists = existsSync(path.resolve(process.cwd(), 'config.json'));
+const isConfigJsonExists = existsSync(path.resolve(process.cwd(), 'config.json'));
 
 describe('ConfigService Integration Tests', () => {
   // Only run CliConfigServiceImpl tests if config.json exists
   // This file is gitignored, so these tests only run locally
-  const describeIfConfigExists = configJsonExists ? describe : describe.skip;
+  const describeIfConfigExists = isConfigJsonExists ? describe : describe.skip;
 
   describeIfConfigExists('CliConfigServiceImpl', () => {
     it('loads config.json and returns valid show options', () => {

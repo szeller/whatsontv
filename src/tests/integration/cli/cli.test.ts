@@ -107,11 +107,11 @@ describe('CLI Integration Tests', () => {
         .filter((name): name is string => name !== undefined);
       
       // Verify that at least one show from the fixture appears in the output
-      const foundShow = showNames.some(name => 
+      const isFoundShow = showNames.some(name => 
         result.stdout.some(line => line.includes(name))
       );
       
-      expect(foundShow).toBe(true);
+      expect(isFoundShow).toBe(true);
     });
     
     test('should display web shows when --fetch=web flag is used', async () => {
@@ -168,16 +168,16 @@ describe('CLI Integration Tests', () => {
         .filter((name): name is string => name !== undefined);
       
       // Verify that at least one show from each source appears in the output
-      const foundNetworkShow = networkShowNames.some(name => 
+      const isFoundNetworkShow = networkShowNames.some(name => 
         result.stdout.some(line => line.includes(name))
       );
       
-      const foundWebShow = webShowNames.some(name => 
+      const isFoundWebShow = webShowNames.some(name => 
         result.stdout.some(line => line.includes(name))
       );
       
-      expect(foundNetworkShow).toBe(true);
-      expect(foundWebShow).toBe(true);
+      expect(isFoundNetworkShow).toBe(true);
+      expect(isFoundWebShow).toBe(true);
     });
   });
   
@@ -196,7 +196,8 @@ describe('CLI Integration Tests', () => {
             headers: { 'content-type': 'application/json' },
             data: '{ "malformed": "json", missing closing bracket and quotes'
           };
-        } else if (url === getWebScheduleUrl(today)) {
+        }
+        if (url === getWebScheduleUrl(today)) {
           return {
             status: 200,
             headers: { 'content-type': 'application/json' },

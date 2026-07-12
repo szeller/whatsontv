@@ -11,7 +11,7 @@ import type { ProcessOutput } from '../interfaces/processOutput.js';
 import type { TvShowService } from '../interfaces/tvShowService.js';
 import type { ConfigService } from '../interfaces/configService.js';
 import type { OutputService } from '../interfaces/outputService.js';
-import { BaseCliApplication, runMain } from './cliBase.js';
+import { BaseCliApplication as BaseCliApp, runMain } from './cliBase.js';
 import { registerGlobalErrorHandler } from '../utils/errorHandling.js';
 
 // Initialize the Slack container
@@ -27,7 +27,7 @@ registerGlobalErrorHandler(processOutput);
  * Create a Slack CLI application instance with all required services
  * @returns A new SlackCliApplication instance
  */
-export function createSlackApp(): BaseCliApplication {
+export function createSlackApp(): BaseCliApp {
   return createSlackAppWithContainer(container);
 }
 
@@ -38,7 +38,7 @@ export function createSlackApp(): BaseCliApplication {
  */
 export function createSlackAppWithContainer(
   containerInstance: typeof container
-): BaseCliApplication {
+): BaseCliApp {
   try {
     // Resolve all required services from the specified container
     const tvShowService = containerInstance.resolve<TvShowService>('TvShowService');
@@ -47,7 +47,7 @@ export function createSlackAppWithContainer(
     const processOutputFromContainer = containerInstance.resolve<ProcessOutput>('ProcessOutput');
 
     // Create the Slack CLI application
-    return new BaseCliApplication(
+    return new BaseCliApp(
       tvShowService,
       configService,
       processOutputFromContainer,

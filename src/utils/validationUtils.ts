@@ -19,14 +19,14 @@ function isTestEnvironment(): boolean {
  * @param schema The Zod schema to validate against
  * @param data The data to validate
  * @param errorMessage Optional custom error message
- * @param includeDetails Whether to include detailed validation errors in the message
+ * @param shouldIncludeDetails Whether to include detailed validation errors in the message
  * @returns The validated data with proper type inference
  */
 export function validateData<T extends z.ZodType>(
   schema: T,
   data: unknown,
   errorMessage = 'Validation error',
-  includeDetails = false
+  shouldIncludeDetails = false
 ): z.infer<T> {
   const result = schema.safeParse(data);
   
@@ -36,12 +36,11 @@ export function validateData<T extends z.ZodType>(
       console.error('Validation error:', result.error);
     }
     
-    if (includeDetails) {
+    if (shouldIncludeDetails) {
       const formattedError = JSON.stringify(z.treeifyError(result.error), null, 2);
       throw new Error(`${errorMessage}\n${formattedError}`);
-    } else {
-      throw new Error(errorMessage);
     }
+    throw new Error(errorMessage);
   }
   
   // Type assertion is safe because we've verified the data with safeParse
@@ -78,15 +77,15 @@ export function validateDataOrNull<T extends z.ZodType>(
  * @param schema Schema for array items
  * @param data Array data to validate
  * @param errorMessage Optional custom error message
- * @param includeDetails Whether to include detailed validation errors in the message
+ * @param shouldIncludeDetails Whether to include detailed validation errors in the message
  * @returns Validated array with proper typing
  */
 export function validateArray<T extends z.ZodType>(
   schema: T,
   data: unknown[],
   errorMessage = 'Array validation error',
-  includeDetails = false
+  shouldIncludeDetails = false
 ): z.infer<T>[] {
   const arraySchema = z.array(schema);
-  return validateData(arraySchema, data, errorMessage, includeDetails);
+  return validateData(arraySchema, data, errorMessage, shouldIncludeDetails);
 }

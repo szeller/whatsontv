@@ -106,67 +106,6 @@ export class TvMazeServiceImpl implements TvShowService {
   }
 
   /**
-   * Fetch TV shows based on the provided options
-   * @param options Options for filtering shows
-   * @returns Promise resolving to an array of shows
-   */
-  async fetchShows(options?: Partial<ShowOptions>): Promise<Show[]> {
-    // Default options
-    const defaultOptions: ShowOptions = {
-      date: '',
-      country: 'US',
-      types: [],
-      genres: [],
-      languages: [],
-      networks: []
-    };
-
-    // Merge options with defaults
-    const mergedOptions: ShowOptions = {
-      ...defaultOptions,
-      ...options
-    };
-
-    // Get date string, default to today if not provided
-    const dateStr = getStringOrDefault(mergedOptions.date, getTodayDate());
-    const countryStr = getStringOrDefault(mergedOptions.country, 'US');
-
-    // Always fetch from both network and web sources
-    const urlsToFetch: string[] = [
-      getNetworkScheduleUrl(dateStr, countryStr),
-      getWebScheduleUrl(dateStr)
-    ];
-
-    try {
-      // Fetch all schedules in parallel
-      const schedulePromises = urlsToFetch.map(async url => this.getSchedule(url));
-      const scheduleResults = await Promise.all(schedulePromises);
-
-      // Transform and combine all schedule results using a functional approach
-      let shows = scheduleResults
-        .flatMap(scheduleResult => transformSchedule(scheduleResult));
-
-      // Deduplicate shows based on unique combination of show ID and episode
-      shows = this.deduplicateShows(shows);
-
-      // Always apply filters - the applyFilters method will handle empty filter arrays
-      shows = this.applyFilters(shows, mergedOptions);
-
-      return shows;
-    } catch (error) {
-      // Log errors with structured logging for better observability
-      this.logger.error({
-        error: String(error),
-        options: mergedOptions,
-        urlsCount: urlsToFetch.length,
-        environment: process.env.NODE_ENV,
-        stack: error instanceof Error ? error.stack : undefined
-      }, 'Failed to fetch TV shows');
-      return [];
-    }
-  }
-
-  /**
    * Escape special regex characters in a string for literal matching
    * @param str String to escape
    * @returns Escaped string safe for regex use
@@ -288,7 +227,7 @@ export class TvMazeServiceImpl implements TvShowService {
       });
 
       filteredShows = filteredShows.filter(show =>
-        !compiledPatterns.some(regex => regex.test(show.name))
+        compiledPatterns.every(regex => !regex.test(show.name))
       );
     }
 
@@ -306,16 +245,79 @@ export class TvMazeServiceImpl implements TvShowService {
       return [];
     }
 
-    const showMap = new Map<string, Show>();
+    const seenKeys = new Set<string>();
+    const dedupedShows: Show[] = [];
 
     for (const show of shows) {
       // Create a unique key using show ID, season, and episode number
       const key = `${show.id}-${show.season}-${show.number}`;
-      if (!showMap.has(key)) {
-        showMap.set(key, show);
+      if (!seenKeys.has(key)) {
+        seenKeys.add(key);
+        dedupedShows.push(show);
       }
     }
 
-    return [...showMap.values()];
+    return dedupedShows;
+  }
+
+  /**
+   * Fetch TV shows based on the provided options
+   * @param options Options for filtering shows
+   * @returns Promise resolving to an array of shows
+   */
+  async fetchShows(options?: Partial<ShowOptions>): Promise<Show[]> {
+    // Default options
+    const defaultOptions: ShowOptions = {
+      date: '',
+      country: 'US',
+      types: [],
+      genres: [],
+      languages: [],
+      networks: []
+    };
+
+    // Merge options with defaults
+    const mergedOptions: ShowOptions = {
+      ...defaultOptions,
+      ...options
+    };
+
+    // Get date string, default to today if not provided
+    const dateString = getStringOrDefault(mergedOptions.date, getTodayDate());
+    const countryString = getStringOrDefault(mergedOptions.country, 'US');
+
+    // Always fetch from both network and web sources
+    const urlsToFetch: string[] = [
+      getNetworkScheduleUrl(dateString, countryString),
+      getWebScheduleUrl(dateString)
+    ];
+
+    try {
+      // Fetch all schedules in parallel
+      const schedulePromises = urlsToFetch.map(async url => this.getSchedule(url));
+      const scheduleResults = await Promise.all(schedulePromises);
+
+      // Transform and combine all schedule results using a functional approach
+      let shows = scheduleResults
+        .flatMap(scheduleResult => transformSchedule(scheduleResult));
+
+      // Deduplicate shows based on unique combination of show ID and episode
+      shows = this.deduplicateShows(shows);
+
+      // Always apply filters - the applyFilters method will handle empty filter arrays
+      shows = this.applyFilters(shows, mergedOptions);
+
+      return shows;
+    } catch (error) {
+      // Log errors with structured logging for better observability
+      this.logger.error({
+        error: String(error),
+        options: mergedOptions,
+        urlsCount: urlsToFetch.length,
+        environment: process.env.NODE_ENV,
+        stack: error instanceof Error ? error.stack : undefined
+      }, 'Failed to fetch TV shows');
+      return [];
+    }
   }
 }

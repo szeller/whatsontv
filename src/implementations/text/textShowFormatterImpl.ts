@@ -19,6 +19,41 @@ export class TextShowFormatterImpl extends BaseShowFormatterImpl<string> {
   }
 
   /**
+   * Private helper method to format a show with consistent styling
+   * @param show Show to format
+   * @param shouldUseShowAirtime Whether to use the show's airtime or a placeholder
+   * @param customEpisodeInfo Optional custom episode info to override the default
+   * @returns Formatted show representation
+   */
+  private formatShow(
+    show: Show,
+    shouldUseShowAirtime: boolean,
+    customEpisodeInfo?: string
+  ): string {
+    const components = this.prepareShowComponents(show);
+
+    // Apply padding before styling
+    const timeValue = shouldUseShowAirtime ? components.time : this.NO_AIRTIME;
+    const paddedTime = timeValue.padEnd(8);
+    const paddedShowName = components.showName.padEnd(20);
+
+    // Handle custom episode info with hasContent check
+    const episodeInfo = hasContent(customEpisodeInfo) ? customEpisodeInfo : components.episodeInfo;
+    const paddedEpisodeInfo = episodeInfo.padEnd(10);
+
+    // Apply styling to padded components
+    const styledTime = this.styleService.bold(paddedTime);
+    const styledNetwork = this.styleService.boldCyan(components.network);
+    const styledType = this.styleService.magenta(components.type);
+    const styledShowName = this.styleService.green(paddedShowName);
+    const styledEpisodeInfo = this.styleService.yellow(paddedEpisodeInfo);
+
+    // Create formatted string
+    return `${styledTime} ${styledShowName} ${styledEpisodeInfo} ` +
+      `(${styledNetwork}, ${styledType})`;
+  }
+
+  /**
    * Format a show with a specific airtime
    * @param show Show with a specific airtime
    * @returns Formatted show representation
@@ -36,41 +71,6 @@ export class TextShowFormatterImpl extends BaseShowFormatterImpl<string> {
     return this.formatShow(show, false);
   }
 
-  /**
-   * Private helper method to format a show with consistent styling
-   * @param show Show to format
-   * @param useShowAirtime Whether to use the show's airtime or a placeholder
-   * @param customEpisodeInfo Optional custom episode info to override the default
-   * @returns Formatted show representation
-   */
-  private formatShow(
-    show: Show, 
-    useShowAirtime: boolean,
-    customEpisodeInfo?: string
-  ): string {
-    const components = this.prepareShowComponents(show);
-    
-    // Apply padding before styling
-    const timeValue = useShowAirtime ? components.time : this.NO_AIRTIME;
-    const paddedTime = timeValue.padEnd(8);
-    const paddedShowName = components.showName.padEnd(20);
-    
-    // Handle custom episode info with hasContent check
-    const episodeInfo = hasContent(customEpisodeInfo) ? customEpisodeInfo : components.episodeInfo;
-    const paddedEpisodeInfo = episodeInfo.padEnd(10);
-    
-    // Apply styling to padded components
-    const styledTime = this.styleService.bold(paddedTime);
-    const styledNetwork = this.styleService.boldCyan(components.network);
-    const styledType = this.styleService.magenta(components.type);
-    const styledShowName = this.styleService.green(paddedShowName);
-    const styledEpisodeInfo = this.styleService.yellow(paddedEpisodeInfo);
-    
-    // Create formatted string
-    return `${styledTime} ${styledShowName} ${styledEpisodeInfo} ` +
-      `(${styledNetwork}, ${styledType})`;
-  }
-  
   /**
    * Format multiple episodes of the same show
    * @param shows Multiple episodes of the same show

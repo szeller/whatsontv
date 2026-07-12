@@ -58,12 +58,12 @@ export class SlackClientImpl implements SlackClient {
       // Add default username if set in options
       const completePayload = {
         ...payload,
-        username: payload.username !== undefined && payload.username !== ''
-          ? payload.username
-          : this._options.username,
-        icon_emoji: payload.icon_emoji !== undefined && payload.icon_emoji !== ''
-          ? payload.icon_emoji
-          : this._options.icon_emoji
+        username: (payload.username !== undefined && payload.username !== ''
+          ? payload
+          : this._options).username,
+        icon_emoji: (payload.icon_emoji !== undefined && payload.icon_emoji !== ''
+          ? payload
+          : this._options).icon_emoji
       };
 
       // Send the message
