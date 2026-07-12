@@ -137,7 +137,7 @@ describe('Fixture Validation', () => {
         const invalidSchedule = loadFixture(INVALID_SCHEDULE_FIXTURE);
         z.array(networkScheduleItemSchema).parse(invalidSchedule);
         // If we get here, validation didn't throw as expected
-        expect(true).toBe(false); // Force test to fail
+        throw new Error('Expected schema validation to throw, but it did not');
       } catch (error) {
         // Convert error to string to check for expected validation failures
         const errorString = String(error);
