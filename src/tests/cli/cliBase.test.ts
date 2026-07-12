@@ -13,7 +13,7 @@ import type { Show } from '../../schemas/domain.js';
 import type { CliOptions, AppConfig } from '../../types/configTypes.js';
 import type { ShowOptions } from '../../schemas/config.js';
 import { Fixtures } from '../helpers/fixtureHelper.js';
-import { BaseCliApplication } from '../../cli/cliBase.js';
+import { BaseCliApplication as BaseCliApp } from '../../cli/cliBase.js';
 
 const TEST_DATE = '2023-01-01';
 
@@ -83,14 +83,14 @@ describe('CLI', () => {
   };
 
   // Create CLI application instance for testing
-  let cliApp: BaseCliApplication;
+  let cliApp: BaseCliApp;
 
   beforeEach(() => {
     // Reset all mocks before each test
     jest.clearAllMocks();
     
     // Create CLI application with mock services
-    cliApp = new BaseCliApplication(
+    cliApp = new BaseCliApp(
       mockTvShowService,
       mockConfigService as unknown as ConfigService,
       mockProcessOutput as unknown as ProcessOutput,

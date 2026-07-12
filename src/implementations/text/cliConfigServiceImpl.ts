@@ -5,7 +5,7 @@
 import { injectable } from 'tsyringe';
 import yargs from 'yargs';
 
-import type { CliArgs } from '../../types/cliArgs.js';
+import type { CliArgs as CliArguments } from '../../types/cliArgs.js';
 
 type StringOrArray = string | string[] | undefined;
 import { getTodayDate } from '../../utils/dateUtils.js';
@@ -18,15 +18,15 @@ import { BaseConfigServiceImpl } from '../baseConfigServiceImpl.js';
 
 @injectable()
 export class CliConfigServiceImpl extends BaseConfigServiceImpl {
-  protected cliArgs!: CliArgs;
+  protected cliArgs!: CliArguments;
 
   /**
    * Create a new CliConfigServiceImpl
-   * @param skipInitialization Optional flag to skip initialization (for testing)
+   * @param shouldSkipInitialization Optional flag to skip initialization (for testing)
    */
-  constructor(skipInitialization = false) {
+  constructor(shouldSkipInitialization = false) {
     super();
-    if (!skipInitialization) {
+    if (!shouldSkipInitialization) {
       this.initialize();
     }
   }
@@ -61,31 +61,31 @@ export class CliConfigServiceImpl extends BaseConfigServiceImpl {
    * @returns Parsed CLI arguments
    * @protected
    */
-  protected parseArgs(args?: string[]): CliArgs {
+  protected parseArgs(args?: string[]): CliArguments {
     // Create a yargs instance with our options
     const yargsInstance = this.createYargsInstance(
       args ?? process.argv.slice(2)
     );
 
     // Parse the arguments - use parseSync to ensure we get a synchronous result
-    const parsedArgs = yargsInstance.parseSync();
+    const parsedArguments = yargsInstance.parseSync();
 
     // Convert to our CliArgs type with proper type handling
     return {
       date: getStringValue(
-        (parsedArgs.date as string | undefined) ?? '', getTodayDate()
+        (parsedArguments.date as string | undefined) ?? '', getTodayDate()
       ),
       country: getStringValue(
-        (parsedArgs.country as string | undefined) ?? '', 'US'
+        (parsedArguments.country as string | undefined) ?? '', 'US'
       ),
-      types: toStringArray(parsedArgs.types as StringOrArray),
-      networks: toStringArray(parsedArgs.networks as StringOrArray),
-      genres: toStringArray(parsedArgs.genres as StringOrArray),
-      languages: toStringArray(parsedArgs.languages as StringOrArray),
+      types: toStringArray(parsedArguments.types as StringOrArray),
+      networks: toStringArray(parsedArguments.networks as StringOrArray),
+      genres: toStringArray(parsedArguments.genres as StringOrArray),
+      languages: toStringArray(parsedArguments.languages as StringOrArray),
       minAirtime: getStringValue(
-        (parsedArgs.minAirtime as string | undefined) ?? '', '18:00'
+        (parsedArguments.minAirtime as string | undefined) ?? '', '18:00'
       ),
-      debug: parsedArgs.debug as boolean,
+      debug: parsedArguments.debug as boolean,
       groupByNetwork: true // Default to true, not configurable via CLI yet
     };
   }
@@ -115,25 +115,25 @@ export class CliConfigServiceImpl extends BaseConfigServiceImpl {
           alias: 't',
           describe: 'Show types to include (e.g., Scripted,Reality)',
           type: 'string',
-          coerce: (arg: string) => toStringArray(arg)
+          coerce: (argument: string) => toStringArray(argument)
         },
         networks: {
           alias: 'n',
           describe: 'Networks to include (e.g., HBO,Netflix)',
           type: 'string',
-          coerce: (arg: string) => toStringArray(arg)
+          coerce: (argument: string) => toStringArray(argument)
         },
         genres: {
           alias: 'g',
           describe: 'Genres to include (e.g., Drama,Comedy)',
           type: 'string',
-          coerce: (arg: string) => toStringArray(arg)
+          coerce: (argument: string) => toStringArray(argument)
         },
         languages: {
           alias: 'l',
           describe: 'Languages to include (e.g., English,Spanish)',
           type: 'string',
-          coerce: (arg: string) => toStringArray(arg)
+          coerce: (argument: string) => toStringArray(argument)
         },
         minAirtime: {
           describe: 'Minimum airtime to include (format: HH:MM, 24-hour format)',

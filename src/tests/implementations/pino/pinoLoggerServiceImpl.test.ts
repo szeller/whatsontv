@@ -113,7 +113,7 @@ describe('PinoLoggerServiceImpl', () => {
 
   describe('log level configuration', () => {
     it('should handle production environment', () => {
-      const originalEnv = process.env.NODE_ENV;
+      const originalEnvironment = process.env.NODE_ENV;
       process.env.NODE_ENV = 'production';
       delete process.env.LOG_LEVEL;
       
@@ -121,11 +121,11 @@ describe('PinoLoggerServiceImpl', () => {
         const _instance = new PinoLoggerServiceImpl();
       }).not.toThrow();
 
-      process.env.NODE_ENV = originalEnv;
+      process.env.NODE_ENV = originalEnvironment;
     });
 
     it('should handle development environment', () => {
-      const originalEnv = process.env.NODE_ENV;
+      const originalEnvironment = process.env.NODE_ENV;
       process.env.NODE_ENV = 'development';
       delete process.env.LOG_LEVEL;
 
@@ -133,7 +133,7 @@ describe('PinoLoggerServiceImpl', () => {
         const _instance = new PinoLoggerServiceImpl();
       }).not.toThrow();
 
-      process.env.NODE_ENV = originalEnv;
+      process.env.NODE_ENV = originalEnvironment;
     });
 
     it('should handle custom log level', () => {

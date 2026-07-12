@@ -11,6 +11,28 @@ export type LogLevel = 'info' | 'warn' | 'error' | 'debug';
 export class MockLoggerServiceImpl implements LoggerService {
   public readonly calls: LogCall[] = [];
 
+  private recordCall(
+    level: LogLevel,
+    contextOrMessage: Record<string, unknown> | string,
+    message?: string
+  ): void {
+    if (typeof contextOrMessage === 'string') {
+      this.calls.push({
+        level,
+        message: contextOrMessage,
+        context: undefined,
+        timestamp: new Date()
+      });
+    } else {
+      this.calls.push({
+        level,
+        message: message ?? '',
+        context: contextOrMessage,
+        timestamp: new Date()
+      });
+    }
+  }
+
   info(contextOrMessage: Record<string, unknown> | string, message?: string): void {
     this.recordCall('info', contextOrMessage, message);
   }
@@ -62,28 +84,6 @@ export class MockLoggerServiceImpl implements LoggerService {
       }
       return Object.keys(context).every(key => call.context?.[key] === context[key]);
     });
-  }
-
-  private recordCall(
-    level: LogLevel,
-    contextOrMessage: Record<string, unknown> | string,
-    message?: string
-  ): void {
-    if (typeof contextOrMessage === 'string') {
-      this.calls.push({
-        level,
-        message: contextOrMessage,
-        context: undefined,
-        timestamp: new Date()
-      });
-    } else {
-      this.calls.push({
-        level,
-        message: message ?? '',
-        context: contextOrMessage,
-        timestamp: new Date()
-      });
-    }
   }
 }
 

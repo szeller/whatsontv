@@ -25,77 +25,6 @@ export class SlackShowFormatterImpl extends BaseShowFormatterImpl<SlackBlock>
   implements SlackShowFormatter {
 
   /**
-   * Format a show with a specific airtime as a bullet point string
-   * @param show Show with a specific airtime
-   * @returns Formatted show as bullet point string
-   */
-  public formatTimedShow(show: Show): SlackSectionBlock {
-    // This method is required by the interface but we use formatShowAsBullet instead
-    const text = this.formatShowAsBullet(show);
-    return {
-      type: 'section',
-      text: { type: 'mrkdwn', text }
-    };
-  }
-
-  /**
-   * Format a show with no specific airtime as a bullet point string
-   * @param show Show with no specific airtime
-   * @returns Formatted show as bullet point string
-   */
-  public formatUntimedShow(show: Show): SlackSectionBlock {
-    return this.formatTimedShow(show);
-  }
-
-  /**
-   * Format multiple episodes of the same show
-   * @param shows Multiple episodes of the same show
-   * @returns Formatted show representations as Slack blocks
-   */
-  public formatMultipleEpisodes(shows: Show[]): SlackBlock[] {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (!shows?.length) {
-      return [{
-        type: 'section',
-        text: { type: 'mrkdwn', text: 'No episodes found' }
-      }];
-    }
-
-    const text = this.formatMultipleEpisodesAsBullet(shows);
-    return [{
-      type: 'section',
-      text: { type: 'mrkdwn', text }
-    }];
-  }
-
-  /**
-   * Format a single network and its shows as a compact context block
-   * @param network Network name
-   * @param shows Shows in the network
-   * @returns Single context block with network and all shows
-   */
-  public override formatNetwork(network: string, shows: Show[]): SlackBlock[] {
-    if (shows.length === 0) {
-      return this.formatEmptyNetwork(network);
-    }
-
-    const formattedNetwork = this.formatNetworkName(network);
-    const showLines = this.formatShowsAsBulletList(shows);
-
-    const contextBlock: SlackContextBlock = {
-      type: 'context',
-      elements: [
-        {
-          type: 'mrkdwn',
-          text: `:tv: *${formattedNetwork}*\n${showLines}`
-        }
-      ]
-    };
-
-    return [contextBlock];
-  }
-
-  /**
    * Format all shows for a network as a bullet list
    * @param shows Shows to format
    * @returns Bullet list string
@@ -164,26 +93,26 @@ export class SlackShowFormatterImpl extends BaseShowFormatterImpl<SlackBlock>
     const firstShow = sortedEpisodes[0];
     const components = this.prepareShowComponents(firstShow);
 
-    const allSameSeason = sortedEpisodes.every(
+    const isAllSameSeason = sortedEpisodes.every(
       (show) => show.season === sortedEpisodes[0].season
     );
 
-    if (allSameSeason && sortedEpisodes.length > 1) {
+    if (isAllSameSeason && sortedEpisodes.length > 1) {
       const firstEp = sortedEpisodes[0];
       const lastEp = sortedEpisodes.at(-1);
 
       if (lastEp !== undefined && lastEp.number > 0 && firstEp.number > 0 &&
           lastEp.number - firstEp.number === sortedEpisodes.length - 1) {
         const season = `S${String(firstEp.season).padStart(2, '0')}`;
-        const firstEpNum = String(firstEp.number).padStart(2, '0');
-        const lastEpNum = String(lastEp.number).padStart(2, '0');
+        const firstEpNumber = String(firstEp.number).padStart(2, '0');
+        const lastEpNumber = String(lastEp.number).padStart(2, '0');
 
         const hasAirtimeValue = shows.some(show => hasAirtime(show));
         const airtime = hasAirtimeValue
           ? ` (${formatTimeWithPeriod(firstEp.airtime)})`
           : '';
 
-        return `• ${components.showName} ${season}E${firstEpNum}-${lastEpNum}${airtime}`;
+        return `• ${components.showName} ${season}E${firstEpNumber}-${lastEpNumber}${airtime}`;
       }
     }
 
@@ -191,6 +120,77 @@ export class SlackShowFormatterImpl extends BaseShowFormatterImpl<SlackBlock>
     return sortedEpisodes
       .map(show => this.formatShowAsBullet(show))
       .join('\n');
+  }
+
+  /**
+   * Format a show with a specific airtime as a bullet point string
+   * @param show Show with a specific airtime
+   * @returns Formatted show as bullet point string
+   */
+  public formatTimedShow(show: Show): SlackSectionBlock {
+    // This method is required by the interface but we use formatShowAsBullet instead
+    const text = this.formatShowAsBullet(show);
+    return {
+      type: 'section',
+      text: { type: 'mrkdwn', text }
+    };
+  }
+
+  /**
+   * Format a show with no specific airtime as a bullet point string
+   * @param show Show with no specific airtime
+   * @returns Formatted show as bullet point string
+   */
+  public formatUntimedShow(show: Show): SlackSectionBlock {
+    return this.formatTimedShow(show);
+  }
+
+  /**
+   * Format multiple episodes of the same show
+   * @param shows Multiple episodes of the same show
+   * @returns Formatted show representations as Slack blocks
+   */
+  public formatMultipleEpisodes(shows: Show[]): SlackBlock[] {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (!shows?.length) {
+      return [{
+        type: 'section',
+        text: { type: 'mrkdwn', text: 'No episodes found' }
+      }];
+    }
+
+    const text = this.formatMultipleEpisodesAsBullet(shows);
+    return [{
+      type: 'section',
+      text: { type: 'mrkdwn', text }
+    }];
+  }
+
+  /**
+   * Format a single network and its shows as a compact context block
+   * @param network Network name
+   * @param shows Shows in the network
+   * @returns Single context block with network and all shows
+   */
+  public override formatNetwork(network: string, shows: Show[]): SlackBlock[] {
+    if (shows.length === 0) {
+      return this.formatEmptyNetwork(network);
+    }
+
+    const formattedNetwork = this.formatNetworkName(network);
+    const showLines = this.formatShowsAsBulletList(shows);
+
+    const contextBlock: SlackContextBlock = {
+      type: 'context',
+      elements: [
+        {
+          type: 'mrkdwn',
+          text: `:tv: *${formattedNetwork}*\n${showLines}`
+        }
+      ]
+    };
+
+    return [contextBlock];
   }
 
   /**

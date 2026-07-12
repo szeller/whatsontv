@@ -11,12 +11,17 @@
 import { z } from 'zod';
 
 /**
+ * Allowed value types for HTTP query parameters
+ */
+const queryValueSchema = z.union([z.string(), z.number(), z.boolean()]);
+
+/**
  * HTTP request options schema
  */
 export const requestOptionsSchema = z.object({
   headers: z.record(z.string(), z.string()).optional(),
   timeout: z.number().positive().optional(),
-  query: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional()
+  query: z.record(z.string(), queryValueSchema).optional()
 });
 
 /**

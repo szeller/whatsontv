@@ -128,7 +128,18 @@ const unicornRules = {
   'unicorn/filename-case': 'off',          // Project uses camelCase filenames
   'unicorn/no-null': 'off',               // Conflicts with Zod nullable() patterns
   'unicorn/no-array-sort': 'off',         // .toSorted() copies; in-place sort is intentional
-  'unicorn/prevent-abbreviations': 'off'   // Too aggressive for our codebase
+  'unicorn/prevent-abbreviations': 'off',  // Too aggressive for our codebase
+  // Same abbreviation/filename opinions as prevent-abbreviations/filename-case above
+  'unicorn/name-replacements': 'off',
+  // DI containers and Lambda cold-start init are intentionally side-effectful on import
+  'unicorn/no-top-level-side-effects': 'off',
+  // parseInt(x, 10) and Number(x) parse differently; our date/Zod parsing relies on parseInt
+  'unicorn/prefer-number-coercion': 'off',
+  // Allow `contains` as a boolean prefix; ignore well-named exported predicate functions
+  'unicorn/consistent-boolean-name': ['error', {
+    prefixes: { contains: true },
+    ignore: ['fileExists', 'allShowsHaveNoAirtime']
+  }]
 };
 
 // Promise rules: recommended preset + escalate warn rules to error
@@ -270,7 +281,12 @@ export default [
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',
-      '@typescript-eslint/no-unsafe-return': 'off'
+      '@typescript-eslint/no-unsafe-return': 'off',
+      // Legitimate test-infrastructure patterns
+      'unicorn/no-global-object-property-assignment': 'off', // mocking global Date, etc.
+      'unicorn/no-error-property-assignment': 'off',         // setting error.stack in tests
+      'unicorn/no-computed-property-existence-check': 'off', // dynamic `key in obj` in mocks
+      'unicorn/no-non-function-verb-prefix': 'off'           // jest spy naming (e.g. getSpy)
     },
     linterOptions: {
       reportUnusedDisableDirectives: 'error'

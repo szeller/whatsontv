@@ -6,7 +6,7 @@ import type { ProcessOutput } from '../interfaces/processOutput.js';
 import type { OutputService } from '../interfaces/outputService.js';
 import type { TvShowService } from '../interfaces/tvShowService.js';
 import type { ConfigService } from '../interfaces/configService.js';
-import { BaseCliApplication, runMain } from './cliBase.js';
+import { BaseCliApplication as BaseCliApp, runMain } from './cliBase.js';
 import { registerGlobalErrorHandler } from '../utils/errorHandling.js';
 
 // Get ProcessOutput service for global error handling
@@ -18,14 +18,14 @@ registerGlobalErrorHandler(processOutput);
 /**
  * Main function that resolves services from the container and runs the CLI
  */
-export function createCliApp(): BaseCliApplication {
+export function createCliApp(): BaseCliApp {
   return createCliAppWithContainer(container);
 }
 
 /**
  * Create CLI app with a specific container (useful for testing)
  */
-export function createCliAppWithContainer(containerInstance: typeof container): BaseCliApplication {
+export function createCliAppWithContainer(containerInstance: typeof container): BaseCliApp {
   // Resolve all required services from the specified container
   const tvShowService = containerInstance.resolve<TvShowService>('TvShowService');
   const configService = containerInstance.resolve<ConfigService>('ConfigService');
@@ -33,7 +33,7 @@ export function createCliAppWithContainer(containerInstance: typeof container): 
   const processOutputFromContainer = containerInstance.resolve<ProcessOutput>('ProcessOutput');
 
   // Create the CLI application
-  return new BaseCliApplication(
+  return new BaseCliApp(
     tvShowService,
     configService,
     processOutputFromContainer,

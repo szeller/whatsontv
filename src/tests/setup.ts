@@ -21,15 +21,15 @@ mockYargs(yargsInstance);
 jest.mock('chalk', () => ({
   __esModule: true,
   default: Object.assign(
-    (str: string): string => str,
+    (string_: string): string => string_,
     { 
-      bold: (str: string): string => str,
-      green: (str: string): string => str,
-      red: (str: string): string => str,
-      yellow: (str: string): string => str,
-      blue: (str: string): string => str,
-      magenta: (str: string): string => str,
-      cyan: (str: string): string => str
+      bold: (string_: string): string => string_,
+      green: (string_: string): string => string_,
+      red: (string_: string): string => string_,
+      yellow: (string_: string): string => string_,
+      blue: (string_: string): string => string_,
+      magenta: (string_: string): string => string_,
+      cyan: (string_: string): string => string_
     }
   )
 }));

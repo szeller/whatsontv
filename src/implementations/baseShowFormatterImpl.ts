@@ -25,6 +25,28 @@ export abstract class BaseShowFormatterImpl<TOutput> implements ShowFormatter<TO
   protected readonly UNKNOWN_SHOW = 'Unknown Show';
   protected readonly UNKNOWN_TYPE = 'Unknown';
 
+  /** Format a group of episodes for a single show */
+  private formatShowGroup(showGroup: Show[]): TOutput[] {
+    if (showGroup.length === 1) {
+      const show = showGroup[0];
+      const formatted = hasAirtime(show)
+        ? this.formatTimedShow(show)
+        : this.formatUntimedShow(show);
+      return [formatted];
+    }
+
+    if (allShowsHaveNoAirtime(showGroup)) {
+      return this.formatMultipleEpisodes(showGroup);
+    }
+
+    // Multiple episodes with different airtimes
+    return sortShowsByTime(showGroup).map(episode =>
+      hasAirtime(episode)
+        ? this.formatTimedShow(episode)
+        : this.formatUntimedShow(episode)
+    );
+  }
+
   /**
    * Format a show with a specific airtime
    * @param show Show with a specific airtime
@@ -95,28 +117,6 @@ export abstract class BaseShowFormatterImpl<TOutput> implements ShowFormatter<TO
     
     return output;
   }
-  
-  /** Format a group of episodes for a single show */
-  private formatShowGroup(showGroup: Show[]): TOutput[] {
-    if (showGroup.length === 1) {
-      const show = showGroup[0];
-      const formatted = hasAirtime(show)
-        ? this.formatTimedShow(show)
-        : this.formatUntimedShow(show);
-      return [formatted];
-    }
-
-    if (allShowsHaveNoAirtime(showGroup)) {
-      return this.formatMultipleEpisodes(showGroup);
-    }
-
-    // Multiple episodes with different airtimes
-    return sortShowsByTime(showGroup).map(episode =>
-      hasAirtime(episode)
-        ? this.formatTimedShow(episode)
-        : this.formatUntimedShow(episode)
-    );
-  }
 
   /**
    * Format a group of shows by network
@@ -138,7 +138,7 @@ export abstract class BaseShowFormatterImpl<TOutput> implements ShowFormatter<TO
     }
     
     // Get network names and sort them alphabetically
-    const networks = Object.keys(networkGroups).sort();
+    const networks = Object.keys(networkGroups).sort((a, b) => a.localeCompare(b));
     
     // Process each network
     for (const network of networks) {

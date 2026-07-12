@@ -3,7 +3,7 @@
  */
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CliArgs } from '../types/cliArgs.js';
+import { CliArgs as CliArguments } from '../types/cliArgs.js';
 import { AppConfig } from '../types/configTypes.js';
 import { ShowOptions } from '../schemas/config.js';
 import { getTodayDate } from './dateUtils.js';
@@ -107,7 +107,7 @@ export function getDefaultConfig(): AppConfig {
  * @protected
  */
 export function mergeShowOptions(
-  cliArgs: CliArgs,
+  cliArgs: CliArguments,
   appConfig: AppConfig
 ): ShowOptions {
   // Start with base options or empty object

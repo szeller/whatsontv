@@ -32,107 +32,6 @@ const baseShow: Show = {
  * Show builder for creating customized show instances
  */
 export class ShowBuilder {
-  private readonly show: Show;
-
-  /**
-   * Create a new show builder
-   * @param baseTemplate Optional base show to start with
-   */
-  constructor(baseTemplate: Partial<Show> = {}) {
-    this.show = { ...baseShow, ...baseTemplate };
-  }
-
-  /**
-   * Set the show ID
-   * @param id Show ID
-   */
-  withId(id: number): this {
-    this.show.id = id;
-    return this;
-  }
-
-  /**
-   * Set the show name
-   * @param name Show name
-   */
-  withName(name: string): this {
-    this.show.name = name;
-    return this;
-  }
-
-  /**
-   * Set the show type
-   * @param type Show type
-   */
-  withType(type: string): this {
-    this.show.type = type;
-    return this;
-  }
-
-  /**
-   * Set the show language
-   * @param language Show language
-   */
-  withLanguage(language: string | null): this {
-    this.show.language = language;
-    return this;
-  }
-
-  /**
-   * Set the show genres
-   * @param genres Show genres
-   */
-  withGenres(genres: string[]): this {
-    this.show.genres = genres;
-    return this;
-  }
-
-  /**
-   * Set the show network
-   * @param network Show network
-   */
-  withNetwork(network: string): this {
-    this.show.network = network;
-    return this;
-  }
-
-  /**
-   * Set the show summary
-   * @param summary Show summary
-   */
-  withSummary(summary: string | null): this {
-    this.show.summary = summary;
-    return this;
-  }
-
-  /**
-   * Set the show airtime
-   * @param airtime Show airtime
-   */
-  withAirtime(airtime: string | null): this {
-    this.show.airtime = airtime;
-    return this;
-  }
-
-  /**
-   * Set the show episode information
-   * @param season Season number
-   * @param number Episode number
-   */
-  withEpisode(season: number, number: number): this {
-    this.show.season = season;
-    this.show.number = number;
-    return this;
-  }
-
-  /**
-   * Build the final show object
-   * @returns The constructed Show object
-   */
-  build(): Show {
-    return { ...this.show };
-  }
-
   /**
    * Create a minimal show with only required fields
    * @param options Optional overrides for the minimal show
@@ -319,9 +218,9 @@ export class ShowBuilder {
   static createEpisodeRange(season: number, startEpisode: number, endEpisode: number): Show[] {
     const episodeNumbers = Array.from(
       { length: endEpisode - startEpisode + 1 },
-      (_, i) => startEpisode + i
+      (_, index) => startEpisode + index
     );
-    return ShowBuilder.createEpisodeSequence(season, episodeNumbers);
+    return this.createEpisodeSequence(season, episodeNumbers);
   }
 
   /**
@@ -334,19 +233,120 @@ export class ShowBuilder {
   ): Show[] {
     const episodes: Show[] = [];
     
-    for (const [seasonStr, episodeInfo] of Object.entries(seasonEpisodes)) {
-      const season = Number.parseInt(seasonStr, 10);
+    for (const [seasonString, episodeInfo] of Object.entries(seasonEpisodes)) {
+      const season = Number.parseInt(seasonString, 10);
       
       if (typeof episodeInfo === 'number') {
         // Create sequential episodes from 1 to episodeInfo
-        episodes.push(...ShowBuilder.createEpisodeRange(season, 1, episodeInfo));
+        episodes.push(...this.createEpisodeRange(season, 1, episodeInfo));
       } else if (Array.isArray(episodeInfo)) {
         // Create episodes with specific episode numbers
-        episodes.push(...ShowBuilder.createEpisodeSequence(season, episodeInfo));
+        episodes.push(...this.createEpisodeSequence(season, episodeInfo));
       }
     }
-    
+
     return episodes;
+  }
+
+  private readonly show: Show;
+
+  /**
+   * Create a new show builder
+   * @param baseTemplate Optional base show to start with
+   */
+  constructor(baseTemplate: Partial<Show> = {}) {
+    this.show = { ...baseShow, ...baseTemplate };
+  }
+
+  /**
+   * Set the show ID
+   * @param id Show ID
+   */
+  withId(id: number): this {
+    this.show.id = id;
+    return this;
+  }
+
+  /**
+   * Set the show name
+   * @param name Show name
+   */
+  withName(name: string): this {
+    this.show.name = name;
+    return this;
+  }
+
+  /**
+   * Set the show type
+   * @param type Show type
+   */
+  withType(type: string): this {
+    this.show.type = type;
+    return this;
+  }
+
+  /**
+   * Set the show language
+   * @param language Show language
+   */
+  withLanguage(language: string | null): this {
+    this.show.language = language;
+    return this;
+  }
+
+  /**
+   * Set the show genres
+   * @param genres Show genres
+   */
+  withGenres(genres: string[]): this {
+    this.show.genres = genres;
+    return this;
+  }
+
+  /**
+   * Set the show network
+   * @param network Show network
+   */
+  withNetwork(network: string): this {
+    this.show.network = network;
+    return this;
+  }
+
+  /**
+   * Set the show summary
+   * @param summary Show summary
+   */
+  withSummary(summary: string | null): this {
+    this.show.summary = summary;
+    return this;
+  }
+
+  /**
+   * Set the show airtime
+   * @param airtime Show airtime
+   */
+  withAirtime(airtime: string | null): this {
+    this.show.airtime = airtime;
+    return this;
+  }
+
+  /**
+   * Set the show episode information
+   * @param season Season number
+   * @param number Episode number
+   */
+  withEpisode(season: number, number: number): this {
+    this.show.season = season;
+    this.show.number = number;
+    return this;
+  }
+
+  /**
+   * Build the final show object
+   * @returns The constructed Show object
+   */
+  build(): Show {
+    return { ...this.show };
   }
 }
 

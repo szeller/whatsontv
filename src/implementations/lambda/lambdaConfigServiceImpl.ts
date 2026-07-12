@@ -49,15 +49,15 @@ export class LambdaConfigServiceImpl extends BaseConfigServiceImpl {
    */
   private loadAppConfig(): AppConfig {
     const defaultConfig = getDefaultConfig();
-    const appConfigEnv = process.env.APP_CONFIG;
+    const appConfigEnvironment = process.env.APP_CONFIG;
 
-    if (appConfigEnv === undefined || appConfigEnv.trim() === '') {
+    if (appConfigEnvironment === undefined || appConfigEnvironment.trim() === '') {
       // No APP_CONFIG set, use defaults
       return defaultConfig;
     }
 
     try {
-      const parsed = JSON.parse(appConfigEnv) as Partial<AppConfig>;
+      const parsed = JSON.parse(appConfigEnvironment) as Partial<AppConfig>;
       return {
         ...defaultConfig,
         ...parsed,

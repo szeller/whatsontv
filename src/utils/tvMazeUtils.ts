@@ -24,19 +24,19 @@ export function getNetworkScheduleUrl(
   country?: string
 ): string {
   const baseUrl = `${TV_MAZE_BASE_URL}/schedule`;
-  const params = new URLSearchParams();
+  const parameters = new URLSearchParams();
   
   const trimmedDate = getStringOrDefault(date, '');
   if (trimmedDate) {
-    params.append('date', trimmedDate);
+    parameters.append('date', trimmedDate);
   }
   
   const trimmedCountry = getStringOrDefault(country, '');
   if (trimmedCountry) {
-    params.append('country', trimmedCountry);
+    parameters.append('country', trimmedCountry);
   }
   
-  const queryString = params.toString();
+  const queryString = parameters.toString();
   return queryString 
     ? `${baseUrl}?${queryString}` 
     : baseUrl;
@@ -66,14 +66,14 @@ export function isWebScheduleItem(item: unknown): boolean {
     return false;
   }
   
-  const itemObj = item as Record<string, unknown>;
+  const itemObject = item as Record<string, unknown>;
   
   // Web schedule items have an _embedded property with a show property
   return (
-    '_embedded' in itemObj && 
-    itemObj._embedded !== null && 
-    typeof itemObj._embedded === 'object' &&
-    (itemObj._embedded as Record<string, unknown>).show !== undefined
+    '_embedded' in itemObject && 
+    itemObject._embedded !== null && 
+    typeof itemObject._embedded === 'object' &&
+    (itemObject._embedded as Record<string, unknown>).show !== undefined
   );
 }
 
@@ -97,12 +97,11 @@ export function transformScheduleItem(
       return webScheduleToShowSchema.safeParse(item).success 
         ? webScheduleToShowSchema.parse(item)
         : null;
-    } else {
-      // Use Zod schema to transform network schedule item
-      return networkScheduleToShowSchema.safeParse(item).success
-        ? networkScheduleToShowSchema.parse(item)
-        : null;
     }
+    // Use Zod schema to transform network schedule item
+    return networkScheduleToShowSchema.safeParse(item).success
+      ? networkScheduleToShowSchema.parse(item)
+      : null;
   } catch (error) {
     console.error('Error transforming schedule item:', error);
     return null;

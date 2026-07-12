@@ -21,6 +21,11 @@ export const networkSchema = z.object({
 });
 
 /**
+ * Schedule days schema (list of weekday names)
+ */
+const scheduleDaysSchema = z.array(z.string()).optional();
+
+/**
  * Base show schema for common properties
  */
 export const baseShowSchema = z.object({
@@ -37,7 +42,7 @@ export const baseShowSchema = z.object({
   officialSite: z.string().nullable().optional(),
   schedule: z.object({
     time: z.string().optional(),
-    days: z.array(z.string()).optional()
+    days: scheduleDaysSchema
   }).optional(),
   rating: z.object({
     average: z.number().nullable().optional()
@@ -197,7 +202,7 @@ function formatNetworkName(
     
     // Add country code if available
     if (network.country !== null) {
-      networkName = `${networkName} (${network.country.code})`;
+      networkName += ` (${network.country.code})`;
     }
   } 
   // If no network, try web channel
@@ -206,7 +211,7 @@ function formatNetworkName(
     
     // Add country code if available
     if (webChannel.country !== null) {
-      networkName = `${networkName} (${webChannel.country.code})`;
+      networkName += ` (${webChannel.country.code})`;
     }
   }
   

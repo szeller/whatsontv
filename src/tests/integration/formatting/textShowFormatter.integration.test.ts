@@ -41,10 +41,10 @@ describe('TextShowFormatter Integration', () => {
     // The exact expected output with ANSI color codes
     // Note: We're using the actual ANSI codes that Chalk produces
     const expectedOutput = 
-      '\u001B[1m21:00   \u001B[22m ' + 
-      '\u001B[32mGame of Thrones     \u001B[39m ' + 
-      '\u001B[33mS08E06    \u001B[39m ' + 
-      '(\u001B[1m\u001B[36mHBO\u001B[39m\u001B[22m, \u001B[35mScripted\u001B[39m)';
+      '\u{1B}[1m21:00   \u{1B}[22m ' + 
+      '\u{1B}[32mGame of Thrones     \u{1B}[39m ' + 
+      '\u{1B}[33mS08E06    \u{1B}[39m ' + 
+      '(\u{1B}[1m\u{1B}[36mHBO\u{1B}[39m\u{1B}[22m, \u{1B}[35mScripted\u{1B}[39m)';
     
     // Verify exact match
     expect(result).toBe(expectedOutput);
@@ -69,10 +69,10 @@ describe('TextShowFormatter Integration', () => {
     
     // The exact expected output with ANSI color codes
     const expectedOutput = 
-      '\u001B[1mN/A     \u001B[22m ' + 
-      '\u001B[32mStranger Things     \u001B[39m ' + 
-      '\u001B[33mS04E09    \u001B[39m ' + 
-      '(\u001B[1m\u001B[36mNetflix\u001B[39m\u001B[22m, \u001B[35mScripted\u001B[39m)';
+      '\u{1B}[1mN/A     \u{1B}[22m ' + 
+      '\u{1B}[32mStranger Things     \u{1B}[39m ' + 
+      '\u{1B}[33mS04E09    \u{1B}[39m ' + 
+      '(\u{1B}[1m\u{1B}[36mNetflix\u{1B}[39m\u{1B}[22m, \u{1B}[35mScripted\u{1B}[39m)';
     
     // Verify exact match
     expect(result).toBe(expectedOutput);
@@ -109,10 +109,10 @@ describe('TextShowFormatter Integration', () => {
     
     // The exact expected output with ANSI color codes
     const expectedOutput = [
-      '\u001B[1m20:00   \u001B[22m ' + 
-      '\u001B[32mBreaking Bad        \u001B[39m ' + 
-      '\u001B[33mS05E07-08 \u001B[39m ' + 
-      '(\u001B[1m\u001B[36mAMC\u001B[39m\u001B[22m, \u001B[35mScripted\u001B[39m)'
+      '\u{1B}[1m20:00   \u{1B}[22m ' + 
+      '\u{1B}[32mBreaking Bad        \u{1B}[39m ' + 
+      '\u{1B}[33mS05E07-08 \u{1B}[39m ' + 
+      '(\u{1B}[1m\u{1B}[36mAMC\u{1B}[39m\u{1B}[22m, \u{1B}[35mScripted\u{1B}[39m)'
     ];
     
     // Verify exact match

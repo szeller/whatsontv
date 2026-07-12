@@ -22,11 +22,11 @@ describe('DateUtils', () => {
     it('returns date in YYYY-MM-DD format', () => {
       // Mock Date to return a fixed date
       const mockDate = new Date(2025, 2, 20); // March 20, 2025 (TEST_DATE)
-      const originalDate = globalThis.Date;
+      const originalDate = Date;
       globalThis.Date = jest.fn(() => mockDate) as unknown as DateConstructor;
-      globalThis.Date.UTC = originalDate.UTC;
-      globalThis.Date.parse = originalDate.parse;
-      globalThis.Date.now = originalDate.now;
+      Date.UTC = originalDate.UTC;
+      Date.parse = originalDate.parse;
+      Date.now = originalDate.now;
 
       // Test the function
       const result = getTodayDate();

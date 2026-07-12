@@ -64,7 +64,7 @@ export class FetchHttpClientImpl implements HttpClient {
     // Create a configured instance of ky
     this.kyInstance = ky.create({
       // Only set prefix if it's not empty, otherwise ky will throw an error
-      ...(prefixUrl ? { prefix: prefixUrl } : {}),
+      ...(prefixUrl && { prefix: prefixUrl }),
       timeout,
       headers,
       retry: 0, // Don't retry by default
@@ -132,30 +132,30 @@ export class FetchHttpClientImpl implements HttpClient {
   private buildSearchParams(
     options: HttpRequestOptions
   ): URLSearchParams | undefined {
-    let searchParams: URLSearchParams | undefined;
+    let searchParameters: URLSearchParams | undefined;
 
     if (options.query !== undefined &&
         typeof options.query === 'object' &&
         options.query !== null) {
-      searchParams = new URLSearchParams();
+      searchParameters = new URLSearchParams();
       for (const [key, value] of Object.entries(options.query)) {
         if (value !== null && value !== undefined) {
-          searchParams.append(key, String(value));
+          searchParameters.append(key, String(value));
         }
       }
     } else if (typeof options.param === 'string' ||
         typeof options.param === 'number' ||
         typeof options.param === 'boolean') {
-      searchParams = new URLSearchParams();
-      searchParams.append('param', String(options.param));
+      searchParameters = new URLSearchParams();
+      searchParameters.append('param', String(options.param));
     }
 
     if (typeof options.token === 'string') {
-      searchParams ??= new URLSearchParams();
-      searchParams.append('token', options.token);
+      searchParameters ??= new URLSearchParams();
+      searchParameters.append('token', options.token);
     }
 
-    return searchParams;
+    return searchParameters;
   }
 
   /**
@@ -169,34 +169,6 @@ export class FetchHttpClientImpl implements HttpClient {
       return url.slice(1);
     }
     return url;
-  }
-
-  /**
-   * Make a GET request
-   * @param url The URL to request
-   * @param options Optional request options
-   * @param schema Optional schema for validation
-   * @returns Promise resolving to the response
-   */
-  async get<T>(
-    url: string,
-    options?: HttpRequestOptions,
-    schema?: z.ZodType
-  ): Promise<HttpResponse<T>> {
-    try {
-      if (this.isTestEnvironment) {
-        this.handleTestGet(url, options);
-      }
-
-      const kyOptions = this.convertOptions(options);
-      const normalizedUrl = this.normalizeUrl(url);
-      const response = await this.kyInstance.get(normalizedUrl, kyOptions);
-
-      return await this.buildResponse<T>(response, schema);
-    } catch (error) {
-      this.logRequestError(error, url, 'GET', { options });
-      throw this.ensureError(error, 'GET');
-    }
   }
 
   /** Test-only stubs for GET requests */
@@ -245,10 +217,7 @@ export class FetchHttpClientImpl implements HttpClient {
   ): Promise<HttpResponse<T>> {
     const responseData = await this.parseResponseBody(response);
 
-    const headers: Record<string, string> = {};
-    for (const [key, value] of response.headers.entries()) {
-      headers[key] = value;
-    }
+    const headers: Record<string, string> = Object.fromEntries(response.headers.entries());
 
     const data: T = schema
       ? schema.parse(responseData) as T
@@ -297,6 +266,34 @@ export class FetchHttpClientImpl implements HttpClient {
       return error;
     }
     return new Error(`${method} request failed: ${String(error)}`, { cause: error });
+  }
+
+  /**
+   * Make a GET request
+   * @param url The URL to request
+   * @param options Optional request options
+   * @param schema Optional schema for validation
+   * @returns Promise resolving to the response
+   */
+  async get<T>(
+    url: string,
+    options?: HttpRequestOptions,
+    schema?: z.ZodType
+  ): Promise<HttpResponse<T>> {
+    try {
+      if (this.isTestEnvironment) {
+        this.handleTestGet(url, options);
+      }
+
+      const kyOptions = this.convertOptions(options);
+      const normalizedUrl = this.normalizeUrl(url);
+      const response = await this.kyInstance.get(normalizedUrl, kyOptions);
+
+      return await this.buildResponse<T>(response, schema);
+    } catch (error) {
+      this.logRequestError(error, url, 'GET', { options });
+      throw this.ensureError(error, 'GET');
+    }
   }
 
   /**

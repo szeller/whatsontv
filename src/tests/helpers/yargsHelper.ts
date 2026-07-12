@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals';
 import type { Arguments } from 'yargs';
 
-import type { CliArgs } from '../../types/cliArgs.js';
+import type { CliArgs as CliArguments } from '../../types/cliArgs.js';
 import { getTodayDate } from '../../utils/dateUtils.js';
 
 interface YargsOptions {
@@ -15,7 +15,7 @@ interface YargsCommand {
   command: string;
   describe?: string;
   builder?: Record<string, YargsOptions>;
-  handler?: (args: Arguments) => void | Promise<void>;
+  handler?: (arguments_: Arguments) => void | Promise<void>;
 }
 
 export interface MockYargsInstance {
@@ -28,7 +28,7 @@ export interface MockYargsInstance {
 }
 
 // Only include properties that exist in the CliArgs interface
-const defaultArgs: CliArgs & Record<string, unknown> = {
+const defaultArguments: CliArguments & Record<string, unknown> = {
   date: getTodayDate(),
   country: 'US',
   types: [],
@@ -97,13 +97,13 @@ export function createMockYargs(): MockYargsInstance {
   };
 
   // Store command handlers
-  const commandHandlers: Record<string, (args: Arguments) => void | Promise<void>> = {};
+  const commandHandlers: Record<string, (arguments_: Arguments) => void | Promise<void>> = {};
 
   // Mock command implementation
-  mockCommand.mockImplementation((cmd: unknown): MockYargsInstance => {
-    if (typeof cmd === 'string' || isYargsCommand(cmd)) {
-      if (isYargsCommand(cmd)) {
-        const { command, builder, handler } = cmd;
+  mockCommand.mockImplementation((command_: unknown): MockYargsInstance => {
+    if (typeof command_ === 'string' || isYargsCommand(command_)) {
+      if (isYargsCommand(command_)) {
+        const { command, builder, handler } = command_;
         if (builder) {
           currentOptions = { ...currentOptions, ...builder };
         }
@@ -117,24 +117,24 @@ export function createMockYargs(): MockYargsInstance {
   });
 
   // Mock parse implementation
-  mockParse.mockImplementation((args: unknown): Record<string, unknown> => {
-    if (!isStringArray(args)) {
+  mockParse.mockImplementation((arguments_: unknown): Record<string, unknown> => {
+    if (!isStringArray(arguments_)) {
       throw new TypeError('Parse expects string array argument');
     }
 
-    const parsedArgs: Record<string, unknown> = { ...defaultArgs };
-    parseArgs(args, currentOptions, parsedArgs);
-    applyDefaults(currentOptions, parsedArgs);
+    const parsedArguments: Record<string, unknown> = { ...defaultArguments };
+    parseArguments(arguments_, currentOptions, parsedArguments);
+    applyDefaults(currentOptions, parsedArguments);
 
-    return parsedArgs;
+    return parsedArguments;
   });
 
   // Mock options implementation
-  mockOptions.mockImplementation((opts: unknown): MockYargsInstance => {
-    if (!isOptionsObject(opts)) {
+  mockOptions.mockImplementation((options: unknown): MockYargsInstance => {
+    if (!isOptionsObject(options)) {
       throw new TypeError('Options expects options object argument');
     }
-    currentOptions = { ...currentOptions, ...opts };
+    currentOptions = { ...currentOptions, ...options };
     return mockYargs;
   });
 
@@ -154,55 +154,55 @@ export function createMockYargs(): MockYargsInstance {
 
 /** Set a parsed value and its alias if present */
 function setWithAlias(
-  parsedArgs: Record<string, unknown>,
+  parsedArguments: Record<string, unknown>,
   key: string, value: unknown,
   option: YargsOptions
 ): void {
-  parsedArgs[key] = value;
+  parsedArguments[key] = value;
   if (option.alias !== undefined && option.alias !== '') {
-    parsedArgs[option.alias] = value;
+    parsedArguments[option.alias] = value;
   }
 }
 
 /** Parse a non-boolean argument, returning how many args were consumed */
-function parseValueArg(
-  args: string[], index: number,
+function parseValueArgument(
+  arguments_: string[], index: number,
   key: string, option: YargsOptions,
-  parsedArgs: Record<string, unknown>
+  parsedArguments: Record<string, unknown>
 ): number {
-  const value: string = args[index + 1];
+  const value: string = arguments_[index + 1];
   if (option.type === 'array' && value !== '') {
-    setWithAlias(parsedArgs, key, [value], option);
+    setWithAlias(parsedArguments, key, [value], option);
     return 1;
   }
   if (value !== '' && !value.startsWith('--')) {
-    setWithAlias(parsedArgs, key, value, option);
+    setWithAlias(parsedArguments, key, value, option);
     return 1;
   }
   return 0;
 }
 
 /** Parse CLI args into parsedArgs using the registered options */
-function parseArgs(
-  args: string[],
+function parseArguments(
+  arguments_: string[],
   options: Record<string, YargsOptions>,
-  parsedArgs: Record<string, unknown>
+  parsedArguments: Record<string, unknown>
 ): void {
-  for (let i = 0; i < args.length; i++) {
-    const arg: string = args[i];
-    if (!arg.startsWith('--')) {
+  for (let index = 0; index < arguments_.length; index++) {
+    const argument: string = arguments_[index];
+    if (!argument.startsWith('--')) {
       continue;
     }
-    const key: string = arg.slice(2);
+    const key: string = argument.slice(2);
     const option = options[key];
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (option === undefined) {
       continue;
     }
     if (option.type === 'boolean') {
-      setWithAlias(parsedArgs, key, true, option);
+      setWithAlias(parsedArguments, key, true, option);
     } else {
-      i += parseValueArg(args, i, key, option, parsedArgs);
+      index += parseValueArgument(arguments_, index, key, option, parsedArguments);
     }
   }
 }
@@ -210,11 +210,11 @@ function parseArgs(
 /** Apply default values for any options not yet set */
 function applyDefaults(
   options: Record<string, YargsOptions>,
-  parsedArgs: Record<string, unknown>
+  parsedArguments: Record<string, unknown>
 ): void {
   for (const [key, option] of Object.entries(options)) {
-    if (option.default !== undefined && parsedArgs[key] === undefined) {
-      setWithAlias(parsedArgs, key, option.default, option);
+    if (option.default !== undefined && parsedArguments[key] === undefined) {
+      setWithAlias(parsedArguments, key, option.default, option);
     }
   }
 }

@@ -100,18 +100,20 @@ describe('SlackOutputServiceImpl', () => {
       // Should send a single combined message with header and content
       expect(mockSlackClient.sendMessage).toHaveBeenCalledTimes(1);
 
+      // First block is the date header
+      const dateHeaderMatcher = expect.objectContaining({
+        type: 'header',
+        text: expect.objectContaining({
+          text: expect.stringContaining(TV_SHOWS_FOR)
+        })
+      });
+
       // Message should include both date header block and content blocks
       expect(mockSlackClient.sendMessage).toHaveBeenCalledWith({
         channel: MOCK_CHANNEL,
         text: expect.stringContaining(TV_SHOWS_FOR),
         blocks: [
-          // First block is the date header
-          expect.objectContaining({
-            type: 'header',
-            text: expect.objectContaining({
-              text: expect.stringContaining(TV_SHOWS_FOR)
-            })
-          }),
+          dateHeaderMatcher,
           // Remaining blocks are the formatted content
           ...mockBlocks
         ]
@@ -178,18 +180,20 @@ describe('SlackOutputServiceImpl', () => {
       // Should send a single combined message with header and content
       expect(mockSlackClient.sendMessage).toHaveBeenCalledTimes(1);
 
+      // First block is the date header
+      const dateHeaderMatcher = expect.objectContaining({
+        type: 'header',
+        text: expect.objectContaining({
+          text: expect.stringContaining(TV_SHOWS_FOR)
+        })
+      });
+
       // Message should include both date header block and content blocks
       expect(mockSlackClient.sendMessage).toHaveBeenCalledWith({
         channel: MOCK_CHANNEL,
         text: expect.stringContaining(TV_SHOWS_FOR),
         blocks: [
-          // First block is the date header
-          expect.objectContaining({
-            type: 'header',
-            text: expect.objectContaining({
-              text: expect.stringContaining(TV_SHOWS_FOR)
-            })
-          }),
+          dateHeaderMatcher,
           // Remaining blocks are the formatted content
           ...emptyBlocks
         ]

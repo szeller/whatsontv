@@ -125,11 +125,11 @@ describe('stringUtils', () => {
     });
 
     it('should narrow type correctly', () => {
-      const arr: string[] | null = ['test'];
-      if (hasElements(arr)) {
+      const array: string[] | null = ['test'];
+      if (hasElements(array)) {
         // TypeScript should know arr is string[] here
-        expect(arr).toHaveLength(1);
-        expect(arr[0].toUpperCase()).toBe('TEST');
+        expect(array).toHaveLength(1);
+        expect(array[0].toUpperCase()).toBe('TEST');
       }
     });
   });

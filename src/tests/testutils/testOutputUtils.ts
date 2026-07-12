@@ -59,9 +59,9 @@ export function containsNetworkHeading(output: string): boolean {
   // Look for network heading patterns like "CBS (US):" followed by a line of dashes
   const lines = cleanOutput.split('\n');
   
-  for (let i = 0; i < lines.length - 1; i++) {
-    const currentLine = lines[i].trim();
-    const nextLine = lines[i + 1].trim();
+  for (let index = 0; index < lines.length - 1; index++) {
+    const currentLine = lines[index].trim();
+    const nextLine = lines[index + 1].trim();
     
     // Network headings end with a colon and the next line is all dashes
     if (currentLine.endsWith(':') && /^-+$/.test(nextLine)) {
@@ -85,9 +85,9 @@ export function countNetworkHeadings(output: string): number {
   const lines = cleanOutput.split('\n');
   let count = 0;
   
-  for (let i = 0; i < lines.length - 1; i++) {
-    const currentLine = lines[i].trim();
-    const nextLine = lines[i + 1].trim();
+  for (let index = 0; index < lines.length - 1; index++) {
+    const currentLine = lines[index].trim();
+    const nextLine = lines[index + 1].trim();
     
     // Network headings end with a colon and the next line is all dashes
     if (currentLine.endsWith(':') && /^-+$/.test(nextLine)) {

@@ -257,7 +257,7 @@ describe('TVMaze Utils', () => {
         };
         
         // Set NODE_ENV to production to ensure console.error is called
-        const originalNodeEnv = process.env.NODE_ENV;
+        const originalNodeEnvironment = process.env.NODE_ENV;
         process.env.NODE_ENV = 'production';
         
         // Act - this should not throw but return null
@@ -268,7 +268,7 @@ describe('TVMaze Utils', () => {
         expect(consoleErrorMock).toHaveBeenCalled();
         
         // Restore NODE_ENV
-        process.env.NODE_ENV = originalNodeEnv;
+        process.env.NODE_ENV = originalNodeEnvironment;
       } finally {
         // Restore the original console.error
         consoleErrorMock.mockRestore();

@@ -87,7 +87,7 @@ export function generateDebugInfo(shows: Show[], date: Date): {
   
   return {
     dateFormatted: formatDate(date),
-    networks: [...uniqueNetworks].sort(),
+    networks: [...uniqueNetworks].sort((a, b) => a.localeCompare(b)),
     totalShows: shows.length
   };
 }

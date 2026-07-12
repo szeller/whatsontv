@@ -26,7 +26,7 @@ export function createMockHttpClient(): HttpClient {
   const mockClient = {
     get: async function<T>(
       _url: string,
-      _params?: Record<string, string> | { searchParams: Record<string, string> }
+      _parameters?: Record<string, string> | { searchParams: Record<string, string> }
     ): Promise<HttpResponse<T>> {
       return {
         data: [] as unknown as T,
@@ -37,7 +37,7 @@ export function createMockHttpClient(): HttpClient {
     post: async function<T, D = unknown>(
       _url: string,
       _data?: D,
-      _params?: Record<string, string>
+      _parameters?: Record<string, string>
     ): Promise<HttpResponse<T>> {
       return {
         data: {} as T,

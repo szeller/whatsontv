@@ -134,10 +134,9 @@ export function prepareShowComponents(
   const type = formatShowType(show.type, typeLabel);
   const episode = formatEpisodeInfo(show);
   
-  let airtime = 'No airtime';
-  if (options.includeAirtime && hasAirtime(show)) {
-    airtime = formatTimeWithPeriod(show.airtime);
-  }
+  const airtime = options.includeAirtime && hasAirtime(show)
+    ? formatTimeWithPeriod(show.airtime)
+    : 'No airtime';
   
   return {
     name,

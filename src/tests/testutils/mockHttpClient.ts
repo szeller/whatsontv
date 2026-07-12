@@ -22,14 +22,14 @@ export class MockHttpClient implements HttpClient {
    * Jest mock functions for direct control in tests
    */
   public getMock = jest.fn<
-    (url: string, params?: Record<string, string>) => Promise<HttpResponse<unknown>>
+    (url: string, parameters?: Record<string, string>) => Promise<HttpResponse<unknown>>
   >();
   
   public postMock = jest.fn<
     (
       url: string, 
       data?: unknown, 
-      params?: Record<string, string>
+      parameters?: Record<string, string>
     ) => Promise<HttpResponse<unknown>>
   >();
   
@@ -37,6 +37,19 @@ export class MockHttpClient implements HttpClient {
    * Tracks the last URL that was requested
    */
   public lastUrl = '';
+
+  /**
+   * Track a request to a URL
+   * @param url The URL being requested
+   */
+  private trackRequest(url: string): void {
+    this.lastUrl = url;
+    this.requests.push(url);
+
+    // Get current count and increment
+    const currentCount = this.requestCounts.get(url) ?? 0;
+    this.requestCounts.set(url, currentCount + 1);
+  }
 
   /**
    * Set up a mock GET response
@@ -150,19 +163,6 @@ export class MockHttpClient implements HttpClient {
     this.lastUrl = '';
     this.getMock.mockReset();
     this.postMock.mockReset();
-  }
-
-  /**
-   * Track a request to a URL
-   * @param url The URL being requested
-   */
-  private trackRequest(url: string): void {
-    this.lastUrl = url;
-    this.requests.push(url);
-    
-    // Get current count and increment
-    const currentCount = this.requestCounts.get(url) ?? 0;
-    this.requestCounts.set(url, currentCount + 1);
   }
 
   /**

@@ -19,22 +19,22 @@ export function createMockConsole(): ProcessOutput & { getOutput: () => string[]
         output.push(message);
       }
     },
-    error: (message?: string, ...args: unknown[]): void => {
+    error: (message?: string, ...arguments_: unknown[]): void => {
       if (message !== undefined) {
-        output.push(`ERROR: ${message} ${args.join(' ')}`);
+        output.push(`ERROR: ${message} ${arguments_.join(' ')}`);
       }
     },
-    warn: (message?: string, ...args: unknown[]): void => {
+    warn: (message?: string, ...arguments_: unknown[]): void => {
       if (message !== undefined) {
-        output.push(`WARN: ${message} ${args.join(' ')}`);
+        output.push(`WARN: ${message} ${arguments_.join(' ')}`);
       }
     },
-    logWithLevel: (level: 'log' | 'error', message?: string, ...args: unknown[]): void => {
+    logWithLevel: (level: 'log' | 'error', message?: string, ...arguments_: unknown[]): void => {
       if (message !== undefined) {
         if (level === 'log') {
           output.push(message);
         } else {
-          output.push(`ERROR: ${message} ${args.join(' ')}`);
+          output.push(`ERROR: ${message} ${arguments_.join(' ')}`);
         }
       }
     },

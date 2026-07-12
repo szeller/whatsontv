@@ -42,27 +42,6 @@ export class PinoLoggerServiceImpl implements LoggerService {
     });
   }
 
-  info(contextOrMessage: Record<string, unknown> | string, message?: string): void {
-    logMessage(this.logger, 'info', contextOrMessage, message);
-  }
-
-  warn(contextOrMessage: Record<string, unknown> | string, message?: string): void {
-    logMessage(this.logger, 'warn', contextOrMessage, message);
-  }
-
-  error(contextOrMessage: Record<string, unknown> | string, message?: string): void {
-    logMessage(this.logger, 'error', contextOrMessage, message);
-  }
-
-  debug(contextOrMessage: Record<string, unknown> | string, message?: string): void {
-    logMessage(this.logger, 'debug', contextOrMessage, message);
-  }
-
-  child(context: Record<string, unknown>): LoggerService {
-    const childLogger = this.logger.child(context);
-    return new PinoLoggerServiceWrapper(childLogger);
-  }
-
   private getLogLevel(): string {
     const level = process.env.LOG_LEVEL?.toLowerCase();
     const validLevels = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'];
@@ -87,6 +66,27 @@ export class PinoLoggerServiceImpl implements LoggerService {
       return 'warn';
     }
     }
+  }
+
+  info(contextOrMessage: Record<string, unknown> | string, message?: string): void {
+    logMessage(this.logger, 'info', contextOrMessage, message);
+  }
+
+  warn(contextOrMessage: Record<string, unknown> | string, message?: string): void {
+    logMessage(this.logger, 'warn', contextOrMessage, message);
+  }
+
+  error(contextOrMessage: Record<string, unknown> | string, message?: string): void {
+    logMessage(this.logger, 'error', contextOrMessage, message);
+  }
+
+  debug(contextOrMessage: Record<string, unknown> | string, message?: string): void {
+    logMessage(this.logger, 'debug', contextOrMessage, message);
+  }
+
+  child(context: Record<string, unknown>): LoggerService {
+    const childLogger = this.logger.child(context);
+    return new PinoLoggerServiceWrapper(childLogger);
   }
 }
 
